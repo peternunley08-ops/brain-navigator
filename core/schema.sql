@@ -202,3 +202,25 @@ create table if not exists sleep_ambient_checks (
 
 alter table sleep_ambient_checks enable row level security;
 create policy "anon full access" on sleep_ambient_checks for all using (true) with check (true);
+
+-- Phase 17 — Realtime on the Topography graph (entities + catalysts).
+-- Realtime publication is separate from RLS: a table can be fully anon-
+-- readable and still emit zero postgres_changes events until it's added
+-- here. `alter publication ... add table` errors on a table that's already
+-- a member, so this guards each add to stay safe to re-run.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'entities'
+  ) then
+    alter publication supabase_realtime add table entities;
+  end if;
+
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'catalysts'
+  ) then
+    alter publication supabase_realtime add table catalysts;
+  end if;
+end $$;
