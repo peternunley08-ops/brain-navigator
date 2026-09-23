@@ -224,3 +224,22 @@ begin
     alter publication supabase_realtime add table catalysts;
   end if;
 end $$;
+
+-- Phase 18 — Storage bucket policy hardening (security audit fix).
+-- The Phase 15 policies granted anon insert/select/delete on the whole
+-- bucket. The app only ever uploads to `entries/<id>/...` and reads via
+-- getPublicUrl() — it never calls storage.remove(), so the delete policy
+-- was unused attack surface (anyone holding the anon key could wipe every
+-- image with zero functional benefit to the app). Fix: drop delete
+-- entirely, and scope insert/select to the entries/ prefix the app
+-- actually writes to, so a leaked anon key can't be used to dump or read
+-- arbitrary unrelated files in this bucket.
+drop policy if exists "anon insert snapshot images" on storage.objects;
+drop policy if exists "anon read snapshot images" on storage.objects;
+drop policy if exists "anon delete snapshot images" on storage.objects;
+
+create policy "anon insert snapshot images (entries only)" on storage.objects for insert
+to anon with check (bucket_id = 'snapshot-images' and name like 'entries/%');
+
+create policy "anon read snapshot images (entries only)" on storage.objects for select
+to anon using (bucket_id = 'snapshot-images' and name like 'entries/%');
