@@ -167,6 +167,11 @@ export default function LanternDesk() {
               variant="pill"
               onPress={() => router.push('/science')}
             />
+            <Button
+              label="Let It Out"
+              variant="pill"
+              onPress={() => router.push('/vent')}
+            />
           </View>
         </LinearGradient>
       </ScrollView>

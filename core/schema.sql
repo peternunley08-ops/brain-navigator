@@ -243,3 +243,18 @@ to anon with check (bucket_id = 'snapshot-images' and name like 'entries/%');
 
 create policy "anon read snapshot images (entries only)" on storage.objects for select
 to anon using (bucket_id = 'snapshot-images' and name like 'entries/%');
+
+-- Phase 19 — Venting page. A low-friction outlet, separate from the
+-- structured cognitive_state entries: no valence/intensity/state required,
+-- just what you said, spoken (on-device transcription, audio itself is
+-- never saved — only the resulting text) or typed. Same wide-open anon
+-- policy as every other table above; no user_id/auth.users.
+create table if not exists vent_entries (
+  id uuid primary key default gen_random_uuid(),
+  content text not null,
+  input_mode text not null check (input_mode in ('voice', 'type')),
+  created_at timestamptz not null default now()
+);
+
+alter table vent_entries enable row level security;
+create policy "anon full access" on vent_entries for all using (true) with check (true);
