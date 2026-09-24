@@ -46,7 +46,7 @@ export function TaskTimer({ budgetMinutes }: TaskTimerProps) {
   return (
     <Pressable onPress={() => setRunning((r) => !r)} style={[styles.badge, { borderColor: color }]}>
       <Text style={[styles.text, { color }]}>{formatClock(remaining)}</Text>
-      <Text style={styles.label}>{running ? 'PAUSE' : remaining === budgetSeconds ? 'START' : 'RESUME'}</Text>
+      <Text style={styles.label}>{running ? 'Pause' : remaining === budgetSeconds ? 'Start' : 'Resume'}</Text>
     </Pressable>
   );
 }

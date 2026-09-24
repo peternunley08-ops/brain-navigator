@@ -104,10 +104,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lantern,
   },
   actionText: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.leather,
   },
   errorText: {

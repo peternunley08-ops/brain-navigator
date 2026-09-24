@@ -168,10 +168,9 @@ function HabitRow({ habit }: { habit: Habit }) {
       <View style={styles.habitInfo}>
         <Text style={styles.habitName}>{habit.name}</Text>
         <Text style={styles.habitMeta}>
-          {dimensionLabel(habit.category)} ·{' '}
           {habit.frequency === 'daily'
-            ? streakLabel
-            : `${streakLabel} · ${weekProgress}/${habit.target_per_week} this week`}
+            ? `${dimensionLabel(habit.category)}, ${streakLabel}`
+            : `${dimensionLabel(habit.category)}, ${streakLabel} (${weekProgress}/${habit.target_per_week} this week)`}
         </Text>
       </View>
       <View style={styles.habitActions}>
@@ -217,11 +216,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   heroCard: {
     flexDirection: 'row',
@@ -275,10 +272,8 @@ const styles = StyleSheet.create({
     borderColor: colors.leather,
   },
   frequencyChipText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkMuted,
   },
   frequencyChipTextActive: {
@@ -302,10 +297,8 @@ const styles = StyleSheet.create({
     borderColor: colors.leatherDark,
   },
   categoryChipText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkMuted,
   },
   categoryChipTextActive: {
@@ -339,8 +332,8 @@ const styles = StyleSheet.create({
   },
   habitMeta: {
     marginTop: 2,
-    fontFamily: fonts.mono,
-    fontSize: 11,
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkFaint,
   },
   habitActions: {
@@ -367,10 +360,8 @@ const styles = StyleSheet.create({
     color: colors.background,
   },
   removeText: {
-    fontFamily: fonts.mono,
-    fontSize: 9,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 12,
     color: colors.danger,
   },
   hint: {

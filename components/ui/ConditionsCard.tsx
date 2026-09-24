@@ -77,7 +77,7 @@ export function ConditionsCard() {
           <SurfStat label="Swell" value={swellHeightFt !== null ? `${swellHeightFt.toFixed(1)}ft` : '—'} />
         </View>
       ) : (
-        <Text style={styles.noSurfText}>No surf data — not close enough to the coast.</Text>
+        <Text style={styles.noSurfText}>Not close enough to the coast for surf data.</Text>
       )}
     </Card>
   );
@@ -130,17 +130,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   locationText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.display,
+    fontSize: 16,
+    color: colors.ink,
   },
   refreshText: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 12,
     color: colors.leather,
   },
   weatherRow: {

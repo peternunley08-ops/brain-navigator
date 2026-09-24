@@ -92,7 +92,7 @@ export default function TasksScreen() {
 
           {weekCompletions.some((d) => (d.value ?? 0) > 0) ? (
             <Card style={styles.weekCard}>
-              <Text style={styles.weekLabel}>Completed This Week</Text>
+              <Text style={styles.weekLabel}>Completed this week</Text>
               <LollipopChart
                 data={weekCompletions}
                 maxValue={Math.max(1, ...weekCompletions.map((d) => d.value ?? 0))}
@@ -245,11 +245,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   meterCard: {
     alignItems: 'center',
@@ -263,11 +261,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   capLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   capStepper: {
     flexDirection: 'row',
@@ -303,11 +299,9 @@ const styles = StyleSheet.create({
   weekLabel: {
     alignSelf: 'flex-start',
     marginBottom: spacing.sm,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.display,
+    fontSize: 17,
+    color: colors.ink,
   },
   addCard: {
     marginTop: spacing.lg,
@@ -345,10 +339,8 @@ const styles = StyleSheet.create({
     borderColor: colors.leather,
   },
   categoryChipText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkMuted,
   },
   categoryChipTextActive: {
@@ -381,10 +373,8 @@ const styles = StyleSheet.create({
     borderColor: colors.leather,
   },
   filterChipText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkMuted,
   },
   filterChipTextActive: {
@@ -438,15 +428,11 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: fonts.mono,
     fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
     color: colors.inkFaint,
   },
   removeText: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 12,
     color: colors.danger,
   },
   hint: {

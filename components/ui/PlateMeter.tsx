@@ -77,8 +77,6 @@ const styles = StyleSheet.create({
   },
   status: {
     fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontSize: 11,
   },
 });

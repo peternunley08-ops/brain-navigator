@@ -74,7 +74,7 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
 
       <View style={styles.divider} />
 
-      <Text style={styles.sectionLabel}>Ambient Check</Text>
+      <Text style={styles.sectionLabel}>Ambient check</Text>
       <AmbientMicMeter
         onComplete={({ peakLevel, averageLevel, durationSeconds }) =>
           saveCheck({
@@ -105,11 +105,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.45)',
   },
   label: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.ink,
   },
   score: {
     marginTop: 4,
@@ -145,11 +143,9 @@ const styles = StyleSheet.create({
     marginVertical: spacing.md,
   },
   sectionLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.inkMuted,
     marginBottom: spacing.xs,
   },
   historyList: {

@@ -101,7 +101,7 @@ export default function CheckinScreen() {
 
           <Text style={styles.title}>{greeting()}</Text>
           <Text style={styles.subtitle}>
-            {DATE_LABEL} · {existing ? 'checked in — edit below' : 'how are you doing right now?'}
+            {DATE_LABEL}. {existing ? "You can still edit today's check-in." : 'How are you doing right now?'}
           </Text>
 
           <Card style={styles.glanceCard}>
@@ -140,7 +140,7 @@ export default function CheckinScreen() {
             />
             {isHealthAuthorized && healthSleepHours !== null ? (
               <Pressable onPress={() => setSleepHours(String(healthSleepHours))} hitSlop={6}>
-                <Text style={styles.importText}>Import {healthSleepHours}h from Health ▾</Text>
+                <Text style={styles.importText}>Use {healthSleepHours}h from Health</Text>
               </Pressable>
             ) : null}
 
@@ -247,11 +247,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   glanceCard: {
     flexDirection: 'row',
@@ -278,11 +276,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.display,
+    fontSize: 17,
+    color: colors.ink,
     marginBottom: spacing.sm,
   },
   fieldLabelSpaced: {
@@ -305,9 +301,8 @@ const styles = StyleSheet.create({
   },
   importText: {
     marginTop: spacing.xs,
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.leather,
   },
   saveButton: {

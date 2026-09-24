@@ -12,7 +12,7 @@ export function ScienceNote({ fact }: ScienceNoteProps) {
   return (
     <View style={styles.wrap}>
       <Pressable onPress={() => setOpen((o) => !o)} hitSlop={6}>
-        <Text style={styles.toggle}>{open ? 'HIDE THE SCIENCE ▲' : 'WHY? ▾'}</Text>
+        <Text style={styles.toggle}>{open ? 'Hide the science' : 'Why?'}</Text>
       </Pressable>
       {open ? <Text style={styles.fact}>{fact}</Text> : null}
     </View>
@@ -24,9 +24,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   toggle: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.leather,
   },
   fact: {

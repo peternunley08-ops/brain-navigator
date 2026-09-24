@@ -97,7 +97,7 @@ export default function NutritionScreen() {
           </Card>
 
           <Card style={styles.goalsCard}>
-            <Text style={styles.sectionLabel}>Daily Goals</Text>
+            <Text style={styles.sectionLabel}>Daily goals</Text>
             {GOAL_STEPS.map((g) => (
               <View key={g.key} style={styles.goalRow}>
                 <Text style={styles.goalLabel}>{g.label}</Text>
@@ -212,8 +212,8 @@ function FoodRow({ entry }: { entry: FoodLog }) {
       <View style={styles.foodInfo}>
         <Text style={styles.foodName}>{entry.name}</Text>
         <Text style={styles.foodMeta}>
-          {Math.round(entry.calories)} cal · P{Math.round(entry.protein_g)} C{Math.round(entry.carbs_g)} F
-          {Math.round(entry.fat_g)}
+          {Math.round(entry.calories)} cal, {Math.round(entry.protein_g)}g protein,{' '}
+          {Math.round(entry.carbs_g)}g carbs, {Math.round(entry.fat_g)}g fat
         </Text>
       </View>
       <Pressable onPress={() => deleteEntry(entry.id)} hitSlop={8}>
@@ -251,11 +251,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   glanceCard: {
     marginBottom: spacing.md,
@@ -297,11 +295,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   sectionLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.display,
+    fontSize: 17,
+    color: colors.ink,
     marginBottom: spacing.xs,
   },
   goalRow: {
@@ -390,15 +386,13 @@ const styles = StyleSheet.create({
   },
   foodMeta: {
     marginTop: 2,
-    fontFamily: fonts.mono,
-    fontSize: 11,
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkFaint,
   },
   removeText: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 12,
     color: colors.danger,
   },
   hint: {

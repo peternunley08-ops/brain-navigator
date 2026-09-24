@@ -127,7 +127,7 @@ export default function HealthScreen() {
 
               {stepsWeek.length > 0 ? (
                 <Card style={styles.sectionCard}>
-                  <Text style={styles.sectionLabel}>Steps This Week</Text>
+                  <Text style={styles.cardHeading}>Steps this week</Text>
                   <LollipopChart
                     data={stepsWeek}
                     maxValue={stepsWeekMax}
@@ -139,7 +139,7 @@ export default function HealthScreen() {
               ) : null}
 
               <Card style={styles.addCard}>
-                <Text style={styles.addLabel}>Log Mindful Minutes</Text>
+                <Text style={styles.cardHeading}>Log mindful minutes</Text>
                 <View style={styles.durationRow}>
                   {DURATIONS.map((d) => {
                     const active = duration === d;
@@ -213,11 +213,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   connectCard: {
     padding: spacing.lg,
@@ -274,24 +272,15 @@ const styles = StyleSheet.create({
   sectionCard: {
     marginTop: spacing.lg,
   },
-  sectionLabel: {
+  cardHeading: {
     marginBottom: spacing.md,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.display,
+    fontSize: 17,
+    color: colors.ink,
   },
   addCard: {
     marginTop: spacing.lg,
     gap: spacing.sm,
-  },
-  addLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
   },
   durationRow: {
     flexDirection: 'row',
@@ -310,10 +299,8 @@ const styles = StyleSheet.create({
     borderColor: colors.leather,
   },
   durationChipText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkMuted,
   },
   durationChipTextActive: {
