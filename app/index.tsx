@@ -91,7 +91,7 @@ export default function LanternDesk() {
       >
         {/* PAST: Root Map */}
         <LinearGradient colors={gradients.quiet} style={styles.section}>
-          <Text style={styles.label}>Root Map</Text>
+          <Text style={styles.sectionTitle}>Root Map</Text>
           {isLoadingHistory ? (
             <Text style={styles.hint}>Loading…</Text>
           ) : history.length === 0 ? (
@@ -107,7 +107,9 @@ export default function LanternDesk() {
                     <View
                       style={[styles.stateDot, { backgroundColor: stateColor(entry.state) }]}
                     />
-                    <Text style={styles.historyState}>{entry.state}</Text>
+                    <Text style={[styles.historyState, { color: stateColor(entry.state) }]}>
+                      {entry.state}
+                    </Text>
                     <Text style={styles.historyMood} numberOfLines={1}>
                       {entry.mood || '—'}
                     </Text>
@@ -134,7 +136,7 @@ export default function LanternDesk() {
         {/* FUTURE: Sanctuary */}
         <LinearGradient colors={gradients.dusk} style={styles.section}>
           <Animated.View style={[styles.sanctuaryGlow, { opacity: breath }]} />
-          <Text style={styles.label}>Sanctuary</Text>
+          <Text style={styles.sectionTitle}>Sanctuary</Text>
 
           {history.length === 0 ? (
             <Text style={styles.hint}>Nothing to reflect on yet</Text>
@@ -148,7 +150,7 @@ export default function LanternDesk() {
 
           <Pressable onPress={() => router.push('/wellness')} style={styles.wheelPressable}>
             <WellnessWheel scores={wellnessScores} size={180} showLabels={false} />
-            <Text style={styles.wheelHint}>The Wellness Wheel — tap to open</Text>
+            <Text style={styles.wheelHint}>Tap the wheel to open it</Text>
           </Pressable>
 
           <View style={styles.sanctuaryButtonRow}>
@@ -263,18 +265,14 @@ const styles = StyleSheet.create({
   },
   wheelHint: {
     marginTop: spacing.sm,
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkFaint,
   },
-  label: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 3,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+  sectionTitle: {
+    fontFamily: fonts.displaySoft,
+    fontSize: 22,
+    color: colors.ink,
   },
   hint: {
     marginTop: spacing.sm,

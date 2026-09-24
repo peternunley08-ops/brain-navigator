@@ -1,38 +1,49 @@
-// The Glasshouse Study — warm editorial design tokens.
-// Cream paper, leather, typewriter ink, lantern glow.
+// The Glasshouse Study — a field journal for the inner weather.
+// Aged vellum, fountain ink, brass and verdigris instrument fittings.
+// Revised 2026-09-23: moved off the near-default warm-cream-plus-terracotta
+// palette and the tracked-uppercase eyebrow label toward something specific
+// to this subject — see docs/todo.md for the reasoning.
 
 export const colors = {
-  background: '#F4EEE0',
-  backgroundAlt: '#EDE4CF',
-  backgroundDeep: '#E3D9BE',
+  background: '#EFE7D4',
+  backgroundAlt: '#E4D9BC',
+  backgroundDeep: '#D6C79F',
 
-  ink: '#3A3226',
-  inkMuted: '#6B5E48',
-  inkFaint: '#8A7A5C',
-  hint: '#B0A487',
-  divider: '#D8CCAE',
+  ink: '#21201C',
+  inkMuted: '#524C3E',
+  inkFaint: '#7A7259',
+  hint: '#A79C7C',
+  divider: '#D2C4A0',
 
-  leather: '#5B4636',
-  leatherDark: '#3A2C22',
+  // Instrument brass — the primary accent, replacing the old amber "lantern".
+  leather: '#8C6A2F',
+  leatherDark: '#5E4A21',
 
-  lantern: '#E8A33D',
-  lanternGlow: 'rgba(232, 163, 61, 0.25)',
+  // Kept as an alias so existing lantern-glow usages still resolve; now
+  // brass-toned rather than amber.
+  lantern: '#8C6A2F',
+  lanternGlow: 'rgba(140, 106, 47, 0.22)',
 
-  // cognitive_state labels
-  secured: '#4F7A5B',
-  shelved: '#8A7A5C',
-  unlocked: '#B3562E',
+  // Patinated copper — a second, cooler instrument tone.
+  verdigris: '#5B7268',
+  verdigrisGlow: 'rgba(91, 114, 104, 0.2)',
 
-  danger: '#B33A3A',
+  // cognitive_state labels — unlocked is the one deliberately saturated
+  // color in the whole palette, so it actually reads as a signal.
+  secured: '#5B7268',
+  shelved: '#7A7259',
+  unlocked: '#9C4A31',
+
+  danger: '#9C4A31',
 } as const;
 
-// Soft gradient washes — same warm palette, used behind key screens instead
-// of flat fills for a softer, more contemporary feel.
+// Soft gradient washes — same palette, used behind key screens instead of
+// flat fills for a softer, more contemporary feel.
 export const gradients = {
-  dawn: ['#F4EEE0', '#EFE2C8', '#E8CFA0'] as const, // cream into a warm lantern glow
-  dusk: ['#EDE4CF', '#E3D6B4', '#D8C299'] as const, // desk surface into deeper amber
-  quiet: ['#F4EEE0', '#E9DFC6', '#EDE4CF'] as const, // subtle, for calmer sections
-  night: ['#E3D9BE', '#D3C39D', '#BFA97D'] as const, // dimmer, moodier — late evening into night
+  dawn: ['#EFE7D4', '#E9DCB9', '#DFC896'] as const, // vellum into a brass glow
+  dusk: ['#E4D9BC', '#D8C89C', '#C9B382'] as const, // desk surface into deeper brass
+  quiet: ['#EFE7D4', '#E5D9B8', '#E4D9BC'] as const, // subtle, for calmer sections
+  night: ['#D6C79F', '#C4AE7D', '#AC9662'] as const, // dimmer, moodier — late evening into night
 } as const;
 
 export const fonts = {
