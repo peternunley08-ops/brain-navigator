@@ -7,7 +7,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.peternunley.brainnavigator"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,6 +21,50 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-splash-screen",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.68837917006-1cu6ef21le0r1ao9ile17im9ocpadegq"
+        }
+      ],
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "Brain Navigator reads your sleep, heart rate, and step data to fill in your daily check-in and reflect it on the Wellness Wheel.",
+          "NSHealthUpdateUsageDescription": "Brain Navigator writes mindful minutes sessions to Health when you log them in the app."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Brain Navigator uses your location to show live weather and surf conditions on Today."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Brain Navigator uses your microphone for the on-demand ambient noise check on the Health screen's Sleep Quality card."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Brain Navigator uses your photo library to attach a snapshot image to an entry."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Brain Navigator uses your microphone so you can speak a vent entry instead of typing it.",
+          "speechRecognitionPermission": "Brain Navigator converts your spoken vent entry to text on-device."
+        }
+      ]
+    ],
+    "scheme": "brainnavigator"
   }
 }
