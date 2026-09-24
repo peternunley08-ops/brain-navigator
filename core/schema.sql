@@ -258,3 +258,13 @@ create table if not exists vent_entries (
 
 alter table vent_entries enable row level security;
 create policy "anon full access" on vent_entries for all using (true) with check (true);
+
+-- Phase 20 — Companion flow (Ember, a cozy bear). A guided, no-AI check-in: fixed
+-- prompt pools in core/companionPrompts.ts, no language model, nothing sent
+-- to a third party — same on-device-only principle as the ambient mic check
+-- and the voice-vent path. Saves into the same vent_entries table as
+-- Let It Out, so history stays in one place; input_mode gains a third value
+-- to distinguish how an entry was made.
+alter table vent_entries drop constraint if exists vent_entries_input_mode_check;
+alter table vent_entries add constraint vent_entries_input_mode_check
+  check (input_mode in ('voice', 'type', 'companion'));

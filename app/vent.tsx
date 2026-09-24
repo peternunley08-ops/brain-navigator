@@ -230,7 +230,9 @@ export default function VentScreen() {
           ? history.map((entry) => (
               <View key={entry.id} style={styles.historyRow}>
                 <Text style={styles.historyDate}>
-                  {new Date(entry.created_at).toLocaleDateString()}
+                  {entry.input_mode === 'companion'
+                    ? `${new Date(entry.created_at).toLocaleDateString()}, with Ember`
+                    : new Date(entry.created_at).toLocaleDateString()}
                 </Text>
                 <Text style={styles.historyContent} numberOfLines={2}>
                   {entry.content}

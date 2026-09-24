@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import { supabase } from './supabase';
 
+export type VentInputMode = 'voice' | 'type' | 'companion';
+
 export interface VentEntry {
   id: string;
   content: string;
-  input_mode: 'voice' | 'type';
+  input_mode: VentInputMode;
   created_at: string;
 }
 
@@ -15,7 +17,7 @@ interface VentStore {
   error: string | null;
 
   fetchHistory: () => Promise<void>;
-  saveEntry: (content: string, inputMode: 'voice' | 'type') => Promise<boolean>;
+  saveEntry: (content: string, inputMode: VentInputMode) => Promise<boolean>;
 }
 
 export const useVentStore = create<VentStore>((set, get) => ({
