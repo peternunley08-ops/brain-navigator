@@ -148,7 +148,7 @@ export default function EntryDetailScreen() {
 
       {!loadingCatalysts && catalysts.length > 0 ? (
         <View style={styles.redStringBlock}>
-          <Text style={styles.label}>Red String</Text>
+          <Text style={styles.sectionTitle}>Red String</Text>
           <Card style={styles.catalystCard}>
             {catalysts.map((c, i) => (
               <View key={c.id}>
@@ -227,6 +227,11 @@ const styles = StyleSheet.create({
     letterSpacing: 2,
     textTransform: 'uppercase',
     color: colors.unlocked,
+  },
+  sectionTitle: {
+    fontFamily: fonts.displaySoft,
+    fontSize: 18,
+    color: colors.ink,
   },
   mood: {
     marginTop: spacing.sm,
