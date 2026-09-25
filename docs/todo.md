@@ -335,7 +335,7 @@ companion flow. Full narrative for the 2026-09-22–24 span (security audit,
 git/GitHub setup, the design redesign, Ember, the AI chat attempt) is in
 `SESSION_LOG.md` — read that first if this file is stale again.
 
-## Phase 21 — Design system redesign (in progress)
+## Phase 21 — Design system redesign (complete)
 
 Applying the `frontend-design` skill's checklist against generic-AI-design
 tells, screen by screen — not a token-only patch, a full pass per screen.
@@ -357,14 +357,21 @@ audit finds them in actual string content, not just styles.
 - [x] Shared components fixed along the way: `ScienceNote`,
   `ConditionsCard`, `SleepQualityCard`, `AmbientMicMeter`, `PlateMeter`,
   `TaskTimer`
-- [ ] Calendar (`app/calendar.tsx`)
-- [ ] Entry detail (`app/entry/[id].tsx`)
-- [ ] New Entry (`app/new-entry.tsx`)
-- [ ] Open Loops (`app/open-loops.tsx`)
-- [ ] Science (`app/science.tsx`)
-- [ ] Topography (`app/topography.tsx`)
-- [ ] Trends (`app/trends.tsx`)
-- [ ] Wellness (`app/wellness.tsx`)
+- [x] Calendar (`app/calendar.tsx`)
+- [x] Entry detail (`app/entry/[id].tsx`)
+- [x] New Entry (`app/new-entry.tsx`)
+- [x] Open Loops (`app/open-loops.tsx`)
+- [x] Science (`app/science.tsx`) — already compliant, no changes needed
+- [x] Topography (`app/topography.tsx`)
+- [x] Trends (`app/trends.tsx`)
+- [x] Wellness (`app/wellness.tsx`)
+
+All 15 screens done. Last screens also surfaced a few new legitimate
+instrument-readout cases worth remembering: `RadialGauge`'s caption text
+(paired with the gauge's own numeric value), stat-card labels paired with
+a numeric value directly beneath them, SVG chart axis text, and legend
+captions paired with a colored dot — all kept mono/uppercase under the
+same "paired with a number or gauge" rule.
 
 ## Phase 22 — AI chat (paused, unfunded)
 

@@ -907,3 +907,82 @@ redesign on the remaining 8 screens listed above, using the exact same
 tells-audit process, or (b) once Anthropic billing is funded, remove the
 temp debug fields from the Edge Function, build the chat screen + Today
 entry point, and verify the full round trip live.
+
+## 2026-09-24 (cont.) — Design system redesign finished (all 15 screens)
+
+Resumed after a context compaction (docs were caught up beforehand
+specifically so nothing here needed to survive in conversation memory
+alone). Worked through the remaining 8 screens using the same tells-audit
+process as the first 7: read the screen, check every text style against
+the "mono/uppercase/tracked only for a genuine instrument readout paired
+with a number or gauge" rule, fix what fails it, `tsc --noEmit`, verify
+live in the iOS Simulator via a `brainnavigator://` deep link (fetching a
+real entry id from Supabase's REST API directly with the anon key when a
+screen needed one, since the simulator's on-screen tap coordinates proved
+unreliable again this session — see below), screenshot to confirm, commit
+per-screen.
+
+- **Calendar** (`app/calendar.tsx`) — `subtitle` and `durationChipText`
+  converted from tracked-uppercase to sentence-case body. `eventTime` kept
+  mono — genuine schedule-timestamp readout.
+- **Entry detail** (`app/entry/[id].tsx`) — the "Red String" catalyst
+  section heading was reusing the same `label` style as the colored
+  entry-state readout (UNLOCKED/SECURED/SHELVED) at the top of the screen.
+  Split it into its own `sectionTitle` style; left the state label alone
+  since it's a genuine colored status readout, matching the
+  `historyState` precedent already established on Today.
+- **New Entry** (`app/new-entry.tsx`) — `fieldLabel` (full question
+  sentences like "What's the headline?") and `removeText` ("Remove") were
+  both still on the pre-redesign tracked-uppercase treatment. Matched to
+  the exact styles already used for the same purposes on Check-in
+  (`fieldLabel`: `fonts.display`, size 17) and Tasks/Habits (`removeText`:
+  `fonts.body`, size 12, danger color).
+- **Open Loops** (`app/open-loops.tsx`) — same `subtitle` tell already
+  fixed on Trove; same fix applied.
+- **Science** (`app/science.tsx`) — audited, found already fully
+  compliant. No changes needed. (The em dashes in the fact copy are
+  legitimate parenthetical prose, not the "WORD — fragment" label tell.)
+- **Topography** (`app/topography.tsx`) — `subtitle` and
+  `filterChipText` (the All/Secured/Shelved/Unlocked filter row)
+  converted to sentence-case body, matching the Tasks filter-chip
+  precedent. Filter labels are now capitalized in JS since they no longer
+  rely on `textTransform: uppercase`. The color-dot legend at the bottom
+  was deliberately left mono/uppercase — a legend caption paired with a
+  colored dot reads as a legitimate instrument-panel element, not a
+  decorative eyebrow.
+- **Trends** (`app/trends.tsx`) — `subtitle` and `metricChipText`
+  (Mood/Sleep/Quality/Stress chips) fixed the same way. `statLabel`
+  (Average/Latest/Change) stayed mono/uppercase — it sits directly above
+  a numeric `statValue`, a textbook case of the readout exception.
+- **Wellness** (`app/wellness.tsx`) — `subtitle` ("Eight dimensions, one
+  balance") fixed the same way. `RadialGauge`'s caption text and the
+  wellness wheel's axis labels stayed mono/uppercase — both are paired
+  with the gauge/chart's own numeric readout.
+
+New precedent worth remembering for any future screen: colored-dot legend
+captions and chart-axis text are legitimate instrument readouts under the
+existing rule, same tier as a numeric stat-card label — they don't need
+their own separate carve-out, just recognition that "paired with a gauge"
+includes a chart's own axis, not only a literal `RadialGauge` component.
+
+**iOS Simulator navigation note**: `inspect` (the accessibility-tree
+read) was unavailable this session ("not available right now"), so all
+navigation had to go through raw screenshots + tap coordinates, with the
+same unreliable pixel-to-point scaling problem noted in earlier sessions.
+Deep-linking directly via `open_url` with a `brainnavigator://<route>`
+URL (and, for the entry-detail screen, fetching a real row's `id` straight
+from Supabase's REST API with `curl` and the anon key) was far more
+reliable than trying to tap through the app's own navigation each time,
+and is the better default next time a specific screen needs verifying.
+
+Every screen's `tsc --noEmit` was clean and every fix was verified live
+before committing. All 15 screens are done — this closes out the
+screen-by-screen redesign pass entirely. `CLAUDE.md` and `docs/todo.md`
+updated to reflect completion.
+
+**Next, whenever resumed**: the only paused work left is Phase 22 (AI
+chat) — blocked purely on the user funding their Anthropic Console
+billing, not on anything technical. Once that happens: remove the temp
+`debugStatus`/`debugBody` fields from `supabase/functions/chat/index.ts`,
+build the chat screen UI, add an entry point on Today, and verify the
+full round trip live. Keep it a clearly separate feature from Ember.

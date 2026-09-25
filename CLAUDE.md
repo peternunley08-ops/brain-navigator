@@ -38,17 +38,22 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
 
 ## Current state (as of 2026-09-24 — check `git log` for anything newer)
 
-**Design system redesign in progress**, screen by screen, against the
+**Design system redesign complete** — all 15 screens done, against the
 `artifact-design`/`frontend-design` skill's checklist of generic-AI tells
 (tracked-uppercase eyebrow labels, "A · B · C" middle-dot copy joins, "WORD
-— fragment" labels). Done: Today, Health, Trove, Check-in, Tasks, Habits,
-Nutrition (+ 6 shared components fixed along the way: ScienceNote,
-ConditionsCard, SleepQualityCard, AmbientMicMeter, PlateMeter, TaskTimer).
-Not yet done: Calendar, Entry detail (`entry/[id].tsx`), New Entry, Open
-Loops, Science, Topography, Trends, Wellness. The rule being applied
-throughout: mono/uppercase/tracked type is kept **only** where it's a
-genuine instrument readout paired with a number or gauge (RESTING HR,
-PROTEIN/CARBS/FAT, capsule labels) — never as a decorative section eyebrow.
+— fragment" labels). Today, Health, Trove, Check-in, Tasks, Habits,
+Nutrition, Calendar, Entry detail (`entry/[id].tsx`), New Entry, Open
+Loops, Science, Topography, Trends, Wellness (+ 6 shared components fixed
+along the way: ScienceNote, ConditionsCard, SleepQualityCard,
+AmbientMicMeter, PlateMeter, TaskTimer). The rule applied throughout:
+mono/uppercase/tracked type is kept **only** where it's a genuine
+instrument readout paired with a number or gauge (RESTING HR,
+PROTEIN/CARBS/FAT, capsule labels, RadialGauge captions, stat-card labels
+paired with a numeric value, chart axis text, legend captions paired with
+a colored dot) — never as a decorative section eyebrow or a plain-sentence
+form-field prompt. Science screen needed no changes — it was already
+compliant. If new screens or components are added later, apply the same
+checklist rather than assuming the mono/uppercase style is the default.
 
 **Ember** (`app/companion.tsx`, `components/ui/Bear.tsx`,
 `core/companionPrompts.ts`) — a guided, no-AI check-in companion (fixed
