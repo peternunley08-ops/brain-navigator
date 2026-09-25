@@ -69,11 +69,9 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginTop: spacing.xs,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
     alignSelf: 'flex-start',
   },
   card: {
