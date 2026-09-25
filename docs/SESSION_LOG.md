@@ -741,3 +741,169 @@ own fallback instruction already resolved the one real judgment call):
 (`food_logs` + `macro_goals`, both wide-open `anon full access` RLS to match
 every other table) in the Supabase SQL Editor before Nutrition will persist
 anything for real.
+
+## 2026-09-22–24 — Security audit, git history, design redesign, Ember, AI chat (paused)
+
+A long session covering several distinct arcs. Recording the reasoning and
+dead-ends here since `git log` only shows the "what," not the "why" or the
+things that didn't pan out.
+
+**Repo housekeeping.** The repo had never actually been committed past a
+pre-Expo-Router `create-expo-app` scaffold — everything real (`app/`,
+`core/`, `components/`, the whole dependency tree in `package.json`) was
+sitting uncommitted the entire time. Committed it all, moved a stray
+orphaned native SwiftUI/Xcode scaffold (`Brain Navigator/`, its own nested
+git repo, leftover from an earlier session where fabricated prompts pushed
+toward a native rebuild before the real Expo/RN stack was confirmed) out to
+`~/Desktop/`. Created a GitHub repo (`peternunley08-ops/brain-navigator`,
+private) and pushed — but the first push attempt was rejected by GitHub's
+secret-scanning push protection: a real Notion integration secret had been
+copied into `docs/SESSION_LOG.md` itself (ironic) during a much earlier
+session, as a "for completeness" note. Redacted it and rewrote the two
+local commits that contained it (safe to do — nothing had reached the
+remote yet) before pushing clean. The Notion key was also rotated
+afterward, since it had been sitting in plaintext in `.env` and this log
+for a while regardless of the git exposure.
+
+**Security audit**, requested explicitly by the user, covered the whole
+app. Two real findings fixed: (1) the Notion API key situation above
+(rotated + git history cleaned), and (2) the `snapshot-images` Storage
+bucket had `anon insert/select/delete` with no path scoping and an unused
+delete policy (the app never calls `storage.remove()` anywhere) — scoped
+insert/select to the `entries/` prefix the app actually writes to and
+dropped delete entirely (schema.sql Phase 18). Everything else audited
+clean (no AsyncStorage misuse, no eval/WebView, parameterized Supabase
+queries throughout, correct native-module token handling for Google
+Sign-In). The standing structural finding — every table is fully
+anon-readable/writable with no real access control, since this app has no
+Supabase Auth by design — was named explicitly as a known, accepted
+tradeoff for a single-user MVP, not something to silently fix.
+
+**Design system redesign.** The user asked to use the `frontend-design`
+skill (installed fresh this session, `~/.claude/skills/frontend-design/`)
+to improve the app's UI. Checked the existing "Glasshouse Study" palette
+against the skill's own list of the most common AI-generated-design tells
+first, honestly — and it matched two of them almost exactly: the old
+background (`#F4EEE0`) was nearly identical to the skill's flagged
+`#F4F1EA` cream default, and `type.label` (mono, uppercase, tracked) was
+being used as a decorative eyebrow above nearly every card on every screen.
+User chose full redesign, screen by screen, rather than just patching the
+shared tokens. New palette (`core/theme.ts`): aged vellum background,
+near-black ink (not soft brown), brass (`#8C6A2F`) and verdigris
+(`#5B7268`) as the two instrument-accent tones, rust (`#9C4A31`) reserved
+as the *only* saturated color in the whole palette, used solely for the
+`unlocked` state so it actually reads as a signal. The standing rule
+applied screen by screen: mono/uppercase/tracked type stays *only* where
+it's a genuine instrument readout paired with a number or gauge (RESTING
+HR, PROTEIN/CARBS/FAT, MOOD/SLEEP/CALM, capsule labels under the sleep
+bars) — every other use (section headings, button labels, toggle links,
+category chips) got converted to real typographic hierarchy or plain
+sentence-case body text. Also caught and fixed the "A · B · C" middle-dot
+copy-join pattern and "WORD — fragment" labels in several places where they
+were in actual string content, not just styling (check-in's date line,
+habits' streak line, nutrition's macro summary, `ConditionsCard`'s no-surf
+message). Done as of this writing: Today, Health, Trove, Check-in, Tasks,
+Habits, Nutrition, plus 6 shared components fixed once each (rippling to
+every screen that uses them): `ScienceNote`, `ConditionsCard`,
+`SleepQualityCard`, `AmbientMicMeter`, `PlateMeter`, `TaskTimer`. Not yet
+touched: Calendar, `entry/[id].tsx`, New Entry, Open Loops, Science,
+Topography, Trends, Wellness — same audit process applies to each.
+
+**"Let It Out" venting page** (`app/vent.tsx`, `core/ventStore.ts`,
+`vent_entries` table, schema Phase 19) — speak (on-device transcription via
+`expo-speech-recognition`, new native module) or type. Caught a real
+privacy gap before shipping it: the naive setup would have sent audio to
+Apple's servers for network-based recognition (iOS's own permission dialog
+says so explicitly — "Speech data from this app will be sent to Apple").
+Fixed by setting `requiresOnDeviceRecognition: true` on `.start()` and
+switching to `requestMicrophonePermissionsAsync()` instead of the broader
+permission request, which also means iOS never shows the scarier
+network-recognition consent dialog at all. Voice mode is built and the
+permission flow is verified correct, but iOS Simulator can't actually run
+on-device `SFSpeechRecognizer` (`audio-capture: Failed to initialize
+recognizer` — a real Simulator platform limitation, not a bug) — needs a
+physical device to confirm the mic pipeline end-to-end. Type mode is fully
+verified including the Supabase round trip.
+
+**Ember** (`app/companion.tsx`, `components/ui/Bear.tsx`,
+`core/companionPrompts.ts`, schema Phase 20) — user asked for "an option
+saying take it off your shoulders" that brings up a creature asking caring
+questions about your day. First build used a moth (tied into the existing
+"Lantern Desk" naming — a moth drawn to lantern light), fully working and
+verified live; user then asked for something else, "a warm cozy bear," so
+the moth SVG was swapped for a hand-drawn bear face (round ears, closed
+content eyes, muzzle) with a slow breathing-scale animation instead of a
+wing flutter, and renamed moth→Ember, "Wick"→Ember throughout (component
+renamed `Moth.tsx`→`Bear.tsx`). Explicitly a **guided, no-AI** flow — one
+opening question, one optional follow-up, both drawn from a fixed prompt
+pool in `core/companionPrompts.ts`, no language model involved at all.
+Saves into the same `vent_entries` table as Let It Out (`input_mode`
+gained a third value, `'companion'`, via an `alter table ... drop
+constraint` / `add constraint` migration) so history stays in one place;
+the Let It Out history list tags companion-sourced entries "with Ember".
+Verified live end-to-end twice (single-answer path via "Leave it here,"
+and the full two-answer path), including confirming the saved
+Supabase row content and the history-list tag rendering correctly.
+
+**AI chat — scaffolded, currently paused on billing, not merged into
+Ember.** After Ember shipped, the user asked about adding a *real* AI chat.
+Talked through the tradeoff directly: a cloud LLM can be made *secure*
+(API key never in the client, held server-side) but not *private* in the
+on-device sense — whatever gets typed still reaches Anthropic's servers.
+User explicitly chose to keep this as a **separate, clearly-labeled**
+feature rather than blending AI into Ember, specifically because Ember's
+entire value proposition is that nothing leaves the device; merging them
+would quietly break that promise for the existing feature.
+
+Getting the Anthropic API key wired up took most of an hour and is worth
+recording precisely, because the failure modes were all subtle:
+1. Supabase CLI login (`npx supabase login`) doesn't work in a non-TTY
+   Bash tool environment — needs `--token`/`SUPABASE_ACCESS_TOKEN`, and a
+   Supabase personal access token is itself a broad account-level
+   credential not worth generating just for this. Abandoned the CLI
+   entirely in favor of the Supabase **dashboard's own browser-based
+   Edge Function secrets UI and code editor** — no CLI needed for either
+   setting secrets or deploying the function.
+2. First API key attempt failed with `401 invalid x-api-key` repeatedly,
+   even after re-adding it twice — root cause turned out to be that
+   Anthropic only shows a key's full value once, at creation; the user was
+   very likely re-copying a masked/truncated value from the keys *list*
+   view on subsequent attempts. Fixed by generating a fresh key and
+   copying it immediately from the one-time reveal screen.
+3. When asked to name that key "brain-navigator-v2" (meaning: as its label
+   in the Anthropic Console), the user reasonably applied that same string
+   as the **Supabase secret's Name** field instead of `ANTHROPIC_API_KEY` —
+   so the deployed function kept reading an unset/stale
+   `ANTHROPIC_API_KEY` while the real key sat under a differently-named
+   secret. Rather than have the user redo it a third time, the Edge
+   Function code was changed to read `Deno.env.get('brain-navigator-v2')`
+   directly — so **that is the actual secret name in production now**,
+   not `ANTHROPIC_API_KEY`. Anyone touching `supabase/functions/chat/`
+   later should either keep using that name or deliberately rename both
+   the Supabase secret and the `Deno.env.get(...)` call together.
+4. Once auth succeeded, the real blocker surfaced:
+   `400 — Your credit balance is too low to access the Anthropic API.`
+   The user does not currently have funds to add billing, and said so
+   plainly — work paused cleanly at that point, nothing left half-wired.
+
+Current deployed state: `supabase/functions/chat/index.ts` is live at
+`https://jmjdiudekhkrxxontvhc.supabase.co/functions/v1/chat`, correctly
+reads the key server-side, includes a safety-guardrailed system prompt
+(never claims to be a therapist; on self-harm/crisis language, responds
+with warmth then clearly redirects to a real person or 988), and bounds
+each request to the last 20 messages / 512 output tokens. It currently
+returns a 502 with the real Anthropic error surfaced in a `debugStatus`/
+`debugBody` field on every call, purely because of the unfunded account —
+**that temporary debug surfacing should be removed** once billing is
+sorted and the function is verified working end-to-end (it was left in
+deliberately to make this exact troubleshooting possible without needing
+dashboard logs, which were slow to populate). No chat screen/UI and no
+entry point on Today exist yet — paused before reaching that point.
+`tsconfig.json` now excludes `supabase/functions` from the app's TS
+project (Deno globals, different runtime than React Native).
+
+**Next, whenever resumed**: either (a) continue the screen-by-screen
+redesign on the remaining 8 screens listed above, using the exact same
+tells-audit process, or (b) once Anthropic billing is funded, remove the
+temp debug fields from the Edge Function, build the chat screen + Today
+entry point, and verify the full round trip live.

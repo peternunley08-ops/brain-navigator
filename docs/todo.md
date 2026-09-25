@@ -321,3 +321,66 @@ confirmed `cognitive_state`/`catalysts`/`entities`/`resolutions` all at 0 rows.
 Console was checked across every new screen; the only errors present are
 testing-harness artifacts (haptics blocked without a real user gesture from
 browser automation; Metro's dev-only HMR websocket) — not real app bugs.
+
+## Phases 7–20 (not individually logged here)
+
+This file fell out of sync with actual progress — `core/schema.sql`'s
+append-only phase comments and `git log` are the authoritative record for
+everything between here and the current phase. In brief: Phase 14
+Parkinson's-Law task time-boxing, Phase 15 snapshot images + ambient audio
+mood cue, Phase 16 ambient noise check (Sleep Quality card), Phase 17
+Supabase Realtime on Topography, Phase 18 storage bucket policy hardening
+(security audit fix), Phase 19 "Let It Out" venting page, Phase 20 Ember
+companion flow. Full narrative for the 2026-09-22–24 span (security audit,
+git/GitHub setup, the design redesign, Ember, the AI chat attempt) is in
+`SESSION_LOG.md` — read that first if this file is stale again.
+
+## Phase 21 — Design system redesign (in progress)
+
+Applying the `frontend-design` skill's checklist against generic-AI-design
+tells, screen by screen — not a token-only patch, a full pass per screen.
+Rule: mono/uppercase/tracked type stays only where it's a genuine
+instrument readout paired with a number/gauge; everywhere else becomes real
+typographic hierarchy or plain sentence-case text. Also fixes the
+"A · B · C" middle-dot and "WORD — fragment" copy patterns wherever the
+audit finds them in actual string content, not just styles.
+
+- [x] `core/theme.ts` — new palette: vellum background, near-black ink,
+  brass/verdigris accents, rust reserved solely for `unlocked`.
+- [x] Today (`app/index.tsx`)
+- [x] Health (`app/health.tsx`)
+- [x] Trove (`app/trove.tsx`)
+- [x] Check-in (`app/checkin.tsx`)
+- [x] Tasks (`app/tasks.tsx`)
+- [x] Habits (`app/habits.tsx`)
+- [x] Nutrition (`app/nutrition.tsx`)
+- [x] Shared components fixed along the way: `ScienceNote`,
+  `ConditionsCard`, `SleepQualityCard`, `AmbientMicMeter`, `PlateMeter`,
+  `TaskTimer`
+- [ ] Calendar (`app/calendar.tsx`)
+- [ ] Entry detail (`app/entry/[id].tsx`)
+- [ ] New Entry (`app/new-entry.tsx`)
+- [ ] Open Loops (`app/open-loops.tsx`)
+- [ ] Science (`app/science.tsx`)
+- [ ] Topography (`app/topography.tsx`)
+- [ ] Trends (`app/trends.tsx`)
+- [ ] Wellness (`app/wellness.tsx`)
+
+## Phase 22 — AI chat (paused, unfunded)
+
+Real Anthropic-API-backed chat, deliberately kept separate from Ember (not
+merged in — Ember's whole point is nothing leaves the device).
+
+- [x] `supabase/functions/chat/index.ts` — Edge Function proxy, deployed
+  live, safety-guardrailed system prompt, bounded request size
+- [x] Key stored server-side as a Supabase secret (**named
+  `brain-navigator-v2`, not `ANTHROPIC_API_KEY`** — an accidental naming
+  mid-session that the code was pointed at rather than fixed; see
+  SESSION_LOG.md for why)
+- [ ] Blocked: Anthropic account has no billing credit
+  (`400 — Your credit balance is too low`). User confirmed no funds
+  available right now — genuinely paused, not forgotten.
+- [ ] Remove temporary `debugStatus`/`debugBody` error fields from the
+  function once billing is sorted and it's verified working
+- [ ] Chat screen UI — not started
+- [ ] Entry point on Today — not started

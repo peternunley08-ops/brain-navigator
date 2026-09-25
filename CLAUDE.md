@@ -11,16 +11,23 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
 - `app/` — Expo Router file-based routes (screens). One nested dynamic
   route: `app/entry/[id].tsx`.
 - `core/` — flat lib layer: one Zustand store per domain (`healthStore.ts`,
-  `tasksStore.ts`, `wellnessStore.ts`, …), `theme.ts` (design tokens — the
-  "Glasshouse Study" warm cream/leather/lantern-amber palette), `supabase.ts`
-  (client), `schema.sql` (source of truth for the DB — append-only phase
-  log, run live via the Supabase SQL editor).
+  `tasksStore.ts`, `wellnessStore.ts`, …), `theme.ts` (design tokens — "The
+  Glasshouse Study", revised 2026-09-23 to aged vellum + near-black ink +
+  brass/verdigris instrument accents, rust reserved as the one deliberately
+  saturated color for the `unlocked` state — see "Design system" below),
+  `supabase.ts` (client), `schema.sql` (source of truth for the DB —
+  append-only phase log, run live via the Supabase SQL editor).
 - `components/ui/` — reusable design-system primitives (Button, Card,
   gauges, charts, meters).
 - `components/` (root) — one-off feature components (`BottomNav.tsx`,
   `AmbientAudioEngine.tsx`, `EntryThreshold.tsx`).
 - `assets/` — images and audio.
 - `scripts/` — one-off build/generation scripts.
+- `supabase/functions/` — Edge Functions (Deno runtime — excluded from the
+  app's `tsconfig.json`, different globals than React Native). Currently
+  just `chat/` (AI chat proxy, see "Current state" below). Deployed via the
+  Supabase dashboard's browser code editor, not the CLI — CLI login is
+  broken in this environment (non-interactive, no TTY for the OAuth flow).
 - `docs/` — project memory and planning:
   - `todo.md` — permanent build roadmap/log.
   - `SESSION_LOG.md` — full narrative session history; read this first if
@@ -28,6 +35,39 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
   - `AUTONOMOUS_BUILD_PROMPT.md` — forward-looking autonomous-build
     instructions.
   - `apple-watch-plan.md`, `encryption-plan.md` — feature planning docs.
+
+## Current state (as of 2026-09-24 — check `git log` for anything newer)
+
+**Design system redesign in progress**, screen by screen, against the
+`artifact-design`/`frontend-design` skill's checklist of generic-AI tells
+(tracked-uppercase eyebrow labels, "A · B · C" middle-dot copy joins, "WORD
+— fragment" labels). Done: Today, Health, Trove, Check-in, Tasks, Habits,
+Nutrition (+ 6 shared components fixed along the way: ScienceNote,
+ConditionsCard, SleepQualityCard, AmbientMicMeter, PlateMeter, TaskTimer).
+Not yet done: Calendar, Entry detail (`entry/[id].tsx`), New Entry, Open
+Loops, Science, Topography, Trends, Wellness. The rule being applied
+throughout: mono/uppercase/tracked type is kept **only** where it's a
+genuine instrument readout paired with a number or gauge (RESTING HR,
+PROTEIN/CARBS/FAT, capsule labels) — never as a decorative section eyebrow.
+
+**Ember** (`app/companion.tsx`, `components/ui/Bear.tsx`,
+`core/companionPrompts.ts`) — a guided, no-AI check-in companion (fixed
+prompt pool, no language model). Reachable from Today's Sanctuary section.
+Saves into `vent_entries` (same table as the "Let It Out" venting page),
+`input_mode = 'companion'`.
+
+**AI chat is scaffolded but paused, unfunded** (`supabase/functions/chat/`).
+A real Anthropic-API-backed chat, deliberately kept separate from Ember (not
+merged into it) specifically because Ember's whole value is that nothing
+leaves the device — blending in a cloud model would break that promise.
+The Edge Function is deployed and reads its key from the `brain-navigator-v2`
+Supabase secret (not `ANTHROPIC_API_KEY` — that naming happened by accident
+mid-session and code + secret were both left pointing at the accidental
+name rather than fixed, since it works fine). It currently returns a real
+Anthropic 400 (insufficient credit balance) on every call — the user's
+Anthropic Console account has no billing set up. No chat screen/UI has
+been built yet. Resume by: confirming billing is funded, then building the
+screen + entry point + wiring to the existing deployed function.
 
 ## Conventions
 
