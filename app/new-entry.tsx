@@ -162,11 +162,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   fieldLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.display,
+    fontSize: 17,
+    color: colors.ink,
     marginTop: spacing.lg,
     marginBottom: spacing.sm,
   },
@@ -209,10 +207,8 @@ const styles = StyleSheet.create({
     color: colors.inkFaint,
   },
   removeText: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 12,
     color: colors.danger,
   },
   catalystEntityInput: {
