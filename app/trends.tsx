@@ -250,11 +250,9 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginTop: spacing.xs,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
     alignSelf: 'flex-start',
   },
   metricRow: {
@@ -273,10 +271,8 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundAlt,
   },
   metricChipText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkMuted,
   },
   metricChipTextActive: {
