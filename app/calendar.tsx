@@ -146,11 +146,9 @@ const styles = StyleSheet.create({
   subtitle: {
     marginTop: spacing.xs,
     marginBottom: spacing.lg,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.inkMuted,
   },
   connectCard: {
     padding: spacing.lg,
@@ -195,10 +193,8 @@ const styles = StyleSheet.create({
     borderColor: colors.leather,
   },
   durationChipText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
+    fontFamily: fonts.body,
+    fontSize: 13,
     color: colors.inkMuted,
   },
   durationChipTextActive: {
