@@ -105,6 +105,12 @@ export default function CheckinScreen() {
               <Button label="Trends" variant="pill" onPress={() => router.push('/trends')} />
               <Button label="Health" variant="pill" onPress={() => router.push('/health')} />
               <Button label="Nutrition" variant="pill" onPress={() => router.push('/nutrition')} />
+              <Button label="Let It Out" variant="pill" onPress={() => router.push('/vent')} />
+              <Button
+                label="Take It Off Your Shoulders"
+                variant="pill"
+                onPress={() => router.push('/companion')}
+              />
             </View>
           </View>
 
