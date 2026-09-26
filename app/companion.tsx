@@ -20,6 +20,7 @@ export default function CompanionScreen() {
   const [answer2, setAnswer2] = useState('');
 
   const isSaving = useVentStore((s) => s.isSaving);
+  const error = useVentStore((s) => s.error);
   const saveEntry = useVentStore((s) => s.saveEntry);
 
   const handleAnswer1 = () => {
@@ -31,8 +32,11 @@ export default function CompanionScreen() {
     const content = secondAnswer.trim()
       ? `${question1}\n${answer1.trim()}\n\n${question2}\n${secondAnswer.trim()}`
       : `${question1}\n${answer1.trim()}`;
-    await saveEntry(content, 'companion');
-    setStep('done');
+    // Only move to the closing screen once the entry is actually saved —
+    // otherwise a failed save still showed "thank you for telling me",
+    // reassuring the user their words were kept when they weren't.
+    const saved = await saveEntry(content, 'companion');
+    if (saved) setStep('done');
   };
 
   return (
@@ -95,6 +99,7 @@ export default function CompanionScreen() {
                 disabled={isSaving}
               />
             </View>
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
           </View>
         ) : null}
 
@@ -198,5 +203,12 @@ const styles = StyleSheet.create({
     color: colors.ink,
     textAlign: 'center',
     marginBottom: spacing.lg,
+  },
+  errorText: {
+    marginTop: spacing.sm,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.danger,
+    textAlign: 'center',
   },
 });

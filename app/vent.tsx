@@ -37,6 +37,7 @@ export default function VentScreen() {
 
   const history = useVentStore((s) => s.history);
   const isSaving = useVentStore((s) => s.isSaving);
+  const saveError = useVentStore((s) => s.error);
   const fetchHistory = useVentStore((s) => s.fetchHistory);
   const saveEntry = useVentStore((s) => s.saveEntry);
 
@@ -217,6 +218,7 @@ export default function VentScreen() {
         </Animated.View>
 
         {released ? <Text style={styles.releasedNote}>Released. It's kept, not dwelt on.</Text> : null}
+        {!released && saveError ? <Text style={styles.errorText}>{saveError}</Text> : null}
 
         {history.length > 0 ? (
           <Pressable onPress={() => setHistoryOpen((v) => !v)} style={styles.historyToggle}>
