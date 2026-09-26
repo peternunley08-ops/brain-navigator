@@ -1027,3 +1027,50 @@ without the crash, and confirmed the entry-detail Trove-toggle button
 reflects state correctly. Reverted the test toggle back to its original
 value afterward so the user's real data wasn't left changed by the
 verification. `tsc --noEmit` clean throughout. Committed and pushed.
+
+## 2026-09-25 (cont.) — Bug sweep across the remaining stores
+
+User asked to keep going through the other stores with the same kind
+of review. Read every `core/*Store.ts` file end to end
+(tasksStore, wellnessWheelStore, googleCalendarStore, nutritionStore,
+healthStore, wellnessStore, ventStore, sleepAmbientStore, notion.ts).
+Two more real bugs found and fixed, in `core/habitsStore.ts` and
+`core/wellnessWheelStore.ts` — see that commit message for the full
+detail. Summary:
+
+- **Weekly habit streaks reset to 0 mid-week.** `currentStreak()` judged
+  the current, still-in-progress week against the target immediately,
+  so a habit with a long run of fully-met weeks would show a 0-day
+  streak until the current week's target was hit — even on day one of
+  a new week. Daily habits already forgave an unfinished "today"; gave
+  weekly habits the same forgiveness for an unfinished current week.
+  Verified against synthetic date scenarios with a throwaway Node
+  script (not seeded into the real database) rather than the Simulator,
+  since there's no weekly habit in the real data yet to click through.
+- **habit_logs fetch used a global 500-row cap** shared across every
+  habit combined, the same class of bug as the Trove/Open Loops one
+  fixed earlier — a heavily-logged habit could crowd an older, still-
+  active habit's logs out of the window and silently shorten its
+  streak. Switched to a 400-day time-bound instead of a row-count cap.
+- **wellnessWheelStore's rolling-window date math had a timezone bug**:
+  it derived a plain date string via `toISOString().slice(0, 10)`,
+  which converts to UTC first — for any timezone ahead of UTC, local
+  midnight can land on the previous UTC day, silently shifting the
+  30-day/14-day scoring windows by a day. Rebuilt from local date
+  fields instead, matching the safe pattern already used everywhere
+  else in the codebase. Low real-world impact for a US-based user, but
+  cheap and correct to fix since it was already found.
+
+Everything else read cleanly: tasksStore, googleCalendarStore,
+nutritionStore, healthStore (can't fully verify HealthKit specifics
+without a physical device, but nothing suspicious), wellnessStore,
+ventStore, sleepAmbientStore, and notion.ts's push-sync helpers.
+
+Regression-tested Habits and Wellness screens live in the Simulator
+after both fixes — both load and compute correctly against the real
+(sparse) data. `tsc --noEmit` clean. Committed and pushed.
+
+**Next**: continue the same sweep through the remaining non-store files
+if asked again — `components/ui/*` logic (not just styling), `app/`
+screens' local state/effects, and the Edge Function once AI chat
+resumes. Nothing currently queued.
