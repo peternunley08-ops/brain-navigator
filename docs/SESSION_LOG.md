@@ -1122,3 +1122,88 @@ SegmentedBar, SleepQualityCard, Bear, ScienceNote, Button, Card.
 yet (as opposed to the stores and shared components already covered) —
 that's the natural next pass if asked to keep going. Nothing queued
 otherwise.
+
+## 2026-09-26 (cont.) — Bug sweep through app/ screens' local logic
+
+User asked to keep going, into the screens' own local state and
+effects (as opposed to the stores and shared components already swept
+in the last two passes). Read every screen end to end:
+`_layout.tsx`, `index.tsx`, `companion.tsx`, `vent.tsx`, `habits.tsx`,
+`checkin.tsx`, `health.tsx`, `nutrition.tsx`, `tasks.tsx` (the rest —
+trove, open-loops, science, wellness, new-entry, calendar, trends,
+topography, entry/[id] — had already been read in full during the
+redesign pass or the earlier bug passes, so were reconsidered from
+memory rather than reread cold). Five real bugs found and fixed, most
+serious first:
+
+- **A race that could silently wipe today's real check-in on cold
+  launch** (`app/checkin.tsx`) — the standout find of this session.
+  Two separate effects: one called `fetchCheckins()`, another watched
+  `isLoadingCheckins` to decide when it was safe to hydrate the form
+  from `todaysCheckin()`. But `isLoadingCheckins` flips to `true`
+  *synchronously inside* `fetchCheckins()` — a Zustand state update
+  that schedules a new render, which the second effect's closure
+  (created in the same commit, same render) can't observe until a
+  later pass. On a cold session, both effects ran while `checkins` was
+  still its initial empty array, so `todaysCheckin()` returned null
+  and the "not loading" branch fired immediately, marking hydration
+  permanently done via a `hydrated` guard — *before the real fetch had
+  even returned*. If a check-in already existed for today, its values
+  never populated the sliders/notes, while the subtitle and button
+  still correctly read "You can still edit today's check-in" /
+  "Update Check-in" over blank fields — saving in that state would
+  upsert the empty form and silently overwrite the real entry with
+  nulls. Fixed by consolidating into one effect that awaits
+  `fetchCheckins()`'s own promise before checking `todaysCheckin()`,
+  removing the cross-effect race entirely. Verified by actually
+  reproducing the failure: seeded a real check-in for today directly
+  in Supabase, fully restarted the app (`simctl terminate` + `launch`,
+  not just backgrounding — needed to reset in-memory Zustand state),
+  and deep-linked straight to Check-in as the very first screen
+  touched. Every field hydrated correctly from the seeded row.
+- **Ember's `finish()` showed a false-positive save confirmation**
+  (`app/companion.tsx`) — advanced to the closing screen regardless of
+  whether `saveEntry()` actually succeeded, so a failed save still
+  showed "Noted, and kept safe..." with nothing actually saved.
+  `vent.tsx`'s own save handler already had this right; Ember's was
+  the one spot that missed it, most likely because it was added later.
+  Fixed to only advance on a true success, and surfaces the store
+  error otherwise. Added the same error surfacing to `vent.tsx`, which
+  avoided the false positive but gave no feedback at all on failure.
+- **Habits "Today" ring mixed daily and weekly habits** (`app/habits.tsx`)
+  — a weekly habit on pace for its target but untouched on the
+  specific current day dragged the ring down for no real reason.
+  Scoped `doneToday`/`todayPct` to `frequency === 'daily'` only.
+  Verified live by adding a throwaway weekly habit alongside the one
+  real (unlogged) daily habit — ring correctly stayed at 0/1 instead
+  of becoming 0/2.
+- **Today's 3-panel scroll layout used a stale screen-height snapshot**
+  (`app/index.tsx`) — `SCREEN_HEIGHT` was `Dimensions.get('window').height`
+  captured once at module load. `app.json` has `supportsTablet: true`,
+  and iPad's window can resize live (Split View, Slide Over, Stage
+  Manager) without a relaunch, which would leave the three full-height
+  sections and the snap-scroll offsets pointing at a stale size.
+  Switched to `useWindowDimensions()`. Verified all three panels
+  (Root Map / Lantern Desk / Sanctuary) still size and snap correctly.
+
+Everything else read clean: `_layout.tsx`'s font/splash-screen gating,
+`health.tsx`, `nutrition.tsx`, `tasks.tsx` (all their save-call sites
+already correctly check the returned success boolean before clearing
+their forms — `companion.tsx` really was the one outlier, confirmed by
+grepping every `const ok = await ...`/`const id = await ...` call site
+across every screen).
+
+All fixes verified live in the Simulator (several by actually
+reproducing the bug's exact conditions, not just checking for no
+regression), test data cleaned up via the Supabase REST API after each
+verification, `tsc --noEmit` clean throughout. Committed and pushed
+individually per fix.
+
+**Next**: no further sweep is queued. The three passes so far
+(stores → shared components → screens) have covered essentially the
+whole app. If resumed, remaining unswept surface is small: the Google
+Calendar OAuth store's token-refresh edge cases (hard to verify
+without real device testing) and the Notion push-sync fire-and-forget
+paths (already deliberately best-effort by design, so lower-value to
+re-audit). Otherwise this is a natural stopping point for this kind of
+review.
