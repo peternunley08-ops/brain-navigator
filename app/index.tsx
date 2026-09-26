@@ -3,11 +3,11 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
-  Dimensions,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { BottomNav } from '../components/BottomNav';
@@ -19,9 +19,11 @@ import { useBrainNavigatorStore } from '../core/store';
 import { colors, fonts, gradients, radii, spacing, stateColor } from '../core/theme';
 import { useWellnessWheelStore } from '../core/wellnessWheelStore';
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
-
 export default function LanternDesk() {
+  // A static Dimensions.get() snapshot would go stale on iPad, where
+  // Split View / Slide Over / Stage Manager can resize the app's window
+  // without a relaunch — useWindowDimensions stays reactive to that.
+  const { height: screenHeight } = useWindowDimensions();
   const scrollRef = useRef<ScrollView>(null);
   const breath = useRef(new Animated.Value(0.35)).current;
   const [ambienceMuted, setAmbienceMuted] = useState(true);
@@ -43,10 +45,10 @@ export default function LanternDesk() {
   useEffect(() => {
     // contentOffset isn't reliably honored on web; scroll explicitly once mounted.
     const id = setTimeout(() => {
-      scrollRef.current?.scrollTo({ y: SCREEN_HEIGHT, animated: false });
+      scrollRef.current?.scrollTo({ y: screenHeight, animated: false });
     }, 0);
     return () => clearTimeout(id);
-  }, []);
+  }, [screenHeight]);
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -69,7 +71,7 @@ export default function LanternDesk() {
 
   const returnToPresent = () => {
     resetDraft();
-    scrollRef.current?.scrollTo({ y: SCREEN_HEIGHT, animated: true });
+    scrollRef.current?.scrollTo({ y: screenHeight, animated: true });
   };
 
   const stateCounts = useMemo(() => {
@@ -86,11 +88,11 @@ export default function LanternDesk() {
         ref={scrollRef}
         style={styles.container}
         contentContainerStyle={styles.content}
-        contentOffset={{ x: 0, y: SCREEN_HEIGHT }}
+        contentOffset={{ x: 0, y: screenHeight }}
         showsVerticalScrollIndicator={false}
       >
         {/* PAST: Root Map */}
-        <LinearGradient colors={gradients.quiet} style={styles.section}>
+        <LinearGradient colors={gradients.quiet} style={[styles.section, { height: screenHeight }]}>
           <Text style={styles.sectionTitle}>Root Map</Text>
           {isLoadingHistory ? (
             <Text style={styles.hint}>Loading…</Text>
@@ -125,7 +127,7 @@ export default function LanternDesk() {
         </LinearGradient>
 
         {/* PRESENT: Lantern Desk */}
-        <LinearGradient colors={gradients.dawn} style={styles.section}>
+        <LinearGradient colors={gradients.dawn} style={[styles.section, { height: screenHeight }]}>
           <View style={styles.lanternGlow} />
           <Text style={styles.title}>The Lantern Desk</Text>
           <Text style={styles.subtitle}>Brain Navigator</Text>
@@ -134,7 +136,7 @@ export default function LanternDesk() {
         </LinearGradient>
 
         {/* FUTURE: Sanctuary */}
-        <LinearGradient colors={gradients.dusk} style={styles.section}>
+        <LinearGradient colors={gradients.dusk} style={[styles.section, { height: screenHeight }]}>
           <Animated.View style={[styles.sanctuaryGlow, { opacity: breath }]} />
           <Text style={styles.sectionTitle}>Sanctuary</Text>
 
@@ -238,7 +240,6 @@ const styles = StyleSheet.create({
     // each section below is exactly one screen tall
   },
   section: {
-    height: SCREEN_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
