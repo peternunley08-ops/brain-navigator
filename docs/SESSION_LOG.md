@@ -986,3 +986,44 @@ billing, not on anything technical. Once that happens: remove the temp
 `debugStatus`/`debugBody` fields from `supabase/functions/chat/index.ts`,
 build the chat screen UI, add an entry point on Today, and verify the
 full round trip live. Keep it a clearly separate feature from Ember.
+
+## 2026-09-25 — Bug hunt: Trove/Open Loops/Entry detail data cap
+
+User asked to keep proactively looking for a feature, bug, or screen
+worth fixing, with nothing specific pointed at. Audited `core/store.ts`
+and found a real one: `fetchHistory()` caps its query to the 50 most
+recent `cognitive_state` rows (reasonable for the Today feed), but
+Trove, Open Loops, Topography, and the entry-detail lookup
+(`history.find(e => e.id === id)`) all read from that same capped
+array. Once a user logs more than 50 entries, anything older silently
+disappears from Trove and Open Loops — even entries explicitly kept or
+still genuinely open — and opening an old entry via a saved link shows
+"Entry not found." even though the row is still in Supabase. Left
+Topography and Today's own Root Map list alone since those are
+intentionally recency-bounded views, not curated/permanent ones.
+
+Fix: Trove and Open Loops (`app/trove.tsx`, `app/open-loops.tsx`) now
+query Supabase directly and unbounded (`in_trove = true` / `state =
+'unlocked'`), independent of the 50-row feed, with `useRealtimeRefetch`
+for live updates. Entry detail (`app/entry/[id].tsx`) falls back to a
+direct fetch-by-id when the entry isn't in the capped `history`, and
+keeps that local fallback copy in sync when the trove toggle or photo
+upload runs against it.
+
+That fix immediately surfaced a second, real bug: `useRealtimeRefetch`
+named its Supabase channel from the table list alone
+(`realtime:<tables>`), so two mounted screens subscribed to the same
+table collided — Trove and Open Loops both now watch `cognitive_state`,
+and having both alive in the navigation stack threw "cannot add
+postgres_changes callbacks... after subscribe()," a hard render-crashing
+error caught live in the Simulator while verifying the first fix.
+Fixed by suffixing each channel name with a per-mount random id, so
+concurrent subscriptions to the same table never share a topic.
+
+Verified live end-to-end using the one real entry in the database:
+toggled its `in_trove` flag directly via Supabase's REST API to confirm
+Trove picked it up, confirmed Open Loops and Trove can both be mounted
+without the crash, and confirmed the entry-detail Trove-toggle button
+reflects state correctly. Reverted the test toggle back to its original
+value afterward so the user's real data wasn't left changed by the
+verification. `tsc --noEmit` clean throughout. Committed and pushed.
