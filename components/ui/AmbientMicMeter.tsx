@@ -40,6 +40,18 @@ export function AmbientMicMeter({ onComplete }: AmbientMicMeterProps) {
     }
   }, [state.isRecording, state.metering]);
 
+  // Leaving the screen mid-check (navigating away, closing the app) would
+  // otherwise leave the recorder — and the mic — running with nothing left
+  // to consume its output.
+  useEffect(() => {
+    return () => {
+      if (recorder.isRecording) {
+        recorder.stop().catch(() => {});
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleStart = async () => {
     setError(null);
     const permission = await requestRecordingPermissionsAsync();

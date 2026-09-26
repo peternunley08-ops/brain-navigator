@@ -31,14 +31,25 @@ export function TaskTimer({ budgetMinutes }: TaskTimerProps) {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    if (running) {
-      intervalRef.current = setInterval(() => {
-        setRemaining((s) => s - 1);
-      }, 1000);
-    }
+    if (!running) return;
+    // Compute from a real timestamp rather than decrementing once per tick —
+    // React Native suspends JS timers while the app is backgrounded, so a
+    // per-tick decrement would drift behind real elapsed time as soon as the
+    // screen locks or the user switches apps mid-timer. Capturing `remaining`
+    // here (not as a setInterval dependency) freezes the baseline at the
+    // instant the timer (re)started, so resuming after any pause elsewhere
+    // starts a fresh, correct baseline.
+    const startedAt = Date.now();
+    const remainingAtStart = remaining;
+    const tick = () => {
+      const elapsedSeconds = Math.floor((Date.now() - startedAt) / 1000);
+      setRemaining(remainingAtStart - elapsedSeconds);
+    };
+    intervalRef.current = setInterval(tick, 1000);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running]);
 
   const color = urgencyColor(remaining, budgetSeconds);

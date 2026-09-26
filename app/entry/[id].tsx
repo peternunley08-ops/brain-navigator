@@ -217,6 +217,7 @@ export default function EntryDetailScreen() {
                 fillColor={colors.secured}
                 borderColor={colors.secured}
                 size={84}
+                disabled={isSaving || sealed || shelved}
               />
             </View>
 
@@ -228,6 +229,7 @@ export default function EntryDetailScreen() {
                 fillColor={colors.shelved}
                 borderColor={colors.shelved}
                 size={84}
+                disabled={isSaving || sealed || shelved}
               />
             </View>
           </View>

@@ -11,6 +11,7 @@ interface HoldToConfirmProps {
   borderColor?: string;
   size?: number;
   duration?: number;
+  disabled?: boolean;
 }
 
 export function HoldToConfirm({
@@ -21,6 +22,7 @@ export function HoldToConfirm({
   borderColor = colors.leather,
   size = 96,
   duration = 1600,
+  disabled = false,
 }: HoldToConfirmProps) {
   const progress = useRef(new Animated.Value(0)).current;
   const animationRef = useRef<Animated.CompositeAnimation | null>(null);
@@ -31,6 +33,7 @@ export function HoldToConfirm({
   };
 
   const handlePressIn = () => {
+    if (disabled) return;
     setHolding(true);
     safeHaptic(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
     progress.setValue(0);
@@ -68,9 +71,11 @@ export function HoldToConfirm({
       <Pressable
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        disabled={disabled}
         style={[
           styles.outer,
           { width: size, height: size, borderRadius: size / 2, borderColor },
+          disabled && styles.outerDisabled,
         ]}
         accessibilityLabel={label}
       >
@@ -97,6 +102,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  },
+  outerDisabled: {
+    opacity: 0.4,
   },
   caption: {
     marginTop: spacing.md,
