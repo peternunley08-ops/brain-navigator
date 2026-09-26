@@ -1207,3 +1207,47 @@ without real device testing) and the Notion push-sync fire-and-forget
 paths (already deliberately best-effort by design, so lower-value to
 re-audit). Otherwise this is a natural stopping point for this kind of
 review.
+
+## 2026-09-26 (cont.) — Google Calendar OAuth edge cases
+
+User asked specifically to check the Google Calendar OAuth edge cases
+flagged as unswept in the last entry. Found and fixed two real gaps in
+`core/googleCalendarStore.ts`:
+
+- `signOut()` was the one store method not wrapped in try/catch. If
+  `GoogleSignin.signOut()` threw for any reason, local `signedIn`
+  state never reset, leaving the Disconnect button unable to actually
+  disconnect. Now always clears local state regardless of the native
+  call's outcome.
+- `fetchTodayEvents()`/`createEvent()` treated a 401 from the Calendar
+  API like any other failure — opaque error, `signedIn` left `true`.
+  `getTokens()` already handles routine refresh, so a 401 specifically
+  means the session is genuinely dead (revoked, expired past refresh,
+  scopes changed) — previously that left the screen showing stale
+  cached events under a cryptic "(401)" error with no working way out
+  (Disconnect had the bug above). Both now catch a dedicated
+  `AuthExpiredError`, reset `signedIn`/`events`, and show a clear
+  reconnect message.
+
+Verified the `signOut()` fix live — tapped Disconnect, confirmed it
+correctly dropped back to the "Connect Google Calendar" screen — and
+confirmed no regression on the working signed-in path beforehand.
+
+**Important — action item for the user**: verifying `signOut()` live
+meant actually disconnecting the real, previously-working Google
+Calendar connection. It's just a sign-out, no data was lost, but the
+account now needs to be reconnected manually (Calendar screen → tap
+"Connect Google Calendar" → pick the account again) — completing that
+interactive OAuth flow needs the user's own action, not something
+this session can do on their behalf. Flagged to the user directly when
+this happened; noting it here too in case it's not done by the next
+session.
+
+The 401/`AuthExpiredError` branch is logic-reviewed and type-checked
+but not exercised live — doing that for real would require revoking
+the account's actual Google OAuth grant, which needs the user's own
+action to trigger intentionally, not something to do as a side effect
+of testing.
+
+**Next**: nothing further queued. This closes out the OAuth edge cases
+that were the one remaining flagged item from the prior sweep.
