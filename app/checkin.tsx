@@ -32,7 +32,6 @@ export default function CheckinScreen() {
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
   const todaysCheckin = useWellnessStore((s) => s.todaysCheckin);
   const saveTodayCheckin = useWellnessStore((s) => s.saveTodayCheckin);
-  const isLoadingCheckins = useWellnessStore((s) => s.isLoadingCheckins);
   const isSaving = useWellnessStore((s) => s.isSaving);
   const error = useWellnessStore((s) => s.error);
 
@@ -48,23 +47,33 @@ export default function CheckinScreen() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    fetchCheckins();
-  }, [fetchCheckins]);
-
-  useEffect(() => {
     if (hydrated) return;
-    const existing = todaysCheckin();
-    if (existing) {
-      setMood(existing.mood);
-      setSleepHours(existing.sleep_hours != null ? String(existing.sleep_hours) : '');
-      setSleepQuality(existing.sleep_quality);
-      setStressLevel(existing.stress_level);
-      setNotes(existing.notes ?? '');
+    let cancelled = false;
+    // Await the fetch's own promise rather than watching isLoadingCheckins
+    // from a second effect — that flag flips to true synchronously inside
+    // fetchCheckins, but this effect's closure is created in the same
+    // render pass and can't observe it until a later commit. On a cold
+    // session (checkins still empty on the very first render), that race
+    // let this hydrate-once-then-stop logic fire before the real fetch
+    // landed: if today's check-in already existed, its values would never
+    // populate the form, yet "Update Check-in" would still show over the
+    // blank fields — saving would silently overwrite real data with nulls.
+    fetchCheckins().then(() => {
+      if (cancelled) return;
+      const existing = todaysCheckin();
+      if (existing) {
+        setMood(existing.mood);
+        setSleepHours(existing.sleep_hours != null ? String(existing.sleep_hours) : '');
+        setSleepQuality(existing.sleep_quality);
+        setStressLevel(existing.stress_level);
+        setNotes(existing.notes ?? '');
+      }
       setHydrated(true);
-    } else if (!isLoadingCheckins) {
-      setHydrated(true);
-    }
-  }, [hydrated, isLoadingCheckins, todaysCheckin]);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, fetchCheckins, todaysCheckin]);
 
   const existing = todaysCheckin();
   const parsedSleepHours = sleepHours.trim() && Number.isFinite(Number(sleepHours)) ? Number(sleepHours) : null;
