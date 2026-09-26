@@ -50,8 +50,12 @@ export default function HabitsScreen() {
     }
   };
 
-  const doneToday = habits.filter((h) => isLoggedToday(h.id)).length;
-  const todayPct = habits.length > 0 ? Math.round((doneToday / habits.length) * 100) : null;
+  // "Today" only makes sense as a cadence for daily habits — a weekly habit
+  // that's perfectly on pace (say, 2 of 3 logs done earlier this week) but
+  // untouched today would otherwise drag this ring down for no real reason.
+  const dailyHabits = habits.filter((h) => h.frequency === 'daily');
+  const doneToday = dailyHabits.filter((h) => isLoggedToday(h.id)).length;
+  const todayPct = dailyHabits.length > 0 ? Math.round((doneToday / dailyHabits.length) * 100) : null;
 
   return (
     <View style={styles.outer}>
@@ -64,11 +68,11 @@ export default function HabitsScreen() {
             {isLoading ? 'Loading…' : habits.length === 0 ? 'Nothing tracked yet' : `${habits.length} tracked`}
           </Text>
 
-          {habits.length > 0 ? (
+          {dailyHabits.length > 0 ? (
             <Card style={styles.heroCard}>
               <RadialGauge
                 value={todayPct ?? 0}
-                label={habits.length > 0 ? `${doneToday}/${habits.length}` : '—'}
+                label={`${doneToday}/${dailyHabits.length}`}
                 caption="Today"
                 color={todayPct !== null ? gaugeColor(todayPct) : colors.divider}
               />
