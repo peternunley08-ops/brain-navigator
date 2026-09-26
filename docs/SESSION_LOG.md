@@ -1074,3 +1074,51 @@ after both fixes — both load and compute correctly against the real
 if asked again — `components/ui/*` logic (not just styling), `app/`
 screens' local state/effects, and the Edge Function once AI chat
 resumes. Nothing currently queued.
+
+## 2026-09-26 — Bug sweep through components/ui logic
+
+User asked to keep going, this time into `components/ui/*` — logic,
+not the styling already covered in the redesign pass. Read every file
+in that directory end to end. Three real bugs found and fixed, see the
+commit message for full detail. Summary:
+
+- **TaskTimer counted down by decrementing once per tick** instead of
+  computing from a timestamp. React Native suspends JS timers while the
+  app is backgrounded, so locking the screen or switching apps mid-timer
+  left the display behind real elapsed time. Rewrote it to compute from
+  `Date.now()` against a captured start time each tick, so the very next
+  tick after any suspension self-corrects. Verified live: started a
+  1-minute test timer on a throwaway task, backgrounded the app with the
+  simulator's HOME button, waited ~10s for real via `sleep`, relaunched,
+  and watched the displayed time jump straight to the correct elapsed
+  value (and later correctly flip into "+MM:SS" overtime, in the danger
+  color) instead of resuming a stale count. Deleted the test task
+  afterward via the Supabase REST API.
+- **HoldToConfirm had no disabled state** — a user could hold "Hold to
+  Seal" a second time while the first hold's async `closeEntry()` call
+  was still in flight, or hold "Hold to Let Float" right after,
+  double-submitting against the same entry. Added a `disabled` prop
+  (guards the press handler, passed to the underlying `Pressable`, dims
+  the button) and wired entry detail's two hold buttons to the same
+  `isSaving || sealed || shelved` guard already protecting the adjacent
+  note `TextInput` — that existing guard on the text field was the
+  tell that this really was an oversight, not intentional.
+- **AmbientMicMeter never stopped the recorder on unmount** — leaving
+  the Sleep Quality card mid-recording (navigating away, closing the
+  app) left the microphone running with nothing left to consume its
+  output. Added an unmount cleanup that stops the recorder if still
+  active.
+
+Everything else in the directory read clean: ConditionsCard,
+weatherStore/weatherCodes (compass bucketing, WMO code mapping),
+WellnessWheel and LollipopChart (SVG geometry, already careful about
+divide-by-zero and "no data yet" fallbacks), PlateMeter, TrackSlider
+(no gesture math at all — just discrete tap targets), RadialGauge,
+SegmentedBar, SleepQualityCard, Bear, ScienceNote, Button, Card.
+
+`tsc --noEmit` clean throughout. Committed and pushed.
+
+**Next**: `app/` screens' own local state/effects haven't been swept
+yet (as opposed to the stores and shared components already covered) —
+that's the natural next pass if asked to keep going. Nothing queued
+otherwise.
