@@ -16,6 +16,10 @@ export interface CalendarEvent {
   end: string;
 }
 
+// A 401 from the Calendar API means Google itself rejected the token —
+// distinct from a network/5xx failure, and handled differently below.
+class AuthExpiredError extends Error {}
+
 let configured = false;
 
 function ensureConfigured() {
@@ -97,7 +101,13 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
   },
 
   signOut: async () => {
-    await GoogleSignin.signOut();
+    try {
+      await GoogleSignin.signOut();
+    } catch {
+      // The user's intent was to disconnect — reflect that locally even
+      // if the native call had trouble, rather than leaving the screen
+      // stuck showing "connected" with no working way to back out.
+    }
     set({ signedIn: false, events: [] });
   },
 
@@ -110,6 +120,7 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
+      if (res.status === 401) throw new AuthExpiredError();
       if (!res.ok) throw new Error(`Calendar fetch failed (${res.status})`);
       const data = await res.json();
 
@@ -122,6 +133,17 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
 
       set({ isLoading: false, events });
     } catch (err) {
+      if (err instanceof AuthExpiredError) {
+        // A 401 here means Google itself rejected the token — expired,
+        // revoked, or scopes changed. getTokens() already handles routine
+        // refresh, so this means the session is genuinely no longer good.
+        // Staying "signedIn" would leave the screen showing stale events
+        // forever with no working path back except a Disconnect button
+        // that itself just calls the same broken session. Drop back to
+        // the Connect screen instead, where signing in again just works.
+        set({ isLoading: false, signedIn: false, events: [], error: 'Google Calendar session expired — reconnect to keep syncing.' });
+        return;
+      }
       set({ isLoading: false, error: err instanceof Error ? err.message : 'Could not load events' });
     }
   },
@@ -147,12 +169,17 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
           end: { dateTime: end.toISOString() },
         }),
       });
+      if (res.status === 401) throw new AuthExpiredError();
       if (!res.ok) throw new Error(`Calendar create failed (${res.status})`);
 
       set({ isSaving: false });
       await get().fetchTodayEvents();
       return true;
     } catch (err) {
+      if (err instanceof AuthExpiredError) {
+        set({ isSaving: false, signedIn: false, events: [], error: 'Google Calendar session expired — reconnect to keep syncing.' });
+        return false;
+      }
       set({ isSaving: false, error: err instanceof Error ? err.message : 'Could not create event' });
       return false;
     }
