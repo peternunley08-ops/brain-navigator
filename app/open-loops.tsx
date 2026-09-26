@@ -1,16 +1,38 @@
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomNav } from '../components/BottomNav';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Divider } from '../components/ui/Divider';
-import { useBrainNavigatorStore } from '../core/store';
+import { CognitiveStateEntry } from '../core/store';
+import { useRealtimeRefetch } from '../core/hooks/useRealtimeRefetch';
+import { supabase } from '../core/supabase';
 import { colors, fonts, spacing, stateColor } from '../core/theme';
 
 export default function OpenLoopsScreen() {
-  const history = useBrainNavigatorStore((s) => s.history);
-  const openLoops = useMemo(() => history.filter((e) => e.state === 'unlocked'), [history]);
+  const [openLoops, setOpenLoops] = useState<CognitiveStateEntry[]>([]);
+
+  // Queried directly rather than derived from the Today/Root Map history
+  // (which is capped to the 50 most recent entries) — otherwise an old
+  // unresolved entry silently drops off this list once 50 newer entries
+  // pile up, even though it's still genuinely open.
+  const fetchOpenLoops = useCallback(() => {
+    supabase
+      .from('cognitive_state')
+      .select('*')
+      .eq('state', 'unlocked')
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data) setOpenLoops(data as CognitiveStateEntry[]);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchOpenLoops();
+  }, [fetchOpenLoops]);
+
+  useRealtimeRefetch(['cognitive_state'], fetchOpenLoops);
 
   return (
     <View style={styles.root}>

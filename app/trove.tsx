@@ -1,16 +1,37 @@
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomNav } from '../components/BottomNav';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Divider } from '../components/ui/Divider';
-import { useBrainNavigatorStore } from '../core/store';
+import { CognitiveStateEntry } from '../core/store';
+import { useRealtimeRefetch } from '../core/hooks/useRealtimeRefetch';
+import { supabase } from '../core/supabase';
 import { colors, fonts, spacing, stateColor } from '../core/theme';
 
 export default function TroveScreen() {
-  const history = useBrainNavigatorStore((s) => s.history);
-  const troveEntries = useMemo(() => history.filter((e) => e.in_trove), [history]);
+  const [troveEntries, setTroveEntries] = useState<CognitiveStateEntry[]>([]);
+
+  // Queried directly rather than derived from the Today/Root Map history
+  // (which is capped to the 50 most recent entries) — otherwise anything
+  // saved to the Trove silently disappears once 50 newer entries pile up.
+  const fetchTrove = useCallback(() => {
+    supabase
+      .from('cognitive_state')
+      .select('*')
+      .eq('in_trove', true)
+      .order('created_at', { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data) setTroveEntries(data as CognitiveStateEntry[]);
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchTrove();
+  }, [fetchTrove]);
+
+  useRealtimeRefetch(['cognitive_state'], fetchTrove);
 
   return (
     <View style={styles.root}>

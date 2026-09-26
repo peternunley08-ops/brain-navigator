@@ -9,7 +9,7 @@ import { HoldToConfirm } from '../../components/ui/HoldToConfirm';
 import { useAudioStore } from '../../core/audioStore';
 import { uploadSnapshotImage } from '../../core/imageUpload';
 import { supabase } from '../../core/supabase';
-import { useBrainNavigatorStore } from '../../core/store';
+import { CognitiveStateEntry, useBrainNavigatorStore } from '../../core/store';
 import { colors, fonts, spacing, stateColor } from '../../core/theme';
 
 // Matches the threshold used at save time in new-entry.tsx — a self-rated
@@ -36,8 +36,32 @@ export default function EntryDetailScreen() {
   const [catalysts, setCatalysts] = useState<Catalyst[]>([]);
   const [loadingCatalysts, setLoadingCatalysts] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [fetchedEntry, setFetchedEntry] = useState<CognitiveStateEntry | null>(null);
 
-  const entry = useMemo(() => history.find((e) => e.id === id), [history, id]);
+  const historyEntry = useMemo(() => history.find((e) => e.id === id), [history, id]);
+  const entry = historyEntry ?? fetchedEntry ?? undefined;
+
+  // The Today history feed is capped to the 50 most recent entries, so an
+  // older entry (reached via Trove, Open Loops, or a saved link) won't be
+  // in it — fetch it directly rather than showing "Entry not found."
+  useEffect(() => {
+    if (historyEntry || !id) return;
+    let cancelled = false;
+
+    supabase
+      .from('cognitive_state')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        setFetchedEntry(data as CognitiveStateEntry);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [historyEntry, id]);
 
   useEffect(() => {
     if (!entry) return;
@@ -88,6 +112,7 @@ export default function EntryDetailScreen() {
     if (url) {
       await supabase.from('cognitive_state').update({ image_url: url }).eq('id', entry.id);
       await fetchHistory();
+      if (!historyEntry) setFetchedEntry((prev) => (prev ? { ...prev, image_url: url } : prev));
     }
     setUploadingImage(false);
   };
@@ -134,7 +159,13 @@ export default function EntryDetailScreen() {
         <Button
           label={entry.in_trove ? 'In the Trove' : 'Add to Trove'}
           variant="pill"
-          onPress={() => setTrove(entry.id, !entry.in_trove)}
+          onPress={() => {
+            const nextInTrove = !entry.in_trove;
+            setTrove(entry.id, nextInTrove);
+            if (!historyEntry) {
+              setFetchedEntry((prev) => (prev ? { ...prev, in_trove: nextInTrove } : prev));
+            }
+          }}
           style={styles.troveButton}
         />
         <Button
