@@ -32,11 +32,17 @@ interface RawEntry {
   state: 'secured' | 'shelved' | 'unlocked';
 }
 
+// Local YYYY-MM-DD, built from local date fields rather than
+// toISOString() — toISOString() converts to UTC first, which silently
+// shifts the date by one day for any timezone ahead of UTC (e.g. this
+// would undercount the window by a day in Tokyo or Auckland).
 function daysAgoISO(days: number) {
   const d = new Date();
   d.setDate(d.getDate() - days);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString().slice(0, 10);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 function average(values: number[]): number | null {

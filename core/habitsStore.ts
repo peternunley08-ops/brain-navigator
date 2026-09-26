@@ -79,8 +79,12 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
       supabase
         .from('habit_logs')
         .select('id, habit_id, log_date')
-        .order('log_date', { ascending: false })
-        .limit(500),
+        // Bounded by time, not row count — a row-count cap here is shared
+        // across every habit combined, so a heavily-logged habit could
+        // crowd another habit's older logs out of the window and silently
+        // truncate its streak. 400 days safely covers any realistic streak.
+        .gte('log_date', addDays(todayDateString(), -400))
+        .order('log_date', { ascending: false }),
     ]);
 
     if (habitsRes.error) {
@@ -189,6 +193,12 @@ export const useHabitsStore = create<HabitsStore>((set, get) => ({
       weekCounts.set(key, (weekCounts.get(key) ?? 0) + 1);
     }
     let cursor = weekKey(todayDateString());
+    if ((weekCounts.get(cursor) ?? 0) < target) {
+      // This week isn't over yet and hasn't hit the target — don't let an
+      // in-progress week zero out the streak, same forgiveness daily
+      // habits get for "haven't logged today yet".
+      cursor = addDays(cursor, -7);
+    }
     let streak = 0;
     while ((weekCounts.get(cursor) ?? 0) >= target) {
       streak += 1;
