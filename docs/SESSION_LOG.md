@@ -1251,3 +1251,61 @@ of testing.
 
 **Next**: nothing further queued. This closes out the OAuth edge cases
 that were the one remaining flagged item from the prior sweep.
+
+## 2026-09-26 (cont.) — Reconnected Google Calendar; found a real nav bug
+
+User asked to reconnect Google Calendar (disconnected as a side effect
+of verifying the `signOut()` fix above) and confirm it works. Signed
+back in via the cached Google session in the Simulator (no password
+needed — account picker only, so nothing that crossed the
+credential-entry line), then verified the full round trip by creating
+a real test event that correctly appeared in the app. Both OAuth fixes
+confirmed working end to end. User is deleting the leftover test event
+("Reconnect verification") themselves — the app has no delete-event UI
+and this session has no direct Calendar API access outside it.
+
+Then asked to keep going, with the remaining unread files as the
+target: `core/adaptiveLight.ts`, `core/imageUpload.ts`,
+`core/audioStore.ts`, `core/quotes.ts`, `core/wellness.ts`,
+`components/AmbientAudioEngine.tsx`, `components/BottomNav.tsx`. All
+read clean except one real, significant find in `BottomNav.tsx`:
+
+**The bottom nav's "Today" tab routes to `/checkin`, not to
+`app/index.tsx`** (confirmed nothing else in the app links to
+`/checkin`, so that's clearly its real intended destination — not a
+mislabel). This means the actual Lantern Desk screen (Root Map,
+Sanctuary stats, Wellness Wheel shortcut) is only reachable right
+after the "Hold to Enter" gate, before navigating anywhere else — and
+critically, **Ember ("Take It Off Your Shoulders") and "Let It Out"
+were only linked from that one screen.** Confirmed via grep: no other
+screen links to `/vent` or `/companion` either. So once a user
+navigated to Check-in, Tasks, Habits, Trove, or anywhere else, there
+was no way back to either feature without force-quitting and
+relaunching the whole app.
+
+This is a genuine product-design question, not a clear-cut logic bug,
+so it was put to the user directly rather than fixed unilaterally.
+Chosen resolution: add both "Let It Out" and "Take It Off Your
+Shoulders" to Check-in's existing quick-nav pill row (same pattern as
+the Tasks/Habits/Trends/Health/Nutrition pills already there), since
+Check-in is the screen actually reachable from the bottom nav
+everywhere in the app. This is additive — the original buttons on
+index.tsx's Sanctuary section were left in place, so Ember still also
+greets on first open as originally requested.
+
+Verified live: Let It Out's new button navigates correctly. Ember's
+button on Check-in couldn't be confirmed by tap (kept landing just off
+its hitbox in the Simulator — a tap-calibration issue, not a code
+issue), but the destination route was confirmed working via direct
+deep link, and the button uses the exact same `router.push('/companion')`
+call already proven working elsewhere. `tsc --noEmit` clean.
+
+Everything else in this batch — `adaptiveLight.ts` (day-phase gradient
+timer), `imageUpload.ts`, `audioStore.ts` + `AmbientAudioEngine.tsx`
+(the ambient crossfade engine — no `UIBackgroundModes` declared, so
+iOS correctly suspends it when backgrounded; that's expected, not a
+bug), `quotes.ts`, `wellness.ts` — read clean.
+
+This closes out essentially the entire codebase across five passes:
+stores, shared components, screens, OAuth edge cases, and now the
+remaining small utility/root files. **Nothing further is queued.**
