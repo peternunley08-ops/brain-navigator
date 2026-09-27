@@ -9,7 +9,6 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AmbientAudioEngine } from '../components/AmbientAudioEngine';
 import { EntryThreshold } from '../components/EntryThreshold';
 import { colors } from '../core/theme';
 
@@ -37,7 +36,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AmbientAudioEngine />
+      {/* AmbientAudioEngine (components/AmbientAudioEngine.tsx) disabled:
+          it looped ambient audio starting immediately on launch, before
+          the entry gate, with no way to silence it from the UI. Left the
+          component and core/audioStore.ts in place — transitionToMood()
+          calls elsewhere are now harmless no-ops — so this is easy to
+          revisit if ambient audio is wanted again with an actual mute
+          control. */}
       {entered ? (
         <Stack
           screenOptions={{
