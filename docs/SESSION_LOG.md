@@ -1355,7 +1355,7 @@ profile in Settings → General → VPN & Device Management — launched and
 confirmed running. HealthKit signed fine on the free team. Exact recipe
 and device IDs are in CLAUDE.md.
 
-**Purpose redesign: The Desk (built and verified, not yet committed).**
+**Purpose redesign: The Desk (committed a1900ac).**
 User gave full latitude to redefine the app's purpose and design. Chose:
 **a place to set down what's weighing on you, and watch each thing
 close** — grounded in what the data model already was (open loops with
@@ -1381,6 +1381,6 @@ Test data: two throwaway entries created for the snuff/float animations
 were deleted afterward; the user's one real entry ("Argument with Mom")
 is untouched and still open.
 
-**Next**: commit the Desk redesign when the user says so; optionally run
+**Next**: optionally run
 the Phase 26 SQL; reinstall on the phone (it still has the pre-redesign
 build); the "Recent Insight" AI feature is proposed but not approved.

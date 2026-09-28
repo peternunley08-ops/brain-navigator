@@ -423,7 +423,7 @@ merged in — Ember's whole point is nothing leaves the device).
 - [ ] Test on device: Apple Health, Let It Out voice mode, haptics, the
   flame under a real finger
 
-## Phase 26 — Purpose redesign: The Desk (built, verified, NOT committed yet)
+## Phase 26 — Purpose redesign: The Desk (done, committed a1900ac)
 
 New purpose: a place to set down what's weighing on you and watch each
 thing close. Every open entry is a lit candle; resolving snuffs it,
@@ -454,7 +454,7 @@ Drawer.
   animations frame-by-frame (two throwaway test entries, deleted after),
   auto-return with count/badge update, Steady, Drawer, Map on cold launch,
   Breathe unaffected
-- [ ] Commit (user hasn't said to yet)
+- [x] Committed (a1900ac), docs in 30fd9f0
 - [ ] Run `core/schema.sql` Phase 26 block in the Supabase SQL editor
   (adds `cognitive_state` to realtime — optional; app refetches on focus)
 - [ ] Not yet tested: setting down a brand-new entry end-to-end (would
