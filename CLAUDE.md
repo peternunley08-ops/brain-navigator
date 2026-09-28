@@ -20,7 +20,11 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
 - `components/ui/` — reusable design-system primitives (Button, Card,
   gauges, charts, meters).
 - `components/` (root) — one-off feature components (`BottomNav.tsx`,
-  `AmbientAudioEngine.tsx`, `EntryThreshold.tsx`).
+  `BreathInstrument.tsx`, `EntryThreshold.tsx`, `AmbientAudioEngine.tsx` —
+  the last one is **no longer mounted**, see "Current state").
+- `core/hooks/` — shared hooks: `useRealtimeRefetch`, `useOpenLoops`
+  (the one live list of everything open), `useFlameClock` (one UI-thread
+  clock per screen that every flame reads).
 - `assets/` — images and audio.
 - `scripts/` — one-off build/generation scripts.
 - `supabase/functions/` — Edge Functions (Deno runtime — excluded from the
@@ -36,43 +40,138 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
     instructions.
   - `apple-watch-plan.md`, `encryption-plan.md` — feature planning docs.
 
-## Current state (as of 2026-09-24 — check `git log` for anything newer)
+## Current state (as of 2026-09-27 — check `git log` for anything newer)
 
-**Design system redesign complete** — all 15 screens done, against the
-`artifact-design`/`frontend-design` skill's checklist of generic-AI tells
-(tracked-uppercase eyebrow labels, "A · B · C" middle-dot copy joins, "WORD
-— fragment" labels). Today, Health, Trove, Check-in, Tasks, Habits,
-Nutrition, Calendar, Entry detail (`entry/[id].tsx`), New Entry, Open
-Loops, Science, Topography, Trends, Wellness (+ 6 shared components fixed
-along the way: ScienceNote, ConditionsCard, SleepQualityCard,
-AmbientMicMeter, PlateMeter, TaskTimer). The rule applied throughout:
-mono/uppercase/tracked type is kept **only** where it's a genuine
-instrument readout paired with a number or gauge (RESTING HR,
-PROTEIN/CARBS/FAT, capsule labels, RadialGauge captions, stat-card labels
-paired with a numeric value, chart axis text, legend captions paired with
-a colored dot) — never as a decorative section eyebrow or a plain-sentence
-form-field prompt. Science screen needed no changes — it was already
-compliant. If new screens or components are added later, apply the same
-checklist rather than assuming the mono/uppercase style is the default.
+### The app's purpose (redesigned 2026-09-27)
 
-**Ember** (`app/companion.tsx`, `components/ui/Bear.tsx`,
-`core/companionPrompts.ts`) — a guided, no-AI check-in companion (fixed
-prompt pool, no language model). Reachable from Today's Sanctuary section.
-Saves into `vent_entries` (same table as the "Let It Out" venting page),
+**A place to set down what's weighing on you, and watch each thing close.**
+Every open `cognitive_state` entry (`state = 'unlocked'`) is a lit candle on
+**The Desk** (`app/index.tsx`, the home route `/`). Closing one plays out on
+its candle: **resolve** (`secured`) snuffs the flame, smoke curls off the
+wick, a verdigris seal presses into the wax; **let go** (`shelved`) lifts
+the flame off the wick and floats it away like a sky lantern. Candle
+flame size = the entry's intensity; candle height = how long it's been
+open (burns lower over ~21 days). All other features still exist — they
+moved into the Drawer rather than being removed.
+
+- **Navigation** (`components/BottomNav.tsx`): Desk `/` · Loops
+  `/open-loops` (badge = open count) · centre flame button = "Set
+  something down" → `/new-entry` · Map `/topography` · Steady `/steady`.
+- **Steady** (`app/steady.tsx`): Breathe, Let it out (`/vent`), Ember
+  (`/companion`) — the in-the-moment tools.
+- **Drawer** (`app/drawer.tsx`, from the Desk's top-right button): every
+  other screen — Check-in, Health, Trends, Tasks, Habits, Nutrition,
+  Calendar, Kept (`/trove`), Wellness wheel, The science.
+- **User-facing state names** live in `STATE_LABEL` in `core/store.ts`:
+  `unlocked` → **Open**, `secured` → **Resolved**, `shelved` → **Let go**.
+  The DB values are unchanged; never show the raw ones. "Trove" is shown
+  as **Kept**.
+- **Open entries** come from one place: `openLoops` in the store (uncapped,
+  unlike `history` which is the 50 most recent), kept fresh by
+  `useOpenLoops()` — refetches on screen focus *and* on realtime. The nav
+  badge reads the store directly. The Map (`topography.tsx`) loads
+  `history` itself on focus — the old home screen used to load it at
+  launch, and nothing else does now.
+- **The flame** is one shared worklet, `flamePath` in `core/flame.ts`,
+  used by the Breathe instrument, every candle (`components/ui/Candle.tsx`,
+  states `lit | snuffed | floated | unlit`), and the nav icon. Change the
+  flame in one place.
+
+### Breathe (`app/breathe.tsx`, `components/BreathInstrument.tsx`, `core/breathPatterns.ts`)
+
+Interactive guided breathing: hold the flame to begin, turn the brass
+bezel to pick Box / 4-7-8 / Even (haptic detents, flick momentum, locked
+mid-session), tap the flame to pause. All timing runs in one
+`useFrameCallback` on the UI thread; React state only carries the words.
+Built on Reanimated 4.7 + Gesture Handler 3.3 (**hook API**:
+`usePanGesture`, not the old `Gesture.Pan()` builder) + react-native-svg;
+JS hops use `scheduleOnRN` from `react-native-worklets`. Reduce Motion
+drops dust/flicker/spin but keeps the breathing guide.
+
+### Ambient audio is disabled
+
+`AmbientAudioEngine` looped two audio tracks from the moment the app
+launched, with no mute. Its mount was removed from `app/_layout.tsx`
+(2026-09-26). The component and `core/audioStore.ts` still exist;
+`transitionToMood()` calls are now harmless no-ops. Re-enable only with a
+real mute control.
+
+### Running on the user's iPhone
+
+Installed on the user's **iPhone 17 Pro** (devicectl id
+`DD1C8E3C-1DC6-598F-BC83-415F2AAFDD09`, UDID `00008150-001C4CE12110C01C`,
+iOS 26.7), signed with the free **Personal Team `PQLSGT6XTP`**. Free
+signing expires after **7 days** — rebuild + reinstall to refresh. It's a
+Release build with the JS bundled in, so it runs without Metro. HealthKit
+entitlements signed fine on the free team. Recipe (phone plugged in,
+unlocked):
+
+```
+cd ios && xcodebuild -workspace brainnavigator.xcworkspace -scheme brainnavigator \
+  -configuration Release -destination 'id=00008150-001C4CE12110C01C' \
+  -derivedDataPath /tmp/bn-derived-device -allowProvisioningUpdates \
+  -allowProvisioningDeviceRegistration DEVELOPMENT_TEAM=PQLSGT6XTP \
+  CODE_SIGN_STYLE=Automatic build
+xcrun devicectl device install app --device DD1C8E3C-1DC6-598F-BC83-415F2AAFDD09 \
+  /tmp/bn-derived-device/Build/Products/Release-iphoneos/brainnavigator.app
+xcrun devicectl device process launch --device DD1C8E3C-1DC6-598F-BC83-415F2AAFDD09 \
+  com.peternunley.brainnavigator
+```
+
+If the phone isn't detected: the Mac's "Allow accessory to connect?"
+prompt must be accepted, then `xcrun devicectl manage pair --device …`
+triggers the phone's Trust prompt. Developer Mode is already on. **The
+phone currently has the pre-redesign build** (Breathe included, Desk not).
+
+### Ember
+
+`app/companion.tsx`, `components/ui/Bear.tsx`, `core/companionPrompts.ts`
+— a guided, no-AI check-in companion (fixed prompt pool, no language
+model). Reachable from Steady and from the Desk's "Talk it through with
+Ember" link. Saves into `vent_entries` (same table as Let It Out),
 `input_mode = 'companion'`.
 
-**AI chat is scaffolded but paused, unfunded** (`supabase/functions/chat/`).
-A real Anthropic-API-backed chat, deliberately kept separate from Ember (not
-merged into it) specifically because Ember's whole value is that nothing
-leaves the device — blending in a cloud model would break that promise.
-The Edge Function is deployed and reads its key from the `brain-navigator-v2`
-Supabase secret (not `ANTHROPIC_API_KEY` — that naming happened by accident
-mid-session and code + secret were both left pointing at the accidental
-name rather than fixed, since it works fine). It currently returns a real
-Anthropic 400 (insufficient credit balance) on every call — the user's
-Anthropic Console account has no billing set up. No chat screen/UI has
-been built yet. Resume by: confirming billing is funded, then building the
-screen + entry point + wiring to the existing deployed function.
+### AI chat is scaffolded but paused, unfunded (`supabase/functions/chat/`)
+
+A real Anthropic-API-backed chat, deliberately kept separate from Ember
+(Ember's whole value is that nothing leaves the device). The Edge Function
+is deployed and reads its key from the **`brain-navigator-v2`** Supabase
+secret (not `ANTHROPIC_API_KEY` — accidental naming, left as-is because it
+works). Every call returns Anthropic 400 (insufficient credit balance) —
+the user's Anthropic account has no billing. No chat UI yet. A proposed
+first step, "Recent Insight" (one read-only AI summary card over the last
+7 days of data), was recommended and **not approved yet** — see
+docs/todo.md Phase 22.
+
+### Known open items
+
+- `core/schema.sql` Phase 26 (add `cognitive_state` to the
+  `supabase_realtime` publication) is **written but not run** in the
+  Supabase SQL editor. The app doesn't depend on it (it refetches on
+  focus); running it makes changes from another device appear live.
+- iOS Simulator tip for this project: the simulator tool's screenshots
+  are ~2.29× device points (x and y); `inspect` isn't available, so
+  calibrate taps against a known target. Deep links
+  (`brainnavigator://<route>`) are the reliable way to reach a screen.
+
+## Design system
+
+"The Glasshouse Study" field journal, tokens in `core/theme.ts`: aged
+vellum background, near-black ink, brass (`leather`) and verdigris
+instrument accents, rust (`unlocked`) as the one deliberately saturated
+color. Fonts: Fraunces (display, and an italic for soft headings), Lora
+(body), Courier Prime (mono). Every screen was audited (2026-09-24)
+against generic-AI design tells. The rule applied throughout, and to apply
+to anything new:
+
+- Mono / uppercase / tracked type **only** for a genuine instrument
+  readout paired with a number or gauge (stat-card labels over a value,
+  RadialGauge captions, chart axis text, legend captions next to a colored
+  dot) — never as a decorative section eyebrow or a form-field prompt.
+- No "A · B · C" middle-dot copy joins, no "WORD — fragment" labels.
+- Headings are serif (Fraunces), sentence case.
+- Motion should answer a person's action (ignite, snuff, float, dial
+  detent) rather than decorate; respect Reduce Motion.
 
 ## Conventions
 

@@ -391,3 +391,81 @@ merged in — Ember's whole point is nothing leaves the device).
   function once billing is sorted and it's verified working
 - [ ] Chat screen UI — not started
 - [ ] Entry point on Today — not started
+
+## Phase 23 — Breathe (done, committed 5e11b0c)
+
+- [x] `app/breathe.tsx`, `components/BreathInstrument.tsx`,
+  `core/breathPatterns.ts` — interactive guided breathing instrument:
+  hold-to-begin flame, brass bezel dial (Box / 4-7-8 / Even) with haptic
+  detents and flick momentum, phase ring sized to each phase's real share,
+  orbiting bead, living flame, dust motes, letter-by-letter phase words,
+  pause/resume/end, finish summary, optional log to Apple Health
+- [x] Verified in Simulator via real taps and drags, including a full
+  4-7-8 session to the finish
+- [ ] Health "log mindful minutes" on finish — untested (Health isn't
+  connected in the Simulator; needs the physical phone)
+
+## Phase 24 — Ambient audio disabled (done, committed e87c960)
+
+- [x] Removed the `AmbientAudioEngine` mount from `app/_layout.tsx` — it
+  looped audio from launch with no mute. Component + `core/audioStore.ts`
+  left in place; `transitionToMood()` calls are harmless no-ops.
+- [ ] If ambient audio is ever wanted again, it needs a real mute control
+  first
+
+## Phase 25 — Installed on the user's iPhone (done)
+
+- [x] Paired iPhone 17 Pro over USB, Developer Mode on, signed with free
+  Personal Team `PQLSGT6XTP`, Release build with bundled JS, installed and
+  launched (recipe in CLAUDE.md)
+- [ ] Rebuild + reinstall every 7 days (free signing expiry)
+- [ ] The phone has the **pre-redesign** build — reinstall to get the Desk
+- [ ] Test on device: Apple Health, Let It Out voice mode, haptics, the
+  flame under a real finger
+
+## Phase 26 — Purpose redesign: The Desk (built, verified, NOT committed yet)
+
+New purpose: a place to set down what's weighing on you and watch each
+thing close. Every open entry is a lit candle; resolving snuffs it,
+letting go floats it away. Nothing removed — secondary tools moved to a
+Drawer.
+
+- [x] `core/flame.ts` — the flame worklet extracted from Breathe, shared
+  everywhere
+- [x] `components/ui/Candle.tsx` — candle with `lit | snuffed | floated |
+  unlit` states; flame size = intensity, height = time open
+- [x] `core/hooks/useFlameClock.ts`, `core/hooks/useOpenLoops.ts`;
+  `openLoops` + `fetchOpenLoops` added to `core/store.ts`
+- [x] `STATE_LABEL` in `core/store.ts`: Open / Resolved / Let go
+- [x] `app/index.tsx` rewritten as The Desk (was the 3-panel Lantern
+  Desk / Root Map / Sanctuary screen)
+- [x] `components/BottomNav.tsx` rebuilt: Desk · Loops · flame "Set
+  something down" · Map · Steady
+- [x] `app/steady.tsx` (Breathe, Let it out, Ember) and `app/drawer.tsx`
+  (every other screen, grouped)
+- [x] `app/entry/[id].tsx` — candle at the top; resolve/let-go play on it
+  before returning to the Desk; plain labels; "Keep this"
+- [x] Open Loops refactored onto `useOpenLoops`; Map titled "Map", filters
+  and legend use the plain names, and it now loads `history` itself on
+  focus (regression caught: the old home screen was the only thing that
+  loaded it)
+- [x] Trove screen titled "Kept"
+- [x] Verified in Simulator: Desk with 1/2/3 candles, snuff and float
+  animations frame-by-frame (two throwaway test entries, deleted after),
+  auto-return with count/badge update, Steady, Drawer, Map on cold launch,
+  Breathe unaffected
+- [ ] Commit (user hasn't said to yet)
+- [ ] Run `core/schema.sql` Phase 26 block in the Supabase SQL editor
+  (adds `cognitive_state` to realtime — optional; app refetches on focus)
+- [ ] Not yet tested: setting down a brand-new entry end-to-end (would
+  write to real data), and the Desk with more than two real candles
+- [ ] Reinstall on the phone
+
+## Phase 22 addendum — proposed next AI step (awaiting approval)
+
+"Recent Insight": one read-only Edge Function endpoint that summarizes the
+last 7 days of check-ins/tasks/habits/wellness scores into 2–3 grounded
+sentences, shown in one card with a manual refresh. Reuses the existing
+`chat` function's deployment pattern and secret; no chat UI, no writes,
+no scheduling; clearly labeled AI and separate from Ember. Still blocked
+on Anthropic billing. **Do not build until the user approves.**

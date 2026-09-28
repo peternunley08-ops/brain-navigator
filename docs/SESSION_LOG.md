@@ -1309,3 +1309,78 @@ bug), `quotes.ts`, `wellness.ts` — read clean.
 This closes out essentially the entire codebase across five passes:
 stores, shared components, screens, OAuth edge cases, and now the
 remaining small utility/root files. **Nothing further is queued.**
+
+## 2026-09-26–27 — QA, audio fix, Breathe, phone install, Desk redesign
+
+**Check-in QA (tap-only).** Verified with real taps (no deep links) that
+the Check-in hub stays reachable after navigating away and back, and
+that "Let It Out" and "Take It Off Your Shoulders" open their screens.
+All passed. Learned: the simulator tool's `inspect` action doesn't exist
+in this environment; screenshots are ~2.29× device points on both axes;
+calibrate against a known target (the nav's centre button) before
+trusting coordinates. The simulator also lags between tap and render —
+wait ~3s before concluding a tap missed.
+
+**Background noise → app code.** The unwanted sound was
+`components/AmbientAudioEngine.tsx`, mounted unconditionally in
+`app/_layout.tsx` (outside the entry gate), looping two audio tracks from
+launch with no mute. Removed the mount (commit e87c960); left the component
+and `core/audioStore.ts` in place. Also unmuted the Mac's system volume,
+which an earlier session had muted as a stopgap.
+
+**Breathe (commit 5e11b0c).** User asked for motion/interaction design
+"all out". Built an interactive guided-breathing instrument in the app's
+field-journal style: hold the flame to begin, brass bezel dial to choose
+Box / 4-7-8 / Even (haptic detents, flick momentum, springs to the
+nearest pattern, locked mid-session), a flame that breathes and sways,
+lantern glow and dust motes that follow the breath and part under a
+finger, an orbiting bead over a phase ring sized to each phase's real
+share, letter-by-letter phase words, pause/resume/end, finish summary.
+API notes for this stack: Gesture Handler 3.3 is **hook-based**
+(`usePanGesture`, `onBegin/onUpdate/onFinalize`, event fields
+`x/y/velocityX` directly on the event); Reanimated 4.7; JS hops via
+`scheduleOnRN` from `react-native-worklets`; babel-preset-expo adds the
+worklets plugin automatically; `StyleSheet.absoluteFillObject` no longer
+exists in RN 0.86. First flame attempt read as a blob — rebuilt as a
+proper teardrop curve (now `core/flame.ts`).
+
+**Installed on the user's iPhone.** Took three rounds of user action: the
+phone didn't appear on USB at all until the Mac's "Allow accessory to
+connect?" prompt was accepted; pairing had to be re-triggered with
+`xcrun devicectl manage pair` to get the Trust prompt; Developer Mode had
+to be enabled. Xcode already had the free Personal Team (`PQLSGT6XTP`) —
+the first check looked in the wrong defaults key. Built Release with the
+JS bundled, signed, installed, and — after the user trusted the developer
+profile in Settings → General → VPN & Device Management — launched and
+confirmed running. HealthKit signed fine on the free team. Exact recipe
+and device IDs are in CLAUDE.md.
+
+**Purpose redesign: The Desk (built and verified, not yet committed).**
+User gave full latitude to redefine the app's purpose and design. Chose:
+**a place to set down what's weighing on you, and watch each thing
+close** — grounded in what the data model already was (open loops with
+resolve / let-go states and a resolution note). Every open entry is a lit
+candle on the Desk; resolving snuffs it (smoke, verdigris seal), letting
+go floats the flame away. Flame size = intensity; candle height = time
+open. Secondary tools moved to a Drawer; the in-the-moment tools
+(Breathe, Let it out, Ember) got their own Steady tab. The internal state
+names were replaced on screen with Open / Resolved / Let go, and Trove
+with Kept. Full file list in docs/todo.md Phase 26.
+
+Found and fixed during verification:
+- `cognitive_state` was never in the realtime publication, so every
+  realtime subscription to it (Desk, Loops, Kept) silently never fired.
+  The app now refetches on screen focus; the publication change is
+  written into `core/schema.sql` Phase 26 but **not yet run**.
+- Regression I introduced and caught: the old home screen was the only
+  thing loading `history` at launch, which the Map depends on — the Map
+  now loads it itself on focus. Confirmed on a cold relaunch.
+- Label spacing under the entry candle, and "Keep this" / "Kept" wording.
+
+Test data: two throwaway entries created for the snuff/float animations
+were deleted afterward; the user's one real entry ("Argument with Mom")
+is untouched and still open.
+
+**Next**: commit the Desk redesign when the user says so; optionally run
+the Phase 26 SQL; reinstall on the phone (it still has the pre-redesign
+build); the "Recent Insight" AI feature is proposed but not approved.
