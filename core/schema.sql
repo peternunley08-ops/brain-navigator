@@ -268,3 +268,19 @@ create policy "anon full access" on vent_entries for all using (true) with check
 alter table vent_entries drop constraint if exists vent_entries_input_mode_check;
 alter table vent_entries add constraint vent_entries_input_mode_check
   check (input_mode in ('voice', 'type', 'companion'));
+
+-- Phase 26 — Desk redesign. The Desk, Loops, and Trove screens subscribe to
+-- cognitive_state changes, but only entities and catalysts were ever added
+-- to the realtime publication (Phase 17), so those subscriptions never
+-- fired. The app now also refetches on screen focus, so this is an
+-- improvement (updates from another device appear live), not a fix the
+-- app depends on. Idempotent, same guard as Phase 17.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'cognitive_state'
+  ) then
+    alter publication supabase_realtime add table cognitive_state;
+  end if;
+end $$;

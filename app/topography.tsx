@@ -1,17 +1,17 @@
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, G, Line, Text as SvgText } from 'react-native-svg';
 import { BottomNav } from '../components/BottomNav';
 import { Button } from '../components/ui/Button';
 import { supabase } from '../core/supabase';
-import { CognitiveStateLabel, useBrainNavigatorStore } from '../core/store';
+import { CognitiveStateLabel, STATE_LABEL, useBrainNavigatorStore } from '../core/store';
 import { useRealtimeRefetch } from '../core/hooks/useRealtimeRefetch';
 import { colors, fonts, spacing, stateColor } from '../core/theme';
 
 type Filter = CognitiveStateLabel | 'all';
 
-const FILTERS: Filter[] = ['all', 'secured', 'shelved', 'unlocked'];
+const FILTERS: Filter[] = ['all', 'unlocked', 'secured', 'shelved'];
 
 interface CatalystLink {
   cognitive_state_id: string;
@@ -35,6 +35,15 @@ function ringPosition(index: number, count: number, radius: number) {
 
 export default function TopographyScreen() {
   const history = useBrainNavigatorStore((s) => s.history);
+  const fetchHistory = useBrainNavigatorStore((s) => s.fetchHistory);
+
+  // The Map is the one tab that reads the full entry history, so it loads
+  // it itself, each time it comes into view.
+  useFocusEffect(
+    useCallback(() => {
+      fetchHistory();
+    }, [fetchHistory])
+  );
   const [filter, setFilter] = useState<Filter>('all');
   const [links, setLinks] = useState<CatalystLink[]>([]);
 
@@ -103,7 +112,7 @@ export default function TopographyScreen() {
       <ScrollView style={styles.root} contentContainerStyle={styles.content}>
         <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
 
-        <Text style={styles.title}>Topography</Text>
+        <Text style={styles.title}>Map</Text>
         <Text style={styles.subtitle}>
           {history.length === 0
             ? 'Nothing logged yet'
@@ -120,7 +129,7 @@ export default function TopographyScreen() {
               <Text
                 style={[styles.filterChipText, filter === f && styles.filterChipTextActive]}
               >
-                {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'all' ? 'All' : STATE_LABEL[f]}
               </Text>
             </Pressable>
           ))}
@@ -206,9 +215,9 @@ export default function TopographyScreen() {
         )}
 
         <View style={styles.legend}>
-          <LegendItem color={colors.secured} label="Secured" />
-          <LegendItem color={colors.shelved} label="Shelved" />
-          <LegendItem color={colors.unlocked} label="Unlocked" />
+          <LegendItem color={colors.unlocked} label={STATE_LABEL.unlocked} />
+          <LegendItem color={colors.secured} label={STATE_LABEL.secured} />
+          <LegendItem color={colors.shelved} label={STATE_LABEL.shelved} />
           <LegendItem color={colors.leather} label="Person / thing" />
         </View>
       </ScrollView>

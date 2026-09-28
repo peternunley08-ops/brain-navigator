@@ -37,7 +37,7 @@ export default function TroveScreen() {
     <View style={styles.root}>
       <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
 
-      <Text style={styles.title}>Personal Trove</Text>
+      <Text style={styles.title}>Kept</Text>
       <Text style={styles.subtitle}>
         {troveEntries.length === 0 ? 'Nothing kept yet' : `${troveEntries.length} kept`}
       </Text>

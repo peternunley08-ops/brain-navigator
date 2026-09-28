@@ -1,15 +1,18 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { Button } from '../../components/ui/Button';
+import { Candle, type CandleState } from '../../components/ui/Candle';
 import { Card } from '../../components/ui/Card';
 import { Divider } from '../../components/ui/Divider';
 import { HoldToConfirm } from '../../components/ui/HoldToConfirm';
 import { useAudioStore } from '../../core/audioStore';
 import { uploadSnapshotImage } from '../../core/imageUpload';
 import { supabase } from '../../core/supabase';
-import { CognitiveStateEntry, useBrainNavigatorStore } from '../../core/store';
+import { useFlameClock } from '../../core/hooks/useFlameClock';
+import { CognitiveStateEntry, STATE_LABEL, useBrainNavigatorStore } from '../../core/store';
 import { colors, fonts, spacing, stateColor } from '../../core/theme';
 
 // Matches the threshold used at save time in new-entry.tsx — a self-rated
@@ -37,6 +40,9 @@ export default function EntryDetailScreen() {
   const [loadingCatalysts, setLoadingCatalysts] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [fetchedEntry, setFetchedEntry] = useState<CognitiveStateEntry | null>(null);
+  const scrollRef = useRef<ScrollView>(null);
+  const time = useFlameClock();
+  const reducedMotion = useReducedMotion();
 
   const historyEntry = useMemo(() => history.find((e) => e.id === id), [history, id]);
   const entry = historyEntry ?? fetchedEntry ?? undefined;
@@ -117,21 +123,31 @@ export default function EntryDetailScreen() {
     setUploadingImage(false);
   };
 
+  // Closing plays out on the candle at the top — scroll up so it's seen,
+  // and only leave once the flame has gone out or floated away.
   const handleSeal = () => {
     if (!entry) return;
     setSealed(true);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+    const leaveAt = Date.now() + (reducedMotion ? 700 : 2100);
     closeEntry(entry.id, note).then(() => {
-      setTimeout(() => router.back(), 700);
+      setTimeout(() => router.back(), Math.max(0, leaveAt - Date.now()));
     });
   };
 
   const handleShelve = () => {
     if (!entry) return;
     setShelved(true);
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+    const leaveAt = Date.now() + (reducedMotion ? 700 : 2700);
     shelveEntry(entry.id).then(() => {
-      setTimeout(() => router.back(), 700);
+      setTimeout(() => router.back(), Math.max(0, leaveAt - Date.now()));
     });
   };
+
+  const displayState = sealed ? 'secured' : shelved ? 'shelved' : (entry?.state ?? 'unlocked');
+  const candleState: CandleState =
+    displayState === 'secured' ? 'snuffed' : displayState === 'shelved' ? 'floated' : 'lit';
 
   if (!entry) {
     return (
@@ -143,10 +159,24 @@ export default function EntryDetailScreen() {
   }
 
   return (
-    <ScrollView style={styles.root} contentContainerStyle={styles.content}>
+    <ScrollView ref={scrollRef} style={styles.root} contentContainerStyle={styles.content}>
       <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
 
-      <Text style={[styles.label, { color: stateColor(entry.state) }]}>{entry.state}</Text>
+      <Candle
+        width={150}
+        time={time}
+        intensity={(entry.intensity ?? 5) / 10}
+        remaining={Math.max(
+          0.32,
+          1 - (Date.now() - new Date(entry.created_at).getTime()) / (21 * 24 * 60 * 60 * 1000)
+        )}
+        seed={entry.id.charCodeAt(0) / 10}
+        state={candleState}
+        reducedMotion={reducedMotion}
+        igniteDelay={200}
+      />
+
+      <Text style={[styles.label, { color: stateColor(displayState) }]}>{STATE_LABEL[displayState]}</Text>
       <Text style={styles.mood}>{entry.mood || 'Untitled'}</Text>
       <Text style={styles.date}>{new Date(entry.created_at).toLocaleDateString()}</Text>
       {entry.notes ? <Text style={styles.notes}>{entry.notes}</Text> : null}
@@ -157,7 +187,7 @@ export default function EntryDetailScreen() {
 
       <View style={styles.actionRow}>
         <Button
-          label={entry.in_trove ? 'In the Trove' : 'Add to Trove'}
+          label={entry.in_trove ? 'Kept' : 'Keep this'}
           variant="pill"
           onPress={() => {
             const nextInTrove = !entry.in_trove;
@@ -169,7 +199,7 @@ export default function EntryDetailScreen() {
           style={styles.troveButton}
         />
         <Button
-          label={uploadingImage ? 'Uploading…' : entry.image_url ? 'Change Photo' : 'Add Photo'}
+          label={uploadingImage ? 'Uploading…' : entry.image_url ? 'Change photo' : 'Add photo'}
           variant="pill"
           onPress={handlePickImage}
           disabled={uploadingImage}
@@ -211,8 +241,8 @@ export default function EntryDetailScreen() {
           <View style={styles.holdRow}>
             <View style={styles.holdWrap}>
               <HoldToConfirm
-                label={sealed ? 'Sealed' : 'Hold to Seal'}
-                holdingLabel="Sealing…"
+                label={sealed ? 'Resolved' : 'Hold to resolve'}
+                holdingLabel="Resolving…"
                 onComplete={handleSeal}
                 fillColor={colors.secured}
                 borderColor={colors.secured}
@@ -223,8 +253,8 @@ export default function EntryDetailScreen() {
 
             <View style={styles.holdWrap}>
               <HoldToConfirm
-                label={shelved ? 'Let Float' : 'Hold to Let Float'}
-                holdingLabel="Floating…"
+                label={shelved ? 'Let go' : 'Hold to let it go'}
+                holdingLabel="Letting go…"
                 onComplete={handleShelve}
                 fillColor={colors.shelved}
                 borderColor={colors.shelved}
@@ -255,10 +285,9 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   label: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 2,
-    textTransform: 'uppercase',
+    marginTop: spacing.md,
+    fontFamily: fonts.displaySoft,
+    fontSize: 17,
     color: colors.unlocked,
   },
   sectionTitle: {

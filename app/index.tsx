@@ -1,356 +1,306 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Animated,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { useEffect } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import { BottomNav } from '../components/BottomNav';
 import { Button } from '../components/ui/Button';
-import { Card } from '../components/ui/Card';
-import { Divider } from '../components/ui/Divider';
-import { WellnessWheel } from '../components/ui/WellnessWheel';
-import { useBrainNavigatorStore } from '../core/store';
-import { colors, fonts, gradients, radii, spacing, stateColor } from '../core/theme';
-import { useWellnessWheelStore } from '../core/wellnessWheelStore';
+import { Candle } from '../components/ui/Candle';
+import { useFlameClock } from '../core/hooks/useFlameClock';
+import { useOpenLoops } from '../core/hooks/useOpenLoops';
+import type { CognitiveStateEntry } from '../core/store';
+import { colors, fonts, radii, spacing } from '../core/theme';
+import { useWellnessStore } from '../core/wellnessStore';
 
-export default function LanternDesk() {
-  // A static Dimensions.get() snapshot would go stale on iPad, where
-  // Split View / Slide Over / Stage Manager can resize the app's window
-  // without a relaunch — useWindowDimensions stays reactive to that.
-  const { height: screenHeight } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
-  const breath = useRef(new Animated.Value(0.35)).current;
-  const [ambienceMuted, setAmbienceMuted] = useState(true);
+const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+const MAX_ON_DESK = 9;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
-  const history = useBrainNavigatorStore((s) => s.history);
-  const isLoadingHistory = useBrainNavigatorStore((s) => s.isLoadingHistory);
-  const error = useBrainNavigatorStore((s) => s.error);
-  const fetchHistory = useBrainNavigatorStore((s) => s.fetchHistory);
-  const resetDraft = useBrainNavigatorStore((s) => s.resetDraft);
+function momentLabel(d = new Date()) {
+  const day = d.toLocaleDateString('en-US', { weekday: 'long' });
+  const h = d.getHours();
+  const part = h < 5 ? 'night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 21 ? 'evening' : 'night';
+  return `${day} ${part}`;
+}
 
-  const wellnessScores = useWellnessWheelStore((s) => s.scores);
-  const fetchWellnessScores = useWellnessWheelStore((s) => s.fetchScores);
+function countLine(n: number) {
+  if (n === 0) return "Nothing's open. The desk is clear.";
+  const word = n <= 10 ? NUMBER_WORDS[n] : String(n);
+  return n === 1 ? 'One thing is still open.' : `${word} things are still open.`;
+}
+
+function ageLabel(createdAt: string) {
+  const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / DAY_MS);
+  if (days <= 0) return 'Open since today';
+  return days === 1 ? 'Open for a day' : `Open for ${days} days`;
+}
+
+function seedFor(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100003;
+  return (h % 1000) / 100;
+}
+
+export default function DeskScreen() {
+  const { width } = useWindowDimensions();
+  const reducedMotion = useReducedMotion();
+  const time = useFlameClock();
+  const openLoops = useOpenLoops();
+
+  const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
+  const todaysCheckin = useWellnessStore((s) => s.todaysCheckin());
 
   useEffect(() => {
-    fetchHistory();
-    fetchWellnessScores();
-  }, [fetchHistory, fetchWellnessScores]);
+    fetchCheckins();
+  }, [fetchCheckins]);
 
-  useEffect(() => {
-    // contentOffset isn't reliably honored on web; scroll explicitly once mounted.
-    const id = setTimeout(() => {
-      scrollRef.current?.scrollTo({ y: screenHeight, animated: false });
-    }, 0);
-    return () => clearTimeout(id);
-  }, [screenHeight]);
+  const onDesk = openLoops.slice(0, MAX_ON_DESK);
+  const overflow = openLoops.length - onDesk.length;
 
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(breath, {
-          toValue: 0.9,
-          duration: 5000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(breath, {
-          toValue: 0.35,
-          duration: 5000,
-          useNativeDriver: true,
-        }),
-      ])
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [breath]);
-
-  const returnToPresent = () => {
-    resetDraft();
-    scrollRef.current?.scrollTo({ y: screenHeight, animated: true });
-  };
-
-  const stateCounts = useMemo(() => {
-    const counts = { secured: 0, shelved: 0, unlocked: 0 };
-    for (const entry of history) {
-      counts[entry.state] += 1;
-    }
-    return counts;
-  }, [history]);
+  // Fewer candles each get more presence on the desk.
+  const contentWidth = Math.min(width, 480) - spacing.lg * 2;
+  const perRow = onDesk.length <= 2 ? Math.max(1, onDesk.length) : 3;
+  const candleW = Math.min(onDesk.length <= 2 ? 150 : 108, (contentWidth - (perRow - 1) * spacing.md) / perRow);
 
   return (
     <View style={styles.root}>
-      <ScrollView
-        ref={scrollRef}
-        style={styles.container}
-        contentContainerStyle={styles.content}
-        contentOffset={{ x: 0, y: screenHeight }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* PAST: Root Map */}
-        <LinearGradient colors={gradients.quiet} style={[styles.section, { height: screenHeight }]}>
-          <Text style={styles.sectionTitle}>Root Map</Text>
-          {isLoadingHistory ? (
-            <Text style={styles.hint}>Loading…</Text>
-          ) : history.length === 0 ? (
-            <Text style={styles.hint}>Nothing logged yet</Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.header}>
+          <Text style={styles.moment}>{momentLabel()}</Text>
+          <Button label="Drawer" variant="pill" onPress={() => router.push('/drawer')} />
+        </View>
+
+        <Text style={styles.title}>The Desk</Text>
+        <Text style={styles.subtitle}>{countLine(openLoops.length)}</Text>
+
+        <View style={styles.desk}>
+          {onDesk.length === 0 ? (
+            <View style={styles.emptyCandle}>
+              <Candle
+                width={120}
+                time={time}
+                intensity={0.4}
+                remaining={0.55}
+                seed={1.7}
+                state="unlit"
+                reducedMotion={reducedMotion}
+              />
+            </View>
           ) : (
-            <Card style={styles.historyCard}>
-              {history.slice(0, 6).map((entry, i) => (
-                <View key={entry.id}>
-                  <Pressable
-                    style={styles.historyRow}
-                    onPress={() => router.push(`/entry/${entry.id}`)}
-                  >
-                    <View
-                      style={[styles.stateDot, { backgroundColor: stateColor(entry.state) }]}
-                    />
-                    <Text style={[styles.historyState, { color: stateColor(entry.state) }]}>
-                      {entry.state}
-                    </Text>
-                    <Text style={styles.historyMood} numberOfLines={1}>
-                      {entry.mood || '—'}
-                    </Text>
-                    <Text style={styles.historyDate}>
-                      {new Date(entry.created_at).toLocaleDateString()}
-                    </Text>
-                  </Pressable>
-                  {i < history.slice(0, 6).length - 1 ? <Divider /> : null}
-                </View>
+            <View style={styles.grid}>
+              {onDesk.map((entry, i) => (
+                <DeskCandle
+                  key={entry.id}
+                  entry={entry}
+                  index={i}
+                  width={candleW}
+                  time={time}
+                  reducedMotion={reducedMotion}
+                />
               ))}
-            </Card>
-          )}
-        </LinearGradient>
-
-        {/* PRESENT: Lantern Desk */}
-        <LinearGradient colors={gradients.dawn} style={[styles.section, { height: screenHeight }]}>
-          <View style={styles.lanternGlow} />
-          <Text style={styles.title}>The Lantern Desk</Text>
-          <Text style={styles.subtitle}>Brain Navigator</Text>
-          <Text style={styles.status}>Entries logged: {history.length}</Text>
-          {error ? <Text style={styles.errorText}>{error}</Text> : null}
-        </LinearGradient>
-
-        {/* FUTURE: Sanctuary */}
-        <LinearGradient colors={gradients.dusk} style={[styles.section, { height: screenHeight }]}>
-          <Animated.View style={[styles.sanctuaryGlow, { opacity: breath }]} />
-          <Text style={styles.sectionTitle}>Sanctuary</Text>
-
-          {history.length === 0 ? (
-            <Text style={styles.hint}>Nothing to reflect on yet</Text>
-          ) : (
-            <View style={styles.statRow}>
-              <StatCard label="Secured" count={stateCounts.secured} color={colors.secured} />
-              <StatCard label="Shelved" count={stateCounts.shelved} color={colors.shelved} />
-              <StatCard label="Unlocked" count={stateCounts.unlocked} color={colors.unlocked} />
             </View>
           )}
+          <View style={styles.deskEdge} />
+          {overflow > 0 ? (
+            <Pressable onPress={() => router.push('/open-loops')} hitSlop={8}>
+              <Text style={styles.link}>
+                And {overflow} more. See everything that's open.
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
 
-          <Pressable onPress={() => router.push('/wellness')} style={styles.wheelPressable}>
-            <WellnessWheel scores={wellnessScores} size={180} showLabels={false} />
-            <Text style={styles.wheelHint}>Tap the wheel to open it</Text>
-          </Pressable>
+        <Button
+          label="Set something down"
+          onPress={() => router.push('/new-entry')}
+          style={styles.primary}
+        />
+        <Pressable onPress={() => router.push('/companion')} hitSlop={8} style={styles.emberLink}>
+          <Text style={styles.link}>Not sure what it is? Talk it through with Ember.</Text>
+        </Pressable>
 
-          <View style={styles.sanctuaryButtonRow}>
-            <Button
-              label={ambienceMuted ? 'Ambience Muted' : 'Ambience On'}
-              variant="pill"
-              // No ambient audio loop is wired up yet — this only toggles visual
-              // state. A real implementation would start/stop an expo-av Sound
-              // loop here.
-              onPress={() => setAmbienceMuted((m) => !m)}
-            />
-            <Button
-              label="The Science"
-              variant="pill"
-              onPress={() => router.push('/science')}
-            />
-            <Button
-              label="Let It Out"
-              variant="pill"
-              onPress={() => router.push('/vent')}
-            />
-            <Button
-              label="Take It Off Your Shoulders"
-              variant="pill"
-              onPress={() => router.push('/companion')}
-            />
-          </View>
-        </LinearGradient>
+        <Text style={styles.sectionTitle}>Today</Text>
+        <View style={styles.todayCard}>
+          {todaysCheckin ? (
+            <>
+              <Text style={styles.todayText}>
+                Mood {todaysCheckin.mood ?? '–'} of 5, stress {todaysCheckin.stress_level ?? '–'} of 10
+                {todaysCheckin.sleep_hours != null ? `, slept ${todaysCheckin.sleep_hours} hours` : ''}.
+              </Text>
+              <Button label="Edit check-in" variant="pill" onPress={() => router.push('/checkin')} />
+            </>
+          ) : (
+            <>
+              <Text style={styles.todayText}>
+                No check-in yet. It takes a minute and gives the rest of the app its context.
+              </Text>
+              <Button label="Check in" variant="pill" onPress={() => router.push('/checkin')} />
+            </>
+          )}
+        </View>
       </ScrollView>
-
-      <Button
-        label="Exit"
-        variant="pill"
-        onPress={returnToPresent}
-        accessibilityLabel="Return to present"
-        style={styles.circuitBreaker}
-      />
 
       <BottomNav />
     </View>
   );
 }
 
-function StatCard({ label, count, color }: { label: string; count: number; color: string }) {
+function DeskCandle({
+  entry,
+  index,
+  width,
+  time,
+  reducedMotion,
+}: {
+  entry: CognitiveStateEntry;
+  index: number;
+  width: number;
+  time: ReturnType<typeof useFlameClock>;
+  reducedMotion: boolean;
+}) {
+  const days = (Date.now() - new Date(entry.created_at).getTime()) / DAY_MS;
+  const remaining = Math.max(0.32, Math.min(1, 1 - days / 21));
+  const intensity = (entry.intensity ?? 5) / 10;
+
   return (
-    <View style={statCardStyles.card}>
-      <Text style={[statCardStyles.count, { color }]}>{count}</Text>
-      <Text style={statCardStyles.label}>{label}</Text>
-    </View>
+    <Animated.View
+      layout={LinearTransition.springify().damping(18)}
+      exiting={FadeOut.duration(260)}
+      style={{ width }}
+    >
+      <Pressable
+        onPress={() => router.push(`/entry/${entry.id}`)}
+        accessibilityRole="button"
+        accessibilityLabel={`${entry.mood || 'Untitled'}. ${ageLabel(entry.created_at)}.`}
+        style={({ pressed }) => [styles.candleCell, pressed && styles.pressed]}
+      >
+        <Candle
+          width={width}
+          time={time}
+          intensity={intensity}
+          remaining={remaining}
+          seed={seedFor(entry.id)}
+          state="lit"
+          reducedMotion={reducedMotion}
+          igniteDelay={reducedMotion ? 0 : 260 + index * 170}
+        />
+        <Text style={styles.candleLabel} numberOfLines={2}>
+          {entry.mood || 'Untitled'}
+        </Text>
+        <Text style={styles.candleAge}>{ageLabel(entry.created_at)}</Text>
+      </Pressable>
+    </Animated.View>
   );
 }
-
-const statCardStyles = StyleSheet.create({
-  card: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    marginHorizontal: spacing.xs,
-    borderRadius: radii.xl,
-    backgroundColor: 'rgba(255, 255, 255, 0.4)',
-  },
-  count: {
-    fontFamily: fonts.display,
-    fontSize: 24,
-  },
-  label: {
-    marginTop: 2,
-    fontFamily: fonts.mono,
-    fontSize: 9,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
-  },
-});
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.background,
   },
-  container: {
-    flex: 1,
-  },
   content: {
-    // each section below is exactly one screen tall
-  },
-  section: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: spacing.lg,
-  },
-  statRow: {
-    flexDirection: 'row',
-    marginTop: spacing.md,
     width: '100%',
-    maxWidth: 320,
+    maxWidth: 480,
+    alignSelf: 'center',
+    paddingHorizontal: spacing.lg,
+    paddingTop: 60,
+    paddingBottom: 130,
   },
-  lanternGlow: {
-    position: 'absolute',
-    top: '28%',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
-    backgroundColor: colors.lanternGlow,
-  },
-  sanctuaryGlow: {
-    position: 'absolute',
-    width: 260,
-    height: 260,
-    borderRadius: 130,
-    backgroundColor: colors.lanternGlow,
-  },
-  sanctuaryButtonRow: {
+  header: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  wheelPressable: {
+  moment: {
+    fontFamily: fonts.displaySoft,
+    fontSize: 16,
+    color: colors.inkMuted,
+  },
+  title: {
+    marginTop: spacing.md,
+    fontFamily: fonts.display,
+    fontSize: 38,
+    color: colors.ink,
+  },
+  subtitle: {
+    marginTop: spacing.xs,
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.inkMuted,
+  },
+  desk: {
     marginTop: spacing.lg,
     alignItems: 'center',
   },
-  wheelHint: {
+  grid: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    columnGap: spacing.md,
+    rowGap: spacing.lg,
+  },
+  emptyCandle: {
+    alignItems: 'center',
+    opacity: 0.8,
+  },
+  deskEdge: {
+    alignSelf: 'stretch',
+    height: 1,
+    marginTop: spacing.md,
+    backgroundColor: colors.divider,
+  },
+  candleCell: {
+    alignItems: 'center',
+  },
+  pressed: {
+    opacity: 0.7,
+  },
+  candleLabel: {
     marginTop: spacing.sm,
+    fontFamily: fonts.displaySoft,
+    fontSize: 15,
+    lineHeight: 19,
+    color: colors.ink,
+    textAlign: 'center',
+  },
+  candleAge: {
+    marginTop: 2,
     fontFamily: fonts.body,
-    fontSize: 13,
+    fontSize: 12,
     color: colors.inkFaint,
+    textAlign: 'center',
+  },
+  link: {
+    marginTop: spacing.md,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.leather,
+    textAlign: 'center',
+  },
+  primary: {
+    marginTop: spacing.xl,
+  },
+  emberLink: {
+    alignSelf: 'center',
   },
   sectionTitle: {
+    marginTop: spacing.xxl,
     fontFamily: fonts.displaySoft,
     fontSize: 22,
     color: colors.ink,
   },
-  hint: {
+  todayCard: {
     marginTop: spacing.sm,
+    padding: spacing.md,
+    gap: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: colors.backgroundAlt,
+    alignItems: 'flex-start',
+  },
+  todayText: {
     fontFamily: fonts.body,
     fontSize: 15,
-    color: colors.hint,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 30,
-    color: colors.ink,
-  },
-  subtitle: {
-    marginTop: spacing.sm,
-    fontFamily: fonts.displaySoft,
-    fontSize: 15,
+    lineHeight: 21,
     color: colors.inkMuted,
-  },
-  status: {
-    marginTop: spacing.md,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    color: colors.inkFaint,
-  },
-  errorText: {
-    marginTop: spacing.sm,
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.danger,
-  },
-  historyCard: {
-    marginTop: spacing.md,
-  },
-  historyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.xs + 2,
-  },
-  stateDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: spacing.sm,
-  },
-  historyState: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    color: colors.inkMuted,
-    textTransform: 'uppercase',
-    width: 64,
-  },
-  historyMood: {
-    flex: 1,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.ink,
-    marginHorizontal: spacing.sm,
-  },
-  historyDate: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.hint,
-  },
-  circuitBreaker: {
-    position: 'absolute',
-    top: 48,
-    right: spacing.lg - 4,
-    zIndex: 10,
   },
 });

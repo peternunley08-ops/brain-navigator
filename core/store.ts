@@ -4,6 +4,14 @@ import { supabase } from './supabase';
 
 export type CognitiveStateLabel = 'secured' | 'shelved' | 'unlocked';
 
+// What each state is called on screen. The stored names predate the
+// candle metaphor; people should only ever see these.
+export const STATE_LABEL: Record<CognitiveStateLabel, string> = {
+  unlocked: 'Open',
+  secured: 'Resolved',
+  shelved: 'Let go',
+};
+
 export interface CognitiveStateEntry {
   id: string;
   state: CognitiveStateLabel;
@@ -28,6 +36,9 @@ interface BrainNavigatorStore {
   draftNotes: string;
 
   history: CognitiveStateEntry[];
+  // Every open entry, uncapped — unlike `history`, which is only the 50 most
+  // recent. The Desk, Loops, and the nav badge all read this one list.
+  openLoops: CognitiveStateEntry[];
   isLoadingHistory: boolean;
   isSaving: boolean;
   error: string | null;
@@ -40,6 +51,7 @@ interface BrainNavigatorStore {
 
   saveDraft: (catalysts?: DraftCatalyst[]) => Promise<string | null>;
   fetchHistory: () => Promise<void>;
+  fetchOpenLoops: () => Promise<void>;
   closeEntry: (id: string, resolutionNote: string) => Promise<void>;
   shelveEntry: (id: string) => Promise<void>;
   setTrove: (id: string, inTrove: boolean) => Promise<void>;
@@ -55,6 +67,7 @@ const initialDraft = {
 export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => ({
   ...initialDraft,
   history: [],
+  openLoops: [],
   isLoadingHistory: false,
   isSaving: false,
   error: null,
@@ -132,7 +145,7 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
     }
 
     set({ isSaving: false, ...initialDraft });
-    await get().fetchHistory();
+    await Promise.all([get().fetchHistory(), get().fetchOpenLoops()]);
 
     const pageId = await createNotionPage(NOTION_DB.entries, {
       Name: notionProp.title(draftMood || 'Untitled'),
@@ -143,10 +156,19 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
     });
     if (pageId) {
       await supabase.from('cognitive_state').update({ notion_page_id: pageId }).eq('id', entryId);
-      await get().fetchHistory();
+      await Promise.all([get().fetchHistory(), get().fetchOpenLoops()]);
     }
 
     return entryId;
+  },
+
+  fetchOpenLoops: async () => {
+    const { data, error } = await supabase
+      .from('cognitive_state')
+      .select('*')
+      .eq('state', 'unlocked')
+      .order('created_at', { ascending: false });
+    if (!error && data) set({ openLoops: data as CognitiveStateEntry[] });
   },
 
   fetchHistory: async () => {
@@ -194,7 +216,7 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
     }
 
     set({ isSaving: false });
-    await get().fetchHistory();
+    await Promise.all([get().fetchHistory(), get().fetchOpenLoops()]);
 
     const notionPageId = get().history.find((e) => e.id === id)?.notion_page_id;
     if (notionPageId) {
@@ -216,7 +238,7 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
     }
 
     set({ isSaving: false });
-    await get().fetchHistory();
+    await Promise.all([get().fetchHistory(), get().fetchOpenLoops()]);
 
     const notionPageId = get().history.find((e) => e.id === id)?.notion_page_id;
     if (notionPageId) {
@@ -237,6 +259,6 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
       return;
     }
 
-    await get().fetchHistory();
+    await Promise.all([get().fetchHistory(), get().fetchOpenLoops()]);
   },
 }));
