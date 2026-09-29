@@ -197,7 +197,7 @@ export default function TrendsScreen() {
           ) : (
             <Text style={styles.hint}>
               {checkins.length === 0
-                ? 'Check in on "Today" to start building a trend.'
+                ? 'Check in from the Desk to start building a trend.'
                 : 'No data logged for this metric yet.'}
             </Text>
           )}

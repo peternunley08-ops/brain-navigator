@@ -52,8 +52,10 @@ interface BrainNavigatorStore {
   saveDraft: (catalysts?: DraftCatalyst[]) => Promise<string | null>;
   fetchHistory: () => Promise<void>;
   fetchOpenLoops: () => Promise<void>;
-  closeEntry: (id: string, resolutionNote: string) => Promise<void>;
-  shelveEntry: (id: string) => Promise<void>;
+  // Both report whether the change was actually saved, so the screen never
+  // plays a closing it can't back up.
+  closeEntry: (id: string, resolutionNote: string) => Promise<boolean>;
+  shelveEntry: (id: string) => Promise<boolean>;
   setTrove: (id: string, inTrove: boolean) => Promise<void>;
 }
 
@@ -191,16 +193,8 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
   closeEntry: async (id, resolutionNote) => {
     set({ isSaving: true, error: null });
 
-    const { error: updateError } = await supabase
-      .from('cognitive_state')
-      .update({ state: 'secured' })
-      .eq('id', id);
-
-    if (updateError) {
-      set({ isSaving: false, error: updateError.message });
-      return;
-    }
-
+    // The note goes in first: if it fails, nothing has changed yet. The
+    // other order could resolve the entry and then lose the note.
     const trimmedNote = resolutionNote.trim();
     if (trimmedNote) {
       const { error: resolutionError } = await supabase.from('resolutions').insert({
@@ -211,8 +205,18 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
 
       if (resolutionError) {
         set({ isSaving: false, error: resolutionError.message });
-        return;
+        return false;
       }
+    }
+
+    const { error: updateError } = await supabase
+      .from('cognitive_state')
+      .update({ state: 'secured' })
+      .eq('id', id);
+
+    if (updateError) {
+      set({ isSaving: false, error: updateError.message });
+      return false;
     }
 
     set({ isSaving: false });
@@ -222,6 +226,7 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
     if (notionPageId) {
       await updateNotionPage(notionPageId, { State: notionProp.select('secured') });
     }
+    return true;
   },
 
   shelveEntry: async (id) => {
@@ -234,7 +239,7 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
 
     if (error) {
       set({ isSaving: false, error: error.message });
-      return;
+      return false;
     }
 
     set({ isSaving: false });
@@ -244,6 +249,7 @@ export const useBrainNavigatorStore = create<BrainNavigatorStore>((set, get) => 
     if (notionPageId) {
       await updateNotionPage(notionPageId, { State: notionProp.select('shelved') });
     }
+    return true;
   },
 
   setTrove: async (id, inTrove) => {

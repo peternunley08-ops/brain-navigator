@@ -35,6 +35,22 @@ const WAX_POOL = '#FBF6EA';
 // wick and drifts away like a sky lantern).
 export type CandleState = 'lit' | 'snuffed' | 'floated' | 'unlit';
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// The same entry must look like the same candle everywhere it appears —
+// the drip position, flicker rhythm, and height all derive from these.
+export function candleSeed(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100003;
+  return (h % 1000) / 100;
+}
+
+/** How much wax is left: burns from full to a third over three weeks open. */
+export function candleRemaining(createdAt: string) {
+  const days = (Date.now() - new Date(createdAt).getTime()) / DAY_MS;
+  return Math.max(0.32, Math.min(1, 1 - days / 21));
+}
+
 interface Props {
   width: number;
   time: SharedValue<number>;
@@ -100,6 +116,14 @@ function CandleBase({
     // its end state; the animation only plays when it closes in front of you.
     if (initial) return;
 
+    // With Reduce Motion, both closings are a quiet fade in place: no smoke
+    // rising, no seal spring, no flame travelling up the screen.
+    if (reducedMotion) {
+      lit.value = withTiming(0, { duration: 400 });
+      if (state === 'snuffed') sealed.value = withDelay(200, withTiming(1, { duration: 300 }));
+      return;
+    }
+
     if (state === 'snuffed') {
       lit.value = withTiming(0, { duration: 620, easing: Easing.in(Easing.quad) });
       smoke.value = withDelay(260, withTiming(1, { duration: 2200, easing: Easing.out(Easing.quad) }));
@@ -107,7 +131,7 @@ function CandleBase({
     } else if (state === 'floated') {
       lift.value = withTiming(1, { duration: 2800, easing: Easing.inOut(Easing.cubic) });
     }
-  }, [state, igniteDelay, lit, lift, smoke, sealed]);
+  }, [state, igniteDelay, reducedMotion, lit, lift, smoke, sealed]);
 
   const wob = reducedMotion ? 0 : 1;
   const points = W > 120 ? 40 : 28;

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 import { Button } from '../../components/ui/Button';
-import { Candle, type CandleState } from '../../components/ui/Candle';
+import { Candle, candleRemaining, candleSeed, type CandleState } from '../../components/ui/Candle';
 import { Card } from '../../components/ui/Card';
 import { Divider } from '../../components/ui/Divider';
 import { HoldToConfirm } from '../../components/ui/HoldToConfirm';
@@ -40,6 +40,7 @@ export default function EntryDetailScreen() {
   const [loadingCatalysts, setLoadingCatalysts] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [fetchedEntry, setFetchedEntry] = useState<CognitiveStateEntry | null>(null);
+  const [saveFailed, setSaveFailed] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const time = useFlameClock();
   const reducedMotion = useReducedMotion();
@@ -125,12 +126,21 @@ export default function EntryDetailScreen() {
 
   // Closing plays out on the candle at the top — scroll up so it's seen,
   // and only leave once the flame has gone out or floated away.
+  // The closing starts playing straight away, while the save happens. If
+  // the save fails, the candle relights, the error shows, and nothing
+  // pretends it closed.
   const handleSeal = () => {
     if (!entry) return;
     setSealed(true);
+    setSaveFailed(false);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
     const leaveAt = Date.now() + (reducedMotion ? 700 : 2100);
-    closeEntry(entry.id, note).then(() => {
+    closeEntry(entry.id, note).then((saved) => {
+      if (!saved) {
+        setSealed(false);
+        setSaveFailed(true);
+        return;
+      }
       setTimeout(() => router.back(), Math.max(0, leaveAt - Date.now()));
     });
   };
@@ -138,9 +148,15 @@ export default function EntryDetailScreen() {
   const handleShelve = () => {
     if (!entry) return;
     setShelved(true);
+    setSaveFailed(false);
     scrollRef.current?.scrollTo({ y: 0, animated: true });
     const leaveAt = Date.now() + (reducedMotion ? 700 : 2700);
-    shelveEntry(entry.id).then(() => {
+    shelveEntry(entry.id).then((saved) => {
+      if (!saved) {
+        setShelved(false);
+        setSaveFailed(true);
+        return;
+      }
       setTimeout(() => router.back(), Math.max(0, leaveAt - Date.now()));
     });
   };
@@ -151,9 +167,9 @@ export default function EntryDetailScreen() {
 
   if (!entry) {
     return (
-      <View style={styles.root}>
+      <View style={[styles.root, styles.content]}>
         <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
-        <Text style={styles.notes}>Entry not found.</Text>
+        <Text style={styles.notes}>This entry doesn't exist anymore.</Text>
       </View>
     );
   }
@@ -166,17 +182,19 @@ export default function EntryDetailScreen() {
         width={150}
         time={time}
         intensity={(entry.intensity ?? 5) / 10}
-        remaining={Math.max(
-          0.32,
-          1 - (Date.now() - new Date(entry.created_at).getTime()) / (21 * 24 * 60 * 60 * 1000)
-        )}
-        seed={entry.id.charCodeAt(0) / 10}
+        remaining={candleRemaining(entry.created_at)}
+        seed={candleSeed(entry.id)}
         state={candleState}
         reducedMotion={reducedMotion}
         igniteDelay={200}
       />
 
       <Text style={[styles.label, { color: stateColor(displayState) }]}>{STATE_LABEL[displayState]}</Text>
+      {saveFailed ? (
+        <Text style={styles.saveError}>
+          Couldn't save that, so it's still open. Check your connection and try again.
+        </Text>
+      ) : null}
       <Text style={styles.mood}>{entry.mood || 'Untitled'}</Text>
       <Text style={styles.date}>{new Date(entry.created_at).toLocaleDateString()}</Text>
       {entry.notes ? <Text style={styles.notes}>{entry.notes}</Text> : null}
@@ -283,6 +301,13 @@ const styles = StyleSheet.create({
   back: {
     alignSelf: 'flex-start',
     marginBottom: spacing.lg,
+  },
+  saveError: {
+    marginTop: spacing.xs,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.danger,
+    textAlign: 'center',
   },
   label: {
     marginTop: spacing.md,

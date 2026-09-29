@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } fr
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import { BottomNav } from '../components/BottomNav';
 import { Button } from '../components/ui/Button';
-import { Candle } from '../components/ui/Candle';
+import { Candle, candleRemaining, candleSeed } from '../components/ui/Candle';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
@@ -32,12 +32,6 @@ function ageLabel(createdAt: string) {
   const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / DAY_MS);
   if (days <= 0) return 'Open since today';
   return days === 1 ? 'Open for a day' : `Open for ${days} days`;
-}
-
-function seedFor(id: string) {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100003;
-  return (h % 1000) / 100;
 }
 
 export default function DeskScreen() {
@@ -157,8 +151,6 @@ function DeskCandle({
   time: ReturnType<typeof useFlameClock>;
   reducedMotion: boolean;
 }) {
-  const days = (Date.now() - new Date(entry.created_at).getTime()) / DAY_MS;
-  const remaining = Math.max(0.32, Math.min(1, 1 - days / 21));
   const intensity = (entry.intensity ?? 5) / 10;
 
   return (
@@ -177,8 +169,8 @@ function DeskCandle({
           width={width}
           time={time}
           intensity={intensity}
-          remaining={remaining}
-          seed={seedFor(entry.id)}
+          remaining={candleRemaining(entry.created_at)}
+          seed={candleSeed(entry.id)}
           state="lit"
           reducedMotion={reducedMotion}
           igniteDelay={reducedMotion ? 0 : 260 + index * 170}

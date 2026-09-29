@@ -25,7 +25,7 @@ export function ConditionsCard() {
     return (
       <Card style={styles.connectCard}>
         <Text style={styles.connectText}>
-          Share your location for live weather and surf conditions right here on Today.
+          Share your location to see live weather and surf conditions here.
         </Text>
         <Pressable onPress={connect} style={styles.connectButton}>
           <Text style={styles.connectButtonText}>{isLoading ? 'Locating…' : 'Enable Conditions'}</Text>

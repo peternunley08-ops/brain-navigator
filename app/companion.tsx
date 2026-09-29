@@ -106,7 +106,7 @@ export default function CompanionScreen() {
         {step === 'done' ? (
           <View style={styles.qa}>
             <Text style={styles.closing}>{closingLine}</Text>
-            <Button label="Back to Today" variant="pill" onPress={() => router.back()} style={styles.actionButton} />
+            <Button label="Done" variant="pill" onPress={() => router.back()} style={styles.actionButton} />
           </View>
         ) : null}
       </ScrollView>

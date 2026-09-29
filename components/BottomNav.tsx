@@ -1,5 +1,5 @@
 import * as Haptics from 'expo-haptics';
-import { router, usePathname } from 'expo-router';
+import { router, useNavigation, usePathname } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, Path, RadialGradient, Stop } from 'react-native-svg';
 import { FLAME_CORE, FLAME_MID, flamePath } from '../core/flame';
@@ -33,8 +33,32 @@ function go(path: string) {
   router.push(path as never);
 }
 
+// Tabs must not stack. A plain push adds a new copy of the screen on every
+// tap, so the history grows forever and every hidden Desk keeps burning its
+// candles. If the tab is already open somewhere in the history, go back
+// down to it; otherwise open it. (Moving an existing screen to the top
+// instead — `dangerouslySingular` — reorders the native stack, which
+// desyncs it: Back stops working. Popping never reorders.)
+const ROUTE_NAME: Record<NavPath, string> = {
+  '/': 'index',
+  '/open-loops': 'open-loops',
+  '/topography': 'topography',
+  '/steady': 'steady',
+};
+
 export function BottomNav() {
   const pathname = usePathname();
+  const navigation = useNavigation();
+
+  const goTab = (path: NavPath) => {
+    Haptics.selectionAsync().catch(() => {});
+    const open = navigation.getState()?.routes.some((r) => r.name === ROUTE_NAME[path]);
+    if (open) {
+      router.dismissTo(path);
+    } else {
+      router.push(path);
+    }
+  };
   const openCount = useBrainNavigatorStore((s) => s.openLoops.length);
 
   return (
@@ -46,6 +70,7 @@ export function BottomNav() {
             item={item}
             active={pathname === item.path}
             badge={item.path === '/open-loops' && openCount > 0 ? openCount : undefined}
+            onGo={goTab}
           />
         ))}
 
@@ -69,18 +94,28 @@ export function BottomNav() {
         </Pressable>
 
         {RIGHT.map((item) => (
-          <NavSegment key={item.path} item={item} active={pathname === item.path} />
+          <NavSegment key={item.path} item={item} active={pathname === item.path} onGo={goTab} />
         ))}
       </View>
     </View>
   );
 }
 
-function NavSegment({ item, active, badge }: { item: NavItem; active: boolean; badge?: number }) {
+function NavSegment({
+  item,
+  active,
+  badge,
+  onGo,
+}: {
+  item: NavItem;
+  active: boolean;
+  badge?: number;
+  onGo: (path: NavPath) => void;
+}) {
   return (
     <Pressable
       style={styles.segment}
-      onPress={() => (active ? undefined : go(item.path))}
+      onPress={() => (active ? undefined : onGo(item.path))}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={badge ? `${item.label}, ${badge} open` : item.label}
