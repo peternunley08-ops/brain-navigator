@@ -106,6 +106,13 @@ const ADD_OPTIONS: { title: string; body: string; icon: IconName; color: string;
   { title: 'Scan a screenshot', body: 'Import from Classroom or Canvas', icon: 'image', color: '#AFA2DE', href: '/scan' },
 ];
 
+const MORE_OPTIONS: { title: string; icon: IconName; color: string; href: string }[] = [
+  { title: 'A grade', icon: 'grade', color: '#9FD08A', href: '/grades' },
+  { title: 'Flashcards', icon: 'cards', color: '#E89AB8', href: '/flashcards' },
+  { title: 'A win', icon: 'jar', color: '#E6C46A', href: '/wins' },
+  { title: 'Hours', icon: 'hands', color: '#8CC0A8', href: '/hours' },
+];
+
 // The + button's sheet: every way to add something, one tap each.
 function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets();
@@ -136,6 +143,25 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
             <Icon name="chevron" size={18} color={colors.textFaint} />
           </Pressy>
         ))}
+        <View style={styles.moreRow}>
+          {MORE_OPTIONS.map((o) => (
+            <Pressy
+              key={o.href}
+              style={styles.more}
+              onPress={() => {
+                onClose();
+                router.push(o.href as never);
+              }}
+              accessibilityRole="button"
+              accessibilityLabel={`Add ${o.title.toLowerCase()}`}
+            >
+              <View style={[styles.moreIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
+                <Icon name={o.icon} size={20} color={o.color} />
+              </View>
+              <Text style={styles.moreText}>{o.title}</Text>
+            </Pressy>
+          ))}
+        </View>
       </Animated.View>
     </Modal>
   );
@@ -176,6 +202,32 @@ function NavSegment({
 }
 
 const styles = StyleSheet.create({
+  moreRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  more: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+  },
+  moreIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 15,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  moreText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
   wrap: {
     position: 'absolute',
     left: 0,

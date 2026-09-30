@@ -4,7 +4,15 @@ import { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { CountdownChips } from '../components/desk/CountdownChips';
+import { OneThing } from '../components/desk/OneThing';
+import { WhatsNew } from '../components/desk/WhatsNew';
+import { emberSay } from '../components/ember/EmberBuddy';
+import { Sparks } from '../components/ember/Sparks';
 import { AssignmentRow } from '../components/school/AssignmentRow';
+import { ProgressBar } from '../components/ui/ProgressBar';
+import { lineForToday } from '../core/dayLines';
+import { useLifeStore, weekOf } from '../core/lifeStore';
 import { NowCard } from '../components/school/NowCard';
 import { Button } from '../components/ui/Button';
 import { Candle, candleRemaining, candleSeed } from '../components/ui/Candle';
@@ -20,7 +28,7 @@ import { useHabitsStore } from '../core/habitsStore';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
-import { dateKey, daysUntil, focusMinutesOn, useSchoolStore } from '../core/schoolStore';
+import { dateKey, daysUntil, focusMinutesOn, tonightsLoad, useSchoolStore } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
 import { alpha, colors, fonts, layout, radii } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
@@ -28,6 +36,16 @@ import { useWellnessStore } from '../core/wellnessStore';
 const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 const MAX_ON_DESK = 9;
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+// The Desk's glow follows the sky: peach at dawn, gold by day, ember at
+// dusk, moonlight blue at night.
+function skyGlow(d = new Date()) {
+  const h = d.getHours();
+  if (h >= 5 && h < 8) return '#F5A36B';
+  if (h >= 8 && h < 17) return '#F5C46A';
+  if (h >= 17 && h < 20) return '#E8795A';
+  return '#8FB4E8';
+}
 
 function momentLabel(d = new Date()) {
   const day = d.toLocaleDateString('en-US', { weekday: 'long' });
@@ -111,30 +129,85 @@ export default function DeskScreen() {
   const perRow = onDesk.length <= 2 ? Math.max(1, onDesk.length) : 3;
   const candleW = Math.min(onDesk.length <= 2 ? 140 : 100, (contentWidth - (perRow - 1) * 14) / perRow);
 
-  const dueSoon = assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 3);
+  const dueSoon = assignments
+    .filter((a) => !a.done)
+    .sort((a, b) => a.due.localeCompare(b.due) || Number(!!b.starred) - Number(!!a.starred))
+    .slice(0, 3);
   const dueToday = assignments.filter((a) => !a.done && daysUntil(a.due) <= 0).length;
   const dueTomorrow = assignments.filter((a) => !a.done && daysUntil(a.due) === 1).length;
   const focusToday = focusMinutesOn(focus, dateKey());
   const activeHabits = habits.filter((h) => !h.archived);
   const today = todayKey();
+  const load = tonightsLoad(assignments);
+  const cap = profile.nightlyCap;
+  const doneToday = assignments.filter((a) => a.doneAt && dateKey(new Date(a.doneAt)) === today).length;
+  const allClear = dueToday === 0 && dueTomorrow === 0 && doneToday > 0;
+  const reviews = useLifeStore((s) => s.reviews);
+  const dow = new Date().getDay();
+  const reviewDue = (dow === 0 || dow === 6 || (dow === 5 && new Date().getHours() >= 15)) && !reviews.some((r) => r.weekOf === weekOf());
+  const earn = useLifeStore((s) => s.earn);
+  useEffect(() => {
+    if (allClear && earn('all_clear')) emberSay('New badge: All clear. Nothing due by tomorrow.', 'cheer');
+  }, [allClear, earn]);
   const habitsDone = activeHabits.filter((h) => logs.some((l) => l.habit_id === h.id && l.log_date === today)).length;
 
   return (
     <Screen
       back={false}
       tone="ember"
+      glowColor={skyGlow()}
       motes
       kicker={momentLabel()}
       title={greetingFor(profile.name)}
       subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length)}
-      right={<IconButton icon="drawer" label="Open the Drawer" onPress={() => router.push('/drawer')} />}
+      right={
+        <View style={styles.headerBtns}>
+          <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} />
+          <IconButton icon="drawer" label="Open the Drawer" onPress={() => router.push('/drawer')} />
+        </View>
+      }
     >
       <Reveal index={0}>
+        <CountdownChips />
+        <WhatsNew />
+        <OneThing />
         <NowCard />
       </Reveal>
 
+      {allClear ? (
+        <Reveal index={0}>
+          <Card tint={colors.secured} style={styles.clear}>
+            <Sparks burst={1} reach={60} />
+            <Icon name="sparkle" size={22} color={colors.secured} />
+            <View style={styles.promptText}>
+              <Text style={styles.promptTitle}>All clear.</Text>
+              <Text style={styles.promptBody}>
+                {doneToday} thing{doneToday === 1 ? '' : 's'} done today, nothing due by tomorrow. The rest of the day is yours.
+              </Text>
+            </View>
+          </Card>
+        </Reveal>
+      ) : null}
+
+      {reviewDue ? (
+        <Reveal index={0}>
+          <Card onPress={() => router.push('/review')} style={styles.clear}>
+            <Icon name="star" size={22} color={colors.flame} />
+            <View style={styles.promptText}>
+              <Text style={styles.promptTitle}>Look back at your week</Text>
+              <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
+            </View>
+            <Icon name="chevron" size={18} color={colors.textFaint} />
+          </Card>
+        </Reveal>
+      ) : null}
+
       <Reveal index={1}>
-        <Section title="Due soon" action={{ label: assignments.some((a) => !a.done) ? 'All' : 'Add', onPress: () => router.push(assignments.some((a) => !a.done) ? '/school' : '/add-assignment') }}>
+        <Section
+          title="Due soon"
+          note={load.items.length ? `Tonight: ${load.minutes} of ${cap} minutes${load.minutes > cap ? ' — over your cap' : ''}` : undefined}
+          action={{ label: assignments.some((a) => !a.done) ? 'All' : 'Add', onPress: () => router.push(assignments.some((a) => !a.done) ? '/school' : '/add-assignment') }}>
+          {load.items.length ? <ProgressBar value={load.minutes / Math.max(1, cap)} color={load.minutes > cap ? colors.unlocked : colors.secured} height={5} style={styles.loadBar} /> : null}
           {dueSoon.length ? (
             <View style={styles.list}>
               {dueSoon.map((a, i) => (
@@ -284,6 +357,10 @@ export default function DeskScreen() {
           />
         </View>
       </Reveal>
+
+      <Reveal index={6}>
+        <Text style={styles.dayLine}>{lineForToday()}</Text>
+      </Reveal>
     </Screen>
   );
 }
@@ -359,6 +436,28 @@ function DeskCandle({
 }
 
 const styles = StyleSheet.create({
+  headerBtns: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  clear: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  loadBar: {
+    marginBottom: 12,
+  },
+  dayLine: {
+    marginTop: 32,
+    paddingHorizontal: 12,
+    fontFamily: fonts.displaySoft,
+    fontSize: 16,
+    lineHeight: 23,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
   desk: {
     marginTop: 4,
   },

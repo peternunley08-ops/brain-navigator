@@ -5,7 +5,7 @@ import { create } from 'zustand';
 // checklist), plan blocks (a Structured-style day), and connection
 // settings (Canvas, shortcut links). Stored on the phone in hub.json.
 
-export type BlockType = 'text' | 'heading' | 'todo' | 'bullet';
+export type BlockType = 'text' | 'heading' | 'todo' | 'bullet' | 'numbered' | 'quote' | 'divider';
 
 export interface NoteBlock {
   id: string;
@@ -38,6 +38,41 @@ export interface College {
   /** Checklist item → done. */
   steps: Record<string, boolean>;
   notes: string;
+  tier?: CollegeTier;
+  /** Campus visit: 1–5 and what stood out. */
+  visitRating?: number;
+  visitNotes?: string;
+}
+
+export type CollegeTier = 'reach' | 'target' | 'likely';
+
+export interface Scholarship {
+  id: string;
+  name: string;
+  amount: number | null;
+  deadline: string | null;
+  status: 'todo' | 'applied' | 'won' | 'no';
+}
+
+export interface RecLetter {
+  id: string;
+  teacher: string;
+  /** YYYY-MM-DD you asked. */
+  askedOn: string | null;
+  due: string | null;
+  status: 'ask' | 'asked' | 'submitted';
+  thanked: boolean;
+}
+
+/** A Common App activity: 50-char position, 100-char org, 150-char description. */
+export interface Activity {
+  id: string;
+  role: string;
+  org: string;
+  description: string;
+  grades: number[];
+  hoursPerWeek: number | null;
+  weeksPerYear: number | null;
 }
 
 export interface PlanBlock {
@@ -64,6 +99,19 @@ export interface CanvasConfig {
 
 export const COLLEGE_STEPS = ['Main essay', 'Supplements', 'Teacher recs', 'Counselor rec', 'Transcript', 'Test scores', 'Activities list', 'Fee or waiver'];
 
+export const TIER_LABEL: Record<CollegeTier, string> = { reach: 'Reach', target: 'Target', likely: 'Likely' };
+export const TIER_COLOR: Record<CollegeTier, string> = { reach: '#F0845A', target: '#F5B45C', likely: '#8CC0A8' };
+
+export const AID_STEPS = [
+  'Make a StudentAid.gov account (you and a parent)',
+  'Gather tax returns and W-2s',
+  'Submit the FAFSA',
+  'CSS Profile (if a college asks for it)',
+  'Your state’s aid application (e.g. Cal Grant)',
+  'Check each school’s aid portal for missing items',
+  'Compare aid offers side by side',
+];
+
 export const STATUS_LABEL: Record<CollegeStatus, string> = {
   researching: 'Researching',
   applying: 'Applying',
@@ -79,6 +127,11 @@ interface HubData {
   plan: PlanBlock[];
   links: Links;
   canvas: CanvasConfig;
+  scholarships: Scholarship[];
+  recs: RecLetter[];
+  activities: Activity[];
+  /** FAFSA / CSS checklist item → done. */
+  aid: Record<string, boolean>;
 }
 
 interface HubStore extends HubData {
@@ -88,6 +141,7 @@ interface HubStore extends HubData {
   createNote: (partial?: Partial<Note>) => Note;
   updateNote: (id: string, patch: Partial<Note>) => void;
   deleteNote: (id: string) => void;
+  restoreNote: (n: Note) => void;
 
   saveCollege: (c: Omit<College, 'id'> & { id?: string }) => void;
   deleteCollege: (id: string) => void;
@@ -99,6 +153,15 @@ interface HubStore extends HubData {
 
   setLinks: (patch: Partial<Links>) => void;
   setCanvas: (patch: Partial<CanvasConfig>) => void;
+
+  saveScholarship: (x: Omit<Scholarship, 'id'> & { id?: string }) => void;
+  deleteScholarship: (id: string) => void;
+  saveRec: (x: Omit<RecLetter, 'id'> & { id?: string }) => void;
+  deleteRec: (id: string) => void;
+  saveActivity: (x: Omit<Activity, 'id'> & { id?: string }) => void;
+  deleteActivity: (id: string) => void;
+  moveActivity: (id: string, dir: -1 | 1) => void;
+  toggleAid: (item: string) => void;
 }
 
 const EMPTY: HubData = {
@@ -107,6 +170,10 @@ const EMPTY: HubData = {
   plan: [],
   links: { aeries: '', canvas: '', parentsquare: 'https://www.parentsquare.com/signin' },
   canvas: { baseUrl: '', token: '', lastSync: null },
+  scholarships: [],
+  recs: [],
+  activities: [],
+  aid: {},
 };
 
 const FILE = 'hub.json';
@@ -125,6 +192,11 @@ function persist(data: HubData) {
   }, 300);
 }
 
+function upsert<T extends { id: string }>(list: T[], x: Omit<T, 'id'> & { id?: string }): T[] {
+  if (x.id && list.some((y) => y.id === x.id)) return list.map((y) => (y.id === x.id ? ({ ...y, ...x } as T) : y));
+  return [...list, { ...x, id: uid() } as T];
+}
+
 export function uid() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 }
@@ -132,8 +204,8 @@ export function uid() {
 export const useHubStore = create<HubStore>((set, get) => {
   const commit = (patch: Partial<HubData>) => {
     set(patch);
-    const { notes, colleges, plan, links, canvas } = get();
-    persist({ notes, colleges, plan, links, canvas });
+    const { notes, colleges, plan, links, canvas, scholarships, recs, activities, aid } = get();
+    persist({ notes, colleges, plan, links, canvas, scholarships, recs, activities, aid });
   };
 
   return {
@@ -152,6 +224,10 @@ export const useHubStore = create<HubStore>((set, get) => {
             plan: d.plan ?? [],
             links: { ...EMPTY.links, ...(d.links ?? {}) },
             canvas: { ...EMPTY.canvas, ...(d.canvas ?? {}) },
+            scholarships: d.scholarships ?? [],
+            recs: d.recs ?? [],
+            activities: d.activities ?? [],
+            aid: d.aid ?? {},
           });
         }
       } catch {
@@ -183,6 +259,9 @@ export const useHubStore = create<HubStore>((set, get) => {
     },
 
     deleteNote: (id) => commit({ notes: get().notes.filter((n) => n.id !== id) }),
+    restoreNote: (n) => {
+      if (!get().notes.some((x) => x.id === n.id)) commit({ notes: [n, ...get().notes] });
+    },
 
     saveCollege: (c) => {
       const list = get().colleges;
@@ -207,6 +286,22 @@ export const useHubStore = create<HubStore>((set, get) => {
 
     setLinks: (patch) => commit({ links: { ...get().links, ...patch } }),
     setCanvas: (patch) => commit({ canvas: { ...get().canvas, ...patch } }),
+
+    saveScholarship: (x) => commit({ scholarships: upsert(get().scholarships, x) }),
+    deleteScholarship: (id) => commit({ scholarships: get().scholarships.filter((x) => x.id !== id) }),
+    saveRec: (x) => commit({ recs: upsert(get().recs, x) }),
+    deleteRec: (id) => commit({ recs: get().recs.filter((x) => x.id !== id) }),
+    saveActivity: (x) => commit({ activities: upsert(get().activities, x) }),
+    deleteActivity: (id) => commit({ activities: get().activities.filter((x) => x.id !== id) }),
+    moveActivity: (id, dir) => {
+      const list = [...get().activities];
+      const i = list.findIndex((x) => x.id === id);
+      const j = i + dir;
+      if (i < 0 || j < 0 || j >= list.length) return;
+      [list[i], list[j]] = [list[j], list[i]];
+      commit({ activities: list });
+    },
+    toggleAid: (item) => commit({ aid: { ...get().aid, [item]: !get().aid[item] } }),
   };
 });
 
@@ -250,6 +345,63 @@ export const NOTE_TEMPLATES: { key: string; title: string; icon: string; color: 
     icon: 'calendar',
     color: '#9FD08A',
     blocks: () => [b('heading', 'Must do'), b('todo'), b('heading', 'Want to do'), b('todo'), b('heading', 'One thing for me'), b('text')],
+  },
+  {
+    key: 'cornell',
+    title: 'Cornell notes',
+    icon: 'list',
+    color: '#8FB4E8',
+    blocks: () => [
+      b('heading', 'Cues and questions'),
+      b('bullet'),
+      b('heading', 'Notes'),
+      b('bullet'),
+      b('heading', 'Summary in 2–3 sentences'),
+      b('text'),
+    ],
+  },
+  {
+    key: 'lab',
+    title: 'Lab report',
+    icon: 'flask',
+    color: '#9FD08A',
+    blocks: () => [
+      b('heading', 'Question'),
+      b('text'),
+      b('heading', 'Hypothesis'),
+      b('text', 'If … then … because …'),
+      b('heading', 'Materials'),
+      b('bullet'),
+      b('heading', 'Procedure'),
+      b('numbered'),
+      b('heading', 'Data and results'),
+      b('text'),
+      b('heading', 'Conclusion'),
+      b('text'),
+    ],
+  },
+  {
+    key: 'reading',
+    title: 'Reading notes',
+    icon: 'book',
+    color: '#D99A6C',
+    blocks: () => [
+      b('heading', 'Chapter or pages'),
+      b('text'),
+      b('heading', 'What happened / main points'),
+      b('bullet'),
+      b('heading', 'Quotes worth keeping'),
+      b('quote'),
+      b('heading', 'What I think'),
+      b('text'),
+    ],
+  },
+  {
+    key: 'club',
+    title: 'Club or team meeting',
+    icon: 'people',
+    color: '#E89AB8',
+    blocks: () => [b('heading', 'Decided'), b('bullet'), b('heading', 'My action items'), b('todo'), b('heading', 'Next meeting'), b('text')],
   },
   {
     key: 'essay',

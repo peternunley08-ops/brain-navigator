@@ -29,7 +29,13 @@ export default function ClassesScreen() {
     const today = c.days.includes(isoDay());
     return (
       <Animated.View key={c.id} entering={FadeInDown.delay(i * 45).duration(340)}>
-        <Card onPress={() => router.push({ pathname: '/class-edit', params: { id: c.id } })} style={styles.card} tint={c.id === currentId ? c.color : undefined}>
+        <Card
+          // No times yet: the card says "tap to add days and times", so go to the editor.
+          onPress={() => (c.days.length ? router.push(`/class/${c.id}`) : router.push({ pathname: '/class-edit', params: { id: c.id } }))}
+          onLongPress={() => router.push({ pathname: '/class-edit', params: { id: c.id } })}
+          style={styles.card}
+          tint={c.id === currentId ? c.color : undefined}
+        >
           <View style={[styles.bar, { backgroundColor: c.color }]} />
           <View style={styles.body}>
             <View style={styles.titleRow}>

@@ -106,8 +106,10 @@ export const dimensionColor: Record<string, string> = {
   spiritual: '#AFA2DE',
 };
 
-// Hex → rgba, for glows and tints built from a token.
+// Hex → rgba, for glows and tints built from a token. A worklet, so
+// animated styles can call it on the UI thread too.
 export function alpha(hex: string, a: number) {
+  'worklet';
   const h = hex.replace('#', '');
   const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;

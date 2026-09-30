@@ -57,6 +57,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
         </Pressy>
         <View style={styles.body}>
           <Text style={[styles.title, a.done && styles.done]} numberOfLines={2}>
+            {a.starred && !a.done ? <Text style={styles.star}>★ </Text> : null}
             {a.title}
           </Text>
           <View style={styles.meta}>
@@ -74,6 +75,13 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
               </View>
             ) : null}
             {a.minutes && !a.done ? <Text style={styles.metaText}>{a.minutes >= 60 ? `${+(a.minutes / 60).toFixed(1)}h` : `${a.minutes}m`}</Text> : null}
+            {a.subtasks?.length && !a.done ? (
+              <Text style={styles.metaText}>
+                {a.subtasks.filter((t) => t.done).length}/{a.subtasks.length} steps
+              </Text>
+            ) : null}
+            {a.notes ? <Icon name="pen" size={12} color={colors.textFaint} /> : null}
+            {a.repeat === 'weekly' ? <Icon name="repeat" size={12} color={colors.textFaint} /> : null}
           </View>
         </View>
         {!compact || soon || late ? (
@@ -85,6 +93,9 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
 }
 
 const styles = StyleSheet.create({
+  star: {
+    color: colors.flame,
+  },
   card: {
     flexDirection: 'row',
     alignItems: 'center',

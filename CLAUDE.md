@@ -10,13 +10,16 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
 
 - `app/` — Expo Router file-based routes (screens). Nested dynamic
   routes: `app/entry/[id].tsx`, `app/assignment/[id].tsx`,
-  `app/note/[id].tsx`.
+  `app/note/[id].tsx`, `app/class/[id].tsx`, `app/deck/[id].tsx`.
 - `core/` — flat lib layer: one Zustand store per domain (`healthStore.ts`,
   `tasksStore.ts`, `wellnessStore.ts`, …), `theme.ts` (design tokens —
   "Candlelight", the night palette, see "Design system" below),
   `ember.ts` + `emberStore.ts` + `emberAI.ts` (the mascot's advice, state,
-  and AI), `schoolStore.ts` + `hubStore.ts` (school and hub data, stored
-  on the phone — see "High school hub"), `dates.ts`, `scanParser.ts`,
+  and AI), `schoolStore.ts` + `hubStore.ts` + `lifeStore.ts` (school,
+  hub, and student-life data, stored on the phone — see "High school hub"
+  and "The Masterpiece"), `achievements.ts` (quiet badges + warmth),
+  `emberLook.ts` (Ember's color themes and accessories), `undoStore.ts`,
+  `dayLines.ts`, `dates.ts`, `scanParser.ts`,
   `canvas.ts`, `supabase.ts` (client), `schema.sql` (source of truth for
   the DB — append-only phase log, run live via the Supabase SQL editor).
 - `modules/text-recognition/` — a **local native Expo module** (Swift,
@@ -24,11 +27,17 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
   `pod install`; needs a native rebuild to take effect. JS side uses
   `requireOptionalNativeModule`, so older builds degrade to paste-text.
 - `components/school/` — `AssignmentRow`, `NowCard`.
+- `components/desk/` — `CountdownChips`, `OneThing`, `WhatsNew`.
+- `components/` root also has `AchievementWatcher` (awards badges, mounted
+  in `_layout`), `UndoBar` (the 5-second "Undo" pill), and `ErrorScreen`
+  (exported as `ErrorBoundary` from `app/_layout.tsx`).
 - `components/ui/` — the design kit: `Screen` (the frame every screen is
   built in), `Backdrop`, `Reveal`, `Pressy`, `Button`, `Card`, `Chip`,
   `Field`, `IconButton`, `Icon` (the app's own line icons), `Section`,
   `Stepper`, `StatTile`, `Ring`, `EmptyState`, `Candle`/`CandleGlyph`,
-  `TrackSlider`, `HoldToConfirm`, `MoodPicker`, charts and meters.
+  `TrackSlider`, `HoldToConfirm`, `MoodPicker`, `ProgressBar`,
+  `Segmented`, `Sparkline`, `TimeField` (takes an `hours` list —
+  `EVENING_HOURS`/`MORNING_HOURS`), charts and meters.
 - `components/ember/` — Ember the mascot: `useEmberRig`, `EmberSprite`
   (+ still `EmberGlyph`), `EmberBuddy` (the overlay on every screen),
   `EmberBubble`, `Sparks`.
@@ -53,7 +62,63 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
     instructions.
   - `apple-watch-plan.md`, `encryption-plan.md` — feature planning docs.
 
-## Current state (as of 2026-09-29 — check `git log` for anything newer)
+## Current state (as of 2026-09-30 — check `git log` for anything newer)
+
+### The Masterpiece (2026-09-30)
+
+The user asked for "100 plus ideas, execute all of them." The plan and
+per-idea status live in **`docs/masterpiece.md`** (120 ideas, all built;
+most verified live). What that added:
+
+- **Data** — `schoolStore`: assignment `starred`, `subtasks` (with `on`
+  days from `planBackward()`), `repeat: 'weekly'` (finishing one creates
+  next week's), `grades` with `classAverage()`/`letterFor()`/`gpa()`/
+  `finalNeeded()`, class `level` (regular/honors/ap) + `credits` +
+  category `weights`, focus-session `rating`, `workloadByDay()`,
+  `duplicateAssignment`, `restoreAssignment`. `hubStore`: college `tier`
+  + visit rating/notes, `scholarships`, `recs`, `activities` (Common App
+  limits 50/100/150), `aid` checklist, more note templates (Cornell, lab,
+  reading, club), block types `numbered`/`quote`/`divider`,
+  `restoreNote`. New `lifeStore` (`life.json`): wins, gratitude, hours
+  (service/driving/work), countdowns (+`createdAt`), people, pack list,
+  wind-down routine, worry box, flashcard decks (Leitner boxes 1–5,
+  `parseCards()` for "front :: back"), weekly reviews, distractions,
+  "one thing" per day, achievements, settings (birthday, wind-down, wake,
+  goals, Ember theme/accessory, `whatsNewSeen`).
+- **Screens** — settings, achievements, year, triage, week, class/[id],
+  grades, search, absent, flashcards, deck/[id], techniques, sleep, wins,
+  moods, toolkit, worry, people, scholarships, recs, activities, aid,
+  hours, countdowns, review. All reachable from the regrouped Drawer.
+- **Ember** — five color themes and accessories (cap on College,
+  glasses on study screens, headphones on Deep focus, scarf at night)
+  unlocked by *warmth* (`core/achievements.ts`); double-tap to pet; new
+  tips (birthday, wind-down, flashcards due, a class under ~72%, Sunday
+  review, countdown today) and an `ABOUT` line for every new route.
+- **Desk** — countdown chips, today's "one thing", all-clear card,
+  weekly-review prompt, tonight's load bar, a line for the day, a glow
+  that follows the time of day, search in the header, one-time What's New.
+
+Gotchas found while verifying:
+
+- **`alpha()` in `core/theme.ts` is a worklet** (`'worklet'` directive)
+  because animated styles call it on the UI thread. `HoldToConfirm`
+  crashed ("Tried to synchronously call a Remote Function… alpha") on
+  every screen that used it (Settings, and the candle detail since the
+  redesign) until this was added. Any helper called inside
+  `useAnimatedStyle`/`useAnimatedProps` must be a worklet.
+- **The note editor's block inputs are uncontrolled** (`defaultValue`,
+  keyed by block type). A controlled `value` lost keystrokes because every
+  keystroke re-renders the whole note; converting a block ("# ", "- ",
+  "[] ", "> ", "1. ", "---") remounts its field and refocuses it
+  immediately from the ref callback.
+- **Dev-only crash after hot reloads**: `ExpoFabricView.injectInitializer`
+  → `AppContextLost` when an Expo native view (e.g. `LinearGradient` in a
+  primary `Button`) mounts after Fast Refresh. Not a production bug —
+  relaunch the app after edits before testing flows. Release builds are
+  unaffected.
+- The simulator's `text` action types at ~1 ms/char and drops a trailing
+  space; fast-typing races there aren't real-world bugs, but they did
+  expose the two real ones above.
 
 ### High school hub (2026-09-29)
 
@@ -229,7 +294,10 @@ prompt must be accepted, then `xcrun devicectl manage pair --device …`
 triggers the phone's Trust prompt. Developer Mode is already on. **The
 phone has the build from commit 136ba1e** (night redesign, Ember, audit
 fixes), installed and launched 2026-09-29 — free signing means it needs a
-rebuild by about 2026-10-06.
+rebuild by about 2026-10-06. **Update 2026-09-30:** the phone got a fresh
+Release build of commit a8b798d (high school hub + screenshot scanner),
+good until about 2026-10-07. The Masterpiece work is not on the phone
+yet — rebuild with the recipe above after it's committed.
 
 ### Talking it through with Ember (`app/companion.tsx`)
 

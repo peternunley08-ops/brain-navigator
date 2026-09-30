@@ -2,7 +2,9 @@ import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, { useAnimatedProps, useAnimatedStyle } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Stop } from 'react-native-svg';
+import { EMBER_THEMES, type Worn } from '../../core/emberLook';
 import { flamePath } from '../../core/flame';
+import { type EmberTheme, useLifeStore } from '../../core/lifeStore';
 import type { EmberRig } from './useEmberRig';
 
 const AnimatedPath = Animated.createAnimatedComponent(Path);
@@ -17,20 +19,26 @@ const CX = 50;
 const CY = 79;
 const EYE_DX = 9.5;
 const EYE_Y = 77;
-const INK = '#3A1A08';
 
 interface EmberSpriteProps {
   rig: EmberRig;
   /** Width in points; height is 1.2×. */
   size: number;
   seed?: number;
-  /** Round study glasses, for Focus. */
+  /** Round study glasses, for Focus. Same as accessory="glasses". */
   glasses?: boolean;
+  accessory?: Worn;
+  /** Defaults to the student's chosen theme. */
+  theme?: EmberTheme;
 }
 
-export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, glasses = false }: EmberSpriteProps) {
+export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, glasses = false, accessory, theme }: EmberSpriteProps) {
   const { time, wob, blink, lookX, lookY, happy, sleepy, dizzy, mouth, smile, flare, lean, stretch, hop, squash } = rig;
   const unit = size / 100;
+  const chosen = useLifeStore((s) => s.settings.emberTheme);
+  const P = EMBER_THEMES[theme ?? chosen] ?? EMBER_THEMES.gold;
+  const INK = P.ink;
+  const worn: Worn = accessory ?? (glasses ? 'glasses' : 'none');
 
   const body = useAnimatedProps(() => {
     const f = flare.value;
@@ -149,6 +157,42 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
     return { d: `M${x - 3.2},${y} Q${x},${y - 2.2} ${x + 3.2},${y}` };
   });
 
+  // Accessories turn with the face, like the glasses.
+  const capBoard = useAnimatedProps(() => {
+    const x = CX + lookX.value * 2.2;
+    const y = 57 + lookY.value * 1.4;
+    return { d: `M${x - 19},${y} L${x},${y - 6} L${x + 19},${y} L${x},${y + 6} Z` };
+  });
+  const capBand = useAnimatedProps(() => {
+    const x = CX + lookX.value * 2.2;
+    const y = 60 + lookY.value * 1.4;
+    return { d: `M${x - 10},${y} L${x - 10},${y + 6} Q${x},${y + 9} ${x + 10},${y + 6} L${x + 10},${y} Z` };
+  });
+  const tassel = useAnimatedProps(() => {
+    const x = CX + lookX.value * 2.2;
+    const y = 57 + lookY.value * 1.4;
+    const swing = Math.sin(time.value * 0.004) * 1.6 * wob.value;
+    return { d: `M${x},${y} L${x + 15},${y + 2} L${x + 16 + swing},${y + 12}` };
+  });
+  const band = useAnimatedProps(() => {
+    const x = CX + lookX.value * 1.6;
+    return { d: `M${x - 30},${84} C${x - 32},${46} ${x + 32},${46} ${x + 30},${84}` };
+  });
+  const cup = (side: -1 | 1) =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useAnimatedProps(() => ({ cx: CX + side * 30 + lookX.value * 1.6, cy: 85 }));
+  const leftCup = cup(-1);
+  const rightCup = cup(1);
+  const scarf = useAnimatedProps(() => {
+    const x = CX + lookX.value * 1.2;
+    return { d: `M${x - 26},97 Q${x},106 ${x + 26},97 L${x + 25},104 Q${x},113 ${x - 25},104 Z` };
+  });
+  const scarfTail = useAnimatedProps(() => {
+    const x = CX + lookX.value * 1.2;
+    const swing = Math.sin(time.value * 0.003) * 1.2 * wob.value;
+    return { d: `M${x + 8},104 L${x + 16 + swing},118 L${x + 8 + swing},119 L${x + 3},106 Z` };
+  });
+
   const cheek = (side: -1 | 1) =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useAnimatedProps(() => ({
@@ -175,27 +219,27 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
       <Svg width={size} height={size * 1.2} viewBox="0 0 100 120">
         <Defs>
           <RadialGradient id="emberGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0" stopColor="#FFB75E" stopOpacity={0.55} />
-            <Stop offset="0.5" stopColor="#FF9A45" stopOpacity={0.16} />
-            <Stop offset="1" stopColor="#FF9A45" stopOpacity={0} />
+            <Stop offset="0" stopColor={P.glow[0]} stopOpacity={0.55} />
+            <Stop offset="0.5" stopColor={P.glow[1]} stopOpacity={0.16} />
+            <Stop offset="1" stopColor={P.glow[1]} stopOpacity={0} />
           </RadialGradient>
           <RadialGradient id="emberBody" cx="50%" cy="72%" r="62%">
-            <Stop offset="0" stopColor="#FFE6AE" />
-            <Stop offset="0.5" stopColor="#F9AE4E" />
-            <Stop offset="1" stopColor="#E0612A" />
+            <Stop offset="0" stopColor={P.body[0]} />
+            <Stop offset="0.5" stopColor={P.body[1]} />
+            <Stop offset="1" stopColor={P.body[2]} />
           </RadialGradient>
           <RadialGradient id="emberCore" cx="50%" cy="62%" r="60%">
-            <Stop offset="0" stopColor="#FFFAEA" />
-            <Stop offset="0.7" stopColor="#FFE7B4" />
-            <Stop offset="1" stopColor="#FFD28A" stopOpacity={0.6} />
+            <Stop offset="0" stopColor={P.core[0]} />
+            <Stop offset="0.7" stopColor={P.core[1]} />
+            <Stop offset="1" stopColor={P.core[2]} stopOpacity={0.6} />
           </RadialGradient>
         </Defs>
         <AnimatedCircle cx={CX} cy={CY - 6} fill="url(#emberGlow)" animatedProps={glow} />
         <AnimatedPath fill="url(#emberBody)" animatedProps={body} />
         <AnimatedPath fill="url(#emberCore)" animatedProps={core} />
 
-        <AnimatedEllipse cy={85.5} rx={4.8} ry={2.6} fill="#FF7A5C" animatedProps={leftCheek} />
-        <AnimatedEllipse cy={85.5} rx={4.8} ry={2.6} fill="#FF7A5C" animatedProps={rightCheek} />
+        <AnimatedEllipse cy={85.5} rx={4.8} ry={2.6} fill={P.cheek} animatedProps={leftCheek} />
+        <AnimatedEllipse cy={85.5} rx={4.8} ry={2.6} fill={P.cheek} animatedProps={rightCheek} />
 
         <AnimatedEllipse rx={4.3} fill={INK} animatedProps={leftEye} />
         <AnimatedEllipse rx={4.3} fill={INK} animatedProps={rightEye} />
@@ -207,7 +251,27 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
 
         <AnimatedPath fill={INK} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" animatedProps={mouthProps} />
 
-        {glasses ? (
+        {worn === 'cap' ? (
+          <>
+            <AnimatedPath fill="#23202E" animatedProps={capBand} />
+            <AnimatedPath fill="#2E2A3C" stroke="#4A4560" strokeWidth={0.8} strokeLinejoin="round" animatedProps={capBoard} />
+            <AnimatedPath stroke="#F5C451" strokeWidth={1.6} strokeLinecap="round" fill="none" animatedProps={tassel} />
+          </>
+        ) : null}
+        {worn === 'headphones' ? (
+          <>
+            <AnimatedPath stroke="#2E2A3C" strokeWidth={4} strokeLinecap="round" fill="none" animatedProps={band} />
+            <AnimatedEllipse rx={5.5} ry={8} fill="#2E2A3C" stroke="#4A4560" strokeWidth={1} animatedProps={leftCup} />
+            <AnimatedEllipse rx={5.5} ry={8} fill="#2E2A3C" stroke="#4A4560" strokeWidth={1} animatedProps={rightCup} />
+          </>
+        ) : null}
+        {worn === 'scarf' ? (
+          <>
+            <AnimatedPath fill="#B8433A" animatedProps={scarfTail} />
+            <AnimatedPath fill="#D4574A" stroke="#B8433A" strokeWidth={0.8} animatedProps={scarf} />
+          </>
+        ) : null}
+        {worn === 'glasses' ? (
           <>
             <AnimatedCircle r={6.8} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={1.8} animatedProps={leftLens} />
             <AnimatedCircle r={6.8} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={1.8} animatedProps={rightLens} />
@@ -221,6 +285,9 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
 
 // A still Ember for places that shouldn't animate (list icons, the nav).
 export function EmberGlyph({ size = 28 }: { size?: number }) {
+  const chosen = useLifeStore((s) => s.settings.emberTheme);
+  const P = EMBER_THEMES[chosen] ?? EMBER_THEMES.gold;
+  const INK = P.ink;
   const d = flamePath(CX, CY, 34, 50, 0, 0, 0, 0, 36);
   const c = flamePath(CX, CY + 5, 21.5, 28, 0, 0, 0, 2, 28);
   return (
@@ -228,13 +295,13 @@ export function EmberGlyph({ size = 28 }: { size?: number }) {
       <Svg width={size} height={size * 1.2} viewBox="0 0 100 120">
         <Defs>
           <RadialGradient id="gBody" cx="50%" cy="72%" r="62%">
-            <Stop offset="0" stopColor="#FFE6AE" />
-            <Stop offset="0.5" stopColor="#F9AE4E" />
-            <Stop offset="1" stopColor="#E0612A" />
+            <Stop offset="0" stopColor={P.body[0]} />
+            <Stop offset="0.5" stopColor={P.body[1]} />
+            <Stop offset="1" stopColor={P.body[2]} />
           </RadialGradient>
         </Defs>
         <Path d={d} fill="url(#gBody)" />
-        <Path d={c} fill="#FFF3D6" />
+        <Path d={c} fill={P.core[0]} />
         <Path d={`M${CX - 14},${EYE_Y + 1} Q${CX - 9.5},${EYE_Y - 4} ${CX - 5},${EYE_Y + 1}`} stroke={INK} strokeWidth={3} strokeLinecap="round" fill="none" />
         <Path d={`M${CX + 5},${EYE_Y + 1} Q${CX + 9.5},${EYE_Y - 4} ${CX + 14},${EYE_Y + 1}`} stroke={INK} strokeWidth={3} strokeLinecap="round" fill="none" />
         <Path d={`M${CX - 5},88 Q${CX},93 ${CX + 5},88 Z`} fill={INK} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />

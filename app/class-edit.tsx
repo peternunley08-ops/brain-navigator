@@ -12,7 +12,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { TimeField } from '../components/ui/TimeField';
-import { CLASS_COLORS, clock, useSchoolStore } from '../core/schoolStore';
+import { type ClassLevel, CLASS_COLORS, clock, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
 
 const DAYS = [
@@ -46,6 +46,10 @@ export default function ClassEditScreen() {
   const [color, setColor] = useState(existing?.color ?? defaults.color);
   const [teacher, setTeacher] = useState(existing?.teacher ?? '');
   const [room, setRoom] = useState(existing?.room ?? '');
+  const [level, setLevel] = useState<ClassLevel | null>(existing?.level ?? null);
+  // "AP Chemistry" is AP unless you say otherwise.
+  const guessed: ClassLevel = /\bAP\b|\bIB\b/.test(name) ? 'ap' : /honou?rs|\bH\b/i.test(name) ? 'honors' : 'regular';
+  const effectiveLevel = level ?? guessed;
   // A class imported from a screenshot has no schedule yet.
   const scheduled = !!existing && existing.days.length > 0;
   const [days, setDays] = useState<number[]>(scheduled ? existing!.days : [1, 2, 3, 4, 5]);
@@ -58,7 +62,18 @@ export default function ClassEditScreen() {
 
   const save = () => {
     if (!valid) return;
-    saveClass({ id: existing?.id, name: name.trim(), kind, color, teacher: teacher.trim(), room: room.trim(), days, start, end });
+    saveClass({
+      id: existing?.id,
+      name: name.trim(),
+      kind,
+      color,
+      teacher: teacher.trim(),
+      room: room.trim(),
+      days,
+      start,
+      end,
+      ...(kind === 'class' ? { level: effectiveLevel } : {}),
+    });
     router.back();
     if (!existing) emberSay(`${name.trim()} is on your schedule. I’ll tell you when it’s next.`, 'happy');
   };
@@ -118,6 +133,16 @@ export default function ClassEditScreen() {
             <Field containerStyle={styles.flex} label={kind === 'class' ? 'Teacher' : 'Coach or lead'} placeholder="Ms. Rivera" value={teacher} onChangeText={setTeacher} />
             <Field containerStyle={styles.room} label="Room" placeholder="214" value={room} onChangeText={setRoom} />
           </View>
+          {kind === 'class' ? (
+            <>
+              <Text style={styles.levelLabel}>Level, for weighted GPA</Text>
+              <ChipRow>
+                <Chip label="Regular" selected={effectiveLevel === 'regular'} onPress={() => setLevel('regular')} />
+                <Chip label="Honors" selected={effectiveLevel === 'honors'} onPress={() => setLevel('honors')} />
+                <Chip label="AP / IB" selected={effectiveLevel === 'ap'} onPress={() => setLevel('ap')} />
+              </ChipRow>
+            </>
+          ) : null}
         </Section>
       </Reveal>
 
@@ -153,6 +178,13 @@ export default function ClassEditScreen() {
 }
 
 const styles = StyleSheet.create({
+  levelLabel: {
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
   block: {
     marginTop: 14,
   },

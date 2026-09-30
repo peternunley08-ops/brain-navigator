@@ -1,5 +1,8 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Chip } from '../components/ui/Chip';
+import { Field } from '../components/ui/Field';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -26,12 +29,20 @@ export default function NotesScreen() {
   const notes = useHubStore((s) => s.notes);
   const createNote = useHubStore((s) => s.createNote);
   const classes = useSchoolStore((s) => s.classes);
+  const { classId } = useLocalSearchParams<{ classId?: string }>();
+  const [q, setQ] = useState('');
+  const [cls, setCls] = useState<string | null>(classId ?? null);
+  const withNotes = classes.filter((c) => notes.some((n) => n.classId === c.id));
 
-  const sorted = [...notes].sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt));
+  const term = q.trim().toLowerCase();
+  const sorted = [...notes]
+    .filter((n) => !cls || n.classId === cls)
+    .filter((n) => !term || n.title.toLowerCase().includes(term) || n.blocks.some((b) => b.text.toLowerCase().includes(term)))
+    .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt));
 
   const start = (key: string) => {
     const t = NOTE_TEMPLATES.find((x) => x.key === key)!;
-    const note = createNote({ title: key === 'blank' ? '' : t.title, icon: t.icon, color: t.color, blocks: t.blocks() });
+    const note = createNote({ title: key === 'blank' ? '' : t.title, icon: t.icon, color: t.color, blocks: t.blocks(), classId: cls });
     router.push(`/note/${note.id}`);
   };
 
@@ -52,10 +63,28 @@ export default function NotesScreen() {
         </Section>
       </Reveal>
 
+      {notes.length > 3 || withNotes.length ? (
+        <Reveal index={1}>
+          <Field value={q} onChangeText={setQ} placeholder="Search your notes" returnKeyType="search" autoCapitalize="none" clearButtonMode="while-editing" containerStyle={styles.search} />
+          {withNotes.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters} style={styles.filterScroll}>
+              <Chip label="All" selected={!cls} onPress={() => setCls(null)} />
+              {withNotes.map((c) => (
+                <Chip key={c.id} label={c.name} dot color={c.color} selected={cls === c.id} onPress={() => setCls(cls === c.id ? null : c.id)} />
+              ))}
+            </ScrollView>
+          ) : null}
+        </Reveal>
+      ) : null}
+
       <Reveal index={1}>
-        <Section title="Pages" note={notes.length ? `${notes.length} page${notes.length === 1 ? '' : 's'}` : undefined}>
+        <Section title="Pages" note={notes.length ? `${sorted.length === notes.length ? '' : `${sorted.length} of `}${notes.length} page${notes.length === 1 ? '' : 's'}` : undefined}>
           {sorted.length === 0 ? (
-            <EmptyState title="A blank notebook." body="Start with a template above — class notes and study guides come with the headings already in." />
+            notes.length ? (
+              <EmptyState title="Nothing matches." body="Try another word or class." />
+            ) : (
+              <EmptyState title="A blank notebook." body="Start with a template above — class notes and study guides come with the headings already in." />
+            )
           ) : (
             <View style={styles.list}>
               {sorted.map((n, i) => (
@@ -84,7 +113,7 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
             <Text style={styles.title} numberOfLines={1}>
               {n.title || 'Untitled'}
             </Text>
-            {n.pinned ? <Icon name="flag" size={13} color={colors.flame} /> : null}
+            {n.pinned ? <Icon name="pin" size={13} color={colors.flame} /> : null}
           </View>
           {preview ? (
             <Text style={styles.preview} numberOfLines={1}>
@@ -103,6 +132,17 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
 }
 
 const styles = StyleSheet.create({
+  search: {
+    marginTop: 20,
+  },
+  filterScroll: {
+    marginTop: 10,
+    marginHorizontal: -20,
+  },
+  filters: {
+    gap: 8,
+    paddingHorizontal: 20,
+  },
   templates: {
     gap: 10,
     paddingRight: 8,

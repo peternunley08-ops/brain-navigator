@@ -7,6 +7,7 @@ import { NowCard } from '../components/school/NowCard';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
+import { Icon, type IconName } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
@@ -21,6 +22,14 @@ function hm(minutes: number) {
   if (!h) return `${m} min`;
   return m ? `${h}h ${m}m` : `${h}h`;
 }
+
+const TOOLS: { label: string; icon: IconName; color: string; path: string }[] = [
+  { label: 'Week', icon: 'calendar', color: '#8FB4E8', path: '/week' },
+  { label: 'Grades', icon: 'grade', color: '#9FD08A', path: '/grades' },
+  { label: 'Cards', icon: 'cards', color: '#E89AB8', path: '/flashcards' },
+  { label: 'Study tips', icon: 'flask', color: '#AFA2DE', path: '/techniques' },
+  { label: 'I was out', icon: 'message', color: '#D99A6C', path: '/absent' },
+];
 
 export default function SchoolScreen() {
   const classes = useSchoolStore((s) => s.classes);
@@ -42,9 +51,14 @@ export default function SchoolScreen() {
     [assignments, today]
   );
 
-  const open = assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due));
+  // Soonest first; within a day, starred ones lead.
+  const open = assignments
+    .filter((a) => !a.done)
+    .sort((a, b) => a.due.localeCompare(b.due) || Number(!!b.starred) - Number(!!a.starred));
   const done = assignments.filter((a) => a.done).sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
   const shown = day ? open.filter((a) => a.due === day) : open;
+  const weekAgo = addDays(today, -6);
+  const doneThisWeek = done.filter((a) => a.doneAt && dateKey(new Date(a.doneAt)) >= weekAgo).length;
 
   const groups: { title: string; items: Assignment[]; tint?: string }[] = day
     ? [{ title: 'Due that day', items: shown }]
@@ -71,6 +85,7 @@ export default function SchoolScreen() {
       subtitle={open.length === 0 ? 'Nothing due. Nice.' : `${open.length} thing${open.length === 1 ? '' : 's'} to do.`}
       right={
         <View style={styles.headerBtns}>
+          <IconButton icon="search" label="Search" onPress={() => router.push('/search')} />
           <IconButton icon="image" label="Scan a screenshot" onPress={() => router.push('/scan')} />
           <IconButton icon="book" label="Your schedule" onPress={() => router.push('/classes')} />
         </View>
@@ -131,6 +146,21 @@ export default function SchoolScreen() {
         <Button label="Add homework or a test" icon="plus" onPress={() => router.push('/add-assignment')} style={styles.add} />
       </Reveal>
 
+      <Reveal index={n++}>
+        <View style={styles.tools}>
+          {TOOLS.map((t) => (
+            <Pressy key={t.path} onPress={() => router.push(t.path as never)} style={styles.tool} accessibilityRole="button" accessibilityLabel={t.label}>
+              <View style={[styles.toolIcon, { backgroundColor: alpha(t.color, 0.14) }]}>
+                <Icon name={t.icon} size={19} color={t.color} />
+              </View>
+              <Text style={styles.toolLabel} numberOfLines={1}>
+                {t.label}
+              </Text>
+            </Pressy>
+          ))}
+        </View>
+      </Reveal>
+
       {open.length === 0 && !day ? (
         <EmptyState
           title={assignments.length ? 'All caught up.' : 'Nothing here yet.'}
@@ -150,7 +180,11 @@ export default function SchoolScreen() {
       ) : (
         groups.map((g) => (
           <Reveal key={g.title} index={n++}>
-            <Section title={g.title} note={g.tint ? 'Finish it, or move the date.' : undefined}>
+            <Section
+              title={g.title}
+              note={g.tint ? 'Finish it, or move the date.' : undefined}
+              action={g.tint ? { label: 'Sort these out', onPress: () => router.push('/triage') } : undefined}
+            >
               <View style={styles.list}>
                 {g.items.map((a, i) => (
                   <AssignmentRow key={a.id} a={a} index={i} />
@@ -168,7 +202,7 @@ export default function SchoolScreen() {
 
       {done.length > 0 ? (
         <Reveal index={n++}>
-          <Section title="Done" note={`${done.length} finished`} action={{ label: showDone ? 'Hide' : 'Show', onPress: () => setShowDone((v) => !v) }}>
+          <Section title="Done" note={`${doneThisWeek} this week, ${done.length} in all`} action={{ label: showDone ? 'Hide' : 'Show', onPress: () => setShowDone((v) => !v) }}>
             {showDone ? (
               <View style={styles.list}>
                 {done.slice(0, 20).map((a) => (
@@ -276,6 +310,30 @@ const styles = StyleSheet.create({
   },
   add: {
     marginTop: 16,
+  },
+  tools: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  tool: {
+    alignItems: 'center',
+    gap: 6,
+    width: 62,
+  },
+  toolIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  toolLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textMuted,
   },
   emptyActions: {
     gap: 6,

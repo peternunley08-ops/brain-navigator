@@ -12,14 +12,18 @@ interface TimeFieldProps {
   /** Minutes after midnight. */
   value: number;
   onChange: (minutes: number) => void;
+  /** Which hours to offer (default 6 AM – 9 PM). */
+  hours?: number[];
 }
 
 const HOURS = Array.from({ length: 16 }, (_, i) => i + 6); // 6 AM – 9 PM
+export const EVENING_HOURS = [19, 20, 21, 22, 23, 0, 1];
+export const MORNING_HOURS = [4, 5, 6, 7, 8, 9, 10, 11];
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5);
 
 // Tap the time to open a row of hours and a row of minutes. No wheels,
 // no keyboard — two taps and it's set.
-export function TimeField({ label, value, onChange }: TimeFieldProps) {
+export function TimeField({ label, value, onChange, hours = HOURS }: TimeFieldProps) {
   const [open, setOpen] = useState(false);
   const h = Math.floor(value / 60);
   const m = value % 60;
@@ -36,7 +40,7 @@ export function TimeField({ label, value, onChange }: TimeFieldProps) {
       {open ? (
         <Animated.View entering={FadeInDown.duration(220)} exiting={FadeOut.duration(120)} style={styles.picker}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
-            {HOURS.map((hr) => (
+            {hours.map((hr) => (
               <Chip key={hr} label={`${((hr + 11) % 12) + 1} ${hr < 12 ? 'AM' : 'PM'}`} selected={hr === h} onPress={() => onChange(hr * 60 + m)} />
             ))}
           </ScrollView>

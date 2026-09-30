@@ -7,7 +7,8 @@ import type { IconName } from '../components/ui/Icon';
 import type { EmberMood } from './emberStore';
 import { useHabitsStore } from './habitsStore';
 import { useHubStore } from './hubStore';
-import { daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
+import { dueCards, hoursTotal, useLifeStore, weekOf } from './lifeStore';
+import { classAverage, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
 import { useTasksStore } from './tasksStore';
 import { useWellnessStore } from './wellnessStore';
@@ -65,6 +66,16 @@ const A = {
   scan: { label: 'Scan a screenshot', href: '/scan', icon: 'image' },
   focus: { label: 'Focus', href: '/focus', icon: 'timer' },
   help: { label: 'Need help now', href: '/help', icon: 'phone' },
+  sleep: { label: 'Tonight’s plan', href: '/sleep', icon: 'bed' },
+  grades: { label: 'Grades', href: '/grades', icon: 'grade' },
+  cards: { label: 'Flashcards', href: '/flashcards', icon: 'cards' },
+  review: { label: 'Weekly review', href: '/review', icon: 'star' },
+  wins: { label: 'Wins', href: '/wins', icon: 'jar' },
+  toolkit: { label: 'Toolkit', href: '/toolkit', icon: 'sparkle' },
+  worry: { label: 'Worry box', href: '/worry', icon: 'feather' },
+  triage: { label: 'Sort it out', href: '/triage', icon: 'flag' },
+  hours: { label: 'Hours', href: '/hours', icon: 'hands' },
+  techniques: { label: 'How to study', href: '/techniques', icon: 'flask' },
 } satisfies Record<string, EmberAction>;
 
 // A plain explanation of every screen — "what am I looking at, and what
@@ -200,6 +211,31 @@ const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction
     title: 'A candle',
     line: 'Resolve it if it’s handled — add a note about how. Let it go if you’re choosing to stop carrying it. Both count as closing it.',
   },
+  '/settings': { title: 'Settings', line: 'Your name, sleep goal, homework cap, and goals. Ember’s colors and accessories unlock as your warmth grows. Export or erase your data at the bottom.' },
+  '/achievements': { title: 'Badges', line: 'Quiet badges for things worth noticing. They never expire and you can’t lose them.' },
+  '/year': { title: 'Your year', line: 'Everything you’ve done, added up. Counts, not streaks.' },
+  '/triage': { title: 'Sort out what’s late', line: 'Each late thing gets one decision: tonight, later, done already, ask the teacher, or let it go. Deciding is what takes the weight off.', actions: [A.school] },
+  '/week': { title: 'Your week', line: 'Your classes on a timetable, and a heatmap of the next two weeks. Red days hold more than your nightly cap — move something earlier.' },
+  '/class': { title: 'A class', line: 'Everything for one class: when it meets, what’s due, your grade, your notes and flashcards.' },
+  '/grades': { title: 'Grades', line: 'Log grades as they come back. Set the category weights from your syllabus and the average matches your teacher’s. The final calculator tells you what you need.', actions: [A.techniques] },
+  '/search': { title: 'Search', line: 'Finds anything: homework, classes, notes, flashcards, colleges, wins.' },
+  '/absent': { title: 'I was out', line: 'Which classes you missed and a ready-to-send note for each teacher. You read it and send it.' },
+  '/flashcards': { title: 'Flashcards', line: 'Decks for each class. Cards you know come back less often; cards you miss come back tomorrow. Quizzing yourself beats rereading.', actions: [A.techniques] },
+  '/deck': { title: 'A deck', line: 'Add cards one at a time, or paste a list with “front :: back” on each line. Study flips through what’s due.' },
+  '/techniques': { title: 'How to study', line: 'The methods that hold up in research, each with a way to try it tonight.' },
+  '/sleep': { title: 'Tonight', line: 'When to be asleep for your goal, a short wind-down, and tomorrow’s bag. The checklists reset each night.' },
+  '/wins': { title: 'Wins', line: 'Drop small wins in the jar, and write three good things a day. It trains your brain to notice what went right.' },
+  '/moods': { title: 'Mood map', line: 'A month of check-ins as colored dots, what’s been weighing on you, and what your own numbers say about sleep and mood.', actions: [A.checkin] },
+  '/toolkit': { title: 'Toolkit', line: 'Short tools for hard moments: before a test, tense-and-release, being kind to yourself, checking a thought.' },
+  '/worry': { title: 'Worry box', line: 'Write the worry down and give it an appointment. At worry time, open the box — many will have shrunk.' },
+  '/people': { title: 'Your people', line: 'The few people you’d actually reach out to, one tap from a text. Pick an opener if starting is the hard part.', actions: [A.help] },
+  '/scholarships': { title: 'Scholarships', line: 'Track amounts, deadlines, and what you’ve won. Local scholarships have the fewest applicants.' },
+  '/recs': { title: 'Rec letters', line: 'Who you’re asking, when it’s due, and whether you’ve said thank you. Ask at least four weeks ahead.' },
+  '/activities': { title: 'Activities list', line: 'Draft your Common App activities with the real character limits. Most important first.' },
+  '/aid': { title: 'Financial aid', line: 'The FAFSA and friends, step by step. Do it with a parent — it unlocks grants and work-study.' },
+  '/hours': { title: 'Hours', line: 'Service hours toward your requirement, driving practice toward your license, and work shifts.' },
+  '/countdowns': { title: 'Countdowns', line: 'Breaks, events, birthdays, finals. A break shows how much of the wait is behind you; finals shows what to plan.' },
+  '/review': { title: 'Weekly review', line: 'Five minutes on Sunday: what went well, what was hard, one thing for next week.' },
 };
 
 export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
@@ -209,7 +245,11 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
       ? '/assignment'
       : pathname.startsWith('/note/')
         ? '/note'
-        : pathname;
+        : pathname.startsWith('/class/')
+          ? '/class'
+          : pathname.startsWith('/deck/')
+            ? '/deck'
+            : pathname;
   const tips: EmberTip[] = [];
   const hour = now.getHours();
   const ms = now.getTime();
@@ -285,6 +325,57 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
     });
   }
 
+  // ---- Life ----------------------------------------------------------------
+
+  const life = useLifeStore.getState();
+  const mmdd = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  if (life.settings.birthday === mmdd) {
+    const name = useSchoolStore.getState().profile.name;
+    tips.push({ id: `bday-${todayKey(now)}`, line: `Happy birthday${name ? `, ${name}` : ''}! Nothing on this app matters more than you having a good day.`, priority: 3, mood: 'cheer' });
+  }
+
+  // Past the wind-down time (and before the small hours), nudge toward bed.
+  const mins = hour * 60 + now.getMinutes();
+  const wd = life.settings.windDown;
+  const pastWindDown = wd >= 12 * 60 ? mins >= wd || mins < 4 * 60 : mins >= wd && mins < 4 * 60;
+  if (pastWindDown && !lateNight) {
+    tips.push({
+      id: `winddown-${todayKey(now)}`,
+      line: 'It’s wind-down time. Phone on the charger, bag packed, lights low. Tomorrow-you will notice.',
+      actions: [A.sleep],
+      priority: 2,
+      mood: 'sleepy',
+    });
+  }
+
+  const dueDecks = life.decks.filter((d) => dueCards(d).length > 0);
+  const dueCardCount = dueDecks.reduce((s, d) => s + dueCards(d).length, 0);
+  if (dueCardCount >= 5 && hour >= 15 && hour < 22) {
+    tips.push({
+      id: `cards-${todayKey(now)}`,
+      line: `${dueCardCount} flashcards are ready in ${dueDecks.length === 1 ? `“${dueDecks[0].name}”` : `${dueDecks.length} decks`}. Ten minutes of quizzing beats an hour of rereading.`,
+      actions: [dueDecks.length === 1 ? { label: 'Study', href: `/deck/${dueDecks[0].id}`, icon: 'cards' } : A.cards],
+      priority: 1,
+      mood: 'curious',
+    });
+  }
+
+  const todayCd = life.countdowns.find((c) => daysUntil(c.date) === 0);
+  if (todayCd) {
+    tips.push({ id: `cd-${todayCd.id}`, line: `${todayCd.title} is today!`, priority: 2, mood: 'cheer' });
+  }
+
+  const svcGoal = life.settings.serviceGoal;
+  const svc = hoursTotal(life.hours, 'service');
+  if (route === '/hours' && svc > 0 && svc < svcGoal) {
+    tips.push({ id: 'svc-left', line: `${Math.round((svcGoal - svc) * 10) / 10} service hours to go. A regular weekly spot makes it add up without thinking.`, priority: 0 });
+  }
+
+  // Sunday evening, no review yet this week.
+  if (now.getDay() === 0 && hour >= 16 && !life.reviews.some((r) => r.weekOf === weekOf(todayKey(now)))) {
+    tips.push({ id: `review-${todayKey(now)}`, line: 'Sunday evening. Five minutes to look back at the week?', actions: [A.review], priority: 1, mood: 'curious' });
+  }
+
   // ---- School ------------------------------------------------------------
 
   const school = useSchoolStore.getState();
@@ -296,12 +387,28 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
   const load = tonightsLoad(school.assignments);
   const className = (id: string | null) => school.classes.find((c) => c.id === id)?.name;
 
+  // A class slipping below a C, gently.
+  for (const c of school.classes) {
+    if (c.kind !== 'class') continue;
+    const avg = classAverage(school.grades, c);
+    if (avg != null && avg < 72 && school.grades.filter((g) => g.classId === c.id).length >= 2) {
+      tips.push({
+        id: `slip-${c.id}-${Math.round(avg)}`,
+        line: `${c.name} is at ${avg.toFixed(0)}%. Not a crisis — a signal. Office hours, a retake, or one extra session a week can move it.`,
+        actions: [{ label: 'See the grade', href: `/grades?classId=${c.id}`, icon: 'grade' }, A.techniques],
+        priority: 2,
+        mood: 'concerned',
+      });
+      break;
+    }
+  }
+
   if (overdue.length) {
     const a = overdue[0];
     tips.push({
       id: `overdue-${a.id}`,
       line: `“${quoteTitle(a.title)}” was due ${dueLabel(a.due).toLowerCase()}. Finish it, or move the date so it stops nagging you.`,
-      actions: [{ label: 'Open it', href: `/assignment/${a.id}`, icon: 'book' }],
+      actions: overdue.length > 1 ? [A.triage, { label: 'Open it', href: `/assignment/${a.id}`, icon: 'book' }] : [{ label: 'Open it', href: `/assignment/${a.id}`, icon: 'book' }],
       priority: 3,
       mood: 'concerned',
     });

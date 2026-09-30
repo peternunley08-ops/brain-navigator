@@ -16,13 +16,20 @@ import { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AchievementWatcher } from '../components/AchievementWatcher';
 import { EmberBuddy } from '../components/ember/EmberBuddy';
 import { EntryThreshold } from '../components/EntryThreshold';
+import { ErrorScreen } from '../components/ErrorScreen';
+import { UndoBar } from '../components/UndoBar';
 import { useHubStore } from '../core/hubStore';
+import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { colors } from '../core/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+// A crash in any screen lands here instead of a white screen.
+export { ErrorScreen as ErrorBoundary };
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -45,6 +52,7 @@ export default function RootLayout() {
   useEffect(() => {
     useSchoolStore.getState().load();
     useHubStore.getState().load();
+    useLifeStore.getState().load();
   }, []);
 
   if (!fontsLoaded) {
@@ -70,8 +78,10 @@ export default function RootLayout() {
                 contentStyle: { backgroundColor: colors.night },
               }}
             />
+            <UndoBar />
             {/* Ember floats above every screen. */}
             <EmberBuddy />
+            <AchievementWatcher />
           </>
         ) : (
           <EntryThreshold onEnter={() => setEntered(true)} />

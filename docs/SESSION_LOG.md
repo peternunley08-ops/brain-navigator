@@ -1474,3 +1474,62 @@ Verified with real taps: onboarding, scanning a mock Classroom To-do
 screenshot (3 classes, 3 assignments, all correct), school planner,
 checking work off, Focus, quick-add, Notebook. The simulator now holds
 that sample school data; the phone doesn't have this build yet.
+
+## 2026-09-30 — Phone rebuild, then "The Masterpiece" (120 ideas)
+
+Rebuilt and installed the Release build of a8b798d on the iPhone (screenshot
+scanner + hub now on the phone; 745 new iCloud " 2" duplicates had to be
+cleared from `ios/Pods` first).
+
+The user then asked: "orchestrate a master piece make over 100 plus ideas
+and execute all of them" (and to be ready for a session compaction). Wrote
+`docs/masterpiece.md` — 120 ideas in 12 groups, used as the live tracker —
+then built all of them in five batches:
+
+1. Foundation: 18 new icons, `ProgressBar`, `Segmented`, `Sparkline`, the
+   Undo bar, an Ember-styled error boundary, `lifeStore` (life.json),
+   achievements + warmth, Ember themes/accessories, Settings (profile,
+   nights, Ember, goals, export backup, hold-to-erase), Badges, Your year.
+2. School: stars, subtasks + plan-it-backward, move chips, weekly repeat,
+   duplicate, extension-request drafter, overdue triage, class pages, week
+   timetable + 14-day workload heatmap, search, "I was out", grades
+   (weighted categories, GPA, final calculator), flashcards with Leitner
+   spacing and a flip-card study mode, study techniques, Focus presets /
+   just-5-minutes / parked thoughts / session rating / weekly goal ring /
+   next-thing suggestion.
+3. Wellness: sleep calculator + wind-down + tomorrow's bag, wins jar +
+   three good things, mood map + stress insights + sleep-vs-mood, toolkit
+   (test nerves, PMR, self-compassion, thought reframing), worry box, your
+   people (text/call with openers), habit ideas, Steady doors.
+4. College + life: tiers and list balance, deadline timeline, visit notes,
+   scholarships, rec letters, Common App activities with live limits,
+   FAFSA checklist, hours (service/driving/work), countdowns (break
+   progress, finals mode).
+5. Desk + Ember + Notebook + nav: countdown chips, one thing, all-clear,
+   review prompt, load bar, day line, sky glow, What's New; Ember tips for
+   every new feature + ABOUT text; Notebook markdown shortcuts, new
+   blocks, word count (650 for essays), share, todo→assignment, search and
+   class filters; weekly review; quick-add row; Drawer regrouped.
+
+Verified live in the Simulator with real taps: Desk (chips, one thing
+set/checked), School tools row, Grades (logged 88 → B+, final calculator
+98% — correct), class schedule typed by hand → timetable → class page,
+plan-it-backward (5 steps Wed→Mon), flashcards (paste 3 → study → done),
+sleep calculator, wins jar, toolkit PMR timer, College add flow (tier,
+balance, timeline), Notebook shortcuts, search, hours, countdowns, Focus
+presets, Settings, Drawer, badges firing (Keeping score, Card maker,
+Bedtime math, Planned it backward, Looking ahead, Something to look
+forward to), Ember accessories (scarf at night, glasses on study screens,
+cap on College, headphones on Deep).
+
+Bugs found and fixed along the way: `alpha()` not a worklet (crashed every
+HoldToConfirm — also affected the candle detail screen since the
+redesign); note editor dropping keystrokes (now uncontrolled inputs);
+one-thing losing its last letter; "Due Tuesday, Tuesday, October 6";
+half sleep cycles labeled as whole; marble placement in the jar;
+unscheduled classes opening the class page instead of the editor; a jagged
+flashcard back face; a Zustand selector that would have looped forever in
+"I was out"; settings icon that looked like the sun. A dev-only
+`AppContextLost` crash after hot reloads is documented in CLAUDE.md.
+
+Not yet on the phone; not committed.

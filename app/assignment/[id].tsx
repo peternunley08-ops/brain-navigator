@@ -1,16 +1,36 @@
+import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Share, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../../components/ember/EmberBuddy';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
+import { Chip, ChipRow } from '../../components/ui/Chip';
 import { EmptyState } from '../../components/ui/EmptyState';
+import { Field } from '../../components/ui/Field';
 import { Icon } from '../../components/ui/Icon';
 import { IconButton } from '../../components/ui/IconButton';
+import { ProgressBar } from '../../components/ui/ProgressBar';
+import { Pressy } from '../../components/ui/Pressy';
 import { Reveal } from '../../components/ui/Reveal';
 import { ScienceNote } from '../../components/ui/ScienceNote';
 import { Screen } from '../../components/ui/Screen';
-import { daysUntil, dueLabel, KIND_LABEL, useSchoolStore } from '../../core/schoolStore';
+import { Section } from '../../components/ui/Section';
+import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, planBackward, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
+import { offerUndo } from '../../core/undoStore';
+
+// A polite, specific note to a teacher. The student reads it, edits it,
+// and sends it themselves.
+function extensionNote(title: string, teacher: string, due: string) {
+  const who = teacher ? teacher : 'there';
+  return `Hi ${who},
+
+I wanted to reach out before ${title} is due (${due}). I’m behind on it and I want to turn in work I’m proud of rather than rush it. Would it be possible to have an extra day or two? I can show you what I have so far.
+
+Thank you for understanding.`;
+}
 
 export default function AssignmentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -22,6 +42,8 @@ export default function AssignmentScreen() {
   const focus = allFocus.filter((f) => f.assignmentId === id);
   const toggle = useSchoolStore((s) => s.toggleAssignment);
   const remove = useSchoolStore((s) => s.deleteAssignment);
+  const update = useSchoolStore((s) => s.updateAssignment);
+  const [step, setStep] = useState('');
 
   if (!a) {
     return (
@@ -37,12 +59,54 @@ export default function AssignmentScreen() {
   const isTest = a.kind === 'test' || a.kind === 'quiz';
   const [y, m, d] = a.due.split('-').map(Number);
   const dateText = new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  const subtasks = a.subtasks ?? [];
+  const stepsDone = subtasks.filter((t) => t.done).length;
+
+  const setSubtasks = (next: Subtask[]) => update(a.id, { subtasks: next });
+  const addStep = () => {
+    const t = step.trim();
+    if (!t) return;
+    setSubtasks([...subtasks, { id: uid(), text: t, done: false }]);
+    setStep('');
+  };
+  const toggleStep = (sid: string) => {
+    const next = subtasks.map((t) => (t.id === sid ? { ...t, done: !t.done } : t));
+    setSubtasks(next);
+    const finishing = !subtasks.find((t) => t.id === sid)?.done;
+    Haptics.impactAsync(finishing ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    if (finishing && next.length > 1 && next.every((t) => t.done)) {
+      emberSay('Every step done. The big thing turned out to be a bunch of small things.', 'cheer');
+    }
+  };
+  const planIt = () => {
+    const plan = planBackward(a);
+    setSubtasks([...subtasks.filter((t) => t.done), ...plan]);
+    emberSay(`Spread across ${new Set(plan.map((p) => p.on)).size} day${plan.length === 1 ? '' : 's'}. Just today’s step, today.`, 'happy');
+  };
+  const move = (to: string) => {
+    update(a.id, { due: to });
+    Haptics.selectionAsync().catch(() => {});
+    emberSay(`Moved to ${dueLabel(to).toLowerCase() === 'tomorrow' ? 'tomorrow' : dueLabel(to)}. Make sure your teacher’s okay with it.`, 'happy');
+  };
 
   return (
     <Screen
       nav={false}
       glowColor={color}
-      right={<IconButton icon="edit" label="Edit" onPress={() => router.push({ pathname: '/add-assignment', params: { id: a.id } })} />}
+      right={
+        <View style={styles.headerBtns}>
+          <IconButton
+            icon="star"
+            label={a.starred ? 'Unstar' : 'Star as a priority'}
+            tint={a.starred ? colors.flame : undefined}
+            onPress={() => {
+              update(a.id, { starred: !a.starred });
+              Haptics.selectionAsync().catch(() => {});
+            }}
+          />
+          <IconButton icon="edit" label="Edit" onPress={() => router.push({ pathname: '/add-assignment', params: { id: a.id } })} />
+        </View>
+      }
     >
       <Reveal index={0}>
         <View style={styles.head}>
@@ -54,8 +118,13 @@ export default function AssignmentScreen() {
           </View>
           <Text style={[styles.title, a.done && styles.done]}>{a.title}</Text>
           <Text style={[styles.due, !a.done && n < 0 && { color: colors.danger }, !a.done && n <= 1 && n >= 0 && { color: colors.flame }]}>
-            {a.done ? 'Done' : `Due ${dueLabel(a.due).toLowerCase() === 'today' || dueLabel(a.due).toLowerCase() === 'tomorrow' ? dueLabel(a.due).toLowerCase() : dueLabel(a.due)}`}
-            {!a.done ? `, ${dateText}` : ''}
+            {a.done
+              ? 'Done'
+              : n === 0 || n === 1
+                ? `Due ${dueLabel(a.due).toLowerCase()}, ${dateText}`
+                : n < 0
+                  ? `Was due ${dateText} (${dueLabel(a.due).toLowerCase()})`
+                  : `Due ${dateText}`}
           </Text>
         </View>
       </Reveal>
@@ -74,15 +143,86 @@ export default function AssignmentScreen() {
       </Reveal>
 
       {a.notes ? (
-        <Reveal index={2}>
+        <Reveal index={1}>
           <Card style={styles.notes}>
             <Text style={styles.notesText}>{a.notes}</Text>
           </Card>
         </Reveal>
       ) : null}
 
-      {isTest && !a.done ? (
+      <Reveal index={2}>
+        <Section
+          title="Steps"
+          note={subtasks.length ? `${stepsDone} of ${subtasks.length} done` : 'Big things go better in small pieces.'}
+          action={!a.done ? { label: subtasks.some((t) => t.on) ? 'Re-plan' : 'Plan it backward', onPress: planIt } : undefined}
+        >
+          <Card>
+            {subtasks.length ? <ProgressBar value={stepsDone / subtasks.length} color={colors.secured} style={styles.stepBar} /> : null}
+            {subtasks.map((t) => (
+              <Animated.View key={t.id} entering={FadeInDown.duration(220)} exiting={FadeOut.duration(150)} layout={LinearTransition} style={styles.step}>
+                <Pressy
+                  onPress={() => toggleStep(t.id)}
+                  haptic="none"
+                  depth={0.85}
+                  hitSlop={6}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: t.done }}
+                  accessibilityLabel={t.text}
+                  style={[styles.stepCheck, t.done && { backgroundColor: colors.secured, borderColor: colors.secured }]}
+                >
+                  {t.done ? <Icon name="check" size={13} color={colors.flameInk} strokeWidth={3} /> : null}
+                </Pressy>
+                <View style={styles.flex}>
+                  <Text style={[styles.stepText, t.done && styles.done]}>{t.text}</Text>
+                  {t.on ? (
+                    <Text style={[styles.stepOn, !t.done && t.on < dateKey() && { color: colors.danger }, !t.done && t.on === dateKey() && { color: colors.flame }]}>
+                      {dueLabel(t.on)}
+                    </Text>
+                  ) : null}
+                </View>
+                <Pressy onPress={() => setSubtasks(subtasks.filter((x) => x.id !== t.id))} hitSlop={10} accessibilityLabel={`Remove step ${t.text}`}>
+                  <Icon name="close" size={15} color={colors.textFaint} />
+                </Pressy>
+              </Animated.View>
+            ))}
+            {!a.done ? (
+              <View style={styles.addStep}>
+                <Field value={step} onChangeText={setStep} placeholder="Add a step" returnKeyType="done" onSubmitEditing={addStep} containerStyle={styles.flex} />
+                <IconButton icon="plus" label="Add step" onPress={addStep} tint={colors.flame} />
+              </View>
+            ) : null}
+          </Card>
+        </Section>
+      </Reveal>
+
+      {!a.done ? (
         <Reveal index={3}>
+          <Section title="Move it">
+            <ChipRow>
+              <Chip label="Tomorrow" icon="arrow" onPress={() => move(addDays(dateKey(), 1))} />
+              <Chip label="+1 day" onPress={() => move(addDays(a.due, 1))} />
+              <Chip label="+1 week" onPress={() => move(addDays(a.due, 7))} />
+              <Chip
+                label={a.repeat === 'weekly' ? 'Repeats weekly' : 'Repeat weekly'}
+                icon="repeat"
+                selected={a.repeat === 'weekly'}
+                onPress={() => update(a.id, { repeat: a.repeat === 'weekly' ? null : 'weekly' })}
+              />
+            </ChipRow>
+            <Pressy onPress={() => Share.share({ message: extensionNote(a.title, cls?.teacher ?? '', dueLabel(a.due)) })} style={styles.ask} accessibilityRole="button">
+              <Icon name="message" size={18} color={colors.flame} />
+              <View style={styles.flex}>
+                <Text style={styles.askTitle}>Ask for more time</Text>
+                <Text style={styles.askBody}>Drafts a polite note to {cls?.teacher || 'your teacher'}. You read it and send it.</Text>
+              </View>
+              <Icon name="chevron" size={16} color={colors.textFaint} />
+            </Pressy>
+          </Section>
+        </Reveal>
+      ) : null}
+
+      {isTest && !a.done ? (
+        <Reveal index={4}>
           <Card tint={color} style={styles.notes}>
             <Text style={styles.tipTitle}>How to study for this</Text>
             <Text style={styles.tip}>
@@ -97,7 +237,7 @@ export default function AssignmentScreen() {
         </Reveal>
       ) : null}
 
-      <Reveal index={4} style={styles.actions}>
+      <Reveal index={5} style={styles.actions}>
         {!a.done ? (
           <Button
             label="Focus on this"
@@ -119,18 +259,31 @@ export default function AssignmentScreen() {
             }
           }}
         />
-        <Button
-          label="Delete"
-          icon="trash"
-          variant="ghost"
-          size="sm"
-          tint={colors.danger}
-          onPress={() => {
-            remove(a.id);
-            router.back();
-          }}
-          style={styles.delete}
-        />
+        <View style={styles.smallRow}>
+          <Button
+            label="Duplicate"
+            icon="layers"
+            variant="ghost"
+            size="sm"
+            onPress={() => {
+              const copy = useSchoolStore.getState().duplicateAssignment(a.id);
+              if (copy) router.replace(`/assignment/${copy.id}`);
+            }}
+          />
+          <Button
+            label="Delete"
+            icon="trash"
+            variant="ghost"
+            size="sm"
+            tint={colors.danger}
+            onPress={() => {
+              const snapshot = a;
+              remove(a.id);
+              offerUndo(`Deleted “${snapshot.title}”`, () => useSchoolStore.getState().restoreAssignment(snapshot));
+              router.back();
+            }}
+          />
+        </View>
       </Reveal>
     </Screen>
   );
@@ -215,7 +368,75 @@ const styles = StyleSheet.create({
     marginTop: 24,
     gap: 10,
   },
-  delete: {
-    alignSelf: 'center',
+  smallRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  headerBtns: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  flex: {
+    flex: 1,
+  },
+  stepBar: {
+    marginBottom: 10,
+  },
+  step: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  stepCheck: {
+    width: 24,
+    height: 24,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: colors.lineStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.text,
+  },
+  stepOn: {
+    marginTop: 1,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
+  },
+  addStep: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 12,
+  },
+  ask: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: alpha(colors.flame, 0.3),
+    backgroundColor: alpha(colors.flame, 0.06),
+  },
+  askTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
+  askBody: {
+    marginTop: 1,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
   },
 });

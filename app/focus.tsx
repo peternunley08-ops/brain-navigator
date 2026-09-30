@@ -10,18 +10,28 @@ import { useEmberRig } from '../components/ember/useEmberRig';
 import { Button } from '../components/ui/Button';
 import { Candle, type CandleState } from '../components/ui/Candle';
 import { Card } from '../components/ui/Card';
+import { Field } from '../components/ui/Field';
+import { Icon } from '../components/ui/Icon';
+import { Pressy } from '../components/ui/Pressy';
+import { Ring } from '../components/ui/Ring';
 import { Chip, ChipRow } from '../components/ui/Chip';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { useFlameClock } from '../core/hooks/useFlameClock';
-import { addDays, dateKey, focusMinutesOn, useSchoolStore } from '../core/schoolStore';
-import { colors, fonts } from '../core/theme';
+import { useLifeStore } from '../core/lifeStore';
+import { addDays, dateKey, daysUntil, focusMinutesOn, useSchoolStore } from '../core/schoolStore';
+import { alpha, colors, fonts } from '../core/theme';
 
 type Phase = 'setup' | 'running' | 'paused' | 'done' | 'break';
 
-const LENGTHS = [15, 25, 45, 60];
-const BREAK_MIN = 5;
+// Work / break pairs. Pomodoro is the classic; Deep is for essays and problem sets.
+const PRESETS = [
+  { key: 'sprint', label: 'Sprint', work: 15, rest: 3 },
+  { key: 'pomodoro', label: 'Pomodoro', work: 25, rest: 5 },
+  { key: 'deep', label: 'Deep', work: 50, rest: 10 },
+  { key: 'hour', label: 'Hour', work: 60, rest: 10 },
+] as const;
 
 function mmss(ms: number) {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -46,6 +56,19 @@ export default function FocusScreen() {
   const open = useMemo(() => assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 6), [assignments]);
   const [target, setTarget] = useState<string | null>(assignmentParam ?? null);
   const [length, setLength] = useState(25);
+  const [breakMin, setBreakMin] = useState(5);
+  const [preset, setPreset] = useState<string>('pomodoro');
+  const [stray, setStray] = useState('');
+  const [lastSession, setLastSession] = useState<string | null>(null);
+  const [rated, setRated] = useState<string | null>(null);
+  const distractions = useLifeStore((s) => s.distractions);
+  const addDistraction = useLifeStore((s) => s.addDistraction);
+  const toggleDistraction = useLifeStore((s) => s.toggleDistraction);
+  const focusGoal = useLifeStore((s) => s.settings.focusGoal);
+  const accessoryPref = useLifeStore((s) => s.settings.emberAccessory);
+  const decks = useLifeStore((s) => s.decks);
+  const rateFocus = useSchoolStore((s) => s.rateFocus);
+  const sessionStart = useRef(new Date().toISOString());
   const [phase, setPhase] = useState<Phase>('setup');
   const [burst, setBurst] = useState(0);
 
@@ -97,6 +120,8 @@ export default function FocusScreen() {
 
   const start = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    sessionStart.current = new Date().toISOString();
+    setRated(null);
     banked.current = 0;
     startedAt.current = Date.now();
     setNow(Date.now());
@@ -118,7 +143,8 @@ export default function FocusScreen() {
     const worked = phase === 'running' ? banked.current + (Date.now() - startedAt.current) : banked.current;
     const minutes = Math.round(worked / 60_000);
     banked.current = worked;
-    if (minutes >= 1) logFocus(minutes, target);
+    if (minutes >= 1) setLastSession(logFocus(minutes, target).id);
+    else setLastSession(null);
     if (!complete && minutes < 1) {
       banked.current = 0;
       setPhase('setup');
@@ -134,7 +160,7 @@ export default function FocusScreen() {
   };
 
   const takeBreak = () => {
-    setBreakEnds(Date.now() + BREAK_MIN * 60_000);
+    setBreakEnds(Date.now() + breakMin * 60_000);
     setNow(Date.now());
     setPhase('break');
   };
@@ -154,6 +180,33 @@ export default function FocusScreen() {
   });
   const weekMax = Math.max(30, ...week.map((w) => w.min));
   const todayMin = week[6].min;
+  const weekTotal = week.reduce((s, w) => s + w.min, 0);
+  const allTimeH = Math.round((focus.reduce((s, f) => s + f.minutes, 0) / 60) * 10) / 10;
+  const sessionThoughts = distractions.filter((d) => d.at >= sessionStart.current);
+
+  // What to work on next: a deck for a test that's close, else the most urgent thing.
+  const soonTest = assignments
+    .filter((a) => !a.done && (a.kind === 'test' || a.kind === 'quiz') && daysUntil(a.due) >= 0 && daysUntil(a.due) <= 5)
+    .sort((a, b) => a.due.localeCompare(b.due))[0];
+  const testDeck = soonTest ? decks.find((d) => d.classId && d.classId === soonTest.classId) : undefined;
+  const suggestion =
+    target === null && soonTest
+      ? testDeck
+        ? {
+            title: `Study “${testDeck.name}”`,
+            body: `${soonTest.title} is ${daysUntil(soonTest.due) === 0 ? 'today' : daysUntil(soonTest.due) === 1 ? 'tomorrow' : `in ${daysUntil(soonTest.due)} days`}. Quizzing beats rereading.`,
+            icon: 'cards' as const,
+            color: testDeck.color,
+            go: () => router.push(`/deck/${testDeck.id}`),
+          }
+        : {
+            title: `Focus on ${soonTest.title}`,
+            body: `It’s ${daysUntil(soonTest.due) === 0 ? 'today' : daysUntil(soonTest.due) === 1 ? 'tomorrow' : `in ${daysUntil(soonTest.due)} days`}. A session now counts double later.`,
+            icon: 'flag' as const,
+            color: classes.find((c) => c.id === soonTest.classId)?.color ?? colors.flame,
+            go: () => setTarget(soonTest.id),
+          }
+      : null;
 
   return (
     <Screen back={false} tone="ember" motes={phase !== 'running'} title="Focus" subtitle="One thing. One candle.">
@@ -163,7 +216,7 @@ export default function FocusScreen() {
         </View>
         <View style={styles.ember}>
           <Sparks burst={burst} reach={60} />
-          <EmberSprite rig={rig} size={74} glasses seed={3.1} />
+          <EmberSprite rig={rig} size={74} seed={3.1} accessory={accessoryPref === 'auto' ? (length >= 50 ? 'headphones' : 'glasses') : accessoryPref} />
         </View>
       </View>
 
@@ -206,18 +259,77 @@ export default function FocusScreen() {
           <Reveal index={1}>
             <Section title="How long?">
               <ChipRow>
-                {LENGTHS.map((l) => (
-                  <Chip key={l} label={`${l} min`} icon="timer" selected={length === l} onPress={() => setLength(l)} />
+                {PRESETS.map((p) => (
+                  <Chip
+                    key={p.key}
+                    label={`${p.label} ${p.work}/${p.rest}`}
+                    icon="timer"
+                    selected={preset === p.key}
+                    onPress={() => {
+                      setPreset(p.key);
+                      setLength(p.work);
+                      setBreakMin(p.rest);
+                    }}
+                  />
                 ))}
               </ChipRow>
             </Section>
           </Reveal>
+          {suggestion ? (
+            <Reveal index={2}>
+              <Card tint={suggestion.color} onPress={suggestion.go} style={styles.suggest}>
+                <Icon name={suggestion.icon} size={20} color={suggestion.color} />
+                <View style={styles.flex}>
+                  <Text style={styles.suggestTitle}>{suggestion.title}</Text>
+                  <Text style={styles.suggestBody}>{suggestion.body}</Text>
+                </View>
+                <Icon name="chevron" size={16} color={colors.textFaint} />
+              </Card>
+            </Reveal>
+          ) : null}
           <Reveal index={2}>
             <Button label="Light the candle" icon="flame" onPress={start} style={styles.primary} />
+            <Button
+              label="Can’t start? Just 5 minutes"
+              variant="ghost"
+              size="sm"
+              icon="bolt"
+              onPress={() => {
+                setPreset('five');
+                setLength(5);
+                setBreakMin(2);
+                emberSay('Five minutes. That’s all. You can stop after — most people don’t.', 'happy');
+                setTimeout(start, 50);
+              }}
+              style={styles.skip}
+            />
           </Reveal>
         </>
       ) : null}
 
+      {phase === 'running' || phase === 'paused' ? (
+        <View style={styles.strayRow}>
+          <Field
+            value={stray}
+            onChangeText={setStray}
+            placeholder="Stray thought? Park it here"
+            returnKeyType="done"
+            onSubmitEditing={() => {
+              if (!stray.trim()) return;
+              addDistraction(stray);
+              setStray('');
+              Haptics.selectionAsync().catch(() => {});
+              rig.wiggle();
+            }}
+            containerStyle={styles.flex}
+          />
+          {sessionThoughts.length ? (
+            <View style={styles.strayCount}>
+              <Text style={styles.strayCountText}>{sessionThoughts.length}</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
       {phase === 'running' ? (
         <View style={styles.row}>
           <Button label="Pause" icon="pause" variant="secondary" onPress={pause} style={styles.flex} />
@@ -232,7 +344,43 @@ export default function FocusScreen() {
       ) : null}
       {phase === 'done' ? (
         <View style={styles.stack}>
-          <Button label={`Take a ${BREAK_MIN}-minute break`} icon="sun" onPress={takeBreak} />
+          {lastSession ? (
+            <View style={styles.rateBox}>
+              <Text style={styles.rateTitle}>How did it go?</Text>
+              <ChipRow style={styles.rateRow}>
+                {(
+                  [
+                    ['great', 'In the zone'],
+                    ['ok', 'Okay'],
+                    ['rough', 'Kept drifting'],
+                  ] as const
+                ).map(([k, label]) => (
+                  <Chip
+                    key={k}
+                    label={label}
+                    selected={rated === k}
+                    onPress={() => {
+                      setRated(k);
+                      rateFocus(lastSession, k);
+                      if (k === 'rough') emberSay('Drifting is normal. Try a Sprint next time, phone in another room.', 'concerned');
+                    }}
+                  />
+                ))}
+              </ChipRow>
+            </View>
+          ) : null}
+          {sessionThoughts.length ? (
+            <Card style={styles.thoughts}>
+              <Text style={styles.rateTitle}>Thoughts you parked</Text>
+              {sessionThoughts.map((d) => (
+                <Pressy key={d.id} onPress={() => toggleDistraction(d.id)} style={styles.thought} accessibilityRole="checkbox" accessibilityState={{ checked: d.done }}>
+                  <Icon name={d.done ? 'check' : 'pin'} size={15} color={d.done ? colors.secured : colors.textMuted} />
+                  <Text style={[styles.thoughtText, d.done && styles.thoughtDone]}>{d.text}</Text>
+                </Pressy>
+              ))}
+            </Card>
+          ) : null}
+          <Button label={`Take a ${breakMin}-minute break`} icon="sun" onPress={takeBreak} />
           <Button label="Another round" icon="repeat" variant="secondary" onPress={start} />
           {t && !t.done ? (
             <Button
@@ -257,7 +405,14 @@ export default function FocusScreen() {
 
       {phase === 'setup' || phase === 'done' ? (
         <Reveal index={3}>
-          <Section title="This week" note={todayMin ? `${todayMin} minutes today.` : 'Nothing yet today.'}>
+          <Section title="This week" note={`${todayMin ? `${todayMin} minutes today` : 'Nothing yet today'} · ${allTimeH}h all time`}>
+            <Card style={styles.goalCard}>
+              <Ring progress={Math.min(1, weekTotal / Math.max(1, focusGoal))} value={String(Math.round((weekTotal / 60) * 10) / 10)} unit="h" label="This week" color={colors.flame} />
+              <View style={styles.flex}>
+                <Text style={styles.goalTitle}>{weekTotal >= focusGoal ? 'Weekly goal reached.' : `${Math.max(0, focusGoal - weekTotal)} minutes to your goal`}</Text>
+                <Text style={styles.suggestBody}>Goal: {Math.round((focusGoal / 60) * 10) / 10} hours a week. Change it in Settings.</Text>
+              </View>
+            </Card>
             <Card style={styles.weekCard}>
               {week.map((w, i) => (
                 <View key={w.key} style={styles.barCol}>
@@ -280,6 +435,89 @@ export default function FocusScreen() {
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
+  rateBox: {
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  rateTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  rateRow: {
+    marginTop: 8,
+    justifyContent: 'center',
+  },
+  thoughts: {
+    marginBottom: 4,
+  },
+  thought: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  thoughtText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    color: colors.text,
+  },
+  thoughtDone: {
+    color: colors.textFaint,
+    textDecorationLine: 'line-through',
+  },
+  strayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  strayCount: {
+    minWidth: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: alpha(colors.flame, 0.18),
+  },
+  strayCountText: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 13,
+    color: colors.flame,
+  },
+  suggest: {
+    marginTop: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  suggestTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
+  suggestBody: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.textFaint,
+  },
+  goalCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+    marginBottom: 10,
+  },
+  goalTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
   stage: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -329,9 +567,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 10,
     marginTop: 10,
-  },
-  flex: {
-    flex: 1,
   },
   stack: {
     gap: 10,

@@ -15,7 +15,19 @@ import { Ring } from '../components/ui/Ring';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { dateKey, daysUntil, dueLabel } from '../core/dates';
-import { type College, COLLEGE_STEPS, type CollegePlan, type CollegeStatus, NOTE_TEMPLATES, STATUS_LABEL, useHubStore } from '../core/hubStore';
+import {
+  type College,
+  COLLEGE_STEPS,
+  type CollegePlan,
+  type CollegeStatus,
+  type CollegeTier,
+  NOTE_TEMPLATES,
+  STATUS_LABEL,
+  TIER_COLOR,
+  TIER_LABEL,
+  useHubStore,
+} from '../core/hubStore';
+import { type IconName } from '../components/ui/Icon';
 import { parseDue } from '../core/scanParser';
 import { alpha, colors, fonts } from '../core/theme';
 
@@ -44,6 +56,15 @@ function commonDeadlines() {
   return picks.sort();
 }
 
+const TIERS: CollegeTier[] = ['reach', 'target', 'likely'];
+
+const TOOLS: { label: string; icon: IconName; path: string }[] = [
+  { label: 'Scholarships', icon: 'gift', path: '/scholarships' },
+  { label: 'Rec letters', icon: 'message', path: '/recs' },
+  { label: 'Activities', icon: 'list', path: '/activities' },
+  { label: 'Financial aid', icon: 'check', path: '/aid' },
+];
+
 export default function CollegeScreen() {
   const colleges = useHubStore((s) => s.colleges);
   const saveCollege = useHubStore((s) => s.saveCollege);
@@ -56,6 +77,29 @@ export default function CollegeScreen() {
   const nextSteps = next ? COLLEGE_STEPS.filter((s) => next.steps[s]).length : 0;
 
   const sorted = [...colleges].sort((a, b) => (a.deadline ?? '9999').localeCompare(b.deadline ?? '9999'));
+  const scholarships = useHubStore((s) => s.scholarships);
+  const recs = useHubStore((s) => s.recs);
+
+  // Every date that matters, in one line: applications, scholarships, rec letters.
+  const timeline = [
+    ...active.filter((c) => c.deadline).map((c) => ({ key: `c${c.id}`, date: c.deadline!, title: c.name, kind: c.plan, color: '#8FB4E8' })),
+    ...scholarships.filter((x) => x.deadline && x.status === 'todo').map((x) => ({ key: `s${x.id}`, date: x.deadline!, title: x.name, kind: 'Scholarship', color: '#E6C46A' })),
+    ...recs.filter((x) => x.due && x.status !== 'submitted').map((x) => ({ key: `r${x.id}`, date: x.due!, title: `${x.teacher}’s letter`, kind: 'Rec', color: '#E89AB8' })),
+  ]
+    .filter((x) => daysUntil(x.date) >= 0)
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(0, 8);
+
+  const tierCounts = TIERS.map((t) => colleges.filter((c) => c.tier === t).length);
+  const tiered = tierCounts.reduce((a, b) => a + b, 0);
+  const balanceLine =
+    tiered < 3
+      ? 'Mark each school reach, target, or likely to see how balanced your list is.'
+      : tierCounts[2] === 0
+        ? 'No likely schools yet. Add one or two you’d be happy at and are very likely to get into.'
+        : tierCounts[0] > tierCounts[1] + tierCounts[2]
+          ? 'Reach-heavy. That’s fine if you also have solid targets and likelies.'
+          : 'A balanced list. Nice.';
 
   return (
     <Screen title="College" subtitle="Every application, every deadline, in one place." glowColor="#8FB4E8">
@@ -71,6 +115,67 @@ export default function CollegeScreen() {
               </Text>
             </View>
           </Card>
+        </Reveal>
+      ) : null}
+
+      <Reveal index={1}>
+        <View style={styles.tools}>
+          {TOOLS.map((t) => (
+            <Pressy key={t.path} onPress={() => router.push(t.path as never)} style={styles.tool} accessibilityRole="button" accessibilityLabel={t.label}>
+              <View style={styles.toolIcon}>
+                <Icon name={t.icon} size={19} color="#8FB4E8" />
+              </View>
+              <Text style={styles.toolLabel}>{t.label}</Text>
+            </Pressy>
+          ))}
+        </View>
+      </Reveal>
+
+      {colleges.length ? (
+        <Reveal index={1}>
+          <Card style={styles.balance}>
+            <Text style={styles.balanceTitle}>Your list’s balance</Text>
+            <View style={styles.balanceBar}>
+              {TIERS.map((t, i) =>
+                tierCounts[i] ? <View key={t} style={{ flex: tierCounts[i], backgroundColor: TIER_COLOR[t] }} /> : null
+              )}
+              {tiered === 0 ? <View style={[styles.flex, { backgroundColor: colors.surfaceSunk }]} /> : null}
+            </View>
+            <View style={styles.balanceLegend}>
+              {TIERS.map((t, i) => (
+                <Text key={t} style={[styles.balanceItem, { color: TIER_COLOR[t] }]}>
+                  {tierCounts[i]} {TIER_LABEL[t].toLowerCase()}
+                </Text>
+              ))}
+            </View>
+            <Text style={styles.nextMeta}>{balanceLine}</Text>
+          </Card>
+        </Reveal>
+      ) : null}
+
+      {timeline.length ? (
+        <Reveal index={1}>
+          <Section title="Coming up">
+            <Card>
+              {timeline.map((x, i) => {
+                const d = daysUntil(x.date);
+                return (
+                  <View key={x.key} style={[styles.tlRow, i === timeline.length - 1 && styles.tlLast]}>
+                    <View style={[styles.tlDot, { backgroundColor: x.color }]} />
+                    <View style={styles.flex}>
+                      <Text style={styles.tlTitle} numberOfLines={1}>
+                        {x.title}
+                      </Text>
+                      <Text style={styles.nextMeta}>
+                        {x.kind} · {dueLabel(x.date)}
+                      </Text>
+                    </View>
+                    <Text style={[styles.tlDays, d <= 7 && { color: colors.unlocked }]}>{d === 0 ? 'today' : `${d}d`}</Text>
+                  </View>
+                );
+              })}
+            </Card>
+          </Section>
         </Reveal>
       ) : null}
 
@@ -123,6 +228,7 @@ function AddCollege({ onSave }: { onSave: (c: Omit<College, 'id'>) => void }) {
   const [plan, setPlan] = useState<CollegePlan>('RD');
   const [deadline, setDeadline] = useState<string | null>(null);
   const [custom, setCustom] = useState('');
+  const [tier, setTier] = useState<CollegeTier | undefined>(undefined);
 
   return (
     <Animated.View entering={FadeInDown.duration(260)} exiting={FadeOut.duration(140)}>
@@ -132,6 +238,12 @@ function AddCollege({ onSave }: { onSave: (c: Omit<College, 'id'>) => void }) {
         <ChipRow>
           {PLANS.map((p) => (
             <Chip key={p} label={PLAN_LABEL[p]} selected={plan === p} color="#8FB4E8" onPress={() => setPlan(p)} />
+          ))}
+        </ChipRow>
+        <Text style={styles.label}>For you, it’s a</Text>
+        <ChipRow>
+          {TIERS.map((t) => (
+            <Chip key={t} label={TIER_LABEL[t]} dot color={TIER_COLOR[t]} selected={tier === t} onPress={() => setTier(tier === t ? undefined : t)} />
           ))}
         </ChipRow>
         <Text style={styles.label}>Deadline</Text>
@@ -154,7 +266,7 @@ function AddCollege({ onSave }: { onSave: (c: Omit<College, 'id'>) => void }) {
           label="Add to my list"
           icon="plus"
           disabled={!name.trim()}
-          onPress={() => onSave({ name: name.trim(), plan, deadline, status: 'applying', steps: {}, notes: '' })}
+          onPress={() => onSave({ name: name.trim(), plan, deadline, status: 'applying', steps: {}, notes: '', tier })}
           style={styles.gap}
         />
       </Card>
@@ -175,7 +287,10 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
       <Card onPress={onToggle} tint={open ? '#8FB4E8' : undefined}>
         <View style={styles.cardHead}>
           <View style={styles.flex}>
-            <Text style={styles.name}>{c.name}</Text>
+            <View style={styles.nameRow}>
+              {c.tier ? <View style={[styles.tierDot, { backgroundColor: TIER_COLOR[c.tier] }]} /> : null}
+              <Text style={styles.name}>{c.name}</Text>
+            </View>
             <Text style={styles.meta}>
               {PLAN_LABEL[c.plan]}
               {c.deadline ? `, ${dueLabel(c.deadline)}` : ''}
@@ -202,6 +317,33 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
                 </Pressy>
               ))}
             </View>
+            <Text style={styles.label}>Reach, target, or likely?</Text>
+            <ChipRow>
+              {TIERS.map((t) => (
+                <Chip key={t} label={TIER_LABEL[t]} dot color={TIER_COLOR[t]} selected={c.tier === t} onPress={() => saveCollege({ ...c, tier: c.tier === t ? undefined : t })} />
+              ))}
+            </ChipRow>
+            <Text style={styles.label}>If you visited</Text>
+            <View style={styles.stars}>
+              {[1, 2, 3, 4, 5].map((n) => (
+                <Pressy
+                  key={n}
+                  onPress={() => saveCollege({ ...c, visitRating: c.visitRating === n ? undefined : n })}
+                  hitSlop={4}
+                  accessibilityLabel={`${n} star${n === 1 ? '' : 's'}`}
+                  accessibilityState={{ selected: (c.visitRating ?? 0) >= n }}
+                >
+                  <Icon name="star" size={24} color={(c.visitRating ?? 0) >= n ? colors.flame : colors.lineStrong} strokeWidth={2} />
+                </Pressy>
+              ))}
+            </View>
+            <Field
+              value={c.visitNotes ?? ''}
+              onChangeText={(t) => saveCollege({ ...c, visitNotes: t })}
+              placeholder="What stood out? The vibe, the dorms, the food…"
+              multiline
+              containerStyle={styles.gap}
+            />
             <Text style={styles.label}>Status</Text>
             <ChipRow>
               {(Object.keys(STATUS_LABEL) as CollegeStatus[]).map((st) => (
@@ -227,6 +369,98 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
 }
 
 const styles = StyleSheet.create({
+  tools: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 16,
+  },
+  tool: {
+    alignItems: 'center',
+    gap: 6,
+    width: 76,
+  },
+  toolIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: alpha('#8FB4E8', 0.14),
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  toolLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+  balance: {
+    marginTop: 14,
+  },
+  balanceTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
+  balanceBar: {
+    flexDirection: 'row',
+    height: 10,
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginTop: 10,
+    gap: 2,
+  },
+  balanceLegend: {
+    flexDirection: 'row',
+    gap: 14,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  balanceItem: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+  },
+  tlRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.line,
+  },
+  tlLast: {
+    borderBottomWidth: 0,
+  },
+  tlDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  tlTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
+  tlDays: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  tierDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+  },
+  stars: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   next: {
     marginTop: 16,
     flexDirection: 'row',

@@ -21,6 +21,32 @@ export interface SchoolClass {
   /** Minutes after midnight. */
   start: number;
   end: number;
+  /** For weighted GPA: Honors and AP count a point higher. */
+  level?: ClassLevel;
+  credits?: number;
+  /** Grade category → percent of the grade, e.g. { Tests: 50, Homework: 30 }. Empty = points-based. */
+  weights?: Record<string, number>;
+}
+
+export type ClassLevel = 'regular' | 'honors' | 'ap';
+
+export interface Subtask {
+  id: string;
+  text: string;
+  done: boolean;
+  /** Optional day to do this step (from "plan it backward"). */
+  on?: string;
+}
+
+export interface Grade {
+  id: string;
+  classId: string;
+  title: string;
+  category: string;
+  score: number;
+  outOf: number;
+  /** YYYY-MM-DD */
+  date: string;
 }
 
 export interface Assignment {
@@ -38,6 +64,10 @@ export interface Assignment {
   createdAt: string;
   /** Where it came from, e.g. "canvas:1234" — lets a re-sync update instead of duplicating. */
   sourceId?: string;
+  starred?: boolean;
+  subtasks?: Subtask[];
+  /** Weekly: finishing it makes next week's copy. */
+  repeat?: 'weekly' | null;
 }
 
 export interface FocusSession {
@@ -46,6 +76,7 @@ export interface FocusSession {
   minutes: number;
   /** ISO timestamp when it ended. */
   at: string;
+  rating?: 'great' | 'ok' | 'rough';
 }
 
 export interface Profile {
@@ -65,6 +96,7 @@ interface SchoolData {
   profile: Profile;
   /** Stress sources picked on a check-in, by YYYY-MM-DD. */
   stressTags: Record<string, string[]>;
+  grades: Grade[];
 }
 
 interface SchoolStore extends SchoolData {
@@ -78,8 +110,15 @@ interface SchoolStore extends SchoolData {
   updateAssignment: (id: string, patch: Partial<Assignment>) => void;
   toggleAssignment: (id: string) => void;
   deleteAssignment: (id: string) => void;
+  /** Puts back an assignment exactly as it was (undo). */
+  restoreAssignment: (a: Assignment) => void;
+  duplicateAssignment: (id: string) => Assignment | null;
 
-  logFocus: (minutes: number, assignmentId: string | null) => void;
+  addGrade: (g: Omit<Grade, 'id'>) => void;
+  deleteGrade: (id: string) => void;
+  rateFocus: (id: string, rating: FocusSession['rating']) => void;
+
+  logFocus: (minutes: number, assignmentId: string | null) => FocusSession;
   setProfile: (patch: Partial<Profile>) => void;
   setStressTags: (date: string, tags: string[]) => void;
 }
@@ -98,7 +137,7 @@ export const KIND_LABEL: Record<AssignmentKind, string> = {
 export const STRESS_SOURCES = ['Tests', 'Homework', 'Friends', 'Family', 'Sports', 'Job', 'College', 'Sleep', 'Money', 'Social media'];
 
 const DEFAULT_PROFILE: Profile = { name: '', grade: null, sleepGoal: 9, nightlyCap: 120, onboarded: false };
-const EMPTY: SchoolData = { classes: [], assignments: [], focus: [], profile: DEFAULT_PROFILE, stressTags: {} };
+const EMPTY: SchoolData = { classes: [], assignments: [], focus: [], profile: DEFAULT_PROFILE, stressTags: {}, grades: [] };
 
 const FILE = 'school.json';
 
@@ -120,15 +159,15 @@ function persist(data: SchoolData) {
   }, 250);
 }
 
-function uid() {
+export function uid() {
   return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export const useSchoolStore = create<SchoolStore>((set, get) => {
   const commit = (patch: Partial<SchoolData>) => {
     set(patch);
-    const { classes, assignments, focus, profile, stressTags } = get();
-    persist({ classes, assignments, focus, profile, stressTags });
+    const { classes, assignments, focus, profile, stressTags, grades } = get();
+    persist({ classes, assignments, focus, profile, stressTags, grades });
   };
 
   return {
@@ -147,6 +186,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
             focus: d.focus ?? [],
             profile: { ...DEFAULT_PROFILE, ...(d.profile ?? {}) },
             stressTags: d.stressTags ?? {},
+            grades: d.grades ?? [],
           });
         }
       } catch {
@@ -182,19 +222,68 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
     },
 
     toggleAssignment: (id) => {
-      commit({
-        assignments: get().assignments.map((a) =>
-          a.id === id ? { ...a, done: !a.done, doneAt: a.done ? null : new Date().toISOString() } : a
-        ),
-      });
+      const list = get().assignments;
+      const target = list.find((a) => a.id === id);
+      let next = list.map((a) =>
+        a.id === id ? { ...a, done: !a.done, doneAt: a.done ? null : new Date().toISOString() } : a
+      );
+      // Finishing a weekly one sets up next week's, once.
+      if (target && !target.done && target.repeat === 'weekly') {
+        const due = addDays(target.due, 7);
+        const exists = list.some((a) => a.title === target.title && a.classId === target.classId && a.due === due);
+        if (!exists) {
+          next = [
+            ...next,
+            {
+              ...target,
+              id: uid(),
+              due,
+              done: false,
+              doneAt: null,
+              createdAt: new Date().toISOString(),
+              sourceId: undefined,
+              subtasks: target.subtasks?.map((t) => ({ ...t, id: uid(), done: false, on: undefined })),
+            },
+          ];
+        }
+      }
+      commit({ assignments: next });
     },
 
     deleteAssignment: (id) => {
       commit({ assignments: get().assignments.filter((a) => a.id !== id) });
     },
 
+    restoreAssignment: (a) => {
+      if (get().assignments.some((x) => x.id === a.id)) return;
+      commit({ assignments: [...get().assignments, a] });
+    },
+
+    duplicateAssignment: (id) => {
+      const src = get().assignments.find((a) => a.id === id);
+      if (!src) return null;
+      const copy: Assignment = {
+        ...src,
+        id: uid(),
+        title: `${src.title} (copy)`,
+        done: false,
+        doneAt: null,
+        createdAt: new Date().toISOString(),
+        sourceId: undefined,
+        subtasks: src.subtasks?.map((t) => ({ ...t, id: uid(), done: false })),
+      };
+      commit({ assignments: [...get().assignments, copy] });
+      return copy;
+    },
+
+    addGrade: (g) => commit({ grades: [...get().grades, { ...g, id: uid() }] }),
+    deleteGrade: (id) => commit({ grades: get().grades.filter((g) => g.id !== id) }),
+    rateFocus: (id, rating) => commit({ focus: get().focus.map((f) => (f.id === id ? { ...f, rating } : f)) }),
+
     logFocus: (minutes, assignmentId) => {
-      commit({ focus: [...get().focus, { id: uid(), assignmentId, minutes, at: new Date().toISOString() }] });
+      const session: FocusSession = { id: uid(), assignmentId, minutes, at: new Date().toISOString() };
+      commit({ focus: [...get().focus, session] });
+      return session;
     },
 
     setProfile: (patch) => commit({ profile: { ...get().profile, ...patch } }),
@@ -247,4 +336,106 @@ export function tonightsLoad(assignments: Assignment[], today = dateKey()) {
 
 export function focusMinutesOn(focus: FocusSession[], key = dateKey()) {
   return focus.filter((f) => dateKey(new Date(f.at)) === key).reduce((s, f) => s + f.minutes, 0);
+}
+
+/** Every focus minute spent on one assignment. */
+export function minutesOn(focus: FocusSession[], assignmentId: string) {
+  return focus.filter((f) => f.assignmentId === assignmentId).reduce((s, f) => s + f.minutes, 0);
+}
+
+/** Minutes of open work due on each of the next `days` days (overdue folds into today). */
+export function workloadByDay(assignments: Assignment[], days = 14, today = dateKey()) {
+  return Array.from({ length: days }, (_, i) => {
+    const key = addDays(today, i);
+    const items = assignments.filter((a) => !a.done && (a.due === key || (i === 0 && a.due < today)));
+    return { key, minutes: items.reduce((s, a) => s + (a.minutes ?? 30), 0), count: items.length };
+  });
+}
+
+/** Spreads study steps across the days before something's due. */
+export function planBackward(a: Assignment, today = dateKey()): Subtask[] {
+  const [y, m, d] = a.due.split('-').map(Number);
+  const dueDate = new Date(y, m - 1, d);
+  const [ty, tm, td] = today.split('-').map(Number);
+  const span = Math.max(1, Math.round((dueDate.getTime() - new Date(ty, tm - 1, td).getTime()) / 86400000));
+  const steps: string[] =
+    a.kind === 'test' || a.kind === 'quiz'
+      ? ['Gather notes and the study guide', 'Make flashcards for what you keep forgetting', 'Practice test, no notes', 'Redo what you missed', 'Quick review and early night']
+      : a.kind === 'essay'
+        ? ['Read the prompt and brainstorm', 'Outline your argument', 'Write the messy first draft', 'Revise for ideas', 'Proofread out loud']
+        : a.kind === 'reading'
+          ? ['Skim headings and questions', 'Read the first half', 'Read the second half', 'Write a 3-line summary']
+          : ['Figure out exactly what’s being asked', 'Gather what you need', 'Do the biggest part', 'Finish and check it', 'Turn it in'];
+  const n = Math.min(steps.length, span);
+  const chosen = n === steps.length ? steps : [...steps.slice(0, n - 1), steps[steps.length - 1]];
+  // Spread evenly from today; the last step lands the day before it's due.
+  return chosen.map((text, i) => {
+    const offset = i === chosen.length - 1 ? span - 1 : Math.floor((i * span) / chosen.length);
+    return { id: uid(), text, done: false, on: addDays(today, offset) };
+  });
+}
+
+// ---- Grades -------------------------------------------------------------------
+
+export const GRADE_CATEGORIES = ['Tests', 'Quizzes', 'Homework', 'Projects', 'Labs', 'Participation', 'Final'];
+
+/** Percent 0–100 for a class, or null with no grades. Uses category weights when set. */
+export function classAverage(grades: Grade[], cls: Pick<SchoolClass, 'id' | 'weights'>): number | null {
+  const mine = grades.filter((g) => g.classId === cls.id && g.outOf > 0);
+  if (!mine.length) return null;
+  const weights = Object.entries(cls.weights ?? {}).filter(([, w]) => w > 0);
+  if (weights.length) {
+    let total = 0;
+    let used = 0;
+    for (const [cat, w] of weights) {
+      const inCat = mine.filter((g) => g.category === cat);
+      if (!inCat.length) continue;
+      const pts = inCat.reduce((s, g) => s + g.score, 0);
+      const out = inCat.reduce((s, g) => s + g.outOf, 0);
+      total += (pts / out) * w;
+      used += w;
+    }
+    // Grades in categories without a weight still count if nothing else does.
+    if (used > 0) return (total / used) * 100;
+  }
+  const pts = mine.reduce((s, g) => s + g.score, 0);
+  const out = mine.reduce((s, g) => s + g.outOf, 0);
+  return (pts / out) * 100;
+}
+
+export function letterFor(pct: number) {
+  const bands: [number, string][] = [
+    [97, 'A+'], [93, 'A'], [90, 'A-'], [87, 'B+'], [83, 'B'], [80, 'B-'],
+    [77, 'C+'], [73, 'C'], [70, 'C-'], [67, 'D+'], [63, 'D'], [60, 'D-'],
+  ];
+  return bands.find(([min]) => pct >= min)?.[1] ?? 'F';
+}
+
+const POINTS: Record<string, number> = {
+  'A+': 4, A: 4, 'A-': 3.7, 'B+': 3.3, B: 3, 'B-': 2.7, 'C+': 2.3, C: 2, 'C-': 1.7, 'D+': 1.3, D: 1, 'D-': 0.7, F: 0,
+};
+
+/** Unweighted and weighted (Honors/AP +1 for a C or better) GPA over classes with grades. */
+export function gpa(classes: SchoolClass[], grades: Grade[]) {
+  let credits = 0;
+  let unweighted = 0;
+  let weighted = 0;
+  for (const c of classes) {
+    if (c.kind !== 'class') continue;
+    const avg = classAverage(grades, c);
+    if (avg == null) continue;
+    const pts = POINTS[letterFor(avg)];
+    const cr = c.credits ?? 1;
+    credits += cr;
+    unweighted += pts * cr;
+    weighted += (pts + (c.level && c.level !== 'regular' && pts >= 2 ? 1 : 0)) * cr;
+  }
+  if (!credits) return null;
+  return { unweighted: unweighted / credits, weighted: weighted / credits, classes: credits };
+}
+
+/** Score needed on a final worth `weight` (0–1) to end at `target` percent. */
+export function finalNeeded(current: number, target: number, weight: number) {
+  if (weight <= 0 || weight >= 1) return null;
+  return (target - current * (1 - weight)) / weight;
 }

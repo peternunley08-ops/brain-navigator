@@ -622,3 +622,17 @@ sentences, shown in one card with a manual refresh. Reuses the existing
 `chat` function's deployment pattern and secret; no chat UI, no writes,
 no scheduling; clearly labeled AI and separate from Ember. Still blocked
 on Anthropic billing. **Do not build until the user approves.**
+
+## Phase 31 — The Masterpiece (2026-09-30)
+
+120 ideas — plan, status, and where each lives: `docs/masterpiece.md`.
+
+- [x] All 120 built (school, grades, study, Ember, wellness, notebook,
+  college, student life, motivation, design, settings/data)
+- [x] Verified live in the Simulator (see SESSION_LOG 2026-09-30)
+- [ ] Not verified live yet: mood map with real check-ins, weekly review
+  save, worry box, your people (Messages hand-off), scholarships / recs /
+  activities / aid forms, triage with real overdue work, "I was out" note
+  drafts, export backup share sheet, hold-to-erase (deliberately not run)
+- [ ] Rebuild for the phone after commit
+- [ ] Commit (waiting for the user's "commit")

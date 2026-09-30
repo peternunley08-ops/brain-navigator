@@ -44,6 +44,20 @@ function todayStatus(pct: number | null) {
   return 'Nothing logged yet today';
 }
 
+// Small, specific habits that make a real difference for high schoolers.
+const STUDENT_IDEAS: { name: string; category: WellnessDimension }[] = [
+  { name: 'Phone out of the bedroom', category: 'physical' },
+  { name: 'Read 20 minutes for fun', category: 'intellectual' },
+  { name: 'Drink a full water bottle', category: 'physical' },
+  { name: 'Pack my bag the night before', category: 'occupational' },
+  { name: 'Move for 30 minutes', category: 'physical' },
+  { name: 'Text a friend back', category: 'social' },
+  { name: 'Check the planner after school', category: 'occupational' },
+  { name: 'Outside for 10 minutes', category: 'environmental' },
+  { name: 'Three good things', category: 'emotional' },
+  { name: 'Lights out on time', category: 'physical' },
+];
+
 export default function HabitsScreen() {
   const habits = useHabitsStore((s) => s.habits);
   const fetchHabits = useHabitsStore((s) => s.fetchHabits);
@@ -117,7 +131,22 @@ export default function HabitsScreen() {
       <Reveal index={2}>
         <Section title="Start a new one">
           <Card>
-            <Field placeholder="e.g. A ten-minute walk" value={name} onChangeText={setName} returnKeyType="done" onSubmitEditing={handleAdd} />
+            <Text style={[styles.fieldLabel, styles.ideasLabel]}>Ideas that help students</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dimRow}>
+              {STUDENT_IDEAS.filter((i) => !habits.some((h) => h.name === i.name)).map((i) => (
+                <Chip
+                  key={i.name}
+                  label={i.name}
+                  dot
+                  color={dimensionColor[i.category]}
+                  onPress={() => {
+                    setName(i.name);
+                    setCategory(i.category);
+                  }}
+                />
+              ))}
+            </ScrollView>
+            <Field placeholder="e.g. A ten-minute walk" value={name} onChangeText={setName} returnKeyType="done" onSubmitEditing={handleAdd} containerStyle={styles.ideaField} />
             <Text style={styles.fieldLabel}>How often</Text>
             <ChipRow>
               {FREQUENCIES.map((f) => (
@@ -225,6 +254,12 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
 }
 
 const styles = StyleSheet.create({
+  ideasLabel: {
+    marginTop: 0,
+  },
+  ideaField: {
+    marginTop: 14,
+  },
   hero: {
     marginTop: 16,
     flexDirection: 'row',

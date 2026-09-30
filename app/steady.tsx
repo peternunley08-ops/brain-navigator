@@ -78,6 +78,22 @@ export default function SteadyScreen() {
         <Reveal index={3}>
           <Grounding />
         </Reveal>
+        <Reveal index={4}>
+          <View style={styles.tools}>
+            {[
+              { title: 'Toolkit', body: 'Test nerves, tense-and-release, self-kindness', icon: 'sparkle' as const, color: '#AFA2DE', path: '/toolkit' },
+              { title: 'Worry box', body: 'Put it down for later', icon: 'feather' as const, color: '#AFA2DE', path: '/worry' },
+              { title: 'Your people', body: 'Text someone you trust', icon: 'people' as const, color: '#E89AB8', path: '/people' },
+              { title: 'Sleep', body: 'Tonight’s plan', icon: 'bed' as const, color: BLUE, path: '/sleep' },
+            ].map((t) => (
+              <Card key={t.path} onPress={() => router.push(t.path as never)} style={styles.tool} accessibilityLabel={t.title} accessibilityHint={t.body}>
+                <Icon name={t.icon} size={20} color={t.color} />
+                <Text style={styles.toolTitle}>{t.title}</Text>
+                <Text style={styles.toolBody}>{t.body}</Text>
+              </Card>
+            ))}
+          </View>
+        </Reveal>
       </View>
     </Screen>
   );
@@ -206,6 +222,30 @@ function Grounding() {
 }
 
 const styles = StyleSheet.create({
+  tools: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  tool: {
+    flexBasis: '46%',
+    flexGrow: 1,
+    width: undefined,
+    minHeight: 112,
+  },
+  toolTitle: {
+    marginTop: 10,
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
+  toolBody: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.textFaint,
+  },
   list: {
     marginTop: 18,
     gap: 12,

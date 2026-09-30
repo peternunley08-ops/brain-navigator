@@ -25,6 +25,9 @@ import { useTasksStore } from '../../core/tasksStore';
 import { colors, fonts } from '../../core/theme';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { EmberBubble } from './EmberBubble';
+import { autoAccessory } from '../../core/emberLook';
+import { useLifeStore } from '../../core/lifeStore';
+import { useSchoolStore } from '../../core/schoolStore';
 import { EmberSprite } from './EmberSprite';
 import { Sparks } from './Sparks';
 import { useEmberRig } from './useEmberRig';
@@ -55,6 +58,8 @@ const COMFORT = [
   'It’s okay to rest before it’s finished.',
 ];
 
+const PETS = ['Hehe. That tickles.', 'Warm fuzzies.', 'Okay, I’m glowing now.', 'Again? Okay, again.'];
+
 export function EmberBuddy() {
   const pathname = usePathname();
   const { width: W, height: H } = useWindowDimensions();
@@ -68,12 +73,17 @@ export function EmberBuddy() {
   const bubbleOpen = useEmberStore((s) => s.bubbleOpen);
   const toast = useEmberStore((s) => s.toast);
   const seen = useEmberStore((s) => s.seen);
+  const accessoryPref = useLifeStore((s) => s.settings.emberAccessory);
+  const worn = accessoryPref === 'auto' ? autoAccessory(pathname) : accessoryPref;
 
   // Re-evaluate advice whenever the data Ember reads from changes.
   const openCount = useBrainNavigatorStore((s) => s.openLoops.length);
   const checkins = useWellnessStore((s) => s.checkins);
   const tasks = useTasksStore((s) => s.tasks);
   const logs = useHabitsStore((s) => s.logs);
+  const assignments = useSchoolStore((s) => s.assignments);
+  const grades = useSchoolStore((s) => s.grades);
+  const decks = useLifeStore((s) => s.decks);
 
   const [keyboardUp, setKeyboardUp] = useState(false);
   const [burst, setBurst] = useState(0);
@@ -137,7 +147,7 @@ export function EmberBuddy() {
   const advice = useMemo(
     () => adviseFor(pathname),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [pathname, openCount, checkins, tasks, logs, bubbleOpen]
+    [pathname, openCount, checkins, tasks, logs, bubbleOpen, assignments, grades, decks]
   );
   const top = advice.tips[0];
   const hasNudge = !!top && top.priority >= 2 && !seen.includes(top.id) && !napping;
@@ -259,10 +269,32 @@ export function EmberBuddy() {
     }
     return false;
   }, []);
+  // Two quick taps = a pet. Ember wiggles and glows.
+  const pet = useCallback(() => {
+    if (useEmberStore.getState().napping) return;
+    useEmberStore.getState().setBubbleOpen(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
+    setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {}), 120);
+    rig.setMood('happy');
+    rig.wiggle();
+    rig.hopUp(6);
+    setBurst((b) => b + 1);
+    if (Math.random() < 0.5) useEmberStore.getState().say(PETS[Math.floor(Math.random() * PETS.length)], 'happy');
+  }, [rig]);
+
+  const lastTap = useRef(0);
   const tapOrHoldEnd = useCallback(() => {
     // If the hold already fired, releasing is the end of it, not a tap.
-    if (cancelHold()) openBubble();
-  }, [cancelHold, openBubble]);
+    if (!cancelHold()) return;
+    const now = Date.now();
+    if (now - lastTap.current < 340) {
+      lastTap.current = 0;
+      pet();
+      return;
+    }
+    lastTap.current = now;
+    openBubble();
+  }, [cancelHold, openBubble, pet]);
 
   // Something happened elsewhere in the app — react to it.
   useEffect(() => {
@@ -494,8 +526,14 @@ export function EmberBuddy() {
           accessibilityRole="button"
           accessibilityLabel={napping ? 'Ember, napping' : 'Ember, your helper'}
           accessibilityHint={napping ? 'Wakes Ember up' : 'Opens tips for this screen'}
-          accessibilityActions={[{ name: 'activate' }, { name: 'longpress', label: 'Say something kind' }]}
-          onAccessibilityAction={(e) => (e.nativeEvent.actionName === 'longpress' ? comfort() : openBubble())}
+          accessibilityActions={[
+            { name: 'activate' },
+            { name: 'longpress', label: 'Say something kind' },
+            { name: 'magicTap', label: 'Pet Ember' },
+          ]}
+          onAccessibilityAction={(e) =>
+            e.nativeEvent.actionName === 'longpress' ? comfort() : e.nativeEvent.actionName === 'magicTap' ? pet() : openBubble()
+          }
         >
           <Animated.View style={[styles.napGlow, napGlow]} pointerEvents="none">
             <Svg width={S * 1.5} height={S * 1.5}>
@@ -509,7 +547,7 @@ export function EmberBuddy() {
             </Svg>
           </Animated.View>
           <Sparks burst={burst} reach={52} />
-          <EmberSprite rig={rig} size={S} />
+          <EmberSprite rig={rig} size={S} accessory={worn} />
           {hasNudge && !bubbleOpen ? <NudgeDot /> : null}
           {napping ? <Zzz side={side} /> : null}
         </Animated.View>
