@@ -1430,7 +1430,7 @@ step take minutes, stalled deep links, and stopped Fast Refresh from
 applying edits (a relaunch fixed it). Polish from testing: the nap glow
 became a soft gradient and the z's drift inward instead of being clipped
 by the screen edge. Nothing was saved to real data during testing.
-Uncommitted at the end of the session.
+Committed together with the AI work below as 136ba1e.
 
 **Ember on AI.** User: "use .jev api to run the ai mascot" — read as the
 `.env` API. `.env` has no AI key (Supabase, Google, Notion only); the
@@ -1441,4 +1441,4 @@ low". Built the AI path anyway so it works once credit exists: a new
 with a fallback to `chat`, the companion screen as a real conversation,
 and "Talk to me" on every tip. Verified the no-credit path live (Ember
 explains in a dashed aside and continues with its built-in question).
-Nothing saved. Uncommitted.
+Nothing saved. Committed as 136ba1e.

@@ -467,7 +467,7 @@ Tabs pop back instead of stacking (`router.dismissTo`), flame clocks pause
 on hidden screens, resolve/let-go report save failures honestly, Reduce
 Motion respected by closings. Details in SESSION_LOG.
 
-## Phase 28 — Every screen redesigned + Ember the mascot (2026-09-29, uncommitted)
+## Phase 28 — Every screen redesigned + Ember the mascot (2026-09-29, committed 136ba1e)
 
 User asked for "a redesign of every screen and an app mascot that is
 interactive that helps." Decisions made and carried through:
@@ -549,9 +549,10 @@ interactive that helps." Decisions made and carried through:
   "Something else" buttons by tap
 - [ ] Not tested (would write real data): saving an entry, a check-in,
   a task/habit/meal, a vent, or finishing the Ember conversation
-- [ ] Commit (only when the user says so); reinstall on the phone
+- [x] Committed (136ba1e)
+- [ ] Reinstall on the phone
 
-## Phase 29 — Ember runs on AI (2026-09-29, uncommitted; waiting on credit)
+## Phase 29 — Ember runs on AI (2026-09-29, committed 136ba1e; waiting on credit)
 
 User: "use .jev api to run the ai mascot" (read as the `.env` API). No AI
 key exists in `.env`; the Anthropic key is the Supabase secret
