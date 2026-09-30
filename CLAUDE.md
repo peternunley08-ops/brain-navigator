@@ -156,8 +156,9 @@ xcrun devicectl device process launch --device DD1C8E3C-1DC6-598F-BC83-415F2AAFD
 If the phone isn't detected: the Mac's "Allow accessory to connect?"
 prompt must be accepted, then `xcrun devicectl manage pair --device …`
 triggers the phone's Trust prompt. Developer Mode is already on. **The
-phone has the Desk redesign build** — not the 2026-09-29 audit fixes, the
-night redesign, or Ember the mascot. Rebuild + reinstall to update it.
+phone has the build from commit 136ba1e** (night redesign, Ember, audit
+fixes), installed and launched 2026-09-29 — free signing means it needs a
+rebuild by about 2026-10-06.
 
 ### Talking it through with Ember (`app/companion.tsx`)
 
