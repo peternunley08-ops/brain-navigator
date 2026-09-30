@@ -1443,7 +1443,7 @@ and "Talk to me" on every tip. Verified the no-credit path live (Ember
 explains in a dashed aside and continues with its built-in question).
 Nothing saved. Committed as 136ba1e.
 
-**High school hub (Phase 30, uncommitted).** User redirected the app to
+**High school hub (Phase 30, committed 309197b).** User redirected the app to
 high school wellness + student organization, "one central hub," and asked
 it to connect Classroom, Aeries, ParentSquare, Common App, Canvas, plus
 Notion/Structured-like tools, Google apps, and Claude. Built: a local

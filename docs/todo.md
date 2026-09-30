@@ -576,7 +576,7 @@ gracefully until then.
   their browser with permission)
 - [ ] Once both are done: verify a real AI reply + action button live
 
-## Phase 30 — High school hub (2026-09-29, uncommitted)
+## Phase 30 — High school hub (2026-09-29, committed 309197b)
 
 User: make it for high school wellness and student organization, "one
 central hub" connecting Classroom, Aeries, ParentSquare, Common App,
@@ -612,7 +612,7 @@ in CLAUDE.md "High school hub".
   inside "Your day", College add flow, typing a real class schedule
 - [ ] Rebuild for the phone (needs the native module) — see the prebuilt
   core gotcha in CLAUDE.md
-- [ ] Commit when the user says so
+- [x] Committed (309197b)
 
 ## Phase 22 addendum — proposed next AI step (awaiting approval)
 
