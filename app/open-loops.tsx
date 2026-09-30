@@ -27,7 +27,6 @@ export default function OpenLoopsScreen() {
 
   return (
     <Screen
-      back={false}
       title="Loops"
       subtitle={
         openLoops.length === 0

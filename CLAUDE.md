@@ -8,14 +8,22 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
 
 ## Layout
 
-- `app/` — Expo Router file-based routes (screens). One nested dynamic
-  route: `app/entry/[id].tsx`.
+- `app/` — Expo Router file-based routes (screens). Nested dynamic
+  routes: `app/entry/[id].tsx`, `app/assignment/[id].tsx`,
+  `app/note/[id].tsx`.
 - `core/` — flat lib layer: one Zustand store per domain (`healthStore.ts`,
   `tasksStore.ts`, `wellnessStore.ts`, …), `theme.ts` (design tokens —
   "Candlelight", the night palette, see "Design system" below),
-  `ember.ts` + `emberStore.ts` (the mascot's advice and state),
-  `supabase.ts` (client), `schema.sql` (source of truth for the DB —
-  append-only phase log, run live via the Supabase SQL editor).
+  `ember.ts` + `emberStore.ts` + `emberAI.ts` (the mascot's advice, state,
+  and AI), `schoolStore.ts` + `hubStore.ts` (school and hub data, stored
+  on the phone — see "High school hub"), `dates.ts`, `scanParser.ts`,
+  `canvas.ts`, `supabase.ts` (client), `schema.sql` (source of truth for
+  the DB — append-only phase log, run live via the Supabase SQL editor).
+- `modules/text-recognition/` — a **local native Expo module** (Swift,
+  Apple Vision) that reads text from an image on-device. Autolinked by
+  `pod install`; needs a native rebuild to take effect. JS side uses
+  `requireOptionalNativeModule`, so older builds degrade to paste-text.
+- `components/school/` — `AssignmentRow`, `NowCard`.
 - `components/ui/` — the design kit: `Screen` (the frame every screen is
   built in), `Backdrop`, `Reveal`, `Pressy`, `Button`, `Card`, `Chip`,
   `Field`, `IconButton`, `Icon` (the app's own line icons), `Section`,
@@ -46,6 +54,71 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
   - `apple-watch-plan.md`, `encryption-plan.md` — feature planning docs.
 
 ## Current state (as of 2026-09-29 — check `git log` for anything newer)
+
+### High school hub (2026-09-29)
+
+The user redirected the app toward **high school wellness and student
+organization** — "one central hub." Built for one student on their own
+phone. **If other students will ever use it, it needs accounts and locked
+data first** (today's wide-open RLS would let anyone read every entry) —
+that's the user's call; don't build auth without it.
+
+- **Navigation**: Desk `/` · School `/school` (badge = overdue + due
+  today) · centre "+" opens a quick-add sheet (homework/test, something on
+  your mind, focus session, scan a screenshot) · Focus `/focus` · Steady
+  `/steady`. Loops and the Map moved to the Drawer.
+- **School data is local**, not Supabase: `core/schoolStore.ts` →
+  `school.json` (classes with days/times, assignments with kind/due/
+  minutes/`sourceId`, focus sessions, profile: name, grade, sleep goal
+  default 9h, nightly homework cap default 2h, stress tags per day).
+  `core/hubStore.ts` → `hub.json` (notes, colleges, plan blocks, Canvas
+  config, Aeries link). Both load in `app/_layout.tsx`. Selectors must
+  return stable references (select the array, filter in render) —
+  zustand 5 loops forever on a new array per call.
+- **Screens**: `welcome` (first run, Ember onboarding; Desk redirects
+  there until `profile.onboarded`), `school` (now card, tonight's load vs
+  cap, week strip, grouped due list, done), `add-assignment`,
+  `assignment/[id]`, `classes`, `class-edit` (TimeField pickers),
+  `focus` (candle burns down as a study timer, Ember in glasses, breaks,
+  week bars), `help` (988 call/text, Crisis Text Line HOME to 741741,
+  Trevor Project, 911 — opens the phone's own dialer/messages), `scan`,
+  `today` (Structured-style timeline: classes, Google Calendar events,
+  plan blocks, focus), `notes` + `note/[id]` (Notion-style blocks:
+  text/heading/todo/bullet, templates), `college` (deadline + 8-step
+  checklist per school, next-deadline ring), `connections`.
+- **Integrations, honestly**: Google Calendar (existing sign-in) and
+  **Canvas** (personal access token → `/api/v1/planner/items`, dedupes by
+  `sourceId`, auto-creates classes; not tested against a real account)
+  truly connect. **Google Classroom** comes in by **screenshot** (works
+  even when a school blocks outside apps) — the user asked to get around
+  school admin blocks; that was declined, and `connections` offers a
+  pre-written request to the school's IT instead. Aeries, ParentSquare,
+  Common App, Gmail, Drive, Notion, Claude are shortcuts — those services
+  don't let other apps read student data.
+- **Screenshot import** (`app/scan.tsx`): pick up to 4 screenshots →
+  on-device OCR (`modules/text-recognition`) → `core/scanParser.ts`
+  (handles Classroom To-do, Classroom class cards with teachers, Canvas
+  To Do; tested with sample text) → review with checkboxes and date
+  fixes → import. Imported classes have no days/times yet (`days: []`) and
+  say "Tap to add days and times."
+- **Ember** knows school: overdue work, tests within 3 days (study tips;
+  sleep over cramming late at night), tonight's load over cap, college
+  deadlines within 14 days, no classes yet, class starting in ≤10 min, teen
+  sleep target. The AI prompt/context include classes and what's due and
+  forbid doing assignments for them.
+
+### Native rebuild gotcha (prebuilt React Native core)
+
+RN 0.86 here uses a **prebuilt React core** that a build phase swaps
+between Debug and Release flavors, remembered in
+`ios/Pods/React-Core-prebuilt/.last_build_configuration`. After a
+`pod install` the file can be missing while the **release** flavor is
+still in place (e.g. after a phone Release build), and a Debug simulator
+build then fails to link (`facebook::react::Sealable` undefined) — or
+links and **crashes at launch in `Props::Props()`**. Fix: in `ios/Pods`,
+`printf Release > React-Core-prebuilt/.last_build_configuration && node
+../../node_modules/react-native/scripts/replace-rncore-version.js -c Debug
+-r 0.86.3 -p "$PWD"`, then **delete `/tmp/bn-derived`** and rebuild clean.
 
 ### Ember, the mascot (added 2026-09-29)
 
@@ -86,11 +159,9 @@ flame size = the entry's intensity; candle height = how long it's been
 open (burns lower over ~21 days). All other features still exist — they
 moved into the Drawer rather than being removed.
 
-- **Navigation** (`components/BottomNav.tsx`): Desk `/` · Loops
-  `/open-loops` (badge = open count) · centre gold "+" button = "Set
-  something down" → `/new-entry` · Map `/topography` · Steady `/steady`.
-  Tabs pop back to an existing copy (`router.dismissTo`) instead of
-  stacking a new one.
+- **Navigation**: see "High school hub" above (Desk · School · + ·
+  Focus · Steady). Tabs pop back to an existing copy (`router.dismissTo`)
+  instead of stacking a new one.
 - **Steady** (`app/steady.tsx`): Breathe, Let it out (`/vent`), Ember
   (`/companion`), and an inline 5-4-3-2-1 grounding exercise — the
   in-the-moment tools.

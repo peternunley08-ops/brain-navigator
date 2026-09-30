@@ -11,6 +11,7 @@
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { IconName } from '../components/ui/Icon';
 import { useHabitsStore } from './habitsStore';
+import { clock, daysUntil, dueLabel, KIND_LABEL, nowState, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
 import { supabase } from './supabase';
 import { useTasksStore } from './tasksStore';
@@ -21,7 +22,7 @@ export interface EmberTurn {
   content: string;
 }
 
-export type EmberActionKey = 'breathe' | 'vent' | 'ground' | 'checkin' | 'setdown' | 'loops' | 'tasks' | 'habits' | 'map' | 'trends';
+export type EmberActionKey = 'breathe' | 'vent' | 'ground' | 'checkin' | 'setdown' | 'loops' | 'tasks' | 'habits' | 'map' | 'trends' | 'school' | 'focus' | 'help';
 
 export const EMBER_ACTIONS: Record<EmberActionKey, { label: string; href: string; icon: IconName }> = {
   breathe: { label: 'Breathe with me', href: '/breathe', icon: 'wind' },
@@ -30,10 +31,13 @@ export const EMBER_ACTIONS: Record<EmberActionKey, { label: string; href: string
   checkin: { label: 'Check in', href: '/checkin', icon: 'sun' },
   setdown: { label: 'Set it down', href: '/new-entry', icon: 'plus' },
   loops: { label: 'See what’s open', href: '/open-loops', icon: 'loops' },
-  tasks: { label: 'Your plate', href: '/tasks', icon: 'plate' },
+  tasks: { label: 'To-dos', href: '/tasks', icon: 'plate' },
   habits: { label: 'Habits', href: '/habits', icon: 'repeat' },
   map: { label: 'The Map', href: '/topography', icon: 'map' },
   trends: { label: 'Trends', href: '/trends', icon: 'trend' },
+  school: { label: 'School', href: '/school', icon: 'book' },
+  focus: { label: 'Focus with me', href: '/focus', icon: 'timer' },
+  help: { label: 'Need help now', href: '/help', icon: 'phone' },
 };
 
 export type EmberAIResult =
@@ -54,6 +58,25 @@ export function emberContext(screen: string, now = new Date()) {
     `Local time: ${now.toLocaleDateString('en-US', { weekday: 'long' })}, ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}.`
   );
   lines.push(`They opened this conversation from: ${screen}.`);
+
+  const school = useSchoolStore.getState();
+  if (school.profile.grade) lines.push(`They're in grade ${school.profile.grade}.`);
+  const ns = nowState(school.classes, now);
+  if (ns.kind === 'in') lines.push(`Right now: in ${ns.cls.name} until ${clock(ns.cls.end)}.`);
+  else if (ns.kind === 'next') lines.push(`Next class: ${ns.cls.name} at ${clock(ns.cls.start)}.`);
+  const due = school.assignments
+    .filter((a) => !a.done && daysUntil(a.due) <= 7)
+    .sort((a, b) => a.due.localeCompare(b.due))
+    .slice(0, 8);
+  if (due.length) {
+    lines.push('Due in the next week:');
+    for (const a of due) {
+      const cls = school.classes.find((c) => c.id === a.classId)?.name;
+      lines.push(`- ${KIND_LABEL[a.kind]}: "${a.title.slice(0, 60)}"${cls ? ` (${cls})` : ''}, due ${dueLabel(a.due)}${a.minutes ? `, ~${a.minutes} min` : ''}`);
+    }
+  } else if (school.classes.length) {
+    lines.push('Nothing due in the next week.');
+  }
 
   const open = [...useBrainNavigatorStore.getState().openLoops].sort((a, b) => a.created_at.localeCompare(b.created_at));
   if (open.length === 0) {
@@ -116,7 +139,7 @@ function reasonFrom(body: Record<string, unknown> | null): 'no_credit' | 'unavai
 }
 
 const PERSONA =
-  'You are Ember, the small warm flame mascot in this app. Reply in one to three short sentences, one question at a time. If one of these would genuinely help, end with exactly one tag like [[action:breathe]] using: breathe, vent, ground, checkin, setdown, loops, tasks, habits, map, trends.';
+  'You are Ember, the small warm flame mascot in this wellness and school app for a high school student. Reply in one to three short sentences, one question at a time. Help plan and study, never do their assignments. If one of these would genuinely help, end with exactly one tag like [[action:breathe]] using: breathe, vent, ground, checkin, setdown, loops, tasks, habits, map, trends, school, focus, help.';
 
 // Once we know the `ember` function isn't deployed, go straight to `chat`.
 let emberMissing = false;

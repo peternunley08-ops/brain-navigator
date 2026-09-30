@@ -68,8 +68,8 @@ export default function TasksScreen() {
 
   return (
     <Screen
-      title="Your plate"
-      subtitle={isLoading && tasks.length === 0 ? 'Loading…' : 'How much are you carrying today?'}
+      title="To-dos"
+      subtitle={isLoading && tasks.length === 0 ? 'Loading…' : 'Everything that isn’t school. Keep the plate light.'}
       right={<IconButton icon="calendar" label="Calendar" onPress={() => router.push('/calendar')} />}
     >
       <Reveal index={0}>

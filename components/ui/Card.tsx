@@ -7,6 +7,7 @@ interface CardProps extends ViewProps {
   /** Tints the edge and wash — for a card that belongs to a state or tool. */
   tint?: string;
   onPress?: () => void;
+  onLongPress?: () => void;
   padded?: boolean;
   style?: StyleProp<ViewStyle>;
   children?: ReactNode;
@@ -14,7 +15,7 @@ interface CardProps extends ViewProps {
 
 // A raised surface in the dark room: a hairline edge that catches a little
 // more light along its top, like a lid under a lamp.
-export function Card({ style, children, tint, onPress, padded = true, ...rest }: CardProps) {
+export function Card({ style, children, tint, onPress, onLongPress, padded = true, ...rest }: CardProps) {
   const look = [
     styles.card,
     padded && styles.padded,
@@ -27,7 +28,7 @@ export function Card({ style, children, tint, onPress, padded = true, ...rest }:
 
   if (onPress) {
     return (
-      <Pressy style={look} onPress={onPress} accessibilityRole="button" {...rest}>
+      <Pressy style={look} onPress={onPress} onLongPress={onLongPress} accessibilityRole="button" {...rest}>
         {wash}
         {children}
       </Pressy>

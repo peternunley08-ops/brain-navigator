@@ -41,9 +41,10 @@ const EDGE = 2;
 const NAV_TOP = 86 + 8; // the floating nav's top edge, from the bottom
 const NAP_SCALE = 0.5;
 
-// Screens where Ember steps aside: the companion screen is Ember's own
-// room, and Breathe needs your whole attention.
-const HIDDEN = new Set(['/companion', '/breathe']);
+// Screens where Ember steps aside: the companion, welcome, and focus
+// screens already have Ember on stage, and Breathe needs your whole
+// attention.
+const HIDDEN = new Set(['/companion', '/breathe', '/welcome', '/focus', '/scan']);
 
 const COMFORT = [
   'You’re doing better than you think.',

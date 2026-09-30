@@ -37,6 +37,16 @@ export default function SteadyScreen() {
     <Screen back={false} tone="dusk" glowColor={BLUE} motes kicker="Take a breath." title="Steady" subtitle="For when it’s a lot, right now.">
       <View style={styles.list}>
         <Reveal index={0}>
+          <Card tint="#F07060" onPress={() => router.push('/help')} style={styles.help} accessibilityLabel="Need help now">
+            <Icon name="phone" size={20} color="#F07060" />
+            <View style={styles.doorText}>
+              <Text style={styles.helpTitle}>Need help now?</Text>
+              <Text style={styles.doorBody}>Real people to call or text, any time.</Text>
+            </View>
+            <Icon name="chevron" size={18} color="#F07060" />
+          </Card>
+        </Reveal>
+        <Reveal index={0}>
           <Door
             title="Breathe"
             body="A guided breath you can feel. Box, 4-7-8, or even. Two minutes helps."
@@ -229,6 +239,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 19,
     color: colors.textMuted,
+  },
+  help: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 14,
+  },
+  helpTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 16,
+    color: colors.text,
   },
   groundCard: {
     paddingVertical: 18,

@@ -24,9 +24,11 @@ interface EmberSpriteProps {
   /** Width in points; height is 1.2×. */
   size: number;
   seed?: number;
+  /** Round study glasses, for Focus. */
+  glasses?: boolean;
 }
 
-export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3 }: EmberSpriteProps) {
+export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, glasses = false }: EmberSpriteProps) {
   const { time, wob, blink, lookX, lookY, happy, sleepy, dizzy, mouth, smile, flare, lean, stretch, hop, squash } = rig;
   const unit = size / 100;
 
@@ -132,6 +134,21 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3 }: 
     };
   });
 
+  // Glasses sit on the face and turn with it, a little less than the eyes.
+  const lens = (side: -1 | 1) =>
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useAnimatedProps(() => ({
+      cx: CX + side * EYE_DX + lookX.value * 2.6,
+      cy: EYE_Y + lookY.value * 2,
+    }));
+  const leftLens = lens(-1);
+  const rightLens = lens(1);
+  const bridge = useAnimatedProps(() => {
+    const x = CX + lookX.value * 2.6;
+    const y = EYE_Y - 1 + lookY.value * 2;
+    return { d: `M${x - 3.2},${y} Q${x},${y - 2.2} ${x + 3.2},${y}` };
+  });
+
   const cheek = (side: -1 | 1) =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useAnimatedProps(() => ({
@@ -189,6 +206,14 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3 }: 
         <AnimatedPath stroke={INK} strokeWidth={1.5} strokeLinecap="round" fill="none" animatedProps={spirals} />
 
         <AnimatedPath fill={INK} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" animatedProps={mouthProps} />
+
+        {glasses ? (
+          <>
+            <AnimatedCircle r={6.8} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={1.8} animatedProps={leftLens} />
+            <AnimatedCircle r={6.8} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={1.8} animatedProps={rightLens} />
+            <AnimatedPath stroke={INK} strokeWidth={1.8} strokeLinecap="round" fill="none" animatedProps={bridge} />
+          </>
+        ) : null}
       </Svg>
     </Animated.View>
   );

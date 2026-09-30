@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Chip } from '../components/ui/Chip';
+import { Chip, ChipRow } from '../components/ui/Chip';
 import { ConditionsCard } from '../components/ui/ConditionsCard';
 import { Field } from '../components/ui/Field';
 import { MoodPicker } from '../components/ui/MoodPicker';
@@ -15,6 +15,7 @@ import { ScienceNote } from '../components/ui/ScienceNote';
 import { Stepper } from '../components/ui/Stepper';
 import { TrackSlider } from '../components/ui/TrackSlider';
 import { useHealthStore } from '../core/healthStore';
+import { dateKey, STRESS_SOURCES, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 
@@ -46,6 +47,11 @@ export default function CheckinScreen() {
   const [sleepQuality, setSleepQuality] = useState<number | null>(null);
   const [stressLevel, setStressLevel] = useState<number | null>(null);
   const [notes, setNotes] = useState('');
+  const sleepGoal = useSchoolStore((s) => s.profile.sleepGoal);
+  const savedTags = useSchoolStore((s) => s.stressTags[dateKey()]);
+  const setStressTags = useSchoolStore((s) => s.setStressTags);
+  const [tags, setTags] = useState<string[]>(savedTags ?? []);
+  const toggleTag = (t: string) => setTags((cur) => (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]));
   const [hydrated, setHydrated] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -83,6 +89,7 @@ export default function CheckinScreen() {
   const handleSave = async () => {
     const ok = await saveTodayCheckin({ mood, sleepHours, sleepQuality, stressLevel, notes });
     if (ok) {
+      setStressTags(dateKey(), tags);
       setSaved(true);
       setTimeout(() => {
         router.back();
@@ -112,7 +119,7 @@ export default function CheckinScreen() {
         <Card style={styles.glance}>
           <Ring progress={mood != null ? mood / 5 : null} value={mood != null ? String(mood) : undefined} unit="/5" label="Mood" color={colors.secured} size={72} />
           <Ring
-            progress={sleepHours != null ? Math.min(1, sleepHours / 8) : null}
+            progress={sleepHours != null ? Math.min(1, sleepHours / sleepGoal) : null}
             value={sleepHours != null ? String(sleepHours) : undefined}
             unit="h"
             label="Sleep"
@@ -144,7 +151,13 @@ export default function CheckinScreen() {
           <View style={styles.rowBetween}>
             <View style={styles.flex}>
               <Text style={styles.q}>How long did you sleep?</Text>
-              <Text style={styles.sub}>{sleepHours == null ? 'Tap + or − to set it' : `${sleepHours} hours`}</Text>
+              <Text style={styles.sub}>
+                {sleepHours == null
+                  ? 'Teens need 8–10 hours'
+                  : sleepHours >= sleepGoal
+                    ? `${sleepHours} hours — right on target`
+                    : `${sleepHours} hours, ${+(sleepGoal - sleepHours).toFixed(1)} short of your goal`}
+              </Text>
             </View>
             <Stepper
               value={sleepHours == null ? '–' : `${sleepHours}h`}
@@ -174,6 +187,13 @@ export default function CheckinScreen() {
           <Text style={styles.q}>How stressed are you?</Text>
           <ScienceNote fact="Caffeine doesn't create energy — it blocks adenosine, the molecule that builds up all day and makes you feel sleepy. That's the 'coffee crash': the adenosine was there the whole time, just muted, and it catches up with you at once." />
           <TrackSlider min={1} max={10} value={stressLevel} onChange={setStressLevel} fillColor={colors.unlocked} labels={['Calm', 'Overwhelmed']} />
+          <Text style={[styles.q, styles.spaced]}>What’s it coming from?</Text>
+          <Text style={styles.sub}>Pick any. It helps Ember spot what keeps coming up.</Text>
+          <ChipRow style={styles.tags}>
+            {STRESS_SOURCES.map((t) => (
+              <Chip key={t} label={t} selected={tags.includes(t)} color={colors.unlocked} onPress={() => toggleTag(t)} />
+            ))}
+          </ChipRow>
         </Card>
       </Reveal>
 
@@ -240,6 +260,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
+  },
+  tags: {
+    marginTop: 12,
   },
   healthChip: {
     marginTop: 12,

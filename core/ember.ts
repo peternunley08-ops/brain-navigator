@@ -6,6 +6,8 @@
 import type { IconName } from '../components/ui/Icon';
 import type { EmberMood } from './emberStore';
 import { useHabitsStore } from './habitsStore';
+import { useHubStore } from './hubStore';
+import { daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
 import { useTasksStore } from './tasksStore';
 import { useWellnessStore } from './wellnessStore';
@@ -52,11 +54,17 @@ const A = {
   talk: { label: 'Talk it through', href: '/companion', icon: 'chat' },
   setDown: { label: 'Set something down', href: '/new-entry', icon: 'plus' },
   loops: { label: 'See what’s open', href: '/open-loops', icon: 'loops' },
-  tasks: { label: 'Your plate', href: '/tasks', icon: 'plate' },
+  tasks: { label: 'To-dos', href: '/tasks', icon: 'plate' },
   habits: { label: 'Habits', href: '/habits', icon: 'repeat' },
   trends: { label: 'Trends', href: '/trends', icon: 'trend' },
   drawer: { label: 'The Drawer', href: '/drawer', icon: 'drawer' },
   map: { label: 'The Map', href: '/topography', icon: 'map' },
+  school: { label: 'School', href: '/school', icon: 'book' },
+  addWork: { label: 'Add homework', href: '/add-assignment', icon: 'plus' },
+  classes: { label: 'Add classes', href: '/classes', icon: 'book' },
+  scan: { label: 'Scan a screenshot', href: '/scan', icon: 'image' },
+  focus: { label: 'Focus', href: '/focus', icon: 'timer' },
+  help: { label: 'Need help now', href: '/help', icon: 'phone' },
 } satisfies Record<string, EmberAction>;
 
 // A plain explanation of every screen — "what am I looking at, and what
@@ -64,8 +72,62 @@ const A = {
 const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction[] }> = {
   '/': {
     title: 'The Desk',
-    line: 'Every candle here is something you set down that’s still open. Bigger flame, heavier thing; shorter candle, longer it’s been burning. Tap a candle to resolve it or let it go.',
-    actions: [A.setDown],
+    line: 'Your day at a glance: the class you’re in or have next, what’s due soon, and what’s on your mind. Each candle is something weighing on you — tap one to resolve it or let it go.',
+    actions: [A.addWork, A.setDown],
+  },
+  '/school': {
+    title: 'School',
+    line: 'Everything due, grouped by when. Tap a circle to finish something. “Tonight’s load” warns you when more is due by tomorrow than a night can hold.',
+    actions: [A.addWork, A.scan],
+  },
+  '/focus': {
+    title: 'Focus',
+    line: 'Pick one thing and a length, then light the candle. It burns down while you work. When it’s out, take a real break.',
+  },
+  '/classes': {
+    title: 'Your schedule',
+    line: 'Your classes and activities with their days and times. That’s how I know what’s next — and it lets homework belong to a class.',
+    actions: [A.scan],
+  },
+  '/class-edit': {
+    title: 'A class',
+    line: 'A name, a color, the days, and the times. Teacher and room are optional.',
+  },
+  '/add-assignment': {
+    title: 'Adding something due',
+    line: 'Name it, pick the class and day, and guess how long it’ll take. The guess is what lets me warn you about a heavy night.',
+  },
+  '/assignment': {
+    title: 'An assignment',
+    line: 'Start a focus session on it, mark it done, or change the details. For tests I’ll suggest how to study.',
+  },
+  '/help': {
+    title: 'Need help now',
+    line: 'Real people, any time. Every button opens your phone’s own dialer or messages. Nothing goes through this app.',
+  },
+  '/today': {
+    title: 'Your day',
+    line: 'Classes, calendar events, focus, and blocks you plan, laid out in time. Plan a block for the thing you keep putting off — it’s easier to start when it has a time.',
+  },
+  '/notes': {
+    title: 'Notebook',
+    line: 'Your own pages. Start from a template — class notes and study guides come with headings in. Tag a page to a class to find it later.',
+  },
+  '/note': {
+    title: 'A page',
+    line: 'Return on a heading, bullet, or checklist starts a new line of the same kind. Backspace on an empty line removes it.',
+  },
+  '/college': {
+    title: 'College',
+    line: 'Each school gets its deadline and a checklist — essay, supplements, recs, transcript, scores. The next deadline is always at the top.',
+  },
+  '/connections': {
+    title: 'Connections',
+    line: 'Google Calendar and Canvas connect for real. Classroom comes in by screenshot. The rest are one tap away.',
+  },
+  '/scan': {
+    title: 'Scanning a screenshot',
+    line: 'Pick a screenshot of Google Classroom or Canvas. Your phone reads the text itself, then you choose what to bring in.',
   },
   '/open-loops': {
     title: 'Loops',
@@ -102,7 +164,7 @@ const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction
     actions: [A.checkin],
   },
   '/tasks': {
-    title: 'Your plate',
+    title: 'To-dos',
     line: 'What you’re carrying today. The cap is how much you want on the plate, not a goal to hit. Tap a task to mark it done.',
   },
   '/habits': {
@@ -141,7 +203,13 @@ const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction
 };
 
 export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
-  const route = pathname.startsWith('/entry/') ? '/entry' : pathname;
+  const route = pathname.startsWith('/entry/')
+    ? '/entry'
+    : pathname.startsWith('/assignment/')
+      ? '/assignment'
+      : pathname.startsWith('/note/')
+        ? '/note'
+        : pathname;
   const tips: EmberTip[] = [];
   const hour = now.getHours();
   const ms = now.getTime();
@@ -187,11 +255,11 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
     });
   }
 
-  if (checkin?.sleep_hours != null && checkin.sleep_hours < 6) {
+  const sleepGoal = useSchoolStore.getState().profile.sleepGoal;
+  if (checkin?.sleep_hours != null && checkin.sleep_hours < sleepGoal - 1) {
     tips.push({
       id: `sleep-${todayKey(now)}`,
-      line: `You slept about ${checkin.sleep_hours} hours. Go gently today — maybe keep the plate light.`,
-      actions: [A.tasks],
+      line: `You slept about ${checkin.sleep_hours} hours — teens need 8 to 10. Go easy today, and try for an earlier night.`,
       priority: 1,
       mood: 'concerned',
     });
@@ -215,6 +283,90 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
       priority: 2,
       mood: 'concerned',
     });
+  }
+
+  // ---- School ------------------------------------------------------------
+
+  const school = useSchoolStore.getState();
+  const openWork = school.assignments.filter((a) => !a.done);
+  const overdue = openWork.filter((a) => daysUntil(a.due) < 0);
+  const tests = openWork
+    .filter((a) => (a.kind === 'test' || a.kind === 'quiz') && daysUntil(a.due) >= 0 && daysUntil(a.due) <= 3)
+    .sort((a, b) => a.due.localeCompare(b.due));
+  const load = tonightsLoad(school.assignments);
+  const className = (id: string | null) => school.classes.find((c) => c.id === id)?.name;
+
+  if (overdue.length) {
+    const a = overdue[0];
+    tips.push({
+      id: `overdue-${a.id}`,
+      line: `“${quoteTitle(a.title)}” was due ${dueLabel(a.due).toLowerCase()}. Finish it, or move the date so it stops nagging you.`,
+      actions: [{ label: 'Open it', href: `/assignment/${a.id}`, icon: 'book' }],
+      priority: 3,
+      mood: 'concerned',
+    });
+  }
+
+  if (tests.length) {
+    const t = tests[0];
+    const n = daysUntil(t.due);
+    const cls = className(t.classId);
+    tips.push({
+      id: `test-${t.id}-${todayKey(now)}`,
+      line:
+        n === 0
+          ? `${cls ? `${cls} ` : ''}${KIND_LABEL[t.kind].toLowerCase()} today. You’ve got this — breathe before you walk in.`
+          : lateNight && n === 1
+            ? `The ${cls ? `${cls} ` : ''}${KIND_LABEL[t.kind].toLowerCase()} is tomorrow. Sleep will do more for it now than another hour of cramming.`
+            : `${cls ? `${cls} ` : 'A '}${KIND_LABEL[t.kind].toLowerCase()} ${dueLabel(t.due).toLowerCase() === 'tomorrow' ? 'tomorrow' : `on ${dueLabel(t.due)}`}. Two short study sessions beat one long cram.`,
+      actions: n === 0 ? [A.breathe] : [{ label: 'Study for it', href: `/focus?assignment=${t.id}`, icon: 'timer' }],
+      priority: 3,
+      mood: n === 0 ? 'happy' : 'curious',
+    });
+  }
+
+  if (load.minutes > school.profile.nightlyCap) {
+    const h = (load.minutes / 60).toFixed(load.minutes % 60 ? 1 : 0);
+    tips.push({
+      id: `load-${todayKey(now)}-${load.minutes}`,
+      line: `About ${h} hours is due by tomorrow — more than a night holds. Start the biggest thing first, and ask for more time if you need it.`,
+      actions: [A.school],
+      priority: 2,
+      mood: 'concerned',
+    });
+  }
+
+  const colleges = useHubStore.getState().colleges.filter(
+    (c) => (c.status === 'applying' || c.status === 'researching') && c.deadline && daysUntil(c.deadline) >= 0 && daysUntil(c.deadline) <= 14
+  );
+  if (colleges.length) {
+    const c = [...colleges].sort((a, b) => (a.deadline ?? '').localeCompare(b.deadline ?? ''))[0];
+    tips.push({
+      id: `college-${c.id}-${todayKey(now)}`,
+      line: `${c.name} is due ${dueLabel(c.deadline!).toLowerCase() === 'tomorrow' ? 'tomorrow' : `in ${daysUntil(c.deadline!)} days`}. What’s left on its checklist?`,
+      actions: [{ label: 'College list', href: '/college', icon: 'cap' }],
+      priority: 3,
+      mood: 'curious',
+    });
+  }
+
+  if (school.loaded && school.classes.length === 0 && (route === '/' || route === '/school')) {
+    tips.push({
+      id: 'no-classes',
+      line: 'Add your classes and I’ll always know what’s next. Quickest way: screenshot your Google Classroom.',
+      actions: [A.scan, A.classes],
+      priority: 1,
+      mood: 'curious',
+    });
+  }
+
+  if (route === '/school' && openWork.length === 0 && school.assignments.length > 0) {
+    tips.push({ id: 'school-clear', line: 'Nothing due. You’re actually caught up. Go enjoy it.', priority: 0, mood: 'cheer' });
+  }
+
+  const ns = nowState(school.classes, now);
+  if (route === '/' && ns.kind === 'next' && ns.minsUntil <= 10) {
+    tips.push({ id: `next-${ns.cls.id}-${todayKey(now)}`, line: `${ns.cls.name} starts in ${ns.minsUntil} minutes${ns.cls.room ? `, room ${ns.cls.room}` : ''}.`, priority: 1 });
   }
 
   // ---- This screen -------------------------------------------------------

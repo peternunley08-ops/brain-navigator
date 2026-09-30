@@ -129,7 +129,6 @@ export default function TopographyScreen() {
 
   return (
     <Screen
-      back={false}
       tone="dusk"
       glowColor="#AFA2DE"
       title="The Map"

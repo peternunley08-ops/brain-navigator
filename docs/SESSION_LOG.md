@@ -1442,3 +1442,35 @@ with a fallback to `chat`, the companion screen as a real conversation,
 and "Talk to me" on every tip. Verified the no-credit path live (Ember
 explains in a dashed aside and continues with its built-in question).
 Nothing saved. Committed as 136ba1e.
+
+**High school hub (Phase 30, uncommitted).** User redirected the app to
+high school wellness + student organization, "one central hub," and asked
+it to connect Classroom, Aeries, ParentSquare, Common App, Canvas, plus
+Notion/Structured-like tools, Google apps, and Claude. Built: a local
+school planner (classes, homework/tests with time estimates, tonight's
+load vs a nightly cap), Focus (a candle that burns down as a study timer),
+teen wellness (stress sources, 8–10h sleep goal, a Need-help-now screen
+with real crisis lines), onboarding with Ember, a Notion-style Notebook,
+a College tracker, a Structured-style day timeline, Connections (Canvas
+token sync; Classroom via screenshot; honest shortcuts for services with
+no student API), and on-device screenshot import via a new local native
+module (Apple Vision). The user asked for a way around school Google
+admin blocks — declined as circumventing the school's security controls;
+offered a pre-written request to school IT and the screenshot route.
+
+Native build trouble, all environmental: React Native's prebuilt core and
+Expo's precompiled modules were left in their Release flavors by the
+earlier phone build while their marker files said Debug — the simulator
+build first failed to link, then crashed in `Props::Props()`. Cause: the
+project lives on an iCloud-synced Desktop, and iCloud had created
+" 2" conflict copies throughout `ios/` (including of the marker files).
+Fixed by removing the conflict copies in `ios/Pods`, forcing both flavor
+switchers to Debug, and rebuilding clean. `ios/Pods 2`, `ios/build 2`,
+`ios/brainnavigator 2` (whole conflict copies) were left in place.
+Recommendation for the user: keep the project out of iCloud-synced
+folders, or it will keep happening.
+
+Verified with real taps: onboarding, scanning a mock Classroom To-do
+screenshot (3 classes, 3 assignments, all correct), school planner,
+checking work off, Focus, quick-add, Notebook. The simulator now holds
+that sample school data; the phone doesn't have this build yet.

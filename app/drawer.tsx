@@ -18,6 +18,17 @@ interface Tool {
 // removed in the redesign; it lives here instead of in the main navigation.
 const GROUPS: { name: string; tools: Tool[] }[] = [
   {
+    name: 'School',
+    tools: [
+      { title: 'Your day', body: 'A timeline of today', path: '/today', icon: 'clock', color: '#F5B45C' },
+      { title: 'Your schedule', body: 'Classes and activities', path: '/classes', icon: 'book', color: '#8FB4E8' },
+      { title: 'Notebook', body: 'Notes and study guides', path: '/notes', icon: 'pen', color: '#E6C46A' },
+      { title: 'College', body: 'Every application', path: '/college', icon: 'cap', color: '#8FB4E8' },
+      { title: 'Connections', body: 'Canvas, Classroom, more', path: '/connections', icon: 'sparkle', color: '#AFA2DE' },
+      { title: 'Scan a screenshot', body: 'Import from Classroom', path: '/scan', icon: 'image', color: '#D99A6C' },
+    ],
+  },
+  {
     name: 'Your body',
     tools: [
       { title: 'Check-in', body: 'Mood, sleep, stress', path: '/checkin', icon: 'sun', color: '#F5B45C' },
@@ -29,7 +40,7 @@ const GROUPS: { name: string; tools: Tool[] }[] = [
   {
     name: 'Your days',
     tools: [
-      { title: 'Your plate', body: 'Today’s tasks', path: '/tasks', icon: 'plate', color: '#E6C46A' },
+      { title: 'To-dos', body: 'Everything not school', path: '/tasks', icon: 'plate', color: '#E6C46A' },
       { title: 'Habits', body: 'Streaks you keep', path: '/habits', icon: 'repeat', color: '#8CC0A8' },
       { title: 'Calendar', body: 'Today’s schedule', path: '/calendar', icon: 'calendar', color: '#D99A6C' },
       { title: 'Kept', body: 'Entries you saved', path: '/trove', icon: 'jar', color: '#E89AB8' },
@@ -38,6 +49,8 @@ const GROUPS: { name: string; tools: Tool[] }[] = [
   {
     name: 'Looking closer',
     tools: [
+      { title: 'Loops', body: 'Everything still open', path: '/open-loops', icon: 'loops', color: '#F0845A' },
+      { title: 'The Map', body: 'What keeps coming up', path: '/topography', icon: 'map', color: '#AFA2DE' },
       { title: 'Wellness wheel', body: 'Eight parts of a life', path: '/wellness', icon: 'wheel', color: '#AFA2DE' },
       { title: 'The science', body: 'Why the numbers move', path: '/science', icon: 'flask', color: '#8FB4E8' },
     ],

@@ -1,14 +1,16 @@
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useNavigation, usePathname } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { SlideInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useBrainNavigatorStore } from '../core/store';
+import { dateKey, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, gradients } from '../core/theme';
 import { Icon, type IconName } from './ui/Icon';
 import { Pressy } from './ui/Pressy';
 
-type NavPath = '/' | '/open-loops' | '/topography' | '/steady';
+type NavPath = '/' | '/school' | '/focus' | '/steady';
 
 interface NavItem {
   label: string;
@@ -18,10 +20,10 @@ interface NavItem {
 
 const LEFT: NavItem[] = [
   { label: 'Desk', path: '/', icon: 'candle' },
-  { label: 'Loops', path: '/open-loops', icon: 'loops' },
+  { label: 'School', path: '/school', icon: 'book' },
 ];
 const RIGHT: NavItem[] = [
-  { label: 'Map', path: '/topography', icon: 'map' },
+  { label: 'Focus', path: '/focus', icon: 'timer' },
   { label: 'Steady', path: '/steady', icon: 'steady' },
 ];
 
@@ -33,8 +35,8 @@ const RIGHT: NavItem[] = [
 // desyncs it: Back stops working. Popping never reorders.)
 const ROUTE_NAME: Record<NavPath, string> = {
   '/': 'index',
-  '/open-loops': 'open-loops',
-  '/topography': 'topography',
+  '/school': 'school',
+  '/focus': 'focus',
   '/steady': 'steady',
 };
 
@@ -42,7 +44,11 @@ export function BottomNav() {
   const pathname = usePathname();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const openCount = useBrainNavigatorStore((s) => s.openLoops.length);
+  // School's badge: things overdue or due today and not done.
+  const assignments = useSchoolStore((s) => s.assignments);
+  const today = dateKey();
+  const dueCount = assignments.filter((a) => !a.done && a.due <= today).length;
+  const [adding, setAdding] = useState(false);
 
   const goTab = (path: NavPath) => {
     const open = navigation.getState()?.routes.some((r) => r.name === ROUTE_NAME[path]);
@@ -61,7 +67,7 @@ export function BottomNav() {
             key={item.path}
             item={item}
             active={pathname === item.path}
-            badge={item.path === '/open-loops' && openCount > 0 ? openCount : undefined}
+            badge={item.path === '/school' && dueCount > 0 ? dueCount : undefined}
             onGo={goTab}
           />
         ))}
@@ -73,10 +79,10 @@ export function BottomNav() {
             haptic="none"
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
-              router.push('/new-entry');
+              setAdding(true);
             }}
             accessibilityRole="button"
-            accessibilityLabel="Set something down"
+            accessibilityLabel="Add something"
           >
             <LinearGradient colors={gradients.flame} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={styles.centerFill}>
               <Icon name="plus" size={28} color={colors.flameInk} strokeWidth={2.6} />
@@ -88,7 +94,50 @@ export function BottomNav() {
           <NavSegment key={item.path} item={item} active={pathname === item.path} onGo={goTab} />
         ))}
       </View>
+      <QuickAdd open={adding} onClose={() => setAdding(false)} />
     </View>
+  );
+}
+
+const ADD_OPTIONS: { title: string; body: string; icon: IconName; color: string; href: string }[] = [
+  { title: 'Homework or a test', body: 'Something due for a class', icon: 'book', color: '#8FB4E8', href: '/add-assignment' },
+  { title: 'Something on my mind', body: 'Set it down as a candle', icon: 'candle', color: '#F0845A', href: '/new-entry' },
+  { title: 'A focus session', body: 'Light the study candle', icon: 'timer', color: '#F5B45C', href: '/focus' },
+  { title: 'Scan a screenshot', body: 'Import from Classroom or Canvas', icon: 'image', color: '#AFA2DE', href: '/scan' },
+];
+
+// The + button's sheet: every way to add something, one tap each.
+function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const insets = useSafeAreaInsets();
+  return (
+    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel="Close" />
+      <Animated.View entering={SlideInDown.springify().damping(18)} style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
+        <View style={styles.grabber} />
+        <Text style={styles.sheetTitle}>Add something</Text>
+        {ADD_OPTIONS.map((o) => (
+          <Pressy
+            key={o.href}
+            style={styles.option}
+            onPress={() => {
+              onClose();
+              router.push(o.href as never);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={o.title}
+          >
+            <View style={[styles.optionIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
+              <Icon name={o.icon} size={22} color={o.color} />
+            </View>
+            <View style={styles.optionText}>
+              <Text style={styles.optionTitle}>{o.title}</Text>
+              <Text style={styles.optionBody}>{o.body}</Text>
+            </View>
+            <Icon name="chevron" size={18} color={colors.textFaint} />
+          </Pressy>
+        ))}
+      </Animated.View>
+    </Modal>
   );
 }
 
@@ -212,6 +261,69 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.45,
     shadowRadius: 14,
     elevation: 8,
+  },
+  scrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(6, 4, 8, 0.6)',
+  },
+  sheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    backgroundColor: '#211A25',
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+  },
+  grabber: {
+    alignSelf: 'center',
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: colors.lineStrong,
+    marginBottom: 14,
+  },
+  sheetTitle: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  option: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingVertical: 12,
+  },
+  optionIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionText: {
+    flex: 1,
+  },
+  optionTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 16,
+    color: colors.text,
+  },
+  optionBody: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textFaint,
   },
   centerFill: {
     flex: 1,

@@ -576,6 +576,44 @@ gracefully until then.
   their browser with permission)
 - [ ] Once both are done: verify a real AI reply + action button live
 
+## Phase 30 — High school hub (2026-09-29, uncommitted)
+
+User: make it for high school wellness and student organization, "one
+central hub" connecting Classroom, Aeries, ParentSquare, Common App,
+Canvas, a Notion-like space, Structured, Calendar, Gmail, Drive, Claude —
+then asked to get around school Google admin blocks (declined; offered the
+screenshot path and a request to school IT instead), then suggested
+importing classes from a screenshot (built). Full architecture notes are
+in CLAUDE.md "High school hub".
+
+- [x] Local school data (`core/schoolStore.ts`, `school.json`) and hub
+  data (`core/hubStore.ts`, `hub.json`); `core/dates.ts`
+- [x] New nav: Desk · School · + (quick-add sheet) · Focus · Steady
+- [x] Welcome/onboarding with Ember (name, grade, classes, sleep goal,
+  nightly homework cap)
+- [x] School planner, add/edit assignment, assignment detail with study
+  tips, schedule + class editor with time pickers, "now/next class" card
+- [x] Focus: study candle timer, Ember in glasses, breaks, week bars
+- [x] Need help now: 988, Crisis Text Line, Trevor Project, 911
+- [x] Desk as the student's day; check-in stress sources + teen sleep goal
+- [x] Screenshot import: local native module `modules/text-recognition`
+  (Apple Vision, on-device) + `core/scanParser.ts` + `app/scan.tsx`;
+  paste-text fallback when the module isn't in the build
+- [x] Notebook (Notion-style blocks + templates), College tracker, Your
+  day timeline (Structured-style), Connections (Canvas sync, Classroom
+  via screenshot, shortcuts)
+- [x] Ember: school/college tips, AI context + actions for school
+- [x] Verified live in the Simulator: onboarding → scan a mock Classroom
+  To-do screenshot → 3 classes + 3 assignments with correct dates and
+  kinds imported → Desk "Due soon" → School (tonight's load, week strip)
+  → check one off (Ember cheers) → Focus session running → quick-add
+  sheet → Notebook template editing; every hub screen screenshotted
+- [ ] Not tested: Canvas sync against a real account, Google Calendar
+  inside "Your day", College add flow, typing a real class schedule
+- [ ] Rebuild for the phone (needs the native module) — see the prebuilt
+  core gotcha in CLAUDE.md
+- [ ] Commit when the user says so
+
 ## Phase 22 addendum — proposed next AI step (awaiting approval)
 
 "Recent Insight": one read-only Edge Function endpoint that summarizes the

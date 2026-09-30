@@ -43,7 +43,14 @@ export type IconName =
   | 'play'
   | 'chat'
   | 'feather'
-  | 'image';
+  | 'image'
+  | 'book'
+  | 'timer'
+  | 'phone'
+  | 'message'
+  | 'cap'
+  | 'flag'
+  | 'edit';
 
 const shapes: Record<IconName, (c: string) => ReactNode> = {
   back: () => <Path d="M14.5 5.5 8 12l6.5 6.5" />,
@@ -186,6 +193,35 @@ const shapes: Record<IconName, (c: string) => ReactNode> = {
   feather: () => (
     <Path d="M19 5c-6.5 0-11 4.5-11 11v3.5M8 16h5.5c3.6 0 5.5-4.5 5.5-11M5 19.5l3-3" />
   ),
+  book: () => (
+    <>
+      <Path d="M5 5.5A2 2 0 0 1 7 3.5h11.5v15H7a2 2 0 0 0-2 2v-15Z" />
+      <Path d="M5 20.5a2 2 0 0 1 2-2h11.5v2H7a2 2 0 0 1-2 0ZM9 8h6" />
+    </>
+  ),
+  timer: () => (
+    <>
+      <Circle cx={12} cy={13.5} r={7} />
+      <Path d="M12 13.5V10M9.5 3.5h5M18 7.5l1.5-1.5" />
+    </>
+  ),
+  phone: () => (
+    <Path d="M6.5 4h3l1.5 4-2 1.5a11 11 0 0 0 5.5 5.5l1.5-2 4 1.5v3a2 2 0 0 1-2.2 2A16.5 16.5 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4Z" />
+  ),
+  message: () => (
+    <>
+      <Path d="M4.5 6.5a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H11l-4.5 3.5V16.5h0a2 2 0 0 1-2-2v-8Z" />
+      <Path d="M8.5 9.5h7M8.5 12.5h4.5" />
+    </>
+  ),
+  cap: () => (
+    <>
+      <Path d="M2.5 9.5 12 5l9.5 4.5L12 14 2.5 9.5Z" />
+      <Path d="M6.5 11.5v4c0 1.5 2.5 3 5.5 3s5.5-1.5 5.5-3v-4M21.5 9.5v5" />
+    </>
+  ),
+  flag: () => <Path d="M5.5 20.5v-16M5.5 4.5h11l-2 4 2 4h-11" />,
+  edit: () => <Path d="M5 19l1-4.2L15.6 5.2a2 2 0 0 1 2.9 0l.3.3a2 2 0 0 1 0 2.9L9.2 18 5 19Z" />,
   image: () => (
     <>
       <Rect x={4} y={5} width={16} height={14} rx={3} />

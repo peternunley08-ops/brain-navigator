@@ -1,0 +1,9 @@
+{
+  "name": "text-recognition",
+  "version": "1.0.0",
+  "description": "On-device text recognition (Apple Vision) for reading screenshots",
+  "main": "index.ts",
+  "license": "MIT",
+  "author": "Brain Navigator",
+  "homepage": "https://github.com/peternunley08-ops/brain-navigator"
+}

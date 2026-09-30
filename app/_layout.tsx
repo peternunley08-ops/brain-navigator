@@ -18,6 +18,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { EmberBuddy } from '../components/ember/EmberBuddy';
 import { EntryThreshold } from '../components/EntryThreshold';
+import { useHubStore } from '../core/hubStore';
+import { useSchoolStore } from '../core/schoolStore';
 import { colors } from '../core/theme';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -38,6 +40,12 @@ export default function RootLayout() {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded]);
+
+  // School data lives on the phone; read it once at launch.
+  useEffect(() => {
+    useSchoolStore.getState().load();
+    useHubStore.getState().load();
+  }, []);
 
   if (!fontsLoaded) {
     return null;

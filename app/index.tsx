@@ -4,6 +4,8 @@ import { useCallback, useEffect } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
+import { AssignmentRow } from '../components/school/AssignmentRow';
+import { NowCard } from '../components/school/NowCard';
 import { Button } from '../components/ui/Button';
 import { Candle, candleRemaining, candleSeed } from '../components/ui/Candle';
 import { Card } from '../components/ui/Card';
@@ -18,6 +20,7 @@ import { useHabitsStore } from '../core/habitsStore';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
+import { dateKey, daysUntil, focusMinutesOn, useSchoolStore } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
 import { alpha, colors, fonts, layout, radii } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
@@ -39,6 +42,23 @@ function countLine(n: number) {
   return n === 1 ? 'One thing is still open.' : `${word} things are still open.`;
 }
 
+function greetingFor(name: string, d = new Date()) {
+  const h = d.getHours();
+  const part = h < 5 ? 'Up late' : h < 12 ? 'Morning' : h < 17 ? 'Hey' : 'Evening';
+  return name ? `${part}, ${name}` : 'The Desk';
+}
+
+// One line about the day: what's due, and what's weighing on you.
+function summaryLine(dueToday: number, dueTomorrow: number, open: number) {
+  const parts: string[] = [];
+  if (dueToday) parts.push(`${dueToday} due today`);
+  else if (dueTomorrow) parts.push(`${dueTomorrow} due tomorrow`);
+  if (open) parts.push(`${open} thing${open === 1 ? '' : 's'} on your mind`);
+  if (!parts.length) return 'Nothing due, nothing burning. A good day to breathe.';
+  const s = parts.join(', ');
+  return `${s.charAt(0).toUpperCase()}${s.slice(1)}.`;
+}
+
 function ageLabel(createdAt: string) {
   const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / DAY_MS);
   if (days <= 0) return 'Since today';
@@ -58,10 +78,17 @@ export default function DeskScreen() {
 
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
   const todaysCheckin = useWellnessStore((s) => s.todaysCheckin());
-  const tasks = useTasksStore((s) => s.tasks);
-  const dailyCap = useTasksStore((s) => s.dailyCap);
   const habits = useHabitsStore((s) => s.habits);
   const logs = useHabitsStore((s) => s.logs);
+  const assignments = useSchoolStore((s) => s.assignments);
+  const focus = useSchoolStore((s) => s.focus);
+  const profile = useSchoolStore((s) => s.profile);
+  const schoolLoaded = useSchoolStore((s) => s.loaded);
+
+  // First time here: Ember says hello and helps set things up.
+  useEffect(() => {
+    if (schoolLoaded && !profile.onboarded) router.push('/welcome');
+  }, [schoolLoaded, profile.onboarded]);
 
   useEffect(() => {
     fetchCheckins();
@@ -84,8 +111,10 @@ export default function DeskScreen() {
   const perRow = onDesk.length <= 2 ? Math.max(1, onDesk.length) : 3;
   const candleW = Math.min(onDesk.length <= 2 ? 140 : 100, (contentWidth - (perRow - 1) * 14) / perRow);
 
-  const openTasks = tasks.filter((t) => !t.completed).length;
-  const doneTasks = tasks.length - openTasks;
+  const dueSoon = assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 3);
+  const dueToday = assignments.filter((a) => !a.done && daysUntil(a.due) <= 0).length;
+  const dueTomorrow = assignments.filter((a) => !a.done && daysUntil(a.due) === 1).length;
+  const focusToday = focusMinutesOn(focus, dateKey());
   const activeHabits = habits.filter((h) => !h.archived);
   const today = todayKey();
   const habitsDone = activeHabits.filter((h) => logs.some((l) => l.habit_id === h.id && l.log_date === today)).length;
@@ -96,11 +125,41 @@ export default function DeskScreen() {
       tone="ember"
       motes
       kicker={momentLabel()}
-      title="The Desk"
-      subtitle={countLine(openLoops.length)}
+      title={greetingFor(profile.name)}
+      subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length)}
       right={<IconButton icon="drawer" label="Open the Drawer" onPress={() => router.push('/drawer')} />}
     >
       <Reveal index={0}>
+        <NowCard />
+      </Reveal>
+
+      <Reveal index={1}>
+        <Section title="Due soon" action={{ label: assignments.some((a) => !a.done) ? 'All' : 'Add', onPress: () => router.push(assignments.some((a) => !a.done) ? '/school' : '/add-assignment') }}>
+          {dueSoon.length ? (
+            <View style={styles.list}>
+              {dueSoon.map((a, i) => (
+                <AssignmentRow key={a.id} a={a} index={i} compact />
+              ))}
+            </View>
+          ) : (
+            <Card onPress={() => router.push('/add-assignment')}>
+              <View style={styles.promptRow}>
+                <View style={[styles.promptIcon, { backgroundColor: alpha('#8FB4E8', 0.14) }]}>
+                  <Icon name="book" size={22} color="#8FB4E8" />
+                </View>
+                <View style={styles.promptText}>
+                  <Text style={styles.promptTitle}>Nothing due</Text>
+                  <Text style={styles.promptBody}>Add homework or a test, or scan your Classroom to-do list.</Text>
+                </View>
+                <Icon name="plus" size={18} color={colors.textFaint} />
+              </View>
+            </Card>
+          )}
+        </Section>
+      </Reveal>
+
+      <Reveal index={2}>
+        <Section title="On your mind" note={countLine(openLoops.length)}>
         <View style={styles.desk}>
           <View style={styles.candles}>
             {onDesk.length === 0 ? (
@@ -140,10 +199,11 @@ export default function DeskScreen() {
             </Pressy>
           ) : null}
         </View>
+        </Section>
       </Reveal>
 
-      <Reveal index={1}>
-        <Button label="Set something down" icon="plus" onPress={() => router.push('/new-entry')} style={styles.primary} />
+      <Reveal index={3}>
+        <Button label="Set something down" icon="candle" variant="secondary" onPress={() => router.push('/new-entry')} style={styles.primary} />
         <Button
           label="Not sure what it is? Talk it through"
           variant="ghost"
@@ -154,9 +214,9 @@ export default function DeskScreen() {
         />
       </Reveal>
 
-      <Reveal index={2}>
+      <Reveal index={4}>
         <Section
-          title="Today"
+          title="How you’re doing"
           action={todaysCheckin ? { label: 'Edit', onPress: () => router.push('/checkin') } : undefined}
         >
           {todaysCheckin ? (
@@ -170,7 +230,7 @@ export default function DeskScreen() {
                   color={colors.secured}
                 />
                 <Ring
-                  progress={todaysCheckin.sleep_hours != null ? Math.min(1, todaysCheckin.sleep_hours / 8) : null}
+                  progress={todaysCheckin.sleep_hours != null ? Math.min(1, todaysCheckin.sleep_hours / profile.sleepGoal) : null}
                   value={todaysCheckin.sleep_hours != null ? String(todaysCheckin.sleep_hours) : undefined}
                   unit="h"
                   label="Sleep"
@@ -204,15 +264,15 @@ export default function DeskScreen() {
         </Section>
       </Reveal>
 
-      <Reveal index={3}>
+      <Reveal index={5}>
         <View style={styles.tiles}>
           <Tile
-            icon="plate"
-            color="#E6C46A"
-            title="Your plate"
-            value={tasks.length === 0 ? 'Empty' : `${doneTasks} of ${tasks.length}`}
-            note={tasks.length === 0 ? 'Nothing planned' : openTasks > dailyCap ? 'Over your cap' : `${openTasks} still open`}
-            onPress={() => router.push('/tasks')}
+            icon="timer"
+            color="#F5B45C"
+            title="Focus today"
+            value={focusToday ? `${focusToday} min` : 'None yet'}
+            note={focusToday ? 'Keep the candle going' : 'Light a study candle'}
+            onPress={() => router.push('/focus')}
           />
           <Tile
             icon="repeat"
@@ -236,7 +296,7 @@ function Tile({
   note,
   onPress,
 }: {
-  icon: 'plate' | 'repeat';
+  icon: 'timer' | 'repeat';
   color: string;
   title: string;
   value: string;
@@ -300,7 +360,10 @@ function DeskCandle({
 
 const styles = StyleSheet.create({
   desk: {
-    marginTop: 12,
+    marginTop: 4,
+  },
+  list: {
+    gap: 10,
   },
   candles: {
     paddingHorizontal: 12,
