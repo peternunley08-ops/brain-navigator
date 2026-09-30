@@ -17,9 +17,9 @@ const CAPSULE_HEIGHT = 72;
 const CAPSULE_WIDTH = 26;
 
 const SEGMENTS: { key: 'deep' | 'rem' | 'light'; label: string; color: string }[] = [
-  { key: 'deep', label: 'Deep', color: colors.secured },
-  { key: 'rem', label: 'REM', color: colors.leather },
-  { key: 'light', label: 'Light', color: colors.lantern },
+  { key: 'deep', label: 'Deep', color: '#7C8FE0' },
+  { key: 'rem', label: 'REM', color: '#AFA2DE' },
+  { key: 'light', label: 'Light', color: '#8FB4E8' },
 ];
 
 export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMinutes }: SleepQualityCardProps) {
@@ -37,7 +37,7 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
 
   return (
     <Card style={styles.card}>
-      <Text style={styles.label}>Sleep Quality</Text>
+      <Text style={styles.label}>Sleep stages</Text>
       <Text style={styles.score}>{qualityPct !== null ? `${qualityPct}%` : '—'}</Text>
 
       <View style={styles.capsuleRow}>
@@ -54,7 +54,7 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
                   width={CAPSULE_WIDTH}
                   height={CAPSULE_HEIGHT}
                   rx={CAPSULE_WIDTH / 2}
-                  fill={colors.background}
+                  fill={colors.surfaceSunk}
                 />
                 <Rect
                   x={0}
@@ -62,7 +62,7 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
                   width={CAPSULE_WIDTH}
                   height={filledHeight}
                   rx={CAPSULE_WIDTH / 2}
-                  fill={hasData ? seg.color : colors.divider}
+                  fill={hasData ? seg.color : colors.surfaceHigh}
                 />
               </Svg>
               <Text style={styles.capsuleLabel}>{seg.label}</Text>
@@ -74,7 +74,7 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
 
       <View style={styles.divider} />
 
-      <Text style={styles.sectionLabel}>Ambient check</Text>
+      <Text style={styles.sectionLabel}>How quiet is your room?</Text>
       <AmbientMicMeter
         onComplete={({ peakLevel, averageLevel, durationSeconds }) =>
           saveCheck({
@@ -90,7 +90,7 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
         <View style={styles.historyList}>
           {history.slice(0, 3).map((h) => (
             <Text key={h.id} style={styles.historyRow}>
-              {new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} · peak{' '}
+              {new Date(h.created_at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}, loudest{' '}
               {Math.round(h.peak_level * 100)}%
             </Text>
           ))}
@@ -101,19 +101,17 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
 }
 
 const styles = StyleSheet.create({
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
-  },
+  card: {},
   label: {
     fontFamily: fonts.display,
     fontSize: 18,
-    color: colors.ink,
+    color: colors.text,
   },
   score: {
     marginTop: 4,
     fontFamily: fonts.display,
     fontSize: 34,
-    color: colors.ink,
+    color: colors.text,
   },
   capsuleRow: {
     flexDirection: 'row',
@@ -124,28 +122,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   capsuleLabel: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.mono,
-    fontSize: 9,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    marginTop: spacing.sm,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textMuted,
   },
   capsuleValue: {
     marginTop: 2,
     fontFamily: fonts.body,
     fontSize: 12,
-    color: colors.inkMuted,
+    color: colors.textMuted,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
+    backgroundColor: colors.lineStrong,
     marginVertical: spacing.md,
   },
   sectionLabel: {
     fontFamily: fonts.bodyMedium,
     fontSize: 14,
-    color: colors.inkMuted,
+    color: colors.textMuted,
     marginBottom: spacing.xs,
   },
   historyList: {
@@ -153,8 +149,8 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   historyRow: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
   },
 });

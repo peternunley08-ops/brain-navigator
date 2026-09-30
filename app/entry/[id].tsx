@@ -1,28 +1,40 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useReducedMotion } from 'react-native-reanimated';
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
+import { emberSay } from '../../components/ember/EmberBuddy';
 import { Button } from '../../components/ui/Button';
 import { Candle, candleRemaining, candleSeed, type CandleState } from '../../components/ui/Candle';
 import { Card } from '../../components/ui/Card';
-import { Divider } from '../../components/ui/Divider';
+import { EmptyState } from '../../components/ui/EmptyState';
+import { Field } from '../../components/ui/Field';
 import { HoldToConfirm } from '../../components/ui/HoldToConfirm';
+import { Reveal } from '../../components/ui/Reveal';
+import { Screen } from '../../components/ui/Screen';
+import { Section } from '../../components/ui/Section';
 import { useAudioStore } from '../../core/audioStore';
-import { uploadSnapshotImage } from '../../core/imageUpload';
-import { supabase } from '../../core/supabase';
 import { useFlameClock } from '../../core/hooks/useFlameClock';
+import { uploadSnapshotImage } from '../../core/imageUpload';
 import { CognitiveStateEntry, STATE_LABEL, useBrainNavigatorStore } from '../../core/store';
-import { colors, fonts, spacing, stateColor } from '../../core/theme';
+import { supabase } from '../../core/supabase';
+import { alpha, colors, fonts, radii, stateColor } from '../../core/theme';
 
 // Matches the threshold used at save time in new-entry.tsx — a self-rated
 // intensity of 7+ is this app's real "high-stress" signal.
 const STRESS_THRESHOLD = 7;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 interface Catalyst {
   id: string;
   description: string;
   entities: { name: string } | null;
+}
+
+function openFor(createdAt: string) {
+  const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / DAY_MS);
+  if (days <= 0) return 'since today';
+  return days === 1 ? 'for a day' : `for ${days} days`;
 }
 
 export default function EntryDetailScreen() {
@@ -32,6 +44,7 @@ export default function EntryDetailScreen() {
   const shelveEntry = useBrainNavigatorStore((s) => s.shelveEntry);
   const setTrove = useBrainNavigatorStore((s) => s.setTrove);
   const fetchHistory = useBrainNavigatorStore((s) => s.fetchHistory);
+  const openLoops = useBrainNavigatorStore((s) => s.openLoops);
   const isSaving = useBrainNavigatorStore((s) => s.isSaving);
   const [note, setNote] = useState('');
   const [sealed, setSealed] = useState(false);
@@ -40,17 +53,21 @@ export default function EntryDetailScreen() {
   const [loadingCatalysts, setLoadingCatalysts] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [fetchedEntry, setFetchedEntry] = useState<CognitiveStateEntry | null>(null);
+  const [lookedUp, setLookedUp] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const time = useFlameClock();
   const reducedMotion = useReducedMotion();
 
-  const historyEntry = useMemo(() => history.find((e) => e.id === id), [history, id]);
+  const historyEntry = useMemo(
+    () => history.find((e) => e.id === id) ?? openLoops.find((e) => e.id === id),
+    [history, openLoops, id]
+  );
   const entry = historyEntry ?? fetchedEntry ?? undefined;
 
-  // The Today history feed is capped to the 50 most recent entries, so an
-  // older entry (reached via Trove, Open Loops, or a saved link) won't be
-  // in it — fetch it directly rather than showing "Entry not found."
+  // The history feed is capped to the 50 most recent entries, so an older
+  // entry (reached via Kept, Loops, or a saved link) won't be in it — fetch
+  // it directly rather than showing "not found".
   useEffect(() => {
     if (historyEntry || !id) return;
     let cancelled = false;
@@ -61,8 +78,9 @@ export default function EntryDetailScreen() {
       .eq('id', id)
       .maybeSingle()
       .then(({ data, error }) => {
-        if (cancelled || error || !data) return;
-        setFetchedEntry(data as CognitiveStateEntry);
+        if (cancelled) return;
+        if (!error && data) setFetchedEntry(data as CognitiveStateEntry);
+        setLookedUp(true);
       });
 
     return () => {
@@ -90,7 +108,9 @@ export default function EntryDetailScreen() {
     return () => {
       cancelled = true;
     };
-  }, [entry]);
+    // Only refetch when the entry itself changes, not on every field edit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entry?.id]);
 
   // Soften the ambient soundscape while viewing a high-intensity entry;
   // return to the clear tone on leaving.
@@ -141,7 +161,10 @@ export default function EntryDetailScreen() {
         setSaveFailed(true);
         return;
       }
-      setTimeout(() => router.back(), Math.max(0, leaveAt - Date.now()));
+      setTimeout(() => {
+        router.back();
+        emberSay('Resolved. That’s one less thing burning.', 'cheer');
+      }, Math.max(0, leaveAt - Date.now()));
     });
   };
 
@@ -157,7 +180,10 @@ export default function EntryDetailScreen() {
         setSaveFailed(true);
         return;
       }
-      setTimeout(() => router.back(), Math.max(0, leaveAt - Date.now()));
+      setTimeout(() => {
+        router.back();
+        emberSay('Let go. You don’t have to carry that one anymore.', 'happy');
+      }, Math.max(0, leaveAt - Date.now()));
     });
   };
 
@@ -167,46 +193,77 @@ export default function EntryDetailScreen() {
 
   if (!entry) {
     return (
-      <View style={[styles.root, styles.content]}>
-        <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
-        <Text style={styles.notes}>This entry doesn't exist anymore.</Text>
-      </View>
+      <Screen nav={false}>
+        {lookedUp ? (
+          <EmptyState title="This one isn’t here anymore." body="It may have been removed. Everything else is where you left it.">
+            <Button label="Back to the Desk" variant="secondary" onPress={() => router.back()} />
+          </EmptyState>
+        ) : null}
+      </Screen>
     );
   }
 
+  const tint = stateColor(displayState);
+  const busy = isSaving || sealed || shelved;
+  const setDown = new Date(entry.created_at).toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+
   return (
-    <ScrollView ref={scrollRef} style={styles.root} contentContainerStyle={styles.content}>
-      <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
+    <Screen nav={false} scrollRef={scrollRef} tone="ember" glowColor={displayState === 'shelved' ? '#AFA2DE' : '#F5B45C'}>
+      <View style={styles.hero}>
+        <Candle
+          width={156}
+          time={time}
+          intensity={(entry.intensity ?? 5) / 10}
+          remaining={candleRemaining(entry.created_at)}
+          seed={candleSeed(entry.id)}
+          state={candleState}
+          reducedMotion={reducedMotion}
+          igniteDelay={200}
+        />
+        <Animated.View key={displayState} entering={FadeIn.duration(300)} style={[styles.statePill, { borderColor: alpha(tint, 0.5), backgroundColor: alpha(tint, 0.12) }]}>
+          <View style={[styles.stateDot, { backgroundColor: tint }]} />
+          <Text style={[styles.stateText, { color: tint }]}>
+            {STATE_LABEL[displayState]}
+            {displayState === 'unlocked' ? ` ${openFor(entry.created_at)}` : ''}
+          </Text>
+        </Animated.View>
+        <Text style={styles.title}>{entry.mood || 'Untitled'}</Text>
+        <Text style={styles.date}>Set down {setDown}</Text>
+      </View>
 
-      <Candle
-        width={150}
-        time={time}
-        intensity={(entry.intensity ?? 5) / 10}
-        remaining={candleRemaining(entry.created_at)}
-        seed={candleSeed(entry.id)}
-        state={candleState}
-        reducedMotion={reducedMotion}
-        igniteDelay={200}
-      />
-
-      <Text style={[styles.label, { color: stateColor(displayState) }]}>{STATE_LABEL[displayState]}</Text>
       {saveFailed ? (
-        <Text style={styles.saveError}>
-          Couldn't save that, so it's still open. Check your connection and try again.
-        </Text>
+        <Animated.View entering={FadeInDown.duration(260)}>
+          <Card tint={colors.danger} style={styles.errorCard}>
+            <Text style={styles.errorText}>Couldn’t save that, so it’s still open. Check your connection and try again.</Text>
+          </Card>
+        </Animated.View>
       ) : null}
-      <Text style={styles.mood}>{entry.mood || 'Untitled'}</Text>
-      <Text style={styles.date}>{new Date(entry.created_at).toLocaleDateString()}</Text>
-      {entry.notes ? <Text style={styles.notes}>{entry.notes}</Text> : null}
+
+      {entry.notes ? (
+        <Reveal index={0}>
+          <Card style={styles.notesCard}>
+            <Text style={styles.notes}>{entry.notes}</Text>
+          </Card>
+        </Reveal>
+      ) : null}
 
       {entry.image_url ? (
-        <Image source={{ uri: entry.image_url }} style={styles.snapshotImage} />
+        <Reveal index={1}>
+          <Image source={{ uri: entry.image_url }} style={styles.snapshotImage} />
+        </Reveal>
       ) : null}
 
-      <View style={styles.actionRow}>
+      <Reveal index={1} style={styles.actionRow}>
         <Button
           label={entry.in_trove ? 'Kept' : 'Keep this'}
-          variant="pill"
+          variant="secondary"
+          size="sm"
+          icon="jar"
+          tint={entry.in_trove ? colors.flame : undefined}
           onPress={() => {
             const nextInTrove = !entry.in_trove;
             setTrove(entry.id, nextInTrove);
@@ -214,187 +271,181 @@ export default function EntryDetailScreen() {
               setFetchedEntry((prev) => (prev ? { ...prev, in_trove: nextInTrove } : prev));
             }
           }}
-          style={styles.troveButton}
+          style={styles.flex}
         />
         <Button
           label={uploadingImage ? 'Uploading…' : entry.image_url ? 'Change photo' : 'Add photo'}
-          variant="pill"
+          variant="secondary"
+          size="sm"
+          icon="image"
+          loading={uploadingImage}
           onPress={handlePickImage}
-          disabled={uploadingImage}
-          style={styles.troveButton}
+          style={styles.flex}
         />
-      </View>
+      </Reveal>
 
       {!loadingCatalysts && catalysts.length > 0 ? (
-        <View style={styles.redStringBlock}>
-          <Text style={styles.sectionTitle}>Red String</Text>
-          <Card style={styles.catalystCard}>
-            {catalysts.map((c, i) => (
-              <View key={c.id}>
-                <View style={styles.catalystRow}>
-                  <Text style={styles.catalystDescription}>{c.description}</Text>
-                  {c.entities?.name ? (
-                    <Text style={styles.catalystEntity}>— {c.entities.name}</Text>
-                  ) : null}
+        <Reveal index={2}>
+          <Section title="What set it off">
+            <Card padded={false}>
+              {catalysts.map((c, i) => (
+                <View key={c.id} style={[styles.catalystRow, i > 0 && styles.catalystBorder]}>
+                  <View style={styles.catalystDot} />
+                  <View style={styles.flex}>
+                    <Text style={styles.catalystDescription}>{c.description}</Text>
+                    {c.entities?.name ? <Text style={styles.catalystEntity}>{c.entities.name}</Text> : null}
+                  </View>
                 </View>
-                {i < catalysts.length - 1 ? <Divider /> : null}
-              </View>
-            ))}
-          </Card>
-        </View>
+              ))}
+            </Card>
+          </Section>
+        </Reveal>
       ) : null}
 
       {entry.state === 'unlocked' ? (
-        <>
-          <TextInput
-            style={styles.input}
-            placeholder="How did this resolve? (optional)"
-            placeholderTextColor={colors.hint}
-            value={note}
-            onChangeText={setNote}
-            multiline
-            editable={!isSaving && !sealed && !shelved}
-          />
-
-          <View style={styles.holdRow}>
-            <View style={styles.holdWrap}>
+        <Reveal index={3}>
+          <Section
+            title="Close it"
+            note="Resolve it if it’s handled. Let it go if you’re choosing to stop carrying it. Both count."
+          >
+            <Field
+              placeholder="How did it resolve? (optional)"
+              value={note}
+              onChangeText={setNote}
+              multiline
+              editable={!busy}
+            />
+            <View style={styles.holdRow}>
               <HoldToConfirm
                 label={sealed ? 'Resolved' : 'Hold to resolve'}
                 holdingLabel="Resolving…"
                 onComplete={handleSeal}
                 fillColor={colors.secured}
-                borderColor={colors.secured}
-                size={84}
-                disabled={isSaving || sealed || shelved}
+                icon="check"
+                size={92}
+                disabled={busy}
               />
-            </View>
-
-            <View style={styles.holdWrap}>
               <HoldToConfirm
-                label={shelved ? 'Let go' : 'Hold to let it go'}
+                label={shelved ? 'Let go' : 'Hold to let go'}
                 holdingLabel="Letting go…"
                 onComplete={handleShelve}
                 fillColor={colors.shelved}
-                borderColor={colors.shelved}
-                size={84}
-                disabled={isSaving || sealed || shelved}
+                icon="feather"
+                size={92}
+                disabled={busy}
               />
             </View>
-          </View>
-        </>
+          </Section>
+        </Reveal>
       ) : null}
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
+  flex: {
     flex: 1,
-    backgroundColor: colors.background,
   },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: spacing.xxl,
+  hero: {
     alignItems: 'center',
+    marginTop: 4,
   },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
+  statePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: 14,
+    paddingHorizontal: 12,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
   },
-  saveError: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.body,
+  stateDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  stateText: {
+    fontFamily: fonts.bodySemi,
     fontSize: 13,
-    color: colors.danger,
-    textAlign: 'center',
   },
-  label: {
-    marginTop: spacing.md,
-    fontFamily: fonts.displaySoft,
-    fontSize: 17,
-    color: colors.unlocked,
-  },
-  sectionTitle: {
-    fontFamily: fonts.displaySoft,
-    fontSize: 18,
-    color: colors.ink,
-  },
-  mood: {
-    marginTop: spacing.sm,
+  title: {
+    marginTop: 12,
     fontFamily: fonts.display,
-    fontSize: 24,
-    color: colors.ink,
+    fontSize: 30,
+    lineHeight: 36,
+    color: colors.text,
     textAlign: 'center',
   },
   date: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    color: colors.hint,
-  },
-  notes: {
-    marginTop: spacing.md,
+    marginTop: 6,
     fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.inkMuted,
+    fontSize: 14,
+    color: colors.textFaint,
+  },
+  errorCard: {
+    marginTop: 18,
+  },
+  errorText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.danger,
     textAlign: 'center',
   },
+  notesCard: {
+    marginTop: 22,
+  },
+  notes: {
+    fontFamily: fonts.displaySoft,
+    fontSize: 17,
+    lineHeight: 25,
+    color: colors.textMuted,
+  },
   snapshotImage: {
-    marginTop: spacing.lg,
-    width: 260,
-    height: 260,
-    borderRadius: 16,
-    backgroundColor: colors.backgroundAlt,
+    marginTop: 16,
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: radii.lg,
+    backgroundColor: colors.surface,
   },
   actionRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.md,
-  },
-  troveButton: {},
-  redStringBlock: {
-    marginTop: spacing.xl,
-    width: '100%',
-    maxWidth: 360,
-    alignItems: 'flex-start',
-  },
-  catalystCard: {
-    marginTop: spacing.sm,
+    gap: 10,
+    marginTop: 16,
   },
   catalystRow: {
-    paddingVertical: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+  },
+  catalystBorder: {
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  catalystDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginTop: 6,
+    backgroundColor: colors.unlocked,
   },
   catalystDescription: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodyMedium,
     fontSize: 15,
-    color: colors.ink,
+    color: colors.text,
   },
   catalystEntity: {
     marginTop: 2,
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    color: colors.inkFaint,
-  },
-  input: {
-    marginTop: spacing.xl,
-    width: '100%',
-    maxWidth: 360,
-    minHeight: 80,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.divider,
-    borderRadius: 8,
-    padding: spacing.md,
     fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.ink,
-    backgroundColor: colors.backgroundAlt,
-    textAlignVertical: 'top',
+    fontSize: 13,
+    color: colors.textFaint,
   },
   holdRow: {
-    marginTop: spacing.xxl,
+    marginTop: 28,
     flexDirection: 'row',
-    gap: spacing.xl,
+    justifyContent: 'space-evenly',
   },
-  holdWrap: {},
 });

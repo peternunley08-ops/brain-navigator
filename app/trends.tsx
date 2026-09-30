@@ -1,13 +1,15 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Svg, { Circle, Line, Polyline, Text as SvgText } from 'react-native-svg';
-import { BottomNav } from '../components/BottomNav';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { colors, fonts, radii, spacing } from '../core/theme';
-import { useAdaptiveGradient } from '../core/adaptiveLight';
+import { Chip, ChipRow } from '../components/ui/Chip';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Reveal } from '../components/ui/Reveal';
+import { Screen } from '../components/ui/Screen';
+import { StatTile } from '../components/ui/StatTile';
+import { colors, fonts, layout } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 
 type MetricKey = 'mood' | 'sleep_hours' | 'sleep_quality' | 'stress_level';
@@ -18,19 +20,21 @@ interface Metric {
   color: string;
   min: number;
   max: number;
+  unit: string;
+  /** Whether a rising line is good news. */
+  upIsGood: boolean;
 }
 
 const METRICS: Metric[] = [
-  { key: 'mood', label: 'Mood', color: colors.secured, min: 1, max: 5 },
-  { key: 'sleep_hours', label: 'Sleep', color: colors.leather, min: 0, max: 12 },
-  { key: 'sleep_quality', label: 'Quality', color: colors.leatherDark, min: 1, max: 5 },
-  { key: 'stress_level', label: 'Stress', color: colors.unlocked, min: 1, max: 10 },
+  { key: 'mood', label: 'Mood', color: colors.secured, min: 1, max: 5, unit: '/5', upIsGood: true },
+  { key: 'sleep_hours', label: 'Sleep', color: '#8FB4E8', min: 0, max: 12, unit: 'h', upIsGood: true },
+  { key: 'sleep_quality', label: 'Sleep quality', color: '#AFA2DE', min: 1, max: 5, unit: '/5', upIsGood: true },
+  { key: 'stress_level', label: 'Stress', color: colors.unlocked, min: 1, max: 10, unit: '/10', upIsGood: false },
 ];
 
-const CHART_WIDTH = 320;
-const CHART_HEIGHT = 140;
+const CHART_HEIGHT = 170;
 const PAD_X = 14;
-const PAD_Y = 16;
+const PAD_Y = 18;
 const DAYS_SHOWN = 14;
 
 function formatShortDate(dateStr: string) {
@@ -38,8 +42,26 @@ function formatShortDate(dateStr: string) {
   return `${Number(m)}/${Number(d)}`;
 }
 
+// A smooth path through the points (Catmull-Rom → cubic Bézier).
+function smooth(points: { x: number; y: number }[]) {
+  if (points.length < 2) return '';
+  let d = `M${points[0].x},${points[0].y}`;
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[Math.max(0, i - 1)];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[Math.min(points.length - 1, i + 2)];
+    const c1x = p1.x + (p2.x - p0.x) / 6;
+    const c1y = p1.y + (p2.y - p0.y) / 6;
+    const c2x = p2.x - (p3.x - p1.x) / 6;
+    const c2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C${c1x},${c1y} ${c2x},${c2y} ${p2.x},${p2.y}`;
+  }
+  return d;
+}
+
 export default function TrendsScreen() {
-  const { gradient } = useAdaptiveGradient();
+  const { width } = useWindowDimensions();
   const checkins = useWellnessStore((s) => s.checkins);
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
   const isLoadingCheckins = useWellnessStore((s) => s.isLoadingCheckins);
@@ -50,6 +72,7 @@ export default function TrendsScreen() {
   }, [fetchCheckins]);
 
   const metric = METRICS.find((m) => m.key === metricKey)!;
+  const CHART_WIDTH = Math.min(width, layout.maxWidth) - layout.gutter * 2 - 2;
 
   const data = useMemo(() => {
     return [...checkins]
@@ -64,14 +87,13 @@ export default function TrendsScreen() {
     const innerHeight = CHART_HEIGHT - PAD_Y * 2;
     return data.map((c, i) => {
       const value = c[metricKey] as number;
-      const x =
-        data.length === 1 ? PAD_X + innerWidth / 2 : PAD_X + (i / (data.length - 1)) * innerWidth;
+      const x = data.length === 1 ? PAD_X + innerWidth / 2 : PAD_X + (i / (data.length - 1)) * innerWidth;
       const clamped = Math.max(metric.min, Math.min(metric.max, value));
       const ratio = (clamped - metric.min) / (metric.max - metric.min || 1);
       const y = PAD_Y + innerHeight - ratio * innerHeight;
       return { x, y, value };
     });
-  }, [data, metricKey, metric]);
+  }, [data, metricKey, metric, CHART_WIDTH]);
 
   const stats = useMemo(() => {
     if (data.length === 0) return null;
@@ -82,248 +104,131 @@ export default function TrendsScreen() {
     return { avg, latest, delta };
   }, [data, metricKey]);
 
-  const polylinePoints = points.map((p) => `${p.x},${p.y}`).join(' ');
+  const line = smooth(points);
+  const area =
+    points.length > 1 ? `${line} L${points[points.length - 1].x},${CHART_HEIGHT - PAD_Y} L${points[0].x},${CHART_HEIGHT - PAD_Y} Z` : '';
+  const deltaGood = stats ? (metric.upIsGood ? stats.delta >= 0 : stats.delta <= 0) : true;
 
   return (
-    <View style={styles.outer}>
-      <LinearGradient colors={gradient} style={styles.gradient}>
-        <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-          <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
+    <Screen
+      title="Trends"
+      subtitle={
+        checkins.length === 0
+          ? isLoadingCheckins
+            ? 'Loading…'
+            : 'No check-ins yet.'
+          : `Your last ${data.length} of ${checkins.length} check-ins.`
+      }
+    >
+      <Reveal index={0}>
+        <ChipRow style={styles.chips}>
+          {METRICS.map((m) => (
+            <Chip key={m.key} label={m.label} selected={metricKey === m.key} color={m.color} dot onPress={() => setMetricKey(m.key)} />
+          ))}
+        </ChipRow>
+      </Reveal>
 
-          <Text style={styles.title}>Trends</Text>
-          <Text style={styles.subtitle}>
-            {checkins.length === 0
-              ? isLoadingCheckins
-                ? 'Loading…'
-                : 'No check-ins yet'
-              : `Last ${data.length} of ${checkins.length} check-ins`}
-          </Text>
-
-          <View style={styles.metricRow}>
-            {METRICS.map((m) => {
-              const active = metricKey === m.key;
-              return (
-                <Pressable
-                  key={m.key}
-                  onPress={() => setMetricKey(m.key)}
-                  style={[
-                    styles.metricChip,
-                    active && { backgroundColor: m.color, borderColor: m.color },
-                  ]}
-                >
-                  <Text style={[styles.metricChipText, active && styles.metricChipTextActive]}>
-                    {m.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-
-          {data.length > 0 ? (
-            <Card style={styles.chartCard}>
+      {data.length > 0 ? (
+        <>
+          <Reveal index={1}>
+            <Card padded={false} style={styles.chartCard}>
               <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
-                <Line
-                  x1={PAD_X}
-                  y1={CHART_HEIGHT - PAD_Y}
-                  x2={CHART_WIDTH - PAD_X}
-                  y2={CHART_HEIGHT - PAD_Y}
-                  stroke={colors.divider}
-                  strokeWidth={1}
-                />
-                <Line
-                  x1={PAD_X}
-                  y1={PAD_Y}
-                  x2={CHART_WIDTH - PAD_X}
-                  y2={PAD_Y}
-                  stroke={colors.divider}
-                  strokeWidth={1}
-                  strokeDasharray="2,4"
-                />
-
-                {points.length > 1 && (
-                  <Polyline
-                    points={polylinePoints}
-                    fill="none"
-                    stroke={metric.color}
-                    strokeWidth={2}
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                  />
-                )}
-
-                {points.map((p, i) => (
-                  <Circle
-                    key={i}
-                    cx={p.x}
-                    cy={p.y}
-                    r={i === points.length - 1 ? 5 : 3.5}
-                    fill={metric.color}
-                    stroke={colors.background}
-                    strokeWidth={i === points.length - 1 ? 2 : 0}
+                <Defs>
+                  <LinearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor={metric.color} stopOpacity={0.32} />
+                    <Stop offset="1" stopColor={metric.color} stopOpacity={0} />
+                  </LinearGradient>
+                </Defs>
+                {[0, 0.5, 1].map((f) => (
+                  <Line
+                    key={f}
+                    x1={PAD_X}
+                    x2={CHART_WIDTH - PAD_X}
+                    y1={PAD_Y + f * (CHART_HEIGHT - PAD_Y * 2)}
+                    y2={PAD_Y + f * (CHART_HEIGHT - PAD_Y * 2)}
+                    stroke={colors.line}
+                    strokeWidth={1}
+                    strokeDasharray={f === 1 ? undefined : '3 5'}
                   />
                 ))}
-
-                <SvgText x={PAD_X} y={PAD_Y - 4} fontSize={9} fontFamily={fonts.mono} fill={colors.hint}>
+                {area ? <Path d={area} fill="url(#trendFill)" /> : null}
+                {line ? <Path d={line} stroke={metric.color} strokeOpacity={0.35} strokeWidth={7} fill="none" strokeLinecap="round" /> : null}
+                {line ? <Path d={line} stroke={metric.color} strokeWidth={2.5} fill="none" strokeLinecap="round" /> : null}
+                {points.map((p, i) => {
+                  const last = i === points.length - 1;
+                  return (
+                    <Circle
+                      key={i}
+                      cx={p.x}
+                      cy={p.y}
+                      r={last ? 6 : 3}
+                      fill={last ? metric.color : colors.surface}
+                      stroke={last ? colors.night : metric.color}
+                      strokeWidth={last ? 3 : 1.5}
+                    />
+                  );
+                })}
+                <SvgText x={PAD_X} y={PAD_Y - 6} fontSize={10} fontFamily={fonts.bodyMedium} fill={colors.textFaint}>
                   {metric.max}
                 </SvgText>
-                <SvgText
-                  x={PAD_X}
-                  y={CHART_HEIGHT - PAD_Y + 12}
-                  fontSize={9}
-                  fontFamily={fonts.mono}
-                  fill={colors.hint}
-                >
+                <SvgText x={PAD_X} y={CHART_HEIGHT - 4} fontSize={10} fontFamily={fonts.bodyMedium} fill={colors.textFaint}>
                   {metric.min}
                 </SvgText>
               </Svg>
               <View style={styles.dateRow}>
                 <Text style={styles.dateLabel}>{formatShortDate(data[0].checkin_date)}</Text>
-                <Text style={styles.dateLabel}>
-                  {formatShortDate(data[data.length - 1].checkin_date)}
-                </Text>
+                <Text style={styles.dateLabel}>{formatShortDate(data[data.length - 1].checkin_date)}</Text>
               </View>
-
-              {stats ? (
-                <View style={styles.statsRow}>
-                  <StatCard label="Average" value={stats.avg.toFixed(1)} />
-                  <StatCard label="Latest" value={String(stats.latest)} />
-                  <StatCard
-                    label="Change"
-                    value={`${stats.delta > 0 ? '+' : ''}${stats.delta.toFixed(1)}`}
-                  />
-                </View>
-              ) : null}
             </Card>
-          ) : (
-            <Text style={styles.hint}>
-              {checkins.length === 0
-                ? 'Check in from the Desk to start building a trend.'
-                : 'No data logged for this metric yet.'}
-            </Text>
-          )}
-        </ScrollView>
+          </Reveal>
 
-        <BottomNav />
-      </LinearGradient>
-    </View>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={styles.statLabel}>{label}</Text>
-      <Text style={styles.statValue}>{value}</Text>
-    </View>
+          {stats ? (
+            <Reveal index={2} style={styles.statsRow}>
+              <StatTile label="Average" value={stats.avg.toFixed(1)} unit={metric.unit} />
+              <StatTile label="Latest" value={String(stats.latest)} unit={metric.unit} color={metric.color} />
+              <StatTile
+                label="Change"
+                value={`${stats.delta > 0 ? '+' : ''}${stats.delta.toFixed(1)}`}
+                color={stats.delta === 0 ? colors.text : deltaGood ? colors.secured : colors.unlocked}
+              />
+            </Reveal>
+          ) : null}
+        </>
+      ) : (
+        <EmptyState
+          title={checkins.length === 0 ? 'No lines to draw yet.' : 'Nothing logged for this one yet.'}
+          body={checkins.length === 0 ? 'Check in a few days in a row and your trends appear here.' : undefined}
+        >
+          {checkins.length === 0 ? <Button label="Check in now" icon="sun" onPress={() => router.push('/checkin')} /> : null}
+        </EmptyState>
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: 480,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  gradient: {
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 100,
-    alignItems: 'center',
-  },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-    alignSelf: 'flex-start',
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-    alignSelf: 'flex-start',
-  },
-  metricRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-    alignSelf: 'flex-start',
-  },
-  metricChip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.backgroundAlt,
-  },
-  metricChipText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
-  metricChipTextActive: {
-    color: colors.background,
+  chips: {
+    marginTop: 16,
   },
   chartCard: {
-    marginTop: spacing.xl,
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    marginTop: 16,
+    paddingTop: 10,
+    paddingBottom: 12,
   },
   dateRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    width: CHART_WIDTH - PAD_X * 2,
-    marginTop: spacing.xs,
+    paddingHorizontal: PAD_X,
+    marginTop: 2,
   },
   dateLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.inkFaint,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textFaint,
   },
   statsRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
-    width: '100%',
-  },
-  statCard: {
-    flex: 1,
-    paddingVertical: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    alignItems: 'center',
-  },
-  statLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
-  },
-  statValue: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.display,
-    fontSize: 20,
-    color: colors.ink,
-  },
-  hint: {
-    marginTop: spacing.xl,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.hint,
+    gap: 10,
+    marginTop: 12,
   },
 });

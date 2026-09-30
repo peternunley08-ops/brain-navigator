@@ -81,13 +81,13 @@ export function AmbientMicMeter({ onComplete }: AmbientMicMeterProps) {
     <View style={styles.wrap}>
       <View style={styles.row}>
         <Svg width={12} height={12}>
-          <Circle cx={6} cy={6} r={5} fill={state.isRecording ? colors.lantern : colors.divider} />
+          <Circle cx={6} cy={6} r={5} fill={state.isRecording ? colors.unlocked : colors.surfaceHigh} />
         </Svg>
         <View style={styles.levelTrack}>
           <View style={[styles.levelFill, { width: `${Math.round(level * 100)}%` }]} />
         </View>
         <Pressable onPress={state.isRecording ? handleStop : handleStart} hitSlop={8}>
-          <Text style={styles.actionText}>{state.isRecording ? 'Stop' : 'Check Ambient Noise'}</Text>
+          <Text style={styles.actionText}>{state.isRecording ? 'Stop listening' : 'Check the noise level'}</Text>
         </Pressable>
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -106,19 +106,19 @@ const styles = StyleSheet.create({
   },
   levelTrack: {
     flex: 1,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.divider,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.surfaceSunk,
     overflow: 'hidden',
   },
   levelFill: {
     height: '100%',
-    backgroundColor: colors.lantern,
+    backgroundColor: colors.flame,
   },
   actionText: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodySemi,
     fontSize: 13,
-    color: colors.leather,
+    color: colors.flame,
   },
   errorText: {
     marginTop: spacing.xs,

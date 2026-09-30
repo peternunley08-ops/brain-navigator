@@ -1384,3 +1384,61 @@ is untouched and still open.
 **Next**: optionally run
 the Phase 26 SQL; reinstall on the phone (it still has the pre-redesign
 build); the "Recent Insight" AI feature is proposed but not approved.
+
+## 2026-09-29 — Audit fixes, then every screen redesigned + Ember the mascot
+
+**Audit (committed d99277e).** Tab taps were stacking duplicate screens
+(Back walked Map → Loops → Map…; `dangerouslySingular` was tried and
+broke Back, so tabs now `dismissTo` an existing copy); hidden screens
+kept running flame clocks (now paused on blur); a failed resolve/let-go
+still played the full closing (now reverts with a plain error; note saved
+before the state flips); Reduce Motion now respected by closings; the same
+candle looks identical on the Desk and its own screen. The phone was
+reinstalled with the Desk build before this; it doesn't have these yet.
+
+**"Redesign every screen, and an interactive mascot that helps."**
+Diagnosis from screenshots of all 20 screens: everything was the same
+beige, every action the same brown pill with tracked typewriter text,
+forms looked like forms. Chose a night palette where the Desk's candles
+are the light source (full reasoning and file list in docs/todo.md
+Phase 28), Figtree for UI text, a design kit (`Screen` and friends), and
+rebuilt every screen on it. Made Ember — previously a bear with the same
+name — a living flame: a global overlay you can tap for data-driven tips
+and a "what is this screen" explanation, drag (edge-snapping, flame
+trails), hold (kind line), shake (dizzy), or put down for a nap. Ember
+reacts to real events through `emberSay()`. New small features along the
+way: 5-4-3-2-1 grounding on Steady, "Who keeps showing up" on the Map,
+a live candle preview when setting something down, a Now marker on the
+Calendar, a weakest-area hint on the wellness wheel.
+
+Bugs found and fixed while building: a quick tap on Ember registered as a
+"cancelled" drag (GH v3 reports untraveled pans as failed) so the bubble
+never opened; the Map counted "Mom" once per catalyst instead of once per
+entry ("4 entries" for 1); the Map flashed "Nothing set down yet" while
+loading; the sleep stepper was pushed off-screen by the question text;
+several strings claimed things stay on the phone when they're stored in
+Supabase (corrected — only speech-to-text is on-device).
+
+Verification: `tsc` clean; real taps in the Simulator for the wake gate,
+Ember's bubble and its Check-in action, dragging Ember, the new slider,
+mood faces, Desk, Loops, Map, Steady, Drawer, Your plate, the Ember
+conversation, Ember's nap/wake (the nap survives a relaunch) and
+hold-for-comfort, and screenshots of every other rebuilt screen. For part
+of the session the Mac hit load averages of 180–330 with ~10 GB of swap
+(many Chrome/Comet tabs, XProtect scanning), which made each simulator
+step take minutes, stalled deep links, and stopped Fast Refresh from
+applying edits (a relaunch fixed it). Polish from testing: the nap glow
+became a soft gradient and the z's drift inward instead of being clipped
+by the screen edge. Nothing was saved to real data during testing.
+Uncommitted at the end of the session.
+
+**Ember on AI.** User: "use .jev api to run the ai mascot" — read as the
+`.env` API. `.env` has no AI key (Supabase, Google, Notion only); the
+Anthropic key is the Supabase secret `brain-navigator-v2`, and a live test
+of the deployed `chat` function still returned "Your credit balance is too
+low". Built the AI path anyway so it works once credit exists: a new
+`ember` Edge Function (not deployed — dashboard only), `core/emberAI.ts`
+with a fallback to `chat`, the companion screen as a real conversation,
+and "Talk to me" on every tip. Verified the no-credit path live (Ember
+explains in a dashed aside and continues with its built-in question).
+Nothing saved. Uncommitted.

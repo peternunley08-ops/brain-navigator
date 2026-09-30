@@ -1,37 +1,29 @@
 import * as Haptics from 'expo-haptics';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router, useNavigation, usePathname } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Defs, Path, RadialGradient, Stop } from 'react-native-svg';
-import { FLAME_CORE, FLAME_MID, flamePath } from '../core/flame';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useBrainNavigatorStore } from '../core/store';
-import { colors, fonts, radii, spacing } from '../core/theme';
+import { alpha, colors, fonts, gradients } from '../core/theme';
+import { Icon, type IconName } from './ui/Icon';
+import { Pressy } from './ui/Pressy';
 
 type NavPath = '/' | '/open-loops' | '/topography' | '/steady';
 
 interface NavItem {
   label: string;
   path: NavPath;
+  icon: IconName;
 }
 
 const LEFT: NavItem[] = [
-  { label: 'Desk', path: '/' },
-  { label: 'Loops', path: '/open-loops' },
+  { label: 'Desk', path: '/', icon: 'candle' },
+  { label: 'Loops', path: '/open-loops', icon: 'loops' },
 ];
 const RIGHT: NavItem[] = [
-  { label: 'Map', path: '/topography' },
-  { label: 'Steady', path: '/steady' },
+  { label: 'Map', path: '/topography', icon: 'map' },
+  { label: 'Steady', path: '/steady', icon: 'steady' },
 ];
-
-// A still flame, drawn once — the nav's centre action is "set something
-// down", which is how a new candle arrives on the desk.
-const ICON = 30;
-const ICON_FLAME = flamePath(ICON / 2, ICON * 0.66, ICON * 0.2, ICON * 0.44, 0, 0, 0, 0, 28);
-const ICON_CORE = flamePath(ICON / 2, ICON * 0.7, ICON * 0.09, ICON * 0.16, 0, 0, 0, 1, 20);
-
-function go(path: string) {
-  Haptics.selectionAsync().catch(() => {});
-  router.push(path as never);
-}
 
 // Tabs must not stack. A plain push adds a new copy of the screen on every
 // tap, so the history grows forever and every hidden Desk keeps burning its
@@ -49,9 +41,10 @@ const ROUTE_NAME: Record<NavPath, string> = {
 export function BottomNav() {
   const pathname = usePathname();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const openCount = useBrainNavigatorStore((s) => s.openLoops.length);
 
   const goTab = (path: NavPath) => {
-    Haptics.selectionAsync().catch(() => {});
     const open = navigation.getState()?.routes.some((r) => r.name === ROUTE_NAME[path]);
     if (open) {
       router.dismissTo(path);
@@ -59,10 +52,9 @@ export function BottomNav() {
       router.push(path);
     }
   };
-  const openCount = useBrainNavigatorStore((s) => s.openLoops.length);
 
   return (
-    <View style={styles.wrap} pointerEvents="box-none">
+    <View style={[styles.wrap, { paddingBottom: Math.max(16, insets.bottom - 8) }]} pointerEvents="box-none">
       <View style={styles.bar}>
         {LEFT.map((item) => (
           <NavSegment
@@ -74,24 +66,23 @@ export function BottomNav() {
           />
         ))}
 
-        <Pressable
-          style={({ pressed }) => [styles.centerButton, pressed && styles.centerPressed]}
-          onPress={() => go('/new-entry')}
-          accessibilityRole="button"
-          accessibilityLabel="Set something down"
-        >
-          <Svg width={ICON} height={ICON}>
-            <Defs>
-              <RadialGradient id="navFlame" cx="50%" cy="66%" r="64%">
-                <Stop offset="0" stopColor={FLAME_CORE} />
-                <Stop offset="0.55" stopColor={FLAME_MID} />
-                <Stop offset="1" stopColor={colors.leather} />
-              </RadialGradient>
-            </Defs>
-            <Path d={ICON_FLAME} fill="url(#navFlame)" />
-            <Path d={ICON_CORE} fill={FLAME_CORE} />
-          </Svg>
-        </Pressable>
+        <View style={styles.centerSlot}>
+          <Pressy
+            style={styles.centerButton}
+            depth={0.9}
+            haptic="none"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+              router.push('/new-entry');
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Set something down"
+          >
+            <LinearGradient colors={gradients.flame} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={styles.centerFill}>
+              <Icon name="plus" size={28} color={colors.flameInk} strokeWidth={2.6} />
+            </LinearGradient>
+          </Pressy>
+        </View>
 
         {RIGHT.map((item) => (
           <NavSegment key={item.path} item={item} active={pathname === item.path} onGo={goTab} />
@@ -112,22 +103,26 @@ function NavSegment({
   badge?: number;
   onGo: (path: NavPath) => void;
 }) {
+  const tint = active ? colors.flame : colors.textFaint;
   return (
-    <Pressable
+    <Pressy
       style={styles.segment}
+      depth={0.9}
       onPress={() => (active ? undefined : onGo(item.path))}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={badge ? `${item.label}, ${badge} open` : item.label}
     >
-      <Text style={[styles.segmentText, active && styles.segmentTextActive]}>{item.label}</Text>
-      <View style={[styles.activeMark, active && styles.activeMarkOn]} />
-      {badge ? (
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{badge}</Text>
-        </View>
-      ) : null}
-    </Pressable>
+      <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
+        <Icon name={item.icon} size={22} color={tint} strokeWidth={active ? 2.1 : 1.8} />
+        {badge ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badge}</Text>
+          </View>
+        ) : null}
+      </View>
+      <Text style={[styles.label, { color: tint }, active && styles.labelActive]}>{item.label}</Text>
+    </Pressy>
   );
 }
 
@@ -142,79 +137,86 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-evenly',
-    height: 62,
-    width: 352,
-    maxWidth: '92%',
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.sm,
-    backgroundColor: colors.leatherDark,
-    borderRadius: radii.pill,
-    shadowColor: colors.leatherDark,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.28,
-    shadowRadius: 16,
-    elevation: 6,
+    justifyContent: 'space-around',
+    height: 68,
+    width: 372,
+    maxWidth: '94%',
+    paddingHorizontal: 6,
+    backgroundColor: 'rgba(30, 24, 34, 0.97)',
+    borderRadius: 34,
+    borderWidth: 1,
+    borderColor: colors.line,
+    borderTopColor: colors.lineStrong,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 10,
   },
   segment: {
-    minWidth: 54,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: spacing.sm,
+    height: 64,
   },
-  segmentText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.hint,
+  iconWrap: {
+    width: 44,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  segmentTextActive: {
+  iconWrapActive: {
+    backgroundColor: alpha(colors.flame, 0.14),
+  },
+  label: {
+    marginTop: 2,
     fontFamily: fonts.bodyMedium,
-    color: colors.background,
+    fontSize: 11,
   },
-  activeMark: {
-    marginTop: 4,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'transparent',
-  },
-  activeMarkOn: {
-    backgroundColor: '#D8B36A',
+  labelActive: {
+    fontFamily: fonts.bodySemi,
   },
   badge: {
     position: 'absolute',
-    top: 2,
-    right: 0,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 3,
-    borderRadius: 8,
+    top: -3,
+    right: 2,
+    minWidth: 17,
+    height: 17,
+    paddingHorizontal: 4,
+    borderRadius: 9,
     backgroundColor: colors.unlocked,
+    borderWidth: 2,
+    borderColor: '#1E1822',
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 10,
-    color: colors.background,
+    fontFamily: fonts.bodyBold,
+    fontSize: 9,
+    color: colors.flameInk,
+  },
+  centerSlot: {
+    width: 70,
+    alignItems: 'center',
   },
   centerButton: {
     width: 62,
     height: 62,
     borderRadius: 31,
-    marginTop: -28,
-    backgroundColor: colors.leatherDark,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 4,
-    borderColor: colors.background,
-    shadowColor: colors.leatherDark,
+    marginTop: -30,
+    borderWidth: 5,
+    borderColor: colors.night,
+    shadowColor: colors.flame,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.45,
+    shadowRadius: 14,
     elevation: 8,
   },
-  centerPressed: {
-    transform: [{ scale: 0.94 }],
+  centerFill: {
+    flex: 1,
+    borderRadius: 31,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

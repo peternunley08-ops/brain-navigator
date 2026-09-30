@@ -1,23 +1,29 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { BottomNav } from '../components/BottomNav';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Chip, ChipRow } from '../components/ui/Chip';
+import { Icon } from '../components/ui/Icon';
+import { IconButton } from '../components/ui/IconButton';
 import { LollipopChart } from '../components/ui/LollipopChart';
-import { RadialGauge } from '../components/ui/RadialGauge';
+import { Reveal } from '../components/ui/Reveal';
+import { Ring } from '../components/ui/Ring';
+import { Screen } from '../components/ui/Screen';
+import { Section } from '../components/ui/Section';
 import { SleepQualityCard } from '../components/ui/SleepQualityCard';
-import { colors, fonts, radii, spacing } from '../core/theme';
-import { useAdaptiveGradient } from '../core/adaptiveLight';
+import { StatTile } from '../components/ui/StatTile';
 import { useHealthStore } from '../core/healthStore';
+import { alpha, colors, fonts, layout } from '../core/theme';
 
 const DURATIONS = [3, 5, 10];
 const SLEEP_GOAL_HOURS = 8;
 const STEP_GOAL = 10000;
+const HEART = '#F08A8A';
+const BLUE = '#8FB4E8';
 
 export default function HealthScreen() {
-  const { gradient } = useAdaptiveGradient();
+  const { width } = useWindowDimensions();
   const isAuthorized = useHealthStore((s) => s.isAuthorized);
   const isLoading = useHealthStore((s) => s.isLoading);
   const isSaving = useHealthStore((s) => s.isSaving);
@@ -42,280 +48,188 @@ export default function HealthScreen() {
     const ok = await logMindfulMinutes(duration);
     if (ok) {
       setLogged(true);
+      emberSay(`${duration} mindful minutes, saved to Health.`, 'happy');
       setTimeout(() => setLogged(false), 2000);
     }
   };
-
-  const sleepGoalPct =
-    sleepHoursLastNight !== null ? Math.round((sleepHoursLastNight / SLEEP_GOAL_HOURS) * 100) : 0;
 
   // A rough "sleep quality" proxy: the share of total sleep spent in deep +
   // REM, the stages associated with restorative sleep, rather than light/core.
   const sleepQualityPct = sleepStages
     ? Math.round(
         ((sleepStages.deep + sleepStages.rem) /
-          (sleepStages.core + sleepStages.deep + sleepStages.rem + sleepStages.unspecified)) *
+          Math.max(1, sleepStages.core + sleepStages.deep + sleepStages.rem + sleepStages.unspecified)) *
           100
       )
     : null;
 
   const stepsWeekMax = Math.max(STEP_GOAL, ...stepsWeek.map((d) => d.value ?? 0));
+  const chartWidth = Math.min(width, layout.maxWidth) - layout.gutter * 2 - 36;
 
   return (
-    <View style={styles.outer}>
-      <LinearGradient colors={gradient} style={styles.gradient}>
-        <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-          <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
-
-          <Text style={styles.title}>Health</Text>
-          <Text style={styles.subtitle}>
-            {isAuthorized ? "Today's readings" : 'Connect Apple Health'}
-          </Text>
-
-          {!isAuthorized ? (
-            <Card style={styles.connectCard}>
-              <Text style={styles.connectText}>
-                Read your sleep, resting heart rate, and steps into Brain Navigator, and log
-                mindful minutes back to Health when you use the app.
-              </Text>
-              <Button label="Connect Apple Health" onPress={connect} style={styles.connectButton} />
-              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+    <Screen
+      title="Health"
+      subtitle={isAuthorized ? 'Today, from Apple Health.' : 'Bring in your sleep, heart, and steps.'}
+      right={isAuthorized ? <IconButton icon="repeat" label="Refresh" onPress={fetchToday} /> : undefined}
+    >
+      {!isAuthorized ? (
+        <Reveal index={0}>
+          <Card tint={HEART} style={styles.connect}>
+            <View style={[styles.connectIcon, { backgroundColor: alpha(HEART, 0.14) }]}>
+              <Icon name="heart" size={28} color={HEART} />
+            </View>
+            <Text style={styles.connectTitle}>Connect Apple Health</Text>
+            <Text style={styles.connectText}>
+              Brain Navigator reads your sleep, resting heart rate, and steps, and logs mindful minutes back to Health
+              when you use Breathe.
+            </Text>
+            <Button label="Connect" icon="heart" onPress={connect} style={styles.connectButton} />
+            {error ? <Text style={styles.errorText}>{error}</Text> : null}
+          </Card>
+        </Reveal>
+      ) : (
+        <>
+          <Reveal index={0}>
+            <Card style={styles.rings}>
+              <Ring
+                progress={sleepHoursLastNight != null ? Math.min(1, sleepHoursLastNight / SLEEP_GOAL_HOURS) : null}
+                value={sleepHoursLastNight != null ? String(sleepHoursLastNight) : undefined}
+                unit="h"
+                label="Sleep"
+                color={BLUE}
+                size={80}
+              />
+              <Ring
+                progress={sleepQualityPct != null ? sleepQualityPct / 100 : null}
+                value={sleepQualityPct != null ? String(sleepQualityPct) : undefined}
+                unit="%"
+                label="Deep + REM"
+                color="#AFA2DE"
+                size={80}
+                delay={120}
+              />
+              <Ring
+                progress={stepsToday != null ? Math.min(1, stepsToday / STEP_GOAL) : null}
+                value={stepsToday != null ? (stepsToday >= 1000 ? `${(stepsToday / 1000).toFixed(1)}k` : String(Math.round(stepsToday))) : undefined}
+                label="Steps"
+                color={colors.flame}
+                size={80}
+                delay={240}
+              />
             </Card>
-          ) : (
-            <>
-              <Card style={styles.glanceCard}>
-                <View style={styles.gaugeRow}>
-                  <View style={styles.gaugeItem}>
-                    <RadialGauge
-                      value={sleepGoalPct}
-                      label={sleepHoursLastNight !== null ? `${sleepHoursLastNight}h` : '—'}
-                      caption="Sleep"
-                      color={colors.leather}
-                    />
-                  </View>
-                  <View style={styles.gaugeItem}>
-                    <RadialGauge
-                      value={sleepQualityPct ?? 0}
-                      label={sleepQualityPct !== null ? `${sleepQualityPct}%` : '—'}
-                      caption="Quality"
-                      color={colors.secured}
-                    />
-                  </View>
-                </View>
+          </Reveal>
 
-                <View style={styles.statsRow}>
-                  <StatCard
-                    label="Resting HR"
-                    value={restingHeartRate !== null ? `${Math.round(restingHeartRate)}` : '—'}
-                  />
-                  <StatCard
-                    label="Steps Today"
-                    value={stepsToday !== null ? `${Math.round(stepsToday)}` : '—'}
-                  />
-                </View>
-              </Card>
-              {isLoading ? <Text style={styles.hint}>Loading…</Text> : null}
+          <Reveal index={1} style={styles.tiles}>
+            <StatTile label="Resting heart rate" value={restingHeartRate != null ? String(Math.round(restingHeartRate)) : '–'} unit="bpm" color={HEART} />
+            <StatTile label="Steps today" value={stepsToday != null ? Math.round(stepsToday).toLocaleString() : '–'} color={colors.flame} />
+          </Reveal>
+          {isLoading ? <Text style={styles.hint}>Reading from Health…</Text> : null}
 
-              <View style={styles.sectionCard}>
-                <SleepQualityCard
-                  qualityPct={sleepQualityPct}
-                  deepMinutes={sleepStages ? sleepStages.deep : null}
-                  remMinutes={sleepStages ? sleepStages.rem : null}
-                  lightMinutes={sleepStages ? sleepStages.core + sleepStages.unspecified : null}
-                />
-              </View>
+          <Reveal index={2} style={styles.block}>
+            <SleepQualityCard
+              qualityPct={sleepQualityPct}
+              deepMinutes={sleepStages ? sleepStages.deep : null}
+              remMinutes={sleepStages ? sleepStages.rem : null}
+              lightMinutes={sleepStages ? sleepStages.core + sleepStages.unspecified : null}
+            />
+          </Reveal>
 
-              {stepsWeek.length > 0 ? (
-                <Card style={styles.sectionCard}>
-                  <Text style={styles.cardHeading}>Steps this week</Text>
-                  <LollipopChart
-                    data={stepsWeek}
-                    maxValue={stepsWeekMax}
-                    highlightIndex={stepsWeek.length - 1}
-                    color={colors.leather}
-                    width={300}
-                  />
+          {stepsWeek.length > 0 ? (
+            <Reveal index={3}>
+              <Section title="Steps this week" note={`The goal line is ${STEP_GOAL.toLocaleString()}.`}>
+                <Card>
+                  <LollipopChart data={stepsWeek} maxValue={stepsWeekMax} highlightIndex={stepsWeek.length - 1} color={colors.flame} width={chartWidth} />
                 </Card>
-              ) : null}
+              </Section>
+            </Reveal>
+          ) : null}
 
-              <Card style={styles.addCard}>
-                <Text style={styles.cardHeading}>Log mindful minutes</Text>
-                <View style={styles.durationRow}>
-                  {DURATIONS.map((d) => {
-                    const active = duration === d;
-                    return (
-                      <Pressable
-                        key={d}
-                        onPress={() => setDuration(d)}
-                        style={[styles.durationChip, active && styles.durationChipActive]}
-                      >
-                        <Text style={[styles.durationChipText, active && styles.durationChipTextActive]}>
-                          {d} min
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
+          <Reveal index={4}>
+            <Section title="Log mindful minutes" note="For a session you did away from the app. Breathe logs its own.">
+              <Card>
+                <ChipRow>
+                  {DURATIONS.map((d) => (
+                    <Chip key={d} label={`${d} min`} selected={duration === d} onPress={() => setDuration(d)} color={colors.secured} />
+                  ))}
+                </ChipRow>
                 <Button
-                  label={logged ? 'Saved to Health' : isSaving ? 'Saving…' : 'Log Session (just now)'}
+                  label={logged ? 'Saved to Health' : 'Log it, ending now'}
+                  icon={logged ? 'check' : 'clock'}
+                  variant="secondary"
+                  tint={colors.secured}
+                  loading={isSaving}
                   onPress={handleLog}
-                  disabled={isSaving}
-                  style={styles.addButton}
+                  style={styles.logButton}
                 />
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
               </Card>
-
-              <Button label="Refresh" variant="pill" onPress={fetchToday} style={styles.refreshButton} />
-            </>
-          )}
-        </ScrollView>
-
-        <BottomNav />
-      </LinearGradient>
-    </View>
-  );
-}
-
-function StatCard({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.statCard}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
+            </Section>
+          </Reveal>
+        </>
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  gradient: {
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 100,
-  },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  connectCard: {
-    padding: spacing.lg,
-  },
-  connectText: {
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.inkMuted,
-    marginBottom: spacing.md,
-  },
-  connectButton: {},
-  glanceCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
-  },
-  gaugeRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    paddingVertical: spacing.sm,
-  },
-  gaugeItem: {
+  connect: {
+    marginTop: 18,
     alignItems: 'center',
+    paddingVertical: 28,
   },
-  statsRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginTop: spacing.sm,
-  },
-  statCard: {
-    flex: 1,
+  connectIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
-    paddingVertical: spacing.md,
-    borderRadius: radii.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    justifyContent: 'center',
   },
-  statValue: {
+  connectTitle: {
+    marginTop: 14,
     fontFamily: fonts.display,
     fontSize: 22,
-    color: colors.ink,
+    color: colors.text,
   },
-  statLabel: {
-    marginTop: 2,
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+  connectText: {
+    marginTop: 8,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    lineHeight: 21,
+    color: colors.textMuted,
+    textAlign: 'center',
+  },
+  connectButton: {
+    marginTop: 20,
+    alignSelf: 'stretch',
+  },
+  rings: {
+    marginTop: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 20,
+  },
+  tiles: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 12,
+  },
+  block: {
+    marginTop: 12,
   },
   hint: {
-    marginTop: spacing.sm,
+    marginTop: 10,
     fontFamily: fonts.body,
     fontSize: 13,
-    color: colors.hint,
+    color: colors.textFaint,
   },
-  sectionCard: {
-    marginTop: spacing.lg,
-  },
-  cardHeading: {
-    marginBottom: spacing.md,
-    fontFamily: fonts.display,
-    fontSize: 17,
-    color: colors.ink,
-  },
-  addCard: {
-    marginTop: spacing.lg,
-    gap: spacing.sm,
-  },
-  durationRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  durationChip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.background,
-  },
-  durationChipActive: {
-    backgroundColor: colors.leather,
-    borderColor: colors.leather,
-  },
-  durationChipText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
-  durationChipTextActive: {
-    color: colors.background,
-  },
-  addButton: {
-    marginTop: spacing.xs,
+  logButton: {
+    marginTop: 14,
   },
   errorText: {
+    marginTop: 10,
     fontFamily: fonts.body,
-    fontSize: 12,
+    fontSize: 13,
     color: colors.danger,
-  },
-  refreshButton: {
-    marginTop: spacing.xl,
-    alignSelf: 'center',
+    textAlign: 'center',
   },
 });

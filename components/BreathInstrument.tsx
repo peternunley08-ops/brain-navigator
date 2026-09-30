@@ -87,7 +87,7 @@ function makeMotes(c: number, count: number): Mote[] {
       tw: 0.0008 + rand() * 0.0022,
       s: 1.6 + rand() * 2.4,
       o: 0.35 + rand() * 0.5,
-      color: pick < 0.7 ? colors.leather : pick < 0.9 ? colors.verdigris : colors.ink,
+      color: pick < 0.7 ? colors.flame : pick < 0.9 ? colors.secured : colors.text,
     };
   });
 }
@@ -155,7 +155,7 @@ interface Segment {
   visible: boolean;
 }
 
-const SEGMENT_COLORS = [colors.verdigris, colors.leather, colors.inkMuted, colors.leather];
+const SEGMENT_COLORS = [colors.secured, colors.flame, colors.textMuted, colors.flame];
 
 // One arc of the phase ring, its length proportional to that phase's share
 // of the cycle. The phase being breathed right now is the one at full ink.
@@ -605,8 +605,8 @@ function BreathInstrumentBase({
           <Defs>
             <RadialGradient id="halo" cx="50%" cy="50%" r="50%">
               <Stop offset="0" stopColor={FLAME_MID} stopOpacity={0.62} />
-              <Stop offset="0.45" stopColor={colors.leather} stopOpacity={0.2} />
-              <Stop offset="1" stopColor={colors.leather} stopOpacity={0} />
+              <Stop offset="0.45" stopColor={colors.flame} stopOpacity={0.2} />
+              <Stop offset="1" stopColor={colors.flame} stopOpacity={0} />
             </RadialGradient>
           </Defs>
           <AnimatedCircle cx={c} cy={c} fill="url(#halo)" animatedProps={haloProps} />
@@ -614,10 +614,10 @@ function BreathInstrumentBase({
 
         <Animated.View style={[StyleSheet.absoluteFill, innerRingStyle]} pointerEvents="none">
           <Svg width={size} height={size}>
-            <Circle cx={c} cy={c} r={g.inner} fill="none" stroke={colors.ink} strokeOpacity={0.32} strokeWidth={0.8} />
-            <Circle cx={c} cy={c} r={g.inner - 6} fill="none" stroke={colors.ink} strokeOpacity={0.14} strokeWidth={0.5} />
+            <Circle cx={c} cy={c} r={g.inner} fill="none" stroke={colors.text} strokeOpacity={0.32} strokeWidth={0.8} />
+            <Circle cx={c} cy={c} r={g.inner - 6} fill="none" stroke={colors.text} strokeOpacity={0.14} strokeWidth={0.5} />
             {innerDots.map((p, i) => (
-              <Circle key={i} cx={p.x} cy={p.y} r={i % 6 === 0 ? 1.6 : 0.9} fill={colors.ink} fillOpacity={0.4} />
+              <Circle key={i} cx={p.x} cy={p.y} r={i % 6 === 0 ? 1.6 : 0.9} fill={colors.text} fillOpacity={0.4} />
             ))}
           </Svg>
         </Animated.View>
@@ -642,16 +642,16 @@ function BreathInstrumentBase({
             <RadialGradient id="flame" cx="50%" cy="62%" r="62%">
               <Stop offset="0" stopColor={FLAME_CORE} stopOpacity={1} />
               <Stop offset="0.5" stopColor={FLAME_MID} stopOpacity={1} />
-              <Stop offset="1" stopColor={colors.leather} stopOpacity={1} />
+              <Stop offset="1" stopColor={colors.flame} stopOpacity={1} />
             </RadialGradient>
           </Defs>
-          <AnimatedCircle cx={c} cy={c} fill="none" stroke={colors.leather} animatedProps={rippleProps} />
+          <AnimatedCircle cx={c} cy={c} fill="none" stroke={colors.flame} animatedProps={rippleProps} />
           <AnimatedCircle
             cx={c}
             cy={c}
             r={g.holdRing}
             fill="none"
-            stroke={colors.verdigris}
+            stroke={colors.secured}
             strokeWidth={2.5}
             strokeLinecap="round"
             strokeDasharray={[holdC, holdC]}
@@ -661,7 +661,7 @@ function BreathInstrumentBase({
           />
           <AnimatedPath
             fill="url(#flame)"
-            stroke={colors.leatherDark}
+            stroke={colors.surfaceHigh}
             strokeOpacity={0.45}
             strokeWidth={0.6}
             animatedProps={flameProps}
@@ -672,7 +672,7 @@ function BreathInstrumentBase({
         {/* Phase ring: arcs sized to each phase's real share of the cycle. */}
         <Animated.View style={[StyleSheet.absoluteFill, phaseRingStyle]} pointerEvents="none">
           <Svg width={size} height={size}>
-            <Circle cx={c} cy={c} r={g.arc} fill="none" stroke={colors.divider} strokeOpacity={0.7} strokeWidth={4.5} />
+            <Circle cx={c} cy={c} r={g.arc} fill="none" stroke={colors.lineStrong} strokeOpacity={0.7} strokeWidth={4.5} />
             {segments.map((seg) => (
               <ArcSegment
                 key={`${pattern.key}-${seg.i}`}
@@ -689,7 +689,7 @@ function BreathInstrumentBase({
               cy={c}
               r={g.trail}
               fill="none"
-              stroke={colors.ink}
+              stroke={colors.text}
               strokeWidth={1.2}
               strokeLinecap="round"
               strokeDasharray={[trailC, trailC]}
@@ -714,13 +714,13 @@ function BreathInstrumentBase({
               cy={c}
               r={(g.dialOut + g.dialIn) / 2}
               fill="none"
-              stroke={colors.backgroundAlt}
+              stroke={colors.surface}
               strokeWidth={g.dialOut - g.dialIn}
             />
-            <Circle cx={c} cy={c} r={g.bezel} fill="none" stroke={colors.ink} strokeOpacity={0.45} strokeWidth={0.6} />
-            <Circle cx={c} cy={c} r={g.dialOut} fill="none" stroke={colors.ink} strokeOpacity={0.85} strokeWidth={1} />
-            <Circle cx={c} cy={c} r={g.dialIn} fill="none" stroke={colors.ink} strokeOpacity={0.7} strokeWidth={0.8} />
-            <Path d={dialTicks} stroke={colors.ink} strokeOpacity={0.5} strokeWidth={0.8} />
+            <Circle cx={c} cy={c} r={g.bezel} fill="none" stroke={colors.text} strokeOpacity={0.45} strokeWidth={0.6} />
+            <Circle cx={c} cy={c} r={g.dialOut} fill="none" stroke={colors.text} strokeOpacity={0.85} strokeWidth={1} />
+            <Circle cx={c} cy={c} r={g.dialIn} fill="none" stroke={colors.text} strokeOpacity={0.7} strokeWidth={0.8} />
+            <Path d={dialTicks} stroke={colors.text} strokeOpacity={0.5} strokeWidth={0.8} />
             {[60, 180, 300].map((deg) => {
               const a = (deg * Math.PI) / 180;
               return (
@@ -729,7 +729,7 @@ function BreathInstrumentBase({
                   cx={c + g.label * Math.sin(a)}
                   cy={c - g.label * Math.cos(a)}
                   r={2.2}
-                  fill={colors.leather}
+                  fill={colors.flame}
                 />
               );
             })}
@@ -746,7 +746,7 @@ function BreathInstrumentBase({
                   dy={5}
                   fontSize={15}
                   fontFamily={fonts.displaySoft}
-                  fill={i === patternIndex ? colors.ink : colors.inkFaint}
+                  fill={i === patternIndex ? colors.text : colors.textFaint}
                   textAnchor="middle"
                   transform={`rotate(${deg} ${x} ${y})`}
                 >
@@ -761,8 +761,8 @@ function BreathInstrumentBase({
         <Svg width={size} height={size} style={StyleSheet.absoluteFill} pointerEvents="none">
           <Path
             d={`M${c - 7},${c - g.bezel - 2} L${c + 7},${c - g.bezel - 2} L${c},${c - g.dialOut + 5} Z`}
-            fill={colors.leather}
-            stroke={colors.leatherDark}
+            fill={colors.flame}
+            stroke={colors.surfaceHigh}
             strokeWidth={0.8}
           />
         </Svg>
@@ -784,9 +784,9 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: colors.leather,
+    backgroundColor: colors.flame,
     borderWidth: 1,
-    borderColor: colors.leatherDark,
+    borderColor: colors.surfaceHigh,
   },
   beadGlint: {
     position: 'absolute',

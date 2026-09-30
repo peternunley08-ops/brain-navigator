@@ -1,13 +1,17 @@
 import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { BottomNav } from '../components/BottomNav';
-import { Button } from '../components/ui/Button';
-import { colors, fonts, spacing } from '../core/theme';
+import { StyleSheet, Text, View } from 'react-native';
+import { Card } from '../components/ui/Card';
+import { Icon, type IconName } from '../components/ui/Icon';
+import { Reveal } from '../components/ui/Reveal';
+import { Screen } from '../components/ui/Screen';
+import { alpha, colors, fonts } from '../core/theme';
 
 interface Tool {
   title: string;
   body: string;
   path: string;
+  icon: IconName;
+  color: string;
 }
 
 // Everything that supports the core loop rather than being it. Nothing was
@@ -16,124 +20,104 @@ const GROUPS: { name: string; tools: Tool[] }[] = [
   {
     name: 'Your body',
     tools: [
-      { title: 'Check-in', body: "Today's mood, sleep, and stress.", path: '/checkin' },
-      { title: 'Health', body: 'Steps, resting heart rate, and sleep from Apple Health.', path: '/health' },
-      { title: 'Trends', body: 'How your check-ins have moved over the last two weeks.', path: '/trends' },
+      { title: 'Check-in', body: 'Mood, sleep, stress', path: '/checkin', icon: 'sun', color: '#F5B45C' },
+      { title: 'Health', body: 'From Apple Health', path: '/health', icon: 'heart', color: '#F08A8A' },
+      { title: 'Trends', body: 'The last two weeks', path: '/trends', icon: 'trend', color: '#8FB4E8' },
+      { title: 'Food', body: 'Meals and macros', path: '/nutrition', icon: 'bowl', color: '#9FD08A' },
     ],
   },
   {
     name: 'Your days',
     tools: [
-      { title: 'Tasks', body: 'What is on your plate today, with time boxes.', path: '/tasks' },
-      { title: 'Habits', body: 'Daily and weekly habits, with streaks.', path: '/habits' },
-      { title: 'Nutrition', body: 'Meals and macros for today.', path: '/nutrition' },
-      { title: 'Calendar', body: "Today's events from Google Calendar.", path: '/calendar' },
+      { title: 'Your plate', body: 'Today’s tasks', path: '/tasks', icon: 'plate', color: '#E6C46A' },
+      { title: 'Habits', body: 'Streaks you keep', path: '/habits', icon: 'repeat', color: '#8CC0A8' },
+      { title: 'Calendar', body: 'Today’s schedule', path: '/calendar', icon: 'calendar', color: '#D99A6C' },
+      { title: 'Kept', body: 'Entries you saved', path: '/trove', icon: 'jar', color: '#E89AB8' },
     ],
   },
   {
-    name: 'Looking back',
+    name: 'Looking closer',
     tools: [
-      { title: 'Kept', body: 'Entries you chose to keep.', path: '/trove' },
-      { title: 'Wellness wheel', body: 'Balance across eight areas of life.', path: '/wellness' },
-      { title: 'The science', body: 'What is behind the numbers you log.', path: '/science' },
+      { title: 'Wellness wheel', body: 'Eight parts of a life', path: '/wellness', icon: 'wheel', color: '#AFA2DE' },
+      { title: 'The science', body: 'Why the numbers move', path: '/science', icon: 'flask', color: '#8FB4E8' },
     ],
   },
 ];
 
 export default function DrawerScreen() {
+  let n = 0;
   return (
-    <View style={styles.root}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
-        <Text style={styles.title}>Drawer</Text>
-        <Text style={styles.subtitle}>Everything else the app can do.</Text>
-
-        {GROUPS.map((group) => (
-          <View key={group.name} style={styles.group}>
+    <Screen title="The Drawer" subtitle="Everything else the app can do.">
+      {GROUPS.map((group) => (
+        <View key={group.name} style={styles.group}>
+          <Reveal index={n++}>
             <Text style={styles.groupName}>{group.name}</Text>
-            {group.tools.map((tool, i) => (
-              <Pressable
-                key={tool.path}
-                onPress={() => router.push(tool.path as never)}
-                accessibilityRole="button"
-                accessibilityLabel={tool.title}
-                accessibilityHint={tool.body}
-                style={({ pressed }) => [
-                  styles.row,
-                  i < group.tools.length - 1 && styles.rowRule,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={styles.rowTitle}>{tool.title}</Text>
-                <Text style={styles.rowBody}>{tool.body}</Text>
-              </Pressable>
+          </Reveal>
+          <View style={styles.grid}>
+            {group.tools.map((tool) => (
+              <Reveal key={tool.path} index={n++} style={styles.cell}>
+                <Card
+                  onPress={() => router.push(tool.path as never)}
+                  accessibilityLabel={tool.title}
+                  accessibilityHint={tool.body}
+                  style={styles.tile}
+                >
+                  <View style={[styles.icon, { backgroundColor: alpha(tool.color, 0.14), borderColor: alpha(tool.color, 0.3) }]}>
+                    <Icon name={tool.icon} size={22} color={tool.color} />
+                  </View>
+                  <Text style={styles.title}>{tool.title}</Text>
+                  <Text style={styles.body}>{tool.body}</Text>
+                </Card>
+              </Reveal>
             ))}
           </View>
-        ))}
-      </ScrollView>
-
-      <BottomNav />
-    </View>
+        </View>
+      ))}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    width: '100%',
-    maxWidth: 480,
-    alignSelf: 'center',
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 130,
-  },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 32,
-    color: colors.ink,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.inkMuted,
-  },
   group: {
-    marginTop: spacing.xl,
+    marginTop: 24,
   },
   groupName: {
-    marginBottom: spacing.xs,
+    marginBottom: 12,
     fontFamily: fonts.displaySoft,
     fontSize: 19,
-    color: colors.inkMuted,
+    color: colors.textMuted,
   },
-  row: {
-    paddingVertical: spacing.md,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
   },
-  rowRule: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
+  cell: {
+    width: '48%',
+    flexGrow: 1,
+    flexBasis: '46%',
   },
-  pressed: {
-    opacity: 0.55,
+  tile: {
+    minHeight: 132,
   },
-  rowTitle: {
-    fontFamily: fonts.display,
-    fontSize: 18,
-    color: colors.ink,
+  icon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
   },
-  rowBody: {
-    marginTop: 3,
+  title: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 16,
+    color: colors.text,
+  },
+  body: {
+    marginTop: 2,
     fontFamily: fonts.body,
-    fontSize: 14,
-    lineHeight: 19,
-    color: colors.inkFaint,
+    fontSize: 13,
+    color: colors.textFaint,
   },
 });

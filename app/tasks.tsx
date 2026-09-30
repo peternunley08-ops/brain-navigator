@@ -1,25 +1,35 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BottomNav } from '../components/BottomNav';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Chip, ChipRow } from '../components/ui/Chip';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Field } from '../components/ui/Field';
+import { Icon } from '../components/ui/Icon';
+import { IconButton } from '../components/ui/IconButton';
 import { LollipopChart } from '../components/ui/LollipopChart';
 import { PlateMeter } from '../components/ui/PlateMeter';
+import { Pressy } from '../components/ui/Pressy';
+import { Reveal } from '../components/ui/Reveal';
 import { ScienceNote } from '../components/ui/ScienceNote';
+import { Screen } from '../components/ui/Screen';
+import { Section } from '../components/ui/Section';
+import { Stepper } from '../components/ui/Stepper';
 import { TaskTimer } from '../components/ui/TaskTimer';
-import { colors, fonts, radii, spacing } from '../core/theme';
-import { useAdaptiveGradient } from '../core/adaptiveLight';
 import { Task, TaskCategory, useTasksStore } from '../core/tasksStore';
+import { alpha, colors, dimensionColor, fonts, layout } from '../core/theme';
 import { WELLNESS_DIMENSIONS } from '../core/wellness';
 
 const CATEGORIES = WELLNESS_DIMENSIONS;
+const TIME_BOXES = [null, 15, 25, 45, 60] as const;
 
 type FilterCategory = TaskCategory | 'all';
 
 export default function TasksScreen() {
-  const { gradient } = useAdaptiveGradient();
+  const { width } = useWindowDimensions();
   const tasks = useTasksStore((s) => s.tasks);
   const dailyCap = useTasksStore((s) => s.dailyCap);
   const isLoading = useTasksStore((s) => s.isLoading);
@@ -32,8 +42,8 @@ export default function TasksScreen() {
   const weekCompletions = useTasksStore((s) => s.weekCompletions);
 
   const [title, setTitle] = useState('');
-  const [category, setCategory] = useState<TaskCategory>('emotional');
-  const [timeBudget, setTimeBudget] = useState('');
+  const [category, setCategory] = useState<TaskCategory>('occupational');
+  const [timeBudget, setTimeBudget] = useState<number | null>(null);
   const [filter, setFilter] = useState<FilterCategory>('all');
 
   useEffect(() => {
@@ -41,404 +51,256 @@ export default function TasksScreen() {
   }, [fetchToday]);
 
   const handleAdd = async () => {
-    const budget = timeBudget.trim() ? Number(timeBudget) : null;
-    const ok = await addTask(title, category, Number.isFinite(budget) ? budget : null);
+    const ok = await addTask(title, category, timeBudget);
     if (ok) {
       setTitle('');
-      setTimeBudget('');
+      setTimeBudget(null);
+      if (openCount + 1 > dailyCap) {
+        emberSay('That’s past the cap you set. Is there something that could wait?', 'concerned');
+      }
     }
   };
 
-  const filtered = useMemo(
-    () => (filter === 'all' ? tasks : tasks.filter((t) => t.category === filter)),
-    [tasks, filter]
-  );
+  // Only offer filters for the areas that actually have something today.
+  const present = useMemo(() => CATEGORIES.filter((c) => tasks.some((t) => t.category === c.key)), [tasks]);
+  const filtered = useMemo(() => (filter === 'all' ? tasks : tasks.filter((t) => t.category === filter)), [tasks, filter]);
+  const chartWidth = Math.min(width, layout.maxWidth) - layout.gutter * 2 - 36;
 
   return (
-    <View style={styles.outer}>
-      <LinearGradient colors={gradient} style={styles.gradient}>
-        <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-          <View style={styles.topRow}>
-            <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
-            <Button label="Calendar" variant="pill" onPress={() => router.push('/calendar')} />
-          </View>
-
-          <Text style={styles.title}>Today's Plate</Text>
-          <Text style={styles.subtitle}>{isLoading ? 'Loading…' : 'How much are you carrying today?'}</Text>
-
-          <Card style={styles.meterCard}>
-            <PlateMeter openCount={openCount} cap={dailyCap} />
-            <View style={styles.capRow}>
+    <Screen
+      title="Your plate"
+      subtitle={isLoading && tasks.length === 0 ? 'Loading…' : 'How much are you carrying today?'}
+      right={<IconButton icon="calendar" label="Calendar" onPress={() => router.push('/calendar')} />}
+    >
+      <Reveal index={0}>
+        <Card style={styles.plateCard}>
+          <PlateMeter openCount={openCount} cap={dailyCap} />
+          <View style={styles.capRow}>
+            <View>
               <Text style={styles.capLabel}>Daily cap</Text>
-              <View style={styles.capStepper}>
-                <Pressable
-                  onPress={() => setDailyCap(dailyCap - 1)}
-                  style={styles.capButton}
-                  accessibilityLabel="Decrease daily cap"
-                >
-                  <Text style={styles.capButtonText}>−</Text>
-                </Pressable>
-                <Text style={styles.capValue}>{dailyCap}</Text>
-                <Pressable
-                  onPress={() => setDailyCap(dailyCap + 1)}
-                  style={styles.capButton}
-                  accessibilityLabel="Increase daily cap"
-                >
-                  <Text style={styles.capButtonText}>+</Text>
-                </Pressable>
-              </View>
+              <Text style={styles.capHint}>How much you want on the plate</Text>
             </View>
-          </Card>
+            <Stepper value={dailyCap} onDecrement={() => setDailyCap(dailyCap - 1)} onIncrement={() => setDailyCap(dailyCap + 1)} label="daily cap" />
+          </View>
+        </Card>
+      </Reveal>
 
-          {weekCompletions.some((d) => (d.value ?? 0) > 0) ? (
-            <Card style={styles.weekCard}>
-              <Text style={styles.weekLabel}>Completed this week</Text>
+      <Reveal index={1}>
+        <Section title="Add to the plate">
+          <Card>
+            <Field placeholder="What needs doing?" value={title} onChangeText={setTitle} returnKeyType="done" onSubmitEditing={handleAdd} />
+            <Text style={styles.fieldLabel}>Time box</Text>
+            <ChipRow>
+              {TIME_BOXES.map((m) => (
+                <Chip key={String(m)} label={m == null ? 'None' : `${m} min`} selected={timeBudget === m} onPress={() => setTimeBudget(m)} icon={m == null ? undefined : 'clock'} />
+              ))}
+            </ChipRow>
+            <ScienceNote fact="Parkinson's Law: work expands to fill the time allotted for it. A vague afternoon becomes a vague afternoon of work — but a task boxed at 20 minutes tends to actually take about 20 minutes. Giving something less time rarely makes it worse; it mostly just cuts the padding." />
+            <Text style={styles.fieldLabel}>Part of life</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dimRow}>
+              {CATEGORIES.map((c) => (
+                <Chip key={c.key} label={c.label} dot color={dimensionColor[c.key]} selected={category === c.key} onPress={() => setCategory(c.key)} />
+              ))}
+            </ScrollView>
+            <Button label="Add to plate" icon="plus" loading={isSaving} onPress={handleAdd} disabled={isSaving || !title.trim()} style={styles.addButton} />
+            {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
+          </Card>
+        </Section>
+      </Reveal>
+
+      <Reveal index={2}>
+        <Section title="Today" note={tasks.length ? `${tasks.length - openCount} of ${tasks.length} done` : undefined}>
+          {present.length > 1 ? (
+            <ChipRow style={styles.filters}>
+              <Chip label="All" selected={filter === 'all'} onPress={() => setFilter('all')} />
+              {present.map((c) => (
+                <Chip key={c.key} label={c.label} dot color={dimensionColor[c.key]} selected={filter === c.key} onPress={() => setFilter(c.key)} />
+              ))}
+            </ChipRow>
+          ) : null}
+          {filtered.length > 0 ? (
+            <View style={styles.list}>
+              {filtered.map((t, i) => (
+                <TaskRow key={t.id} task={t} index={i} />
+              ))}
+            </View>
+          ) : !isLoading ? (
+            <EmptyState
+              title={tasks.length === 0 ? 'The plate’s empty.' : 'Nothing in this area today.'}
+              body={tasks.length === 0 ? 'Add the one thing that matters most today.' : undefined}
+            />
+          ) : null}
+        </Section>
+      </Reveal>
+
+      {weekCompletions.some((d) => (d.value ?? 0) > 0) ? (
+        <Reveal index={3}>
+          <Section title="Done this week">
+            <Card>
               <LollipopChart
                 data={weekCompletions}
                 maxValue={Math.max(1, ...weekCompletions.map((d) => d.value ?? 0))}
                 highlightIndex={weekCompletions.length - 1}
                 color={colors.secured}
-                width={300}
-                height={100}
+                width={chartWidth}
+                height={104}
               />
             </Card>
-          ) : null}
-
-          <Card style={styles.addCard}>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Reply to landlord"
-              placeholderTextColor={colors.hint}
-              value={title}
-              onChangeText={setTitle}
-            />
-            <ScienceNote fact="Parkinson's Law: work expands to fill the time allotted for it. A vague afternoon becomes a vague afternoon of work — but a task boxed at 20 minutes tends to actually take about 20 minutes. Giving something less time rarely makes it worse; it mostly just cuts the padding." />
-            <TextInput
-              style={[styles.input, styles.timeBudgetInput]}
-              placeholder="Time box in minutes (optional)"
-              placeholderTextColor={colors.hint}
-              value={timeBudget}
-              onChangeText={setTimeBudget}
-              keyboardType="number-pad"
-            />
-            <View style={styles.categoryRow}>
-              {CATEGORIES.map((c) => {
-                const active = category === c.key;
-                return (
-                  <Pressable
-                    key={c.key}
-                    onPress={() => setCategory(c.key)}
-                    style={[styles.categoryChip, active && styles.categoryChipActive]}
-                  >
-                    <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
-                      {c.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <Button
-              label={isSaving ? 'Adding…' : 'Add Task'}
-              onPress={handleAdd}
-              disabled={isSaving || !title.trim()}
-              style={styles.addButton}
-            />
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          </Card>
-
-          <View style={styles.filterRow}>
-            <FilterChip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
-            {CATEGORIES.map((c) => (
-              <FilterChip
-                key={c.key}
-                label={c.label}
-                active={filter === c.key}
-                onPress={() => setFilter(c.key)}
-              />
-            ))}
-          </View>
-
-          {filtered.length > 0 ? (
-            <View style={styles.list}>
-              {filtered.map((t) => (
-                <TaskRow key={t.id} task={t} />
-              ))}
-            </View>
-          ) : !isLoading ? (
-            <Text style={styles.hint}>
-              {tasks.length === 0 ? 'Nothing on the plate yet — add something above.' : 'Nothing in this category today.'}
-            </Text>
-          ) : null}
-        </ScrollView>
-
-        <BottomNav />
-      </LinearGradient>
-    </View>
+          </Section>
+        </Reveal>
+      ) : null}
+    </Screen>
   );
 }
 
-function FilterChip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} style={[styles.filterChip, active && styles.filterChipActive]}>
-      <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function TaskRow({ task }: { task: Task }) {
+function TaskRow({ task, index }: { task: Task; index: number }) {
   const toggleComplete = useTasksStore((s) => s.toggleComplete);
   const deleteTask = useTasksStore((s) => s.deleteTask);
-  const categoryLabel = CATEGORIES.find((c) => c.key === task.category)?.label ?? task.category;
+  const dim = CATEGORIES.find((c) => c.key === task.category);
+  const color = dimensionColor[task.category] ?? colors.flame;
+
+  const toggle = async () => {
+    const finishing = !task.completed;
+    await toggleComplete(task.id);
+    if (finishing) {
+      const { tasks } = useTasksStore.getState();
+      if (tasks.length > 0 && tasks.every((t) => t.completed)) {
+        emberSay('Plate cleared. Every last thing. Go enjoy that.', 'cheer');
+      }
+    }
+  };
+
+  const check = useAnimatedStyle(() => ({
+    transform: [{ scale: withSpring(task.completed ? 1 : 0, { damping: 12, stiffness: 320 }) }],
+  }));
 
   return (
-    <Card style={styles.taskCard}>
-      <Pressable
-        onPress={() => toggleComplete(task.id)}
-        style={[styles.checkCircle, task.completed && styles.checkCircleActive]}
-      >
-        {task.completed ? <Text style={styles.checkMark}>✓</Text> : null}
-      </Pressable>
-      <View style={styles.taskInfo}>
-        <Text style={[styles.taskTitle, task.completed && styles.taskTitleDone]}>{task.title}</Text>
-        <Text style={styles.taskCategory}>{categoryLabel}</Text>
-      </View>
-      <View style={styles.taskActions}>
-        {task.time_budget_minutes ? <TaskTimer budgetMinutes={task.time_budget_minutes} /> : null}
-        <Pressable onPress={() => deleteTask(task.id)} hitSlop={8}>
-          <Text style={styles.removeText}>Remove</Text>
-        </Pressable>
-      </View>
-    </Card>
+    <Animated.View entering={FadeInDown.delay(index * 40).duration(360)} exiting={FadeOut.duration(180)} layout={LinearTransition.springify().damping(18)}>
+      <Card style={styles.taskCard}>
+        <Pressy
+          onPress={toggle}
+          depth={0.86}
+          haptic="light"
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: task.completed }}
+          accessibilityLabel={task.title}
+          style={[styles.check, task.completed && { backgroundColor: colors.secured, borderColor: colors.secured }]}
+        >
+          <Animated.View style={check}>
+            <Icon name="check" size={18} color={colors.flameInk} strokeWidth={2.6} />
+          </Animated.View>
+        </Pressy>
+        <View style={styles.taskInfo}>
+          <Text style={[styles.taskTitle, task.completed && styles.taskTitleDone]}>{task.title}</Text>
+          <View style={styles.tagRow}>
+            <View style={[styles.tagDot, { backgroundColor: color }]} />
+            <Text style={styles.taskCategory}>{dim?.label ?? task.category}</Text>
+          </View>
+        </View>
+        {task.time_budget_minutes && !task.completed ? <TaskTimer budgetMinutes={task.time_budget_minutes} /> : null}
+        <Pressy onPress={() => deleteTask(task.id)} hitSlop={10} depth={0.85} accessibilityLabel={`Remove ${task.title}`} style={styles.trash}>
+          <Icon name="trash" size={17} color={alpha(colors.danger, 0.8)} />
+        </Pressy>
+      </Card>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  gradient: {
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 100,
-  },
-  topRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    rowGap: spacing.sm,
-    marginBottom: spacing.lg,
-  },
-  back: {},
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  meterCard: {
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+  plateCard: {
+    marginTop: 16,
   },
   capRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    width: '100%',
-    marginTop: spacing.md,
+    marginTop: 18,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
   },
   capLabel: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  capStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  capButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-  capButtonText: {
-    fontFamily: fonts.mono,
+    fontFamily: fonts.bodySemi,
     fontSize: 15,
-    color: colors.ink,
+    color: colors.text,
   },
-  capValue: {
-    fontFamily: fonts.display,
-    fontSize: 16,
-    color: colors.ink,
-    minWidth: 20,
-    textAlign: 'center',
-  },
-  weekCard: {
-    marginTop: spacing.lg,
-    alignItems: 'center',
-  },
-  weekLabel: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.sm,
-    fontFamily: fonts.display,
-    fontSize: 17,
-    color: colors.ink,
-  },
-  addCard: {
-    marginTop: spacing.lg,
-    gap: spacing.sm,
-  },
-  input: {
-    width: '100%',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.divider,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.ink,
-    backgroundColor: colors.background,
-  },
-  timeBudgetInput: {
-    fontSize: 13,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  categoryChip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.background,
-  },
-  categoryChipActive: {
-    backgroundColor: colors.leather,
-    borderColor: colors.leather,
-  },
-  categoryChipText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
-  categoryChipTextActive: {
-    color: colors.background,
-  },
-  addButton: {
-    marginTop: spacing.xs,
-  },
-  errorText: {
+  capHint: {
+    marginTop: 1,
     fontFamily: fonts.body,
     fontSize: 12,
-    color: colors.danger,
+    color: colors.textFaint,
   },
-  filterRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-    marginTop: spacing.lg,
+  fieldLabel: {
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textMuted,
   },
-  filterChip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.backgroundAlt,
+  dimRow: {
+    gap: 8,
+    paddingRight: 8,
   },
-  filterChipActive: {
-    backgroundColor: colors.leather,
-    borderColor: colors.leather,
+  addButton: {
+    marginTop: 18,
   },
-  filterChipText: {
+  errorText: {
+    marginTop: 10,
     fontFamily: fonts.body,
     fontSize: 13,
-    color: colors.inkMuted,
+    color: colors.danger,
+    textAlign: 'center',
   },
-  filterChipTextActive: {
-    color: colors.background,
+  filters: {
+    marginBottom: 12,
   },
   list: {
-    marginTop: spacing.lg,
-    gap: spacing.sm,
+    gap: 10,
   },
   taskCard: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
   },
-  checkCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  check: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     borderWidth: 2,
-    borderColor: colors.divider,
+    borderColor: colors.lineStrong,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.background,
-    marginRight: spacing.md,
-  },
-  checkCircleActive: {
-    backgroundColor: colors.secured,
-    borderColor: colors.secured,
-  },
-  checkMark: {
-    fontFamily: fonts.mono,
-    fontSize: 14,
-    color: colors.background,
   },
   taskInfo: {
     flex: 1,
   },
-  taskActions: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
   taskTitle: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodyMedium,
     fontSize: 16,
-    color: colors.ink,
+    color: colors.text,
   },
   taskTitleDone: {
-    color: colors.hint,
+    color: colors.textFaint,
     textDecorationLine: 'line-through',
   },
-  taskCategory: {
-    marginTop: 2,
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.inkFaint,
+  tagRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 4,
   },
-  removeText: {
+  tagDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  taskCategory: {
     fontFamily: fonts.body,
     fontSize: 12,
-    color: colors.danger,
+    color: colors.textFaint,
   },
-  hint: {
-    marginTop: spacing.xl,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.hint,
+  trash: {
+    padding: 4,
   },
 });

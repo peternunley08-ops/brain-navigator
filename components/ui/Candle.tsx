@@ -20,14 +20,22 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 import { FLAME_CORE, FLAME_MID, flamePath } from '../../core/flame';
-import { colors } from '../../core/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+const AnimatedEllipse = Animated.createAnimatedComponent(Ellipse);
 const AnimatedPath = Animated.createAnimatedComponent(Path);
 
-const WAX = '#F7F0DE';
-const WAX_SHADE = '#E3D3A9';
-const WAX_POOL = '#FBF6EA';
+// Wax in a dark room: lit from its own flame above, falling off into
+// shadow on the far side. An unlit candle is the same wax with the lamp off.
+const WAX = { lit: ['#FFF4DE', '#F2DFBE', '#B99C74'], unlit: ['#CFC4B0', '#AFA28B', '#6F6453'] };
+const WAX_POOL = { lit: '#FFF8EA', unlit: '#D8CDB9' };
+const OUTLINE = '#140D0A';
+const WICK = '#241913';
+const DISH = ['#DDAA5E', '#9A6B31', '#4E3518'];
+const SMOKE = '#B9ADA3';
+const SEAL = '#8CC0A8';
+const SEAL_EDGE = '#43665A';
+const WARM = '#F5A04E';
 
 // Every candle is one thing still open. `lit` is the normal state;
 // `snuffed` is resolved (the flame goes out, smoke curls up, a verdigris
@@ -162,7 +170,7 @@ function CandleBase({
     const l = Math.max(0, lit.value);
     const breath = reducedMotion ? 1 : 1 + 0.04 * Math.sin(time.value * 0.0013 + seed);
     return {
-      r: W * (0.3 + 0.14 * intensity) * l * breath,
+      r: W * (0.33 + 0.145 * intensity) * l * breath,
       opacity: Math.min(1, l),
     };
   });
@@ -179,6 +187,12 @@ function CandleBase({
         { scale: 1 - 0.4 * p },
       ],
     };
+  });
+
+  const poolProps = useAnimatedProps(() => {
+    const l = Math.max(0, Math.min(1, lit.value)) * (1 - lift.value);
+    const breath = reducedMotion ? 1 : 1 + 0.05 * Math.sin(time.value * 0.0017 + seed * 2);
+    return { opacity: l * (0.6 + 0.4 * intensity) * breath };
   });
 
   const wisps = [0, 1, 2];
@@ -202,44 +216,64 @@ function CandleBase({
   const x1 = cx + bw / 2;
 
   const gid = `c${Math.round(seed * 1000)}`;
+  const wax = state === 'unlit' ? WAX.unlit : WAX.lit;
+  const pool = state === 'unlit' ? WAX_POOL.unlit : WAX_POOL.lit;
 
   return (
     <View style={{ width: W, height: H }} pointerEvents="none">
       <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id={`${gid}w`} x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor={WAX} />
-            <Stop offset="0.55" stopColor={WAX} />
-            <Stop offset="1" stopColor={WAX_SHADE} />
+            <Stop offset="0" stopColor={wax[0]} />
+            <Stop offset="0.45" stopColor={wax[1]} />
+            <Stop offset="1" stopColor={wax[2]} />
+          </LinearGradient>
+          <LinearGradient id={`${gid}s`} x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={OUTLINE} stopOpacity={0} />
+            <Stop offset="0.6" stopColor={OUTLINE} stopOpacity={0.05} />
+            <Stop offset="1" stopColor={OUTLINE} stopOpacity={0.4} />
           </LinearGradient>
           <LinearGradient id={`${gid}d`} x1="0" y1="0" x2="0" y2="1">
-            <Stop offset="0" stopColor={colors.leather} />
-            <Stop offset="1" stopColor={colors.leatherDark} />
+            <Stop offset="0" stopColor={DISH[0]} />
+            <Stop offset="0.5" stopColor={DISH[1]} />
+            <Stop offset="1" stopColor={DISH[2]} />
           </LinearGradient>
+          <RadialGradient id={`${gid}p`} cx="50%" cy="50%" r="50%">
+            <Stop offset="0" stopColor={WARM} stopOpacity={0.42} />
+            <Stop offset="0.55" stopColor={WARM} stopOpacity={0.1} />
+            <Stop offset="1" stopColor={WARM} stopOpacity={0} />
+          </RadialGradient>
         </Defs>
 
-        <Ellipse cx={cx} cy={dishY} rx={bw * 1.05} ry={H * 0.03} fill={`url(#${gid}d)`} />
-        <Ellipse cx={cx} cy={dishY - 1.5} rx={bw * 0.92} ry={H * 0.019} fill={colors.leather} opacity={0.55} />
+        {/* The pool of light the flame throws on the desk around its dish. */}
+        <AnimatedEllipse cx={cx} cy={dishY} rx={W * 0.5} ry={H * 0.075} fill={`url(#${gid}p)`} animatedProps={poolProps} />
+
+        <Ellipse cx={cx} cy={dishY + 1} rx={bw * 1.08} ry={H * 0.032} fill={`url(#${gid}d)`} />
+        <Ellipse cx={cx} cy={dishY - 1.5} rx={bw * 0.9} ry={H * 0.018} fill={DISH[0]} opacity={0.5} />
 
         <Path
           d={`M${x0},${top + rt} Q${x0},${top} ${x0 + rt},${top} L${x1 - rt},${top} Q${x1},${top} ${x1},${top + rt} L${x1},${bodyBottom} L${x0},${bodyBottom} Z`}
           fill={`url(#${gid}w)`}
-          stroke={colors.ink}
-          strokeOpacity={0.3}
+          stroke={OUTLINE}
+          strokeOpacity={0.45}
           strokeWidth={0.8}
         />
         <Path
+          d={`M${x0},${top + rt} Q${x0},${top} ${x0 + rt},${top} L${x1 - rt},${top} Q${x1},${top} ${x1},${top + rt} L${x1},${bodyBottom} L${x0},${bodyBottom} Z`}
+          fill={`url(#${gid}s)`}
+        />
+        <Path
           d={`M${dripX},${top} L${dripX},${top + dripLen - dripW / 2} A${dripW / 2},${dripW / 2} 0 0 0 ${dripX + dripW},${top + dripLen - dripW / 2} L${dripX + dripW},${top} Z`}
-          fill={WAX_POOL}
-          stroke={colors.ink}
-          strokeOpacity={0.14}
+          fill={pool}
+          stroke={OUTLINE}
+          strokeOpacity={0.2}
           strokeWidth={0.6}
         />
-        <Ellipse cx={cx} cy={top} rx={bw / 2 - 0.5} ry={poolRy} fill={WAX_POOL} stroke={colors.ink} strokeOpacity={0.22} strokeWidth={0.6} />
+        <Ellipse cx={cx} cy={top} rx={bw / 2 - 0.5} ry={poolRy} fill={pool} stroke={OUTLINE} strokeOpacity={0.3} strokeWidth={0.6} />
 
         <Path
           d={`M${cx},${top - poolRy * 0.2} Q${cx - 1.5},${(top + wickTop) / 2} ${cx + 1},${wickTop}`}
-          stroke={colors.ink}
+          stroke={WICK}
           strokeWidth={Math.max(1.2, W * 0.012)}
           strokeLinecap="round"
           fill="none"
@@ -249,7 +283,7 @@ function CandleBase({
           <Wisp key={i} i={i} cx={cx} y0={wickTop} span={H * 0.5} smoke={smoke} />
         ))}
 
-        <AnimatedCircle cx={cx} cy={sealY} fill={colors.verdigris} stroke="#3F5249" strokeWidth={1} animatedProps={sealProps} />
+        <AnimatedCircle cx={cx} cy={sealY} fill={SEAL} stroke={SEAL_EDGE} strokeWidth={1} animatedProps={sealProps} />
         <AnimatedCircle cx={cx} cy={sealY} fill="none" stroke={FLAME_CORE} strokeWidth={0.9} animatedProps={sealRingProps} />
       </Svg>
 
@@ -257,18 +291,18 @@ function CandleBase({
         <Svg width={W} height={H}>
           <Defs>
             <RadialGradient id={`${gid}h`} cx="50%" cy="50%" r="50%">
-              <Stop offset="0" stopColor={FLAME_MID} stopOpacity={0.55} />
-              <Stop offset="0.5" stopColor={colors.leather} stopOpacity={0.14} />
-              <Stop offset="1" stopColor={colors.leather} stopOpacity={0} />
+              <Stop offset="0" stopColor={WARM} stopOpacity={0.5} />
+              <Stop offset="0.45" stopColor={WARM} stopOpacity={0.14} />
+              <Stop offset="1" stopColor={WARM} stopOpacity={0} />
             </RadialGradient>
             <RadialGradient id={`${gid}f`} cx="50%" cy="66%" r="64%">
               <Stop offset="0" stopColor={FLAME_CORE} />
               <Stop offset="0.5" stopColor={FLAME_MID} />
-              <Stop offset="1" stopColor={colors.leather} />
+              <Stop offset="1" stopColor="#E0782E" />
             </RadialGradient>
           </Defs>
           <AnimatedCircle cx={cx} cy={wickTop - W * 0.1} fill={`url(#${gid}h)`} animatedProps={haloProps} />
-          <AnimatedPath fill={`url(#${gid}f)`} stroke={colors.leatherDark} strokeOpacity={0.4} strokeWidth={0.5} animatedProps={flameProps} />
+          <AnimatedPath fill={`url(#${gid}f)`} animatedProps={flameProps} />
           <AnimatedPath fill={FLAME_CORE} animatedProps={coreProps} />
         </Svg>
       </Animated.View>
@@ -299,7 +333,7 @@ function Wisp({
       opacity: p > 0 && p < 1 ? (1 - p) * 0.32 : 0,
     };
   });
-  return <AnimatedCircle fill={colors.inkFaint} animatedProps={props} />;
+  return <AnimatedCircle fill={SMOKE} animatedProps={props} />;
 }
 
 export const Candle = memo(CandleBase);

@@ -1,0 +1,220 @@
+import type { ReactNode } from 'react';
+import Svg, { Circle, Path, Rect } from 'react-native-svg';
+import { colors } from '../../core/theme';
+
+// The app's own line icons, drawn on a 24-unit grid with round joins so
+// they sit with Figtree's strokes. One set, one weight, everywhere.
+
+export type IconName =
+  | 'back'
+  | 'chevron'
+  | 'close'
+  | 'plus'
+  | 'minus'
+  | 'check'
+  | 'drawer'
+  | 'candle'
+  | 'loops'
+  | 'map'
+  | 'steady'
+  | 'wind'
+  | 'mic'
+  | 'pen'
+  | 'flame'
+  | 'heart'
+  | 'trend'
+  | 'sun'
+  | 'moon'
+  | 'plate'
+  | 'repeat'
+  | 'bowl'
+  | 'calendar'
+  | 'jar'
+  | 'wheel'
+  | 'flask'
+  | 'trash'
+  | 'clock'
+  | 'sparkle'
+  | 'pin'
+  | 'help'
+  | 'nap'
+  | 'arrow'
+  | 'pause'
+  | 'play'
+  | 'chat'
+  | 'feather'
+  | 'image';
+
+const shapes: Record<IconName, (c: string) => ReactNode> = {
+  back: () => <Path d="M14.5 5.5 8 12l6.5 6.5" />,
+  chevron: () => <Path d="m9.5 5.5 6.5 6.5-6.5 6.5" />,
+  close: () => <Path d="M6.5 6.5l11 11M17.5 6.5l-11 11" />,
+  plus: () => <Path d="M12 5.5v13M5.5 12h13" />,
+  minus: () => <Path d="M5.5 12h13" />,
+  check: () => <Path d="m5.5 12.5 4.2 4.2 8.8-9.4" />,
+  drawer: () => (
+    <>
+      <Rect x={4.5} y={4.5} width={6.2} height={6.2} rx={1.8} />
+      <Rect x={13.3} y={4.5} width={6.2} height={6.2} rx={1.8} />
+      <Rect x={4.5} y={13.3} width={6.2} height={6.2} rx={1.8} />
+      <Rect x={13.3} y={13.3} width={6.2} height={6.2} rx={1.8} />
+    </>
+  ),
+  candle: () => (
+    <>
+      <Path d="M12 3.5c1.6 1.7 2.2 3 2.2 4.1a2.2 2.2 0 0 1-4.4 0c0-1.1.6-2.4 2.2-4.1Z" />
+      <Rect x={8.2} y={11} width={7.6} height={9.5} rx={1.6} />
+    </>
+  ),
+  loops: () => (
+    <>
+      <Circle cx={12} cy={12} r={7.5} />
+      <Path d="M12 7.8v4.4l2.8 1.8" />
+    </>
+  ),
+  map: () => (
+    <>
+      <Circle cx={6} cy={16.5} r={2} />
+      <Circle cx={12.5} cy={7} r={2} />
+      <Circle cx={18.5} cy={14.5} r={2} />
+      <Path d="m7.2 14.8 4.1-6M14.3 8.2l3.3 4.6M8 16.2l8.5-1.4" />
+    </>
+  ),
+  steady: () => <Path d="M3.5 13c2.2 0 2.2-3 4.3-3s2.1 4.5 4.2 4.5 2.1-6 4.2-6 2.1 4.5 4.3 4.5" />,
+  wind: () => (
+    <>
+      <Path d="M3.5 9h10.2a2.6 2.6 0 1 0-2.6-2.6" />
+      <Path d="M3.5 13.5h13.7a2.8 2.8 0 1 1-2.8 2.8" />
+      <Path d="M3.5 17.5h6" />
+    </>
+  ),
+  mic: () => (
+    <>
+      <Rect x={9} y={3.5} width={6} height={11} rx={3} />
+      <Path d="M6 11.5a6 6 0 0 0 12 0M12 17.5v3" />
+    </>
+  ),
+  pen: () => <Path d="M5 19l1-4.2L15.6 5.2a2 2 0 0 1 2.9 0l.3.3a2 2 0 0 1 0 2.9L9.2 18 5 19ZM13.5 7.3l3.2 3.2" />,
+  flame: () => (
+    <Path d="M12 3.5c3.4 3.3 5.4 6.3 5.4 9.3a5.4 5.4 0 0 1-10.8 0c0-1.8.8-3.4 2.1-4.7.3 1.4 1 2.3 2 2.6-.5-2.4.1-4.8 1.3-7.2Z" />
+  ),
+  heart: () => (
+    <Path d="M12 19.5s-7-4.3-7-9.4A3.9 3.9 0 0 1 12 8a3.9 3.9 0 0 1 7 2.1c0 5.1-7 9.4-7 9.4Z" />
+  ),
+  trend: () => <Path d="M4 17.5l5-5.5 3.5 3.2L20 7M15.5 7H20v4.5" />,
+  sun: () => (
+    <>
+      <Circle cx={12} cy={12} r={3.8} />
+      <Path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M6 18l1.4-1.4M16.6 7.4 18 6" />
+    </>
+  ),
+  moon: () => <Path d="M18.5 14.6A7 7 0 0 1 9.4 5.5a7 7 0 1 0 9.1 9.1Z" />,
+  plate: () => (
+    <>
+      <Circle cx={12} cy={12} r={8} />
+      <Circle cx={12} cy={12} r={4.4} />
+    </>
+  ),
+  repeat: () => (
+    <>
+      <Path d="M5 11V9.5A3 3 0 0 1 8 6.5h10.5M16 4l2.5 2.5L16 9" />
+      <Path d="M19 13v1.5a3 3 0 0 1-3 3H5.5M8 20l-2.5-2.5L8 15" />
+    </>
+  ),
+  bowl: () => (
+    <>
+      <Path d="M4 11.5h16a8 8 0 0 1-16 0Z" />
+      <Path d="M9 8.5c0-1.5 1-2 1-3.5M13 8.5c0-1.5 1-2 1-3.5" />
+    </>
+  ),
+  calendar: () => (
+    <>
+      <Rect x={4} y={5.5} width={16} height={14.5} rx={3} />
+      <Path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+    </>
+  ),
+  jar: () => (
+    <>
+      <Path d="M8 4.5h8M9 4.5v2.2c-2.3 1-3.5 2.6-3.5 5v5.3A2.5 2.5 0 0 0 8 19.5h8a2.5 2.5 0 0 0 2.5-2.5v-5.3c0-2.4-1.2-4-3.5-5V4.5" />
+      <Path d="M9.5 13.5l1.7 1.7 3.3-3.4" />
+    </>
+  ),
+  wheel: () => (
+    <>
+      <Circle cx={12} cy={12} r={8} />
+      <Path d="M12 4v16M4 12h16M6.3 6.3l11.4 11.4M17.7 6.3 6.3 17.7" />
+    </>
+  ),
+  flask: () => (
+    <>
+      <Path d="M9.5 3.5h5M10.5 3.5v5.2L5.6 17.2a2.2 2.2 0 0 0 1.9 3.3h9a2.2 2.2 0 0 0 1.9-3.3l-4.9-8.5V3.5" />
+      <Path d="M7.8 14h8.4" />
+    </>
+  ),
+  trash: () => (
+    <Path d="M4.5 7h15M9.5 7V5a1.5 1.5 0 0 1 1.5-1.5h2A1.5 1.5 0 0 1 14.5 5v2M6.5 7l.9 11.6A2 2 0 0 0 9.4 20.5h5.2a2 2 0 0 0 2-1.9L17.5 7" />
+  ),
+  clock: () => (
+    <>
+      <Circle cx={12} cy={12} r={8} />
+      <Path d="M12 7.5V12l3 2" />
+    </>
+  ),
+  sparkle: () => (
+    <Path d="M12 4c.6 3.6 2.4 5.4 6 6-3.6.6-5.4 2.4-6 6-.6-3.6-2.4-5.4-6-6 3.6-.6 5.4-2.4 6-6ZM18.5 16c.2 1.2.8 1.8 2 2-1.2.2-1.8.8-2 2-.2-1.2-.8-1.8-2-2 1.2-.2 1.8-.8 2-2Z" />
+  ),
+  pin: () => (
+    <>
+      <Path d="M12 20.5s6-5.4 6-10.5a6 6 0 0 0-12 0c0 5.1 6 10.5 6 10.5Z" />
+      <Circle cx={12} cy={10} r={2.2} />
+    </>
+  ),
+  help: () => (
+    <>
+      <Circle cx={12} cy={12} r={8} />
+      <Path d="M9.7 9.6a2.4 2.4 0 1 1 3.3 2.2c-.6.3-1 .8-1 1.5v.4" />
+      <Circle cx={12} cy={16.4} r={0.4} />
+    </>
+  ),
+  nap: () => <Path d="M5 6.5h5l-5 5.5h5M13 11h6.5L13 18.5h6.5" />,
+  arrow: () => <Path d="M5 12h13.5M13 6.5l5.5 5.5-5.5 5.5" />,
+  pause: () => <Path d="M9 6v12M15 6v12" />,
+  play: () => <Path d="M8 5.8v12.4a.8.8 0 0 0 1.2.7l9.6-6.2a.8.8 0 0 0 0-1.4L9.2 5.1a.8.8 0 0 0-1.2.7Z" />,
+  chat: () => (
+    <Path d="M5 17.5V7a2.5 2.5 0 0 1 2.5-2.5h9A2.5 2.5 0 0 1 19 7v6.5a2.5 2.5 0 0 1-2.5 2.5H9l-4 3.5v-2Z" />
+  ),
+  feather: () => (
+    <Path d="M19 5c-6.5 0-11 4.5-11 11v3.5M8 16h5.5c3.6 0 5.5-4.5 5.5-11M5 19.5l3-3" />
+  ),
+  image: () => (
+    <>
+      <Rect x={4} y={5} width={16} height={14} rx={3} />
+      <Circle cx={9.5} cy={10} r={1.6} />
+      <Path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3" />
+    </>
+  ),
+};
+
+interface IconProps {
+  name: IconName;
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
+}
+
+export function Icon({ name, size = 22, color = colors.text, strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {shapes[name](color)}
+    </Svg>
+  );
+}

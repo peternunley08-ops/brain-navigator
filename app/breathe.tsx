@@ -16,9 +16,12 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import { BreathInstrument, STATUS, type BreathValues } from '../components/BreathInstrument';
+import { Backdrop } from '../components/ui/Backdrop';
 import { Button } from '../components/ui/Button';
+import { IconButton } from '../components/ui/IconButton';
 import { BREATH_PATTERNS, cycleLength, PHASE_WORDS, phaseAt } from '../core/breathPatterns';
 import { useHealthStore } from '../core/healthStore';
 import { colors, fonts, spacing } from '../core/theme';
@@ -73,6 +76,7 @@ function Headline({ text, size }: { text: string; size: number }) {
 }
 
 export default function BreatheScreen() {
+  const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const size = Math.max(240, Math.min(width - spacing.lg * 2, 360, height - 460));
   const reducedMotion = useReducedMotion();
@@ -261,8 +265,9 @@ export default function BreatheScreen() {
 
   return (
     <GestureHandlerRootView style={styles.root}>
-      <View style={styles.content}>
-        <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
+      <Backdrop tone="dusk" glowColor="#8FB4E8" glowAt={0.45} />
+      <View style={[styles.content, { paddingTop: insets.top + 8 }]}>
+        <IconButton icon="back" label="Back" onPress={() => router.back()} style={styles.back} />
 
         <Text style={styles.title}>Breathe</Text>
         <View style={styles.subtitleWrap}>
@@ -316,7 +321,7 @@ export default function BreatheScreen() {
           {ui === 'paused' ? (
             <>
               <Text style={styles.note}>Tap the flame to keep going.</Text>
-              <Button label="End session" variant="pill" onPress={end} style={styles.action} />
+              <Button label="End session" variant="secondary" size="sm" icon="close" onPress={end} style={styles.action} />
             </>
           ) : null}
 
@@ -326,7 +331,7 @@ export default function BreatheScreen() {
                 {NUMBER_WORDS[pattern.cycles] ?? pattern.cycles} breaths in {formatDuration(totalMs)}.
               </Text>
               <View style={styles.actions}>
-                <Button label="Breathe again" variant="pill" onPress={start} />
+                <Button label="Breathe again" variant="secondary" size="sm" icon="repeat" onPress={start} />
                 {isHealthAuthorized ? (
                   <Button
                     label={
@@ -336,7 +341,10 @@ export default function BreatheScreen() {
                           ? 'Logging…'
                           : `Log ${minutes} ${minutes === 1 ? 'minute' : 'minutes'} to Health`
                     }
-                    variant="pill"
+                    variant="secondary"
+                    size="sm"
+                    icon={logged ? 'check' : 'heart'}
+                    tint={colors.secured}
                     onPress={handleLog}
                     disabled={logged || isSavingHealth}
                   />
@@ -354,21 +362,21 @@ export default function BreatheScreen() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.night,
   },
   content: {
     flex: 1,
     paddingHorizontal: spacing.lg,
-    paddingTop: 56,
   },
   back: {
     alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
+    marginBottom: 18,
   },
   title: {
     fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
+    fontSize: 34,
+    lineHeight: 40,
+    color: colors.text,
   },
   subtitleWrap: {
     height: 40,
@@ -382,7 +390,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 14,
     lineHeight: 19,
-    color: colors.inkMuted,
+    color: colors.textMuted,
   },
   stage: {
     flex: 1,
@@ -414,7 +422,7 @@ const styles = StyleSheet.create({
   },
   headlineText: {
     fontFamily: fonts.displaySoft,
-    color: colors.ink,
+    color: colors.text,
   },
   readout: {
     alignItems: 'center',
@@ -423,14 +431,15 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   count: {
-    fontFamily: fonts.mono,
-    fontSize: 26,
-    color: colors.inkMuted,
+    fontFamily: fonts.bodySemi,
+    fontSize: 30,
+    color: colors.textMuted,
+    fontVariant: ['tabular-nums'],
   },
   note: {
     fontFamily: fonts.body,
     fontSize: 14,
-    color: colors.inkFaint,
+    color: colors.textFaint,
     textAlign: 'center',
   },
   action: {

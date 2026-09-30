@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, spacing } from '../../core/theme';
 import { useWeatherStore } from '../../core/weatherStore';
 import { compassLabel, weatherCodeEmoji, weatherCodeLabel } from '../../core/weatherCodes';
+import { Button } from './Button';
 import { Card } from './Card';
 
 export function ConditionsCard() {
@@ -27,9 +28,14 @@ export function ConditionsCard() {
         <Text style={styles.connectText}>
           Share your location to see live weather and surf conditions here.
         </Text>
-        <Pressable onPress={connect} style={styles.connectButton}>
-          <Text style={styles.connectButtonText}>{isLoading ? 'Locating…' : 'Enable Conditions'}</Text>
-        </Pressable>
+        <Button
+          label={isLoading ? 'Locating…' : 'Show conditions'}
+          icon="pin"
+          variant="secondary"
+          size="sm"
+          onPress={connect}
+          style={styles.connectButton}
+        />
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
       </Card>
     );
@@ -94,36 +100,22 @@ function SurfStat({ label, value }: { label: string; value: string }) {
 
 const styles = StyleSheet.create({
   connectCard: {
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
     gap: spacing.sm,
   },
   connectText: {
     fontFamily: fonts.body,
     fontSize: 14,
-    color: colors.inkMuted,
+    color: colors.textMuted,
   },
   connectButton: {
     alignSelf: 'flex-start',
-    paddingVertical: 8,
-    paddingHorizontal: spacing.md,
-    borderRadius: 999,
-    backgroundColor: colors.leather,
-  },
-  connectButtonText: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.background,
   },
   errorText: {
     fontFamily: fonts.body,
     fontSize: 12,
     color: colors.danger,
   },
-  card: {
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
-  },
+  card: {},
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -132,12 +124,12 @@ const styles = StyleSheet.create({
   locationText: {
     fontFamily: fonts.display,
     fontSize: 16,
-    color: colors.ink,
+    color: colors.text,
   },
   refreshText: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.leather,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.flame,
   },
   weatherRow: {
     flexDirection: 'row',
@@ -154,24 +146,24 @@ const styles = StyleSheet.create({
   tempText: {
     fontFamily: fonts.display,
     fontSize: 28,
-    color: colors.ink,
+    color: colors.text,
   },
   conditionText: {
     fontFamily: fonts.body,
     fontSize: 13,
-    color: colors.inkFaint,
+    color: colors.textFaint,
   },
   miniStats: {
     alignItems: 'flex-end',
   },
   miniStat: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.inkFaint,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.divider,
+    backgroundColor: colors.lineStrong,
     marginVertical: spacing.md,
   },
   surfRow: {
@@ -184,15 +176,13 @@ const styles = StyleSheet.create({
   surfValue: {
     fontFamily: fonts.display,
     fontSize: 16,
-    color: colors.ink,
+    color: colors.text,
   },
   surfLabel: {
     marginTop: 2,
-    fontFamily: fonts.mono,
-    fontSize: 9,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textFaint,
   },
   noSurfText: {
     fontFamily: fonts.body,

@@ -1,30 +1,36 @@
-import { router } from 'expo-router';
-import {
-  ExpoSpeechRecognitionModule,
-  useSpeechRecognitionEvent,
-} from 'expo-speech-recognition';
-import { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
+import { LinearGradient } from 'expo-linear-gradient';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
   Easing,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import Svg, { Circle } from 'react-native-svg';
-import { BottomNav } from '../components/BottomNav';
+  FadeIn,
+  FadeInDown,
+  FadeOut,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated';
+import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
-import { colors, fonts, radii, spacing } from '../core/theme';
+import { Card } from '../components/ui/Card';
+import { Field } from '../components/ui/Field';
+import { Icon } from '../components/ui/Icon';
+import { Pressy } from '../components/ui/Pressy';
+import { Reveal } from '../components/ui/Reveal';
+import { Screen } from '../components/ui/Screen';
+import { Section } from '../components/ui/Section';
+import { alpha, colors, fonts, radii } from '../core/theme';
 import { useVentStore } from '../core/ventStore';
 
 type Mode = 'voice' | 'type';
 
-const GAUGE_SIZE = 132;
-const GAUGE_RADIUS = GAUGE_SIZE / 2 - 6;
-const GAUGE_CIRCUMFERENCE = 2 * Math.PI * GAUGE_RADIUS;
+const ORB = 150;
+const EMBER_RED = '#F0845A';
 
 export default function VentScreen() {
   const [mode, setMode] = useState<Mode>('voice');
@@ -34,6 +40,7 @@ export default function VentScreen() {
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [released, setReleased] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const reduced = useReducedMotion();
 
   const history = useVentStore((s) => s.history);
   const isSaving = useVentStore((s) => s.isSaving);
@@ -41,9 +48,7 @@ export default function VentScreen() {
   const fetchHistory = useVentStore((s) => s.fetchHistory);
   const saveEntry = useVentStore((s) => s.saveEntry);
 
-  const pulse = useRef(new Animated.Value(0)).current;
-  const releaseOpacity = useRef(new Animated.Value(1)).current;
-  const releaseTranslate = useRef(new Animated.Value(0)).current;
+  const lift = useSharedValue(0);
 
   useEffect(() => {
     fetchHistory();
@@ -63,23 +68,6 @@ export default function VentScreen() {
       setPermissionError("Couldn't hear that — try again, or switch to typing.");
     }
   });
-
-  useEffect(() => {
-    if (!recognizing) {
-      pulse.setValue(0);
-      return;
-    }
-    const loop = Animated.loop(
-      Animated.timing(pulse, {
-        toValue: 1,
-        duration: 1400,
-        easing: Easing.out(Easing.ease),
-        useNativeDriver: true,
-      })
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [recognizing, pulse]);
 
   const content = mode === 'voice' ? transcript : typedText;
 
@@ -106,6 +94,7 @@ export default function VentScreen() {
     });
   };
 
+  // The words rise and fade before they clear — letting go, made visible.
   const handleRelease = async () => {
     if (!content.trim() || isSaving) return;
     if (recognizing) ExpoSpeechRecognitionModule.stop();
@@ -113,290 +102,298 @@ export default function VentScreen() {
     const ok = await saveEntry(content, mode);
     if (!ok) return;
 
-    Animated.parallel([
-      Animated.timing(releaseOpacity, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(releaseTranslate, {
-        toValue: -24,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
+    lift.value = withTiming(1, { duration: reduced ? 200 : 900, easing: Easing.in(Easing.quad) });
+    setTimeout(() => {
       setTranscript('');
       setTypedText('');
-      releaseOpacity.setValue(1);
-      releaseTranslate.setValue(0);
+      lift.value = 0;
       setReleased(true);
-      setTimeout(() => setReleased(false), 2200);
-    });
+      emberSay('Released. It’s out of your head now.', 'happy');
+      setTimeout(() => setReleased(false), 2600);
+    }, reduced ? 220 : 920);
   };
 
-  const ringScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.35] });
-  const ringOpacity = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 0] });
+  const floatAway = useAnimatedStyle(() => ({
+    opacity: 1 - lift.value,
+    transform: [{ translateY: reduced ? 0 : -60 * lift.value }, { scale: 1 - 0.06 * lift.value }],
+  }));
 
   return (
-    <View style={styles.outer}>
-      <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-        <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
+    <Screen title="Let it out" subtitle="Speak or type. Nothing here is graded." tone="ember" glowColor={EMBER_RED}>
+      <Reveal index={0}>
+        <ModeSwitch mode={mode} onChange={setMode} />
+      </Reveal>
 
-        <Text style={styles.title}>Let It Out</Text>
-        <Text style={styles.subtitle}>Speak or type. Nothing here is graded.</Text>
-
-        <View style={styles.modeRow}>
-          <ModeTab label="Speak" active={mode === 'voice'} onPress={() => setMode('voice')} />
-          <ModeTab label="Type" active={mode === 'type'} onPress={() => setMode('type')} />
-        </View>
-
-        <Animated.View
-          style={{ opacity: releaseOpacity, transform: [{ translateY: releaseTranslate }] }}
-        >
+      <Reveal index={1}>
+        <Animated.View style={floatAway}>
           {mode === 'voice' ? (
             <View style={styles.voiceArea}>
-              <View style={styles.gaugeWrap}>
-                {recognizing ? (
-                  <Animated.View
-                    style={[
-                      styles.ring,
-                      { transform: [{ scale: ringScale }], opacity: ringOpacity },
-                    ]}
-                  />
-                ) : null}
-                <Pressable onPress={handleValvePress} hitSlop={12}>
-                  <Svg width={GAUGE_SIZE} height={GAUGE_SIZE}>
-                    <Circle
-                      cx={GAUGE_SIZE / 2}
-                      cy={GAUGE_SIZE / 2}
-                      r={GAUGE_RADIUS}
-                      stroke={colors.divider}
-                      strokeWidth={3}
-                      fill="none"
-                    />
-                    <Circle
-                      cx={GAUGE_SIZE / 2}
-                      cy={GAUGE_SIZE / 2}
-                      r={GAUGE_RADIUS}
-                      stroke={recognizing ? colors.unlocked : colors.leather}
-                      strokeWidth={3}
-                      fill={recognizing ? 'rgba(156, 74, 49, 0.08)' : 'transparent'}
-                      strokeDasharray={GAUGE_CIRCUMFERENCE}
-                      strokeDashoffset={recognizing ? 0 : GAUGE_CIRCUMFERENCE * 0.18}
-                      strokeLinecap="round"
-                      rotation={-90}
-                      origin={`${GAUGE_SIZE / 2}, ${GAUGE_SIZE / 2}`}
-                    />
-                  </Svg>
-                </Pressable>
-              </View>
-              <Text style={styles.valveLabel}>{recognizing ? 'Listening — tap to stop' : 'Tap to speak'}</Text>
+              <MicOrb listening={recognizing} onPress={handleValvePress} />
+              <Text style={styles.valveLabel}>{recognizing ? 'Listening. Tap to stop.' : 'Tap to speak'}</Text>
               {permissionError ? <Text style={styles.errorText}>{permissionError}</Text> : null}
-
-              {transcript ? <Text style={styles.transcript}>{transcript}</Text> : null}
+              {transcript ? (
+                <Card style={styles.transcriptCard}>
+                  <Text style={styles.transcript}>{transcript}</Text>
+                </Card>
+              ) : null}
             </View>
           ) : (
-            <TextInput
-              style={styles.typeArea}
+            <Field
               multiline
-              placeholder="Let it out."
-              placeholderTextColor={colors.hint}
+              placeholder="Let it out. All of it."
               value={typedText}
               onChangeText={setTypedText}
-              textAlignVertical="top"
+              style={styles.typeArea}
+              containerStyle={styles.typeWrap}
             />
           )}
 
           {content.trim() ? (
-            <Button
-              label={isSaving ? 'Releasing…' : 'Release'}
-              onPress={handleRelease}
-              disabled={isSaving}
-              style={styles.releaseButton}
-            />
+            <Animated.View entering={FadeInDown.duration(260)}>
+              <Button label="Let it go" icon="feather" loading={isSaving} onPress={handleRelease} style={styles.releaseButton} />
+            </Animated.View>
           ) : null}
         </Animated.View>
 
-        {released ? <Text style={styles.releasedNote}>Released. It's kept, not dwelt on.</Text> : null}
-        {!released && saveError ? <Text style={styles.errorText}>{saveError}</Text> : null}
-
-        {history.length > 0 ? (
-          <Pressable onPress={() => setHistoryOpen((v) => !v)} style={styles.historyToggle}>
-            <Text style={styles.historyToggleText}>
-              {historyOpen ? 'Hide' : 'See'} past entries ({history.length})
-            </Text>
-          </Pressable>
+        {released ? (
+          <Animated.Text entering={FadeIn.duration(300)} exiting={FadeOut.duration(300)} style={styles.releasedNote}>
+            Released. It’s kept, not dwelt on.
+          </Animated.Text>
         ) : null}
+        {!released && saveError ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
+      </Reveal>
 
-        {historyOpen
-          ? history.map((entry) => (
-              <View key={entry.id} style={styles.historyRow}>
-                <Text style={styles.historyDate}>
-                  {entry.input_mode === 'companion'
-                    ? `${new Date(entry.created_at).toLocaleDateString()}, with Ember`
-                    : new Date(entry.created_at).toLocaleDateString()}
-                </Text>
-                <Text style={styles.historyContent} numberOfLines={2}>
-                  {entry.content}
-                </Text>
-              </View>
-            ))
-          : null}
-      </ScrollView>
+      {history.length > 0 ? (
+        <Reveal index={2}>
+          <Section
+            title="What you’ve let out"
+            note={`${history.length} ${history.length === 1 ? 'entry' : 'entries'}`}
+            action={{ label: historyOpen ? 'Hide' : 'Show', onPress: () => setHistoryOpen((v) => !v) }}
+          >
+            {historyOpen ? (
+              <Animated.View entering={FadeInDown.duration(260)} style={styles.history}>
+                {history.map((entry) => (
+                  <Card key={entry.id} style={styles.historyCard}>
+                    <View style={styles.historyHead}>
+                      <Icon
+                        name={entry.input_mode === 'companion' ? 'chat' : entry.input_mode === 'voice' ? 'mic' : 'pen'}
+                        size={14}
+                        color={colors.textFaint}
+                      />
+                      <Text style={styles.historyDate}>
+                        {new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {entry.input_mode === 'companion' ? ', with Ember' : ''}
+                      </Text>
+                    </View>
+                    <Text style={styles.historyContent} numberOfLines={3}>
+                      {entry.content}
+                    </Text>
+                  </Card>
+                ))}
+              </Animated.View>
+            ) : null}
+          </Section>
+        </Reveal>
+      ) : null}
+    </Screen>
+  );
+}
 
-      <BottomNav />
+function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => void }) {
+  const [w, setW] = useState(0);
+  const knob = useAnimatedStyle(() => ({
+    transform: [{ translateX: withTiming(mode === 'voice' ? 0 : w / 2, { duration: 240, easing: Easing.out(Easing.cubic) }) }],
+  }));
+  return (
+    <View style={styles.switch} onLayout={(e) => setW(e.nativeEvent.layout.width - 8)} accessibilityRole="tablist">
+      {w > 0 ? <Animated.View style={[styles.knob, { width: w / 2 }, knob]} /> : null}
+      {(['voice', 'type'] as const).map((m) => (
+        <Pressy
+          key={m}
+          onPress={() => onChange(m)}
+          style={styles.switchItem}
+          depth={0.97}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: mode === m }}
+        >
+          <Icon name={m === 'voice' ? 'mic' : 'pen'} size={16} color={mode === m ? colors.flameInk : colors.textMuted} strokeWidth={2} />
+          <Text style={[styles.switchText, mode === m && styles.switchTextOn]}>{m === 'voice' ? 'Speak' : 'Type'}</Text>
+        </Pressy>
+      ))}
     </View>
   );
 }
 
-function ModeTab({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+// A glowing orb; while it listens, rings ripple outward from it.
+function MicOrb({ listening, onPress }: { listening: boolean; onPress: () => void }) {
+  const breathe = useSharedValue(0);
+  useEffect(() => {
+    breathe.value = listening
+      ? withRepeat(withSequence(withTiming(1, { duration: 900 }), withTiming(0, { duration: 900 })), -1)
+      : withTiming(0, { duration: 300 });
+  }, [listening, breathe]);
+  const orb = useAnimatedStyle(() => ({ transform: [{ scale: 1 + 0.05 * breathe.value }] }));
+
   return (
-    <Pressable onPress={onPress} style={[styles.modeTab, active && styles.modeTabActive]}>
-      <Text style={[styles.modeTabText, active && styles.modeTabTextActive]}>{label}</Text>
-    </Pressable>
+    <View style={styles.orbWrap}>
+      {listening ? [0, 1, 2].map((i) => <Ripple key={i} delay={i * 600} />) : null}
+      <Pressy onPress={onPress} depth={0.93} haptic="light" accessibilityRole="button" accessibilityLabel={listening ? 'Stop listening' : 'Start speaking'}>
+        <Animated.View style={[styles.orb, orb, listening && styles.orbOn]}>
+          <LinearGradient
+            colors={listening ? ['#FFB38A', EMBER_RED, '#C4502B'] : ['#3A2A33', '#2B2230', '#211A25']}
+            start={{ x: 0.2, y: 0 }}
+            end={{ x: 0.8, y: 1 }}
+            style={styles.orbFill}
+          >
+            <Icon name={listening ? 'pause' : 'mic'} size={44} color={listening ? colors.flameInk : EMBER_RED} strokeWidth={2} />
+          </LinearGradient>
+        </Animated.View>
+      </Pressy>
+    </View>
   );
 }
 
+function Ripple({ delay }: { delay: number }) {
+  const p = useSharedValue(0);
+  useEffect(() => {
+    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: 1800, easing: Easing.out(Easing.quad) }), -1, false));
+  }, [p, delay]);
+  const style = useAnimatedStyle(() => ({ opacity: 0.55 * (1 - p.value), transform: [{ scale: 1 + p.value * 0.7 }] }));
+  return <Animated.View style={[styles.ripple, style]} pointerEvents="none" />;
+}
+
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 120,
-  },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  modeRow: {
+  switch: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
-  },
-  modeTab: {
-    paddingVertical: 8,
-    paddingHorizontal: spacing.md,
+    marginTop: 18,
+    padding: 4,
     borderRadius: radii.pill,
+    backgroundColor: colors.surfaceSunk,
     borderWidth: 1,
-    borderColor: colors.divider,
+    borderColor: colors.line,
   },
-  modeTabActive: {
-    backgroundColor: colors.leather,
-    borderColor: colors.leather,
+  knob: {
+    position: 'absolute',
+    top: 4,
+    bottom: 4,
+    left: 4,
+    borderRadius: radii.pill,
+    backgroundColor: colors.flame,
   },
-  modeTabText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkMuted,
+  switchItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    height: 42,
   },
-  modeTabTextActive: {
-    color: colors.background,
+  switchText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+  switchTextOn: {
+    color: colors.flameInk,
   },
   voiceArea: {
     alignItems: 'center',
-    paddingVertical: spacing.lg,
+    paddingTop: 36,
   },
-  gaugeWrap: {
+  orbWrap: {
+    width: ORB + 60,
+    height: ORB + 60,
     alignItems: 'center',
     justifyContent: 'center',
-    width: GAUGE_SIZE,
-    height: GAUGE_SIZE,
   },
-  ring: {
+  orb: {
+    width: ORB,
+    height: ORB,
+    borderRadius: ORB / 2,
+    borderWidth: 1,
+    borderColor: alpha(EMBER_RED, 0.4),
+    overflow: 'hidden',
+  },
+  orbOn: {
+    shadowColor: EMBER_RED,
+    shadowOpacity: 0.8,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  orbFill: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ripple: {
     position: 'absolute',
-    width: GAUGE_SIZE,
-    height: GAUGE_SIZE,
-    borderRadius: GAUGE_SIZE / 2,
+    width: ORB,
+    height: ORB,
+    borderRadius: ORB / 2,
     borderWidth: 2,
-    borderColor: colors.unlocked,
+    borderColor: EMBER_RED,
   },
   valveLabel: {
-    marginTop: spacing.md,
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkFaint,
+    marginTop: 6,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 15,
+    color: colors.textMuted,
+  },
+  transcriptCard: {
+    marginTop: 24,
   },
   transcript: {
-    marginTop: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 17,
-    lineHeight: 25,
-    color: colors.ink,
-    textAlign: 'left',
-    alignSelf: 'stretch',
+    fontFamily: fonts.displaySoft,
+    fontSize: 18,
+    lineHeight: 26,
+    color: colors.text,
+  },
+  typeWrap: {
+    marginTop: 18,
   },
   typeArea: {
-    minHeight: 180,
-    padding: spacing.md,
-    borderRadius: radii.lg,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.backgroundAlt,
-    fontFamily: fonts.body,
-    fontSize: 16,
-    lineHeight: 23,
-    color: colors.ink,
+    minHeight: 220,
+    fontSize: 17,
+    lineHeight: 25,
   },
   releaseButton: {
-    marginTop: spacing.lg,
-    alignSelf: 'center',
+    marginTop: 22,
   },
   releasedNote: {
-    marginTop: spacing.lg,
+    marginTop: 22,
     textAlign: 'center',
     fontFamily: fonts.displaySoft,
-    fontSize: 15,
-    color: colors.verdigris,
+    fontSize: 17,
+    color: colors.secured,
   },
   errorText: {
-    marginTop: spacing.sm,
+    marginTop: 10,
     fontFamily: fonts.body,
-    fontSize: 12,
+    fontSize: 13,
     color: colors.danger,
     textAlign: 'center',
   },
-  historyToggle: {
-    marginTop: spacing.xxl,
-    alignSelf: 'center',
+  history: {
+    gap: 10,
   },
-  historyToggleText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkFaint,
+  historyCard: {
+    paddingVertical: 14,
   },
-  historyRow: {
-    marginTop: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.divider,
+  historyHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   historyDate: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.hint,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textFaint,
   },
   historyContent: {
-    marginTop: 4,
+    marginTop: 6,
     fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
+    fontSize: 15,
+    lineHeight: 21,
+    color: colors.textMuted,
   },
 });

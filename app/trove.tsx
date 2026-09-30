@@ -1,21 +1,27 @@
 import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { BottomNav } from '../components/BottomNav';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Button } from '../components/ui/Button';
+import { CandleGlyph } from '../components/ui/CandleGlyph';
 import { Card } from '../components/ui/Card';
-import { Divider } from '../components/ui/Divider';
-import { CognitiveStateEntry } from '../core/store';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Icon } from '../components/ui/Icon';
+import { Screen } from '../components/ui/Screen';
 import { useRealtimeRefetch } from '../core/hooks/useRealtimeRefetch';
+import { CognitiveStateEntry, STATE_LABEL } from '../core/store';
 import { supabase } from '../core/supabase';
-import { colors, fonts, spacing, stateColor } from '../core/theme';
+import { alpha, colors, fonts, stateColor } from '../core/theme';
+
+const KEPT = '#E89AB8';
 
 export default function TroveScreen() {
   const [troveEntries, setTroveEntries] = useState<CognitiveStateEntry[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
-  // Queried directly rather than derived from the Today/Root Map history
-  // (which is capped to the 50 most recent entries) — otherwise anything
-  // saved to the Trove silently disappears once 50 newer entries pile up.
+  // Queried directly rather than derived from the history feed (which is
+  // capped to the 50 most recent entries) — otherwise anything kept would
+  // silently disappear once 50 newer entries pile up.
   const fetchTrove = useCallback(() => {
     supabase
       .from('cognitive_state')
@@ -24,6 +30,7 @@ export default function TroveScreen() {
       .order('created_at', { ascending: false })
       .then(({ data, error }) => {
         if (!error && data) setTroveEntries(data as CognitiveStateEntry[]);
+        setLoaded(true);
       });
   }, []);
 
@@ -34,91 +41,83 @@ export default function TroveScreen() {
   useRealtimeRefetch(['cognitive_state'], fetchTrove);
 
   return (
-    <View style={styles.root}>
-      <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
-
-      <Text style={styles.title}>Kept</Text>
-      <Text style={styles.subtitle}>
-        {troveEntries.length === 0 ? 'Nothing kept yet' : `${troveEntries.length} kept`}
-      </Text>
-
-      {troveEntries.length > 0 ? (
-        <Card style={styles.card}>
-          {troveEntries.map((entry, i) => (
-            <View key={entry.id}>
-              <Pressable
-                style={styles.row}
-                onPress={() => router.push(`/entry/${entry.id}`)}
-              >
-                <View style={[styles.dot, { backgroundColor: stateColor(entry.state) }]} />
-                <Text style={styles.mood} numberOfLines={1}>
-                  {entry.mood || '—'}
-                </Text>
-                <Text style={styles.date}>
-                  {new Date(entry.created_at).toLocaleDateString()}
-                </Text>
-              </Pressable>
-              {i < troveEntries.length - 1 ? <Divider /> : null}
+    <Screen
+      title="Kept"
+      subtitle={
+        !loaded ? 'Loading…' : troveEntries.length === 0 ? 'Nothing kept yet.' : `${troveEntries.length} you chose to keep.`
+      }
+    >
+      {loaded && troveEntries.length === 0 ? (
+        <EmptyState
+          art={
+            <View style={[styles.jar, { backgroundColor: alpha(KEPT, 0.12) }]}>
+              <Icon name="jar" size={30} color={KEPT} />
             </View>
-          ))}
-        </Card>
-      ) : null}
-
-      <BottomNav />
-    </View>
+          }
+          title="Nothing in the jar yet."
+          body="Open any candle and tap “Keep this” to save how you got through it."
+        >
+          <Button label="Go to the Desk" variant="secondary" onPress={() => router.dismissTo('/')} />
+        </EmptyState>
+      ) : (
+        <View style={styles.list}>
+          {troveEntries.map((entry, i) => {
+            const state = entry.state === 'secured' ? 'resolved' : entry.state === 'shelved' ? 'letgo' : 'lit';
+            const tint = stateColor(entry.state);
+            return (
+              <Animated.View key={entry.id} entering={FadeInDown.delay(80 + i * 45).duration(380)}>
+                <Card onPress={() => router.push(`/entry/${entry.id}`)} style={styles.card}>
+                  <CandleGlyph size={30} intensity={(entry.intensity ?? 5) / 10} state={state} />
+                  <View style={styles.text}>
+                    <Text style={styles.title} numberOfLines={2}>
+                      {entry.mood || 'Untitled'}
+                    </Text>
+                    <Text style={styles.meta}>
+                      <Text style={{ color: tint }}>{STATE_LABEL[entry.state]}</Text>,{' '}
+                      {new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </Text>
+                  </View>
+                  <Icon name="chevron" size={18} color={colors.textFaint} />
+                </Card>
+              </Animated.View>
+            );
+          })}
+        </View>
+      )}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 100,
+  jar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-    alignSelf: 'flex-start',
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-    alignSelf: 'flex-start',
+  list: {
+    marginTop: 16,
+    gap: 10,
   },
   card: {
-    marginTop: spacing.lg,
-  },
-  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: spacing.sm,
+    gap: 14,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: spacing.sm,
-  },
-  mood: {
+  text: {
     flex: 1,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.ink,
-    marginRight: spacing.sm,
   },
-  date: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.hint,
+  title: {
+    fontFamily: fonts.displaySoft,
+    fontSize: 17,
+    lineHeight: 22,
+    color: colors.text,
+  },
+  meta: {
+    marginTop: 3,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textFaint,
   },
 });

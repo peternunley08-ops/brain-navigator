@@ -461,6 +461,120 @@ Drawer.
   write to real data), and the Desk with more than two real candles
 - [ ] Reinstall on the phone
 
+## Phase 27 — Audit fixes (done, committed d99277e)
+
+Tabs pop back instead of stacking (`router.dismissTo`), flame clocks pause
+on hidden screens, resolve/let-go report save failures honestly, Reduce
+Motion respected by closings. Details in SESSION_LOG.
+
+## Phase 28 — Every screen redesigned + Ember the mascot (2026-09-29, uncommitted)
+
+User asked for "a redesign of every screen and an app mascot that is
+interactive that helps." Decisions made and carried through:
+
+- **Night palette ("Candlelight").** The vellum-on-vellum look (same beige
+  everywhere, brown pills with typewriter text) was the problem. Moved the
+  whole app to a warm night room lit by the candles: `core/theme.ts`
+  rewritten (night/surface tokens, parchment text, candle-gold `flame` as
+  the only action color, ember/sage/lavender for Open/Resolved/Let go,
+  `dimensionColor` for the 8 wellness areas, `alpha()` helper). Legacy
+  token names were migrated everywhere and then deleted.
+- **Type.** Fraunces stays (display + Ember's italic voice); Figtree
+  (`@expo-google-fonts/figtree`, JS-only, no rebuild) replaced Lora and
+  Courier Prime for everything else. `fonts.mono` now points at Figtree
+  semibold for number readouts.
+- **Design kit** in `components/ui/`: `Screen` (the frame every screen
+  uses: backdrop, round back button, title/kicker/subtitle, scroll that
+  clears the nav, keyboard insets), `Backdrop` (gradient + light pool +
+  optional dust motes), `Reveal` (staggered fade-up), `Pressy` (spring
+  press + haptic), `Button` (primary gold gradient / secondary / ghost,
+  icons, loading, tint), `Card` (tint), `Chip`/`ChipRow`, `Field`,
+  `IconButton`, `Icon` (custom 24-grid line icon set), `Section`,
+  `Stepper`, `StatTile`, `Ring` (animated progress ring), `EmptyState`,
+  `CandleGlyph` (still candle for lists), `MoodPicker` (5 faces),
+  `TrackSlider` rebuilt as a real draggable slider (lets vertical scrolls
+  through, tap-to-set, haptic ticks), `HoldToConfirm` rebuilt as a
+  filling ring (Reanimated), `PlateMeter` rebuilt as a sliced plate.
+  Deleted as unused: `Bear`, `Divider`, `RadialGauge`, `SegmentedBar`,
+  and `useAdaptiveGradient`.
+- **Ember** is now a living flame (the bear is retired — a flame named
+  Ember fits the candle world). `components/ember/`: `useEmberRig`
+  (shared values + moods: idle, happy, cheer, curious, sleepy, concerned,
+  listening, dizzy; blink/glance loops; hop, wiggle, talk, yawn),
+  `EmberSprite` (SVG drawn from the shared `flamePath`, face with
+  parallax eyes, blinking, mouth shapes; `EmberGlyph` still version),
+  `Sparks`, `EmberBubble` (typewriter speech bubble), `EmberBuddy` (the
+  global overlay mounted in `app/_layout.tsx`). `core/ember.ts` is the
+  "brain" (no AI): contextual tips from real data (no check-in yet, high
+  stress, short sleep, a candle open 7+ days, 4+ open, plate over cap,
+  unlogged habit, late night) plus a plain "what is this screen"
+  explanation per route. `core/emberStore.ts` holds perch/nap (saved to
+  `ember.json` via expo-file-system) and `say()` toasts.
+- **Ember interactions**: tap for tips (actions navigate), "This screen",
+  "Something else", "Nap" (tucks into an ember at the edge with z's; tap
+  to wake with a yawn); drag anywhere and it springs to the nearest edge
+  with the flame trailing and stretching; hold for a kind line; shake it
+  and it gets dizzy; a glowing dot when it has something worth saying.
+  Hidden on `/companion` (Ember's own screen) and `/breathe`, and while
+  the keyboard is up. Reacts to events via `emberSay()`: saving an entry,
+  resolving/letting go, check-in, clearing the plate, all habits done,
+  venting, grounding, mindful minutes.
+- **Screens**: launch gate (hold sleeping Ember to wake it), Desk (candle
+  desk with light spill, Today rings, plate/habits tiles), Loops (candle
+  cards, oldest first, heat bar), Map (night-sky constellation + "Who
+  keeps showing up", tap to light a person's threads; fixed counting an
+  entry once per person), Steady (tool cards + new inline 5-4-3-2-1
+  grounding), Set something down (live candle preview whose flame grows
+  with the slider), entry detail (state pill, notes card, hold rings with
+  icons), Check-in (mood faces, sleep stepper, sliders; the old wall of 8
+  shortcut pills removed — Drawer/Steady have them), Health, Trends
+  (smoothed glowing line), Your plate, Habits (7-day dots, streak flame),
+  Food (calorie ring, macro bars, goals folded away), Calendar (timeline
+  with a Now marker), Kept, Wellness wheel (animated shape, dimension
+  colors, weakest-area hint), The science, Let it out (mic orb with
+  ripples, sliding Speak/Type switch, words float away on release),
+  Ember conversation (Ember on stage, chat bubbles), Breathe (new frame;
+  instrument already suited the dark).
+- [x] `tsc --noEmit` clean
+- [x] Verified in Simulator with real taps: wake gate, Ember tap → tips
+  bubble with Check-in action, drag + edge snap, slider on Set something
+  down, mood faces + live ring, Desk, Loops, Map, Steady, Drawer, Your
+  plate, Ember conversation, Ember nap (persists across relaunch) → wake,
+  hold → kind line, and screenshots of Health, Trends, Habits, Food,
+  Calendar, Kept, Wellness, Science, Let it out and Breathe after their
+  final edits. The Mac was under extreme load for part of the session
+  (load avg 180–330, ~10 GB swap from other apps); Fast Refresh also
+  stopped applying edits then — relaunch the app if a change doesn't show.
+- [ ] Not tested: shaking Ember (dizzy) and the Ember "This screen" /
+  "Something else" buttons by tap
+- [ ] Not tested (would write real data): saving an entry, a check-in,
+  a task/habit/meal, a vent, or finishing the Ember conversation
+- [ ] Commit (only when the user says so); reinstall on the phone
+
+## Phase 29 — Ember runs on AI (2026-09-29, uncommitted; waiting on credit)
+
+User: "use .jev api to run the ai mascot" (read as the `.env` API). No AI
+key exists in `.env`; the Anthropic key is the Supabase secret
+`brain-navigator-v2`, still failing with "credit balance is too low".
+Built everything so it works the moment credit is added, degrading
+gracefully until then.
+
+- [x] `supabase/functions/ember/index.ts` (persona, safety, context,
+  one optional action tag, clean error codes, `claude-sonnet-5-5`)
+- [x] `core/emberAI.ts` (`askEmber`, `emberContext`, fallback to `chat`
+  on 404, reasons `no_credit | offline | unavailable`)
+- [x] `app/companion.tsx` → real AI conversation, typing indicator,
+  action buttons, Done saves the transcript, scripted fallback with a
+  plain explanation, privacy line under the input
+- [x] "Talk to me" on every tip in Ember's floating bubble
+- [x] Verified live: Talk to me → conversation → send → `ember` 404 →
+  `chat` → no credit → Ember explains and continues with its own
+  question. Test text was not saved.
+- [ ] User: add credits at console.anthropic.com (Plans & Billing)
+- [ ] Deploy `ember` via the Supabase dashboard editor (user, or us via
+  their browser with permission)
+- [ ] Once both are done: verify a real AI reply + action button live
+
 ## Phase 22 addendum — proposed next AI step (awaiting approval)
 
 "Recent Insight": one read-only Edge Function endpoint that summarizes the

@@ -1,27 +1,26 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { BottomNav } from '../components/BottomNav';
-import { Button } from '../components/ui/Button';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Card } from '../components/ui/Card';
-import { RadialGauge } from '../components/ui/RadialGauge';
+import { Reveal } from '../components/ui/Reveal';
+import { Ring } from '../components/ui/Ring';
 import { ScienceNote } from '../components/ui/ScienceNote';
+import { Screen } from '../components/ui/Screen';
+import { Section } from '../components/ui/Section';
 import { WellnessWheel } from '../components/ui/WellnessWheel';
-import { colors, fonts, gaugeColor, spacing } from '../core/theme';
-import { useAdaptiveGradient } from '../core/adaptiveLight';
+import { colors, dimensionColor, fonts, gaugeColor, layout } from '../core/theme';
 import { WELLNESS_DIMENSIONS } from '../core/wellness';
 import { useWellnessWheelStore } from '../core/wellnessWheelStore';
 
 function statusLabel(score: number | null) {
-  if (score === null) return 'Not enough data yet';
+  if (score === null) return 'Not enough to say yet';
   if (score >= 70) return 'Balanced';
   if (score >= 40) return 'Building';
-  return 'Needs attention';
+  return 'Needs some attention';
 }
 
 export default function WellnessScreen() {
-  const { gradient } = useAdaptiveGradient();
+  const { width } = useWindowDimensions();
   const scores = useWellnessWheelStore((s) => s.scores);
   const isLoading = useWellnessWheelStore((s) => s.isLoading);
   const fetchScores = useWellnessWheelStore((s) => s.fetchScores);
@@ -31,164 +30,126 @@ export default function WellnessScreen() {
     fetchScores();
   }, [fetchScores]);
 
+  const wheelSize = Math.min(width, layout.maxWidth) - layout.gutter * 2 - 20;
+  // The weakest dimension that has data is the one worth a nudge.
+  const weakest = WELLNESS_DIMENSIONS.filter((d) => scores[d.key] !== null).sort(
+    (a, b) => (scores[a.key] ?? 0) - (scores[b.key] ?? 0)
+  )[0];
+
   return (
-    <View style={styles.outer}>
-      <LinearGradient colors={gradient} style={styles.gradient}>
-        <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-          <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
+    <Screen title="The wellness wheel" subtitle={isLoading ? 'Loading…' : 'Eight parts of a life, and how they balance.'} tone="dusk" glowColor="#AFA2DE">
+      <Reveal index={0}>
+        <Card style={styles.hero}>
+          <Ring
+            progress={overallScore != null ? overallScore / 100 : null}
+            value={overallScore != null ? String(overallScore) : undefined}
+            label="Balance"
+            color={overallScore != null ? gaugeColor(overallScore) : colors.textFaint}
+            size={92}
+            stroke={8}
+          />
+          <View style={styles.heroInfo}>
+            <Text style={styles.heroStatus}>{statusLabel(overallScore)}</Text>
+            <Text style={styles.heroCaption}>
+              {weakest && scores[weakest.key] !== null && (scores[weakest.key] ?? 100) < 50
+                ? `${weakest.label} is lowest right now. A small task or habit there would help most.`
+                : 'Averaged across all eight. Tag tasks and habits to fill in the gaps.'}
+            </Text>
+          </View>
+        </Card>
+      </Reveal>
 
-          <Text style={styles.title}>The Wellness Wheel</Text>
-          <Text style={styles.subtitle}>{isLoading ? 'Loading…' : 'Eight dimensions, one balance'}</Text>
+      <Reveal index={1}>
+        <Card style={styles.wheelCard}>
+          <WellnessWheel scores={scores} size={wheelSize} />
+        </Card>
+        <ScienceNote fact="The Eight Dimensions model treats wellness as more than the absence of illness or stress — it's a balance across emotional, physical, social, financial, occupational, intellectual, environmental, and spiritual life. A dip in one dimension often shows up in another, since they're linked, not separate boxes." />
+      </Reveal>
 
-          <Card style={styles.heroCard}>
-            <RadialGauge
-              size={104}
-              strokeWidth={10}
-              value={overallScore ?? 0}
-              label={overallScore !== null ? `${overallScore}` : '—'}
-              caption="Balance"
-              color={overallScore !== null ? gaugeColor(overallScore) : colors.divider}
-            />
-            <View style={styles.heroInfo}>
-              <Text style={styles.heroStatus}>{statusLabel(overallScore)}</Text>
-              <Text style={styles.heroCaption}>
-                Averaged across all eight dimensions below — tap Tasks or Habits to fill in the gaps.
-              </Text>
-            </View>
-          </Card>
-
-          <ScienceNote fact="The Eight Dimensions model treats wellness as more than the absence of illness or stress — it's a balance across emotional, physical, social, financial, occupational, intellectual, environmental, and spiritual life. A dip in one dimension often shows up in another, since they're linked, not separate boxes." />
-
-          <Card style={styles.wheelCard}>
-            <WellnessWheel scores={scores} size={280} />
-          </Card>
-
-          <View style={styles.list}>
-            {WELLNESS_DIMENSIONS.map((d) => {
+      <Reveal index={2}>
+        <Section title="Each part">
+          <Card padded={false}>
+            {WELLNESS_DIMENSIONS.map((d, i) => {
               const score = scores[d.key];
+              const c = dimensionColor[d.key];
               return (
-                <Card key={d.key} style={styles.dimensionCard}>
-                  <RadialGauge
-                    size={64}
-                    strokeWidth={6}
-                    value={score ?? 0}
-                    label={score !== null ? `${score}` : '—'}
-                    color={score !== null ? gaugeColor(score) : colors.divider}
-                  />
-                  <View style={styles.dimensionInfo}>
-                    <Text style={styles.dimensionLabel}>{d.label}</Text>
-                    <Text style={styles.dimensionDescription}>{d.description}</Text>
+                <View key={d.key} style={[styles.row, i > 0 && styles.rowBorder]}>
+                  <Ring progress={score != null ? score / 100 : null} value={score != null ? String(score) : undefined} color={c} size={52} stroke={5} delay={i * 60} />
+                  <View style={styles.rowText}>
+                    <Text style={[styles.dimLabel, { color: score != null ? colors.text : colors.textMuted }]}>{d.label}</Text>
+                    <Text style={styles.dimDesc}>{d.description}</Text>
                     {score === null ? (
-                      <Text style={styles.noDataText}>
-                        No tagged tasks or habits yet — add one from Tasks or Habits.
+                      <Text style={styles.noData} onPress={() => router.push('/habits')}>
+                        No tagged tasks or habits yet.
                       </Text>
                     ) : null}
                   </View>
-                </Card>
+                </View>
               );
             })}
-          </View>
-        </ScrollView>
-
-        <BottomNav />
-      </LinearGradient>
-    </View>
+          </Card>
+        </Section>
+      </Reveal>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    backgroundColor: colors.background,
-    maxWidth: 480,
-    alignSelf: 'center',
-    width: '100%',
-  },
-  gradient: {
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 100,
-    alignItems: 'center',
-  },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-    alignSelf: 'flex-start',
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-    alignSelf: 'flex-start',
-  },
-  heroCard: {
+  hero: {
+    marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    gap: 18,
   },
   heroInfo: {
     flex: 1,
   },
   heroStatus: {
     fontFamily: fonts.display,
-    fontSize: 19,
-    color: colors.ink,
+    fontSize: 21,
+    color: colors.text,
   },
   heroCaption: {
     marginTop: 4,
     fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkFaint,
+    fontSize: 14,
+    lineHeight: 19,
+    color: colors.textMuted,
   },
   wheelCard: {
-    marginTop: spacing.lg,
-    width: '100%',
+    marginTop: 12,
     alignItems: 'center',
-    paddingVertical: spacing.xl,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    paddingVertical: 10,
   },
-  list: {
-    marginTop: spacing.xl,
-    width: '100%',
-    gap: spacing.sm,
-  },
-  dimensionCard: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
+    gap: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
   },
-  dimensionInfo: {
+  rowBorder: {
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  rowText: {
     flex: 1,
   },
-  dimensionLabel: {
-    fontFamily: fonts.display,
-    fontSize: 17,
-    color: colors.ink,
+  dimLabel: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
   },
-  dimensionDescription: {
+  dimDesc: {
     marginTop: 2,
     fontFamily: fonts.body,
     fontSize: 13,
-    color: colors.inkFaint,
+    lineHeight: 18,
+    color: colors.textFaint,
   },
-  noDataText: {
-    marginTop: spacing.xs,
-    fontFamily: fonts.body,
+  noData: {
+    marginTop: 4,
+    fontFamily: fonts.bodyMedium,
     fontSize: 12,
-    color: colors.hint,
+    color: colors.flame,
   },
 });

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts } from '../../core/theme';
 
 interface TaskTimerProps {
   budgetMinutes: number;
@@ -20,7 +20,7 @@ function urgencyColor(remainingSeconds: number, budgetSeconds: number) {
   if (remainingSeconds < 0) return colors.danger;
   const ratio = remainingSeconds / budgetSeconds;
   if (ratio > 0.5) return colors.secured;
-  if (ratio > 0.2) return colors.lantern;
+  if (ratio > 0.2) return colors.flame;
   return colors.unlocked;
 }
 
@@ -55,7 +55,12 @@ export function TaskTimer({ budgetMinutes }: TaskTimerProps) {
   const color = urgencyColor(remaining, budgetSeconds);
 
   return (
-    <Pressable onPress={() => setRunning((r) => !r)} style={[styles.badge, { borderColor: color }]}>
+    <Pressable
+      onPress={() => setRunning((r) => !r)}
+      style={[styles.badge, { borderColor: alpha(color, 0.6), backgroundColor: alpha(color, running ? 0.16 : 0.06) }]}
+      accessibilityRole="button"
+      accessibilityLabel={`${running ? 'Pause' : 'Start'} timer, ${formatClock(remaining)} left`}
+    >
       <Text style={[styles.text, { color }]}>{formatClock(remaining)}</Text>
       <Text style={styles.label}>{running ? 'Pause' : remaining === budgetSeconds ? 'Start' : 'Resume'}</Text>
     </Pressable>
@@ -71,13 +76,13 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   text: {
-    fontFamily: fonts.mono,
-    fontSize: 13,
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    fontVariant: ['tabular-nums'],
   },
   label: {
-    fontFamily: fonts.mono,
-    fontSize: 8,
-    letterSpacing: 1,
-    color: colors.inkFaint,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textFaint,
   },
 });

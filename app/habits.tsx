@@ -1,31 +1,50 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BottomNav } from '../components/BottomNav';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { RadialGauge } from '../components/ui/RadialGauge';
+import { Chip, ChipRow } from '../components/ui/Chip';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Field } from '../components/ui/Field';
+import { Icon } from '../components/ui/Icon';
+import { Pressy } from '../components/ui/Pressy';
+import { Reveal } from '../components/ui/Reveal';
+import { Ring } from '../components/ui/Ring';
 import { ScienceNote } from '../components/ui/ScienceNote';
-import { colors, fonts, gaugeColor, radii, spacing } from '../core/theme';
-import { useAdaptiveGradient } from '../core/adaptiveLight';
+import { Screen } from '../components/ui/Screen';
+import { Section } from '../components/ui/Section';
 import { Habit, HabitFrequency, useHabitsStore } from '../core/habitsStore';
+import { alpha, colors, dimensionColor, fonts } from '../core/theme';
 import { WELLNESS_DIMENSIONS, WellnessDimension, dimensionLabel } from '../core/wellness';
 
 const FREQUENCIES: { key: HabitFrequency; label: string }[] = [
-  { key: 'daily', label: 'Daily' },
+  { key: 'daily', label: 'Every day' },
   { key: 'weekly', label: 'Weekly' },
 ];
 
+function dayKey(d: Date) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function lastSevenDays() {
+  const out: { key: string; letter: string }[] = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    out.push({ key: dayKey(d), letter: d.toLocaleDateString('en-US', { weekday: 'narrow' }) });
+  }
+  return out;
+}
+
 function todayStatus(pct: number | null) {
-  if (pct === null) return 'Nothing tracked yet';
+  if (pct === null) return 'Nothing daily yet';
   if (pct >= 100) return 'All done for today';
   if (pct > 0) return 'Making progress';
   return 'Nothing logged yet today';
 }
 
 export default function HabitsScreen() {
-  const { gradient } = useAdaptiveGradient();
   const habits = useHabitsStore((s) => s.habits);
   const fetchHabits = useHabitsStore((s) => s.fetchHabits);
   const createHabit = useHabitsStore((s) => s.createHabit);
@@ -58,320 +77,255 @@ export default function HabitsScreen() {
   const todayPct = dailyHabits.length > 0 ? Math.round((doneToday / dailyHabits.length) * 100) : null;
 
   return (
-    <View style={styles.outer}>
-      <LinearGradient colors={gradient} style={styles.gradient}>
-        <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-          <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
-
-          <Text style={styles.title}>Habits</Text>
-          <Text style={styles.subtitle}>
-            {isLoading ? 'Loading…' : habits.length === 0 ? 'Nothing tracked yet' : `${habits.length} tracked`}
-          </Text>
-
-          {dailyHabits.length > 0 ? (
-            <Card style={styles.heroCard}>
-              <RadialGauge
-                value={todayPct ?? 0}
-                label={`${doneToday}/${dailyHabits.length}`}
-                caption="Today"
-                color={todayPct !== null ? gaugeColor(todayPct) : colors.divider}
-              />
-              <View style={styles.heroInfo}>
-                <Text style={styles.heroStatus}>{todayStatus(todayPct)}</Text>
-                <Text style={styles.heroCaption}>Tap a habit's circle below to log it for today.</Text>
-              </View>
-            </Card>
-          ) : null}
-
-          <ScienceNote fact="Habits form through a cue → routine → reward loop, not willpower. Consistency wires it in — an occasional missed day doesn't erase the loop your brain has already built, so don't let one slip talk you into quitting the streak." />
-
-          <Card style={styles.addCard}>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Morning walk"
-              placeholderTextColor={colors.hint}
-              value={name}
-              onChangeText={setName}
+    <Screen
+      title="Habits"
+      subtitle={isLoading && habits.length === 0 ? 'Loading…' : habits.length === 0 ? 'Small things, kept up.' : `${habits.length} you’re keeping up.`}
+    >
+      {dailyHabits.length > 0 ? (
+        <Reveal index={0}>
+          <Card style={styles.hero}>
+            <Ring
+              progress={todayPct != null ? todayPct / 100 : null}
+              value={`${doneToday}`}
+              unit={`/${dailyHabits.length}`}
+              label="Today"
+              color={colors.secured}
+              size={84}
             />
-            <View style={styles.frequencyRow}>
-              {FREQUENCIES.map((f) => {
-                const active = frequency === f.key;
-                return (
-                  <Pressable
-                    key={f.key}
-                    onPress={() => setFrequency(f.key)}
-                    style={[styles.frequencyChip, active && styles.frequencyChipActive]}
-                  >
-                    <Text style={[styles.frequencyChipText, active && styles.frequencyChipTextActive]}>
-                      {f.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
+            <View style={styles.heroInfo}>
+              <Text style={styles.heroStatus}>{todayStatus(todayPct)}</Text>
+              <Text style={styles.heroCaption}>Tap a habit’s circle when you’ve done it today.</Text>
             </View>
-            <View style={styles.categoryRow}>
-              {WELLNESS_DIMENSIONS.map((d) => {
-                const active = category === d.key;
-                return (
-                  <Pressable
-                    key={d.key}
-                    onPress={() => setCategory(d.key)}
-                    style={[styles.categoryChip, active && styles.categoryChipActive]}
-                  >
-                    <Text style={[styles.categoryChipText, active && styles.categoryChipTextActive]}>
-                      {d.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <Button
-              label={isSaving ? 'Adding…' : 'Add Habit'}
-              onPress={handleAdd}
-              disabled={isSaving || !name.trim()}
-              style={styles.addButton}
-            />
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
           </Card>
+        </Reveal>
+      ) : null}
 
+      <Reveal index={1}>
+        <Section title="Your habits">
           {habits.length > 0 ? (
             <View style={styles.list}>
-              {habits.map((h) => (
-                <HabitRow key={h.id} habit={h} />
+              {habits.map((h, i) => (
+                <HabitRow key={h.id} habit={h} index={i} />
               ))}
             </View>
           ) : !isLoading ? (
-            <Text style={styles.hint}>Add a habit above to start building a streak.</Text>
+            <EmptyState title="No habits yet." body="Start with something small enough to do on a bad day." />
           ) : null}
-        </ScrollView>
+        </Section>
+      </Reveal>
 
-        <BottomNav />
-      </LinearGradient>
-    </View>
+      <Reveal index={2}>
+        <Section title="Start a new one">
+          <Card>
+            <Field placeholder="e.g. A ten-minute walk" value={name} onChangeText={setName} returnKeyType="done" onSubmitEditing={handleAdd} />
+            <Text style={styles.fieldLabel}>How often</Text>
+            <ChipRow>
+              {FREQUENCIES.map((f) => (
+                <Chip key={f.key} label={f.label} selected={frequency === f.key} onPress={() => setFrequency(f.key)} />
+              ))}
+            </ChipRow>
+            <Text style={styles.fieldLabel}>Part of life</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dimRow}>
+              {WELLNESS_DIMENSIONS.map((d) => (
+                <Chip key={d.key} label={d.label} dot color={dimensionColor[d.key]} selected={category === d.key} onPress={() => setCategory(d.key)} />
+              ))}
+            </ScrollView>
+            <Button label="Add habit" icon="plus" loading={isSaving} onPress={handleAdd} disabled={isSaving || !name.trim()} style={styles.addButton} />
+            {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
+          </Card>
+          <ScienceNote fact="Habits form through a cue → routine → reward loop, not willpower. Consistency wires it in — an occasional missed day doesn't erase the loop your brain has already built, so don't let one slip talk you into quitting the streak." />
+        </Section>
+      </Reveal>
+    </Screen>
   );
 }
 
-function HabitRow({ habit }: { habit: Habit }) {
+function HabitRow({ habit, index }: { habit: Habit; index: number }) {
   const isLoggedToday = useHabitsStore((s) => s.isLoggedToday(habit.id));
   const streak = useHabitsStore((s) => s.currentStreak(habit.id));
   const weekProgress = useHabitsStore((s) => s.weekProgress(habit.id));
+  const logs = useHabitsStore((s) => s.logs);
   const toggleLogToday = useHabitsStore((s) => s.toggleLogToday);
   const archiveHabit = useHabitsStore((s) => s.archiveHabit);
+  const color = dimensionColor[habit.category] ?? colors.secured;
 
-  const streakLabel =
-    habit.frequency === 'daily'
-      ? streak === 1
-        ? '1 day streak'
-        : `${streak} day streak`
-      : streak === 1
-        ? '1 week streak'
-        : `${streak} week streak`;
+  const days = lastSevenDays();
+  const logged = new Set(logs.filter((l) => l.habit_id === habit.id).map((l) => l.log_date));
+
+  const unit = habit.frequency === 'daily' ? 'day' : 'week';
+  const streakLabel = `${streak} ${unit}${streak === 1 ? '' : 's'}`;
+
+  const scale = useSharedValue(1);
+  const toggle = async () => {
+    const logging = !isLoggedToday;
+    if (logging) scale.value = withSequence(withTiming(1.2, { duration: 120 }), withSpring(1, { damping: 8, stiffness: 260 }));
+    await toggleLogToday(habit.id);
+    if (logging) {
+      const s = useHabitsStore.getState();
+      const daily = s.habits.filter((h) => !h.archived && h.frequency === 'daily');
+      if (daily.length > 0 && daily.every((h) => s.isLoggedToday(h.id))) {
+        emberSay('Every habit, done today. That’s how streaks get built.', 'cheer');
+      }
+    }
+  };
+
+  const pop = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
-    <Card style={styles.habitCard}>
-      <View style={styles.habitInfo}>
-        <Text style={styles.habitName}>{habit.name}</Text>
-        <Text style={styles.habitMeta}>
-          {habit.frequency === 'daily'
-            ? `${dimensionLabel(habit.category)}, ${streakLabel}`
-            : `${dimensionLabel(habit.category)}, ${streakLabel} (${weekProgress}/${habit.target_per_week} this week)`}
-        </Text>
-      </View>
-      <View style={styles.habitActions}>
-        <Pressable
-          onPress={() => toggleLogToday(habit.id)}
-          style={[styles.checkCircle, isLoggedToday && styles.checkCircleActive]}
+    <Animated.View entering={FadeInDown.delay(index * 50).duration(360)} exiting={FadeOut.duration(180)} layout={LinearTransition.springify().damping(18)}>
+      <Card style={styles.habitCard}>
+        <Pressy
+          onPress={toggle}
+          depth={0.86}
+          haptic="light"
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: isLoggedToday }}
+          accessibilityLabel={`${habit.name}, ${isLoggedToday ? 'done today' : 'not done yet today'}`}
         >
-          {isLoggedToday ? <Text style={styles.checkMark}>✓</Text> : null}
-        </Pressable>
-        <Pressable onPress={() => archiveHabit(habit.id)} hitSlop={8}>
-          <Text style={styles.removeText}>Remove</Text>
-        </Pressable>
-      </View>
-    </Card>
+          <Animated.View
+            style={[
+              styles.logCircle,
+              { borderColor: isLoggedToday ? color : alpha(color, 0.45) },
+              isLoggedToday && { backgroundColor: color, shadowColor: color, shadowOpacity: 0.6, shadowRadius: 10, shadowOffset: { width: 0, height: 0 } },
+              pop,
+            ]}
+          >
+            {isLoggedToday ? <Icon name="check" size={22} color={colors.flameInk} strokeWidth={2.6} /> : null}
+          </Animated.View>
+        </Pressy>
+
+        <View style={styles.habitInfo}>
+          <Text style={styles.habitName}>{habit.name}</Text>
+          <View style={styles.metaRow}>
+            <Icon name="flame" size={14} color={streak > 0 ? colors.flame : colors.textFaint} strokeWidth={2} />
+            <Text style={styles.habitMeta}>
+              <Text style={streak > 0 ? { color: colors.flame } : undefined}>{streakLabel}</Text>, {dimensionLabel(habit.category)}
+              {habit.frequency === 'weekly' ? `, ${weekProgress} of ${habit.target_per_week} this week` : ''}
+            </Text>
+          </View>
+          <View style={styles.week}>
+            {days.map((d) => {
+              const on = logged.has(d.key);
+              return (
+                <View key={d.key} style={styles.dayCol}>
+                  <View style={[styles.dayDot, on && { backgroundColor: color, borderColor: color }]} />
+                  <Text style={styles.dayLetter}>{d.letter}</Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        <Pressy onPress={() => archiveHabit(habit.id)} hitSlop={10} depth={0.85} accessibilityLabel={`Remove ${habit.name}`} style={styles.trash}>
+          <Icon name="trash" size={17} color={alpha(colors.danger, 0.75)} />
+        </Pressy>
+      </Card>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  gradient: {
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 100,
-  },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  heroCard: {
+  hero: {
+    marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    gap: 18,
   },
   heroInfo: {
     flex: 1,
   },
   heroStatus: {
     fontFamily: fonts.display,
-    fontSize: 18,
-    color: colors.ink,
+    fontSize: 20,
+    color: colors.text,
   },
   heroCaption: {
     marginTop: 4,
     fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkFaint,
-  },
-  addCard: {
-    gap: spacing.sm,
-  },
-  input: {
-    width: '100%',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.divider,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.ink,
-    backgroundColor: colors.background,
-  },
-  frequencyRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  frequencyChip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.background,
-  },
-  frequencyChipActive: {
-    backgroundColor: colors.leather,
-    borderColor: colors.leather,
-  },
-  frequencyChipText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
-  frequencyChipTextActive: {
-    color: colors.background,
-  },
-  categoryRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  categoryChip: {
-    paddingVertical: 6,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    backgroundColor: colors.background,
-  },
-  categoryChipActive: {
-    backgroundColor: colors.leatherDark,
-    borderColor: colors.leatherDark,
-  },
-  categoryChipText: {
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkMuted,
-  },
-  categoryChipTextActive: {
-    color: colors.background,
-  },
-  addButton: {
-    marginTop: spacing.xs,
-  },
-  errorText: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.danger,
+    fontSize: 14,
+    lineHeight: 19,
+    color: colors.textMuted,
   },
   list: {
-    marginTop: spacing.lg,
-    gap: spacing.sm,
+    gap: 10,
   },
   habitCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 14,
+  },
+  logCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   habitInfo: {
     flex: 1,
-    marginRight: spacing.md,
   },
   habitName: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodySemi,
     fontSize: 16,
-    color: colors.ink,
+    color: colors.text,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 3,
   },
   habitMeta: {
-    marginTop: 2,
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkFaint,
-  },
-  habitActions: {
-    alignItems: 'center',
-    gap: spacing.xs,
-  },
-  checkCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: colors.divider,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-  checkCircleActive: {
-    backgroundColor: colors.secured,
-    borderColor: colors.secured,
-  },
-  checkMark: {
-    fontFamily: fonts.mono,
-    fontSize: 16,
-    color: colors.background,
-  },
-  removeText: {
     fontFamily: fonts.body,
     fontSize: 12,
-    color: colors.danger,
+    color: colors.textFaint,
   },
-  hint: {
-    marginTop: spacing.xl,
+  week: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  dayCol: {
+    alignItems: 'center',
+    gap: 3,
+  },
+  dayDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.lineStrong,
+  },
+  dayLetter: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 9,
+    color: colors.textFaint,
+  },
+  trash: {
+    padding: 4,
+    alignSelf: 'flex-start',
+  },
+  fieldLabel: {
+    marginTop: 16,
+    marginBottom: 8,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  dimRow: {
+    gap: 8,
+    paddingRight: 8,
+  },
+  addButton: {
+    marginTop: 18,
+  },
+  errorText: {
+    marginTop: 10,
     fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.hint,
+    fontSize: 13,
+    color: colors.danger,
+    textAlign: 'center',
   },
 });

@@ -20,7 +20,7 @@ export function LollipopChart({
   data,
   maxValue,
   highlightIndex,
-  color = colors.leather,
+  color = colors.flame,
   width = 320,
   height = 120,
 }: LollipopChartProps) {
@@ -46,7 +46,7 @@ export function LollipopChart({
                   width={28}
                   height={chartHeight - 4}
                   rx={14}
-                  fill={colors.lanternGlow}
+                  fill={colors.glow}
                 />
               ) : null}
               <Line
@@ -54,7 +54,7 @@ export function LollipopChart({
                 y1={chartHeight}
                 x2={x}
                 y2={valueY}
-                stroke={active ? color : colors.divider}
+                stroke={active ? color : colors.lineStrong}
                 strokeWidth={active ? 3 : 2}
                 strokeLinecap="round"
               />
@@ -62,8 +62,8 @@ export function LollipopChart({
                 cx={x}
                 cy={valueY}
                 r={active ? 6 : 4}
-                fill={active || point.value === null ? colors.background : colors.hint}
-                stroke={active ? color : colors.divider}
+                fill={active ? color : point.value === null ? colors.surface : colors.textFaint}
+                stroke={active ? colors.night : colors.lineStrong}
                 strokeWidth={active ? 3 : 1.5}
               />
             </G>
@@ -91,12 +91,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   dayLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 10,
-    color: colors.inkFaint,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textFaint,
     textAlign: 'center',
   },
   dayLabelActive: {
-    color: colors.leather,
+    color: colors.flame,
+    fontFamily: fonts.bodySemi,
   },
 });

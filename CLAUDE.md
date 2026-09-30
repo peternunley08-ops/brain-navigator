@@ -11,14 +11,19 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
 - `app/` — Expo Router file-based routes (screens). One nested dynamic
   route: `app/entry/[id].tsx`.
 - `core/` — flat lib layer: one Zustand store per domain (`healthStore.ts`,
-  `tasksStore.ts`, `wellnessStore.ts`, …), `theme.ts` (design tokens — "The
-  Glasshouse Study", revised 2026-09-23 to aged vellum + near-black ink +
-  brass/verdigris instrument accents, rust reserved as the one deliberately
-  saturated color for the `unlocked` state — see "Design system" below),
+  `tasksStore.ts`, `wellnessStore.ts`, …), `theme.ts` (design tokens —
+  "Candlelight", the night palette, see "Design system" below),
+  `ember.ts` + `emberStore.ts` (the mascot's advice and state),
   `supabase.ts` (client), `schema.sql` (source of truth for the DB —
   append-only phase log, run live via the Supabase SQL editor).
-- `components/ui/` — reusable design-system primitives (Button, Card,
-  gauges, charts, meters).
+- `components/ui/` — the design kit: `Screen` (the frame every screen is
+  built in), `Backdrop`, `Reveal`, `Pressy`, `Button`, `Card`, `Chip`,
+  `Field`, `IconButton`, `Icon` (the app's own line icons), `Section`,
+  `Stepper`, `StatTile`, `Ring`, `EmptyState`, `Candle`/`CandleGlyph`,
+  `TrackSlider`, `HoldToConfirm`, `MoodPicker`, charts and meters.
+- `components/ember/` — Ember the mascot: `useEmberRig`, `EmberSprite`
+  (+ still `EmberGlyph`), `EmberBuddy` (the overlay on every screen),
+  `EmberBubble`, `Sparks`.
 - `components/` (root) — one-off feature components (`BottomNav.tsx`,
   `BreathInstrument.tsx`, `EntryThreshold.tsx`, `AmbientAudioEngine.tsx` —
   the last one is **no longer mounted**, see "Current state").
@@ -40,7 +45,34 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
     instructions.
   - `apple-watch-plan.md`, `encryption-plan.md` — feature planning docs.
 
-## Current state (as of 2026-09-27 — check `git log` for anything newer)
+## Current state (as of 2026-09-29 — check `git log` for anything newer)
+
+### Ember, the mascot (added 2026-09-29)
+
+A small living flame with a face that floats over every screen
+(`components/ember/EmberBuddy.tsx`, mounted in `app/_layout.tsx` after the
+launch gate). It replaced the old bear, which was also called Ember.
+
+- **Tap** it: a speech bubble with the most useful thing to say right now
+  plus buttons that take you there, "This screen" (a plain explanation of
+  the current route), "Something else", and "Nap".
+- **Drag** it anywhere; it springs to the nearest side edge (flame trails
+  and stretches with the motion). Position is saved to `ember.json` in the
+  app's documents folder. **Hold** it for a kind line. **Shake** it and it
+  gets dizzy. **Nap** tucks it into a small ember at the edge; tap to wake.
+- A glowing dot on its head means it has something worth saying
+  (priority ≥ 2 tip not yet opened this session).
+- Hidden on `/companion` and `/breathe`, and while the keyboard is up.
+- **What it says** is in `core/ember.ts` (`adviseFor(pathname)`): no AI,
+  rules over data already in the stores — no check-in yet, stress ≥ 7,
+  sleep < 6h, a candle open 7+ days, 4+ open, plate over cap, an unlogged
+  daily habit, late night — plus the per-route explanations (`ABOUT`).
+- Screens make it react with `emberSay(text, mood)` (exported from
+  `EmberBuddy.tsx`) after real events: an entry saved, resolved or let go,
+  a check-in, the plate cleared, all habits done, a vent released,
+  grounding finished, mindful minutes logged.
+- The launch gate (`components/EntryThreshold.tsx`) is Ember asleep: hold
+  it to wake it and come in.
 
 ### The app's purpose (redesigned 2026-09-27)
 
@@ -55,10 +87,13 @@ open (burns lower over ~21 days). All other features still exist — they
 moved into the Drawer rather than being removed.
 
 - **Navigation** (`components/BottomNav.tsx`): Desk `/` · Loops
-  `/open-loops` (badge = open count) · centre flame button = "Set
+  `/open-loops` (badge = open count) · centre gold "+" button = "Set
   something down" → `/new-entry` · Map `/topography` · Steady `/steady`.
+  Tabs pop back to an existing copy (`router.dismissTo`) instead of
+  stacking a new one.
 - **Steady** (`app/steady.tsx`): Breathe, Let it out (`/vent`), Ember
-  (`/companion`) — the in-the-moment tools.
+  (`/companion`), and an inline 5-4-3-2-1 grounding exercise — the
+  in-the-moment tools.
 - **Drawer** (`app/drawer.tsx`, from the Desk's top-right button): every
   other screen — Check-in, Health, Trends, Tasks, Habits, Nutrition,
   Calendar, Kept (`/trove`), Wellness wheel, The science.
@@ -121,27 +156,58 @@ xcrun devicectl device process launch --device DD1C8E3C-1DC6-598F-BC83-415F2AAFD
 If the phone isn't detected: the Mac's "Allow accessory to connect?"
 prompt must be accepted, then `xcrun devicectl manage pair --device …`
 triggers the phone's Trust prompt. Developer Mode is already on. **The
-phone currently has the pre-redesign build** (Breathe included, Desk not).
+phone has the Desk redesign build** — not the 2026-09-29 audit fixes, the
+night redesign, or Ember the mascot. Rebuild + reinstall to update it.
 
-### Ember
+### Talking it through with Ember (`app/companion.tsx`)
 
-`app/companion.tsx`, `components/ui/Bear.tsx`, `core/companionPrompts.ts`
-— a guided, no-AI check-in companion (fixed prompt pool, no language
-model). Reachable from Steady and from the Desk's "Talk it through with
-Ember" link. Saves into `vent_entries` (same table as Let It Out),
-`input_mode = 'companion'`.
+A conversation with Ember on stage (its own rig — it talks while a line
+appears, listens while you type, thinks while waiting, cheers when you
+finish). Opens with a question from `core/companionPrompts.ts`; after that
+it's AI when available (see "Ember's AI brain" below) and the original
+fixed two-question flow when not. Reachable from Steady, the Desk's "Talk
+it through" link, and "Talk to me" in Ember's tips. Saves into
+`vent_entries` (same table as Let It Out), `input_mode = 'companion'`,
+only after the save succeeds.
 
-### AI chat is scaffolded but paused, unfunded (`supabase/functions/chat/`)
+### Ember's AI brain (built 2026-09-29, waiting on Anthropic credit)
 
-A real Anthropic-API-backed chat, deliberately kept separate from Ember
-(Ember's whole value is that nothing leaves the device). The Edge Function
-is deployed and reads its key from the **`brain-navigator-v2`** Supabase
-secret (not `ANTHROPIC_API_KEY` — accidental naming, left as-is because it
-works). Every call returns Anthropic 400 (insufficient credit balance) —
-the user's Anthropic account has no billing. No chat UI yet. A proposed
-first step, "Recent Insight" (one read-only AI summary card over the last
-7 days of data), was recommended and **not approved yet** — see
-docs/todo.md Phase 22.
+The user asked for the mascot to run on AI. There is **no AI key in
+`.env`** (only Supabase, Google, Notion). The only AI key is the Anthropic
+key in the Supabase Edge Function secret **`brain-navigator-v2`** (not
+`ANTHROPIC_API_KEY` — accidental naming, left as-is), and every call still
+returns Anthropic 400 **"credit balance is too low"** — checked 2026-09-29.
+Adding credits in the Anthropic Console is the user's step, never ours.
+
+- `supabase/functions/ember/index.ts` — Ember's persona + safety rules
+  (not a therapist; crisis → 988), receives `{ messages, context }`,
+  calls `claude-sonnet-5-5` (max 300 tokens), returns `{ reply, action }`
+  where `action` is one optional next step (breathe, vent, ground,
+  checkin, setdown, loops, tasks, habits, map, trends). Errors come back as
+  a short `code` (`no_credit`, `busy`, `upstream`) — never the raw body.
+  **Not deployed yet**: deploy it from the Supabase dashboard (Edge
+  Functions → Deploy new function → via editor → name `ember` → paste →
+  Deploy). CLI login doesn't work here.
+- `core/emberAI.ts` — `askEmber(turns, screen)` tries `ember`, falls back
+  to the older `chat` function (persona folded into the first message) if
+  `ember` returns 404, and reports `no_credit | offline | unavailable`
+  otherwise. `emberContext()` builds the short factual note sent along:
+  time, open candle titles/weights/ages, today's check-in numbers, plate
+  and habit counts.
+- `app/companion.tsx` — the conversation: Ember opens with a fixed
+  question, then answers with AI, shows a typing indicator, and can offer
+  one action button. Tap Done to save the conversation (vent_entries,
+  `input_mode = 'companion'`, only after the save succeeds). Without AI,
+  Ember says why in a dashed aside and falls back to the original
+  follow-up question → closing. A line under the input says replies are
+  written by Claude and what's typed is sent to Anthropic.
+- Every tip in the floating bubble ends with a "Talk to me" button that
+  opens this conversation. The tips themselves stay rule-based (instant,
+  free).
+- The old `chat` function still has a TEMP DEBUG branch returning the
+  upstream error body, and model `claude-sonnet-5` (unverified). Deploying
+  `ember` makes both moot for Ember.
+- "Recent Insight" (Phase 22 addendum) is still not approved or built.
 
 ### Known open items
 
@@ -152,26 +218,41 @@ docs/todo.md Phase 22.
 - iOS Simulator tip for this project: the simulator tool's screenshots
   are ~2.29× device points (x and y); `inspect` isn't available, so
   calibrate taps against a known target. Deep links
-  (`brainnavigator://<route>`) are the reliable way to reach a screen.
+  (`brainnavigator://<route>`) are the reliable way to reach a screen —
+  except when the Mac is under heavy load, when they can stall; real taps
+  are more reliable then. In development builds a "Open debugger to view
+  warnings" toast shows at the bottom; it predates the redesign and the
+  debugger socket needs auth, so its text hasn't been read yet.
 
 ## Design system
 
-"The Glasshouse Study" field journal, tokens in `core/theme.ts`: aged
-vellum background, near-black ink, brass (`leather`) and verdigris
-instrument accents, rust (`unlocked`) as the one deliberately saturated
-color. Fonts: Fraunces (display, and an italic for soft headings), Lora
-(body), Courier Prime (mono). Every screen was audited (2026-09-24)
-against generic-AI design tells. The rule applied throughout, and to apply
-to anything new:
+**"Candlelight"** (2026-09-29; replaced the vellum "Glasshouse Study"),
+tokens in `core/theme.ts`. A warm night room lit by the candles:
+`night`/`surface`/`surfaceHigh`/`surfaceSunk` backgrounds, parchment
+`text`/`textMuted`/`textFaint`, hairline `line`/`lineStrong` edges.
+**Candle gold (`flame`) is the only action color** — primary buttons are
+a gold gradient with dark `flameInk` text. Entry states: ember
+`unlocked` (Open), sage `secured` (Resolved), lavender `shelved` (Let
+go). `dimensionColor` gives each wellness area its own color; `alpha()`
+makes tints. Backgrounds come from `gradients.room | ember | dusk` via
+`Backdrop`. The old token names (`ink`, `leather`, `background`, …) are
+gone. Fonts: Fraunces (display; its italic is Ember's voice and the
+reflective lines) and Figtree (everything else; `fonts.mono` is Figtree
+semibold for numbers). Lora and Courier Prime are no longer loaded.
 
-- Mono / uppercase / tracked type **only** for a genuine instrument
-  readout paired with a number or gauge (stat-card labels over a value,
-  RadialGauge captions, chart axis text, legend captions next to a colored
-  dot) — never as a decorative section eyebrow or a form-field prompt.
+Build every screen with `Screen` + the kit in `components/ui/` rather than
+hand-rolled layout. Rules to keep:
+
+- No uppercase / tracked eyebrow labels; section headings are Fraunces,
+  sentence case (`Section`). Labels over numbers are small Figtree.
 - No "A · B · C" middle-dot copy joins, no "WORD — fragment" labels.
-- Headings are serif (Fraunces), sentence case.
-- Motion should answer a person's action (ignite, snuff, float, dial
-  detent) rather than decorate; respect Reduce Motion.
+- Every tappable thing uses `Pressy` (spring press + haptic) or a kit
+  component built on it.
+- Motion should answer a person's action (ignite, snuff, float, a press,
+  a drag) or bring content in once (`Reveal`); respect Reduce Motion
+  (Reanimated layout animations and the rigs already do).
+- Don't claim privacy the app doesn't have: entries, vents, and
+  check-ins are stored in Supabase; only speech-to-text is on-device.
 
 ## Conventions
 

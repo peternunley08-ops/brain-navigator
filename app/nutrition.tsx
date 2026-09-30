@@ -1,15 +1,19 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BottomNav } from '../components/BottomNav';
+import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { RadialGauge } from '../components/ui/RadialGauge';
-import { SegmentedBar } from '../components/ui/SegmentedBar';
-import { colors, fonts, gaugeColor, radii, spacing } from '../core/theme';
-import { useAdaptiveGradient } from '../core/adaptiveLight';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Field } from '../components/ui/Field';
+import { Icon } from '../components/ui/Icon';
+import { Pressy } from '../components/ui/Pressy';
+import { Reveal } from '../components/ui/Reveal';
+import { Ring } from '../components/ui/Ring';
+import { Screen } from '../components/ui/Screen';
+import { Section } from '../components/ui/Section';
+import { Stepper } from '../components/ui/Stepper';
 import { computeTotals, FoodLog, MacroGoals, useNutritionStore } from '../core/nutritionStore';
+import { alpha, colors, fonts } from '../core/theme';
 
 const GOAL_STEPS: { key: keyof MacroGoals; label: string; step: number; unit: string }[] = [
   { key: 'calories', label: 'Calories', step: 50, unit: '' },
@@ -18,8 +22,9 @@ const GOAL_STEPS: { key: keyof MacroGoals; label: string; step: number; unit: st
   { key: 'fat_g', label: 'Fat', step: 5, unit: 'g' },
 ];
 
+const MACRO_COLOR = { protein: '#8CC0A8', carbs: '#E6C46A', fat: '#D99A6C' };
+
 export default function NutritionScreen() {
-  const { gradient } = useAdaptiveGradient();
   const entries = useNutritionStore((s) => s.entries);
   const goals = useNutritionStore((s) => s.goals);
   const isLoading = useNutritionStore((s) => s.isLoading);
@@ -35,6 +40,7 @@ export default function NutritionScreen() {
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  const [editingGoals, setEditingGoals] = useState(false);
 
   useEffect(() => {
     fetchToday();
@@ -57,348 +63,248 @@ export default function NutritionScreen() {
     }
   };
 
-  const caloriePct = goals.calories > 0 ? Math.round((totals.calories / goals.calories) * 100) : 0;
+  const caloriePct = goals.calories > 0 ? totals.calories / goals.calories : 0;
+  const left = Math.round(goals.calories - totals.calories);
 
   return (
-    <View style={styles.outer}>
-      <LinearGradient colors={gradient} style={styles.gradient}>
-        <ScrollView style={styles.root} contentContainerStyle={styles.content}>
-          <Button label="Back" variant="pill" onPress={() => router.back()} style={styles.back} />
+    <Screen
+      title="Food"
+      subtitle={isLoading && entries.length === 0 ? 'Loading…' : entries.length === 0 ? 'Nothing logged today.' : `${entries.length} logged today.`}
+    >
+      <Reveal index={0}>
+        <Card style={styles.hero}>
+          <Ring
+            progress={Math.min(1, caloriePct)}
+            value={Math.round(totals.calories).toLocaleString()}
+            label={left >= 0 ? `${left.toLocaleString()} left` : `${Math.abs(left).toLocaleString()} over`}
+            color={caloriePct > 1.1 ? colors.unlocked : colors.flame}
+            size={118}
+            stroke={9}
+          />
+          <View style={styles.macros}>
+            <MacroBar label="Protein" value={totals.protein_g} goal={goals.protein_g} color={MACRO_COLOR.protein} />
+            <MacroBar label="Carbs" value={totals.carbs_g} goal={goals.carbs_g} color={MACRO_COLOR.carbs} />
+            <MacroBar label="Fat" value={totals.fat_g} goal={goals.fat_g} color={MACRO_COLOR.fat} />
+          </View>
+        </Card>
+      </Reveal>
 
-          <Text style={styles.title}>Nutrition</Text>
-          <Text style={styles.subtitle}>
-            {isLoading ? 'Loading…' : `${entries.length} logged today`}
-          </Text>
-
-          <Card style={styles.glanceCard}>
-            <View style={styles.glanceTop}>
-              <RadialGauge
-                size={96}
-                strokeWidth={9}
-                value={Math.min(100, caloriePct)}
-                label={`${Math.round(totals.calories)}`}
-                caption={`of ${goals.calories} cal`}
-                color={gaugeColor(100 - Math.abs(100 - caloriePct))}
-              />
-              <View style={styles.macroStats}>
-                <MacroStat label="Protein" value={totals.protein_g} goal={goals.protein_g} />
-                <MacroStat label="Carbs" value={totals.carbs_g} goal={goals.carbs_g} />
-                <MacroStat label="Fat" value={totals.fat_g} goal={goals.fat_g} />
-              </View>
+      <Reveal index={1}>
+        <Section title="Log a meal" note="Whatever numbers you know. Blanks count as zero.">
+          <Card>
+            <Field placeholder="What did you eat?" value={name} onChangeText={setName} />
+            <View style={styles.grid}>
+              <Field containerStyle={styles.cell} label="Calories" placeholder="0" value={calories} onChangeText={setCalories} keyboardType="decimal-pad" />
+              <Field containerStyle={styles.cell} label="Protein (g)" placeholder="0" value={protein} onChangeText={setProtein} keyboardType="decimal-pad" />
+              <Field containerStyle={styles.cell} label="Carbs (g)" placeholder="0" value={carbs} onChangeText={setCarbs} keyboardType="decimal-pad" />
+              <Field containerStyle={styles.cell} label="Fat (g)" placeholder="0" value={fat} onChangeText={setFat} keyboardType="decimal-pad" />
             </View>
-
-            <SegmentedBar
-              segments={[
-                { label: 'Protein', value: totals.protein_g * 4, color: colors.secured },
-                { label: 'Carbs', value: totals.carbs_g * 4, color: colors.leather },
-                { label: 'Fat', value: totals.fat_g * 9, color: colors.lantern },
-              ]}
-            />
+            <Button label="Log it" icon="plus" loading={isSaving} onPress={handleAdd} disabled={isSaving || !name.trim()} style={styles.addButton} />
+            {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
           </Card>
+        </Section>
+      </Reveal>
 
-          <Card style={styles.goalsCard}>
-            <Text style={styles.sectionLabel}>Daily goals</Text>
-            {GOAL_STEPS.map((g) => (
-              <View key={g.key} style={styles.goalRow}>
-                <Text style={styles.goalLabel}>{g.label}</Text>
-                <View style={styles.capStepper}>
-                  <Pressable
-                    onPress={() => setGoals({ ...goals, [g.key]: Math.max(0, goals[g.key] - g.step) })}
-                    style={styles.capButton}
-                  >
-                    <Text style={styles.capButtonText}>−</Text>
-                  </Pressable>
-                  <Text style={styles.goalValue}>
-                    {goals[g.key]}
-                    {g.unit}
-                  </Text>
-                  <Pressable
-                    onPress={() => setGoals({ ...goals, [g.key]: goals[g.key] + g.step })}
-                    style={styles.capButton}
-                  >
-                    <Text style={styles.capButtonText}>+</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))}
-          </Card>
-
-          <Card style={styles.addCard}>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g. Grilled chicken bowl"
-              placeholderTextColor={colors.hint}
-              value={name}
-              onChangeText={setName}
-            />
-            <View style={styles.macroInputRow}>
-              <TextInput
-                style={[styles.input, styles.macroInput]}
-                placeholder="Cal"
-                placeholderTextColor={colors.hint}
-                value={calories}
-                onChangeText={setCalories}
-                keyboardType="decimal-pad"
-              />
-              <TextInput
-                style={[styles.input, styles.macroInput]}
-                placeholder="Protein g"
-                placeholderTextColor={colors.hint}
-                value={protein}
-                onChangeText={setProtein}
-                keyboardType="decimal-pad"
-              />
-            </View>
-            <View style={styles.macroInputRow}>
-              <TextInput
-                style={[styles.input, styles.macroInput]}
-                placeholder="Carbs g"
-                placeholderTextColor={colors.hint}
-                value={carbs}
-                onChangeText={setCarbs}
-                keyboardType="decimal-pad"
-              />
-              <TextInput
-                style={[styles.input, styles.macroInput]}
-                placeholder="Fat g"
-                placeholderTextColor={colors.hint}
-                value={fat}
-                onChangeText={setFat}
-                keyboardType="decimal-pad"
-              />
-            </View>
-            <Button
-              label={isSaving ? 'Adding…' : 'Add Food'}
-              onPress={handleAdd}
-              disabled={isSaving || !name.trim()}
-              style={styles.addButton}
-            />
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          </Card>
-
+      <Reveal index={2}>
+        <Section title="Today">
           {entries.length > 0 ? (
             <View style={styles.list}>
-              {entries.map((e) => (
-                <FoodRow key={e.id} entry={e} />
+              {entries.map((e, i) => (
+                <FoodRow key={e.id} entry={e} index={i} />
               ))}
             </View>
           ) : !isLoading ? (
-            <Text style={styles.hint}>Log a meal above to start tracking today's macros.</Text>
+            <EmptyState title="Nothing logged yet." body="Log a meal above and today’s ring starts to fill." />
           ) : null}
-        </ScrollView>
+        </Section>
+      </Reveal>
 
-        <BottomNav />
-      </LinearGradient>
-    </View>
+      <Reveal index={3}>
+        <Section
+          title="Daily goals"
+          note={`${goals.calories.toLocaleString()} cal, ${goals.protein_g}g protein, ${goals.carbs_g}g carbs, ${goals.fat_g}g fat`}
+          action={{ label: editingGoals ? 'Done' : 'Change', onPress: () => setEditingGoals((v) => !v) }}
+        >
+          {editingGoals ? (
+            <Animated.View entering={FadeInDown.duration(260)} exiting={FadeOut.duration(140)}>
+              <Card padded={false}>
+                {GOAL_STEPS.map((g, i) => (
+                  <View key={g.key} style={[styles.goalRow, i > 0 && styles.goalBorder]}>
+                    <Text style={styles.goalLabel}>{g.label}</Text>
+                    <Stepper
+                      value={`${goals[g.key]}${g.unit}`}
+                      onDecrement={() => setGoals({ ...goals, [g.key]: Math.max(0, goals[g.key] - g.step) })}
+                      onIncrement={() => setGoals({ ...goals, [g.key]: goals[g.key] + g.step })}
+                      label={g.label.toLowerCase()}
+                      minWidth={64}
+                    />
+                  </View>
+                ))}
+              </Card>
+            </Animated.View>
+          ) : null}
+        </Section>
+      </Reveal>
+    </Screen>
   );
 }
 
-function MacroStat({ label, value, goal }: { label: string; value: number; goal: number }) {
+function MacroBar({ label, value, goal, color }: { label: string; value: number; goal: number; color: string }) {
+  const pct = goal > 0 ? Math.min(1, value / goal) : 0;
+  const fill = useAnimatedStyle(() => ({ transform: [{ scaleX: withTiming(pct, { duration: 700 }) }] }));
   return (
-    <View style={styles.macroStatRow}>
-      <Text style={styles.macroStatLabel}>{label}</Text>
-      <Text style={styles.macroStatValue}>
-        {Math.round(value)}
-        <Text style={styles.macroStatGoal}>/{goal}g</Text>
-      </Text>
-    </View>
-  );
-}
-
-function FoodRow({ entry }: { entry: FoodLog }) {
-  const deleteEntry = useNutritionStore((s) => s.deleteEntry);
-  return (
-    <Card style={styles.foodCard}>
-      <View style={styles.foodInfo}>
-        <Text style={styles.foodName}>{entry.name}</Text>
-        <Text style={styles.foodMeta}>
-          {Math.round(entry.calories)} cal, {Math.round(entry.protein_g)}g protein,{' '}
-          {Math.round(entry.carbs_g)}g carbs, {Math.round(entry.fat_g)}g fat
+    <View style={styles.macro}>
+      <View style={styles.macroHead}>
+        <Text style={styles.macroLabel}>{label}</Text>
+        <Text style={styles.macroValue}>
+          {Math.round(value)}
+          <Text style={styles.macroGoal}>/{goal}g</Text>
         </Text>
       </View>
-      <Pressable onPress={() => deleteEntry(entry.id)} hitSlop={8}>
-        <Text style={styles.removeText}>Remove</Text>
-      </Pressable>
-    </Card>
+      <View style={styles.macroTrack}>
+        <Animated.View style={[styles.macroFill, { backgroundColor: color }, fill]} />
+      </View>
+    </View>
+  );
+}
+
+function FoodRow({ entry, index }: { entry: FoodLog; index: number }) {
+  const deleteEntry = useNutritionStore((s) => s.deleteEntry);
+  return (
+    <Animated.View entering={FadeInDown.delay(index * 40).duration(340)} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(18)}>
+      <Card style={styles.foodCard}>
+        <View style={[styles.foodIcon, { backgroundColor: alpha(colors.flame, 0.12) }]}>
+          <Icon name="bowl" size={20} color={colors.flame} />
+        </View>
+        <View style={styles.foodInfo}>
+          <Text style={styles.foodName}>{entry.name}</Text>
+          <Text style={styles.foodMeta}>
+            {Math.round(entry.calories)} cal, {Math.round(entry.protein_g)}g protein, {Math.round(entry.carbs_g)}g carbs, {Math.round(entry.fat_g)}g fat
+          </Text>
+        </View>
+        <Pressy onPress={() => deleteEntry(entry.id)} hitSlop={10} depth={0.85} accessibilityLabel={`Remove ${entry.name}`} style={styles.trash}>
+          <Icon name="trash" size={17} color={alpha(colors.danger, 0.75)} />
+        </Pressy>
+      </Card>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  outer: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  gradient: {
-    flex: 1,
-  },
-  root: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: 56,
-    paddingBottom: 100,
-  },
-  back: {
-    alignSelf: 'flex-start',
-    marginBottom: spacing.lg,
-  },
-  title: {
-    fontFamily: fonts.display,
-    fontSize: 26,
-    color: colors.ink,
-  },
-  subtitle: {
-    marginTop: spacing.xs,
-    marginBottom: spacing.lg,
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.inkMuted,
-  },
-  glanceCard: {
-    marginBottom: spacing.md,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
-  },
-  glanceTop: {
+  hero: {
+    marginTop: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    gap: 18,
   },
-  macroStats: {
+  macros: {
     flex: 1,
-    marginLeft: spacing.lg,
-    gap: spacing.xs,
+    gap: 12,
   },
-  macroStatRow: {
+  macro: {
+    gap: 5,
+  },
+  macroHead: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'baseline',
   },
-  macroStatLabel: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-    color: colors.inkFaint,
+  macroLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.textMuted,
   },
-  macroStatValue: {
-    fontFamily: fonts.display,
-    fontSize: 15,
-    color: colors.ink,
+  macroValue: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.text,
+    fontVariant: ['tabular-nums'],
   },
-  macroStatGoal: {
-    fontFamily: fonts.mono,
-    fontSize: 11,
-    color: colors.inkFaint,
+  macroGoal: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
   },
-  goalsCard: {
-    marginBottom: spacing.md,
-    gap: spacing.sm,
+  macroTrack: {
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.surfaceSunk,
+    overflow: 'hidden',
   },
-  sectionLabel: {
-    fontFamily: fonts.display,
-    fontSize: 17,
-    color: colors.ink,
-    marginBottom: spacing.xs,
+  macroFill: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 4,
+    transformOrigin: 'left',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginTop: 12,
+  },
+  cell: {
+    width: '47%',
+    flexGrow: 1,
+  },
+  addButton: {
+    marginTop: 16,
+  },
+  errorText: {
+    marginTop: 10,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.danger,
+    textAlign: 'center',
+  },
+  list: {
+    gap: 10,
+  },
+  foodCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+  },
+  foodIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  foodInfo: {
+    flex: 1,
+  },
+  foodName: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 16,
+    color: colors.text,
+  },
+  foodMeta: {
+    marginTop: 3,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.textFaint,
+  },
+  trash: {
+    padding: 4,
   },
   goalRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 18,
+  },
+  goalBorder: {
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
   },
   goalLabel: {
-    fontFamily: fonts.body,
+    fontFamily: fonts.bodyMedium,
     fontSize: 15,
-    color: colors.ink,
-  },
-  capStepper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-  },
-  capButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-  capButtonText: {
-    fontFamily: fonts.mono,
-    fontSize: 15,
-    color: colors.ink,
-  },
-  goalValue: {
-    fontFamily: fonts.display,
-    fontSize: 15,
-    color: colors.ink,
-    minWidth: 44,
-    textAlign: 'center',
-  },
-  addCard: {
-    marginBottom: spacing.md,
-    gap: spacing.sm,
-  },
-  input: {
-    width: '100%',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.divider,
-    borderRadius: radii.lg,
-    padding: spacing.md,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.ink,
-    backgroundColor: colors.background,
-  },
-  macroInputRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  macroInput: {
-    flex: 1,
-  },
-  addButton: {
-    marginTop: spacing.xs,
-  },
-  errorText: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.danger,
-  },
-  list: {
-    gap: spacing.sm,
-  },
-  foodCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  foodInfo: {
-    flex: 1,
-    marginRight: spacing.md,
-  },
-  foodName: {
-    fontFamily: fonts.body,
-    fontSize: 16,
-    color: colors.ink,
-  },
-  foodMeta: {
-    marginTop: 2,
-    fontFamily: fonts.body,
-    fontSize: 13,
-    color: colors.inkFaint,
-  },
-  removeText: {
-    fontFamily: fonts.body,
-    fontSize: 12,
-    color: colors.danger,
-  },
-  hint: {
-    marginTop: spacing.xl,
-    fontFamily: fonts.body,
-    fontSize: 15,
-    color: colors.hint,
+    color: colors.text,
   },
 });
