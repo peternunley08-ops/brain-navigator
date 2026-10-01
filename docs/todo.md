@@ -571,7 +571,12 @@ gracefully until then.
 - [x] Verified live: Talk to me → conversation → send → `ember` 404 →
   `chat` → no credit → Ember explains and continues with its own
   question. Test text was not saved.
-- [ ] User: add credits at console.anthropic.com (Plans & Billing)
+- [x] 2026-10-01, user: "lets do claude sonnet with deep thinking" →
+  `ember` now sends adaptive thinking at effort `high`, max_tokens 16000,
+  server-side fallbacks, refusal handling (uncommitted until the user says
+  "commit")
+- [ ] User: add credits at console.anthropic.com (Settings → Billing; set
+  a small monthly spend limit under Limits)
 - [ ] Deploy `ember` via the Supabase dashboard editor (user, or us via
   their browser with permission)
 - [ ] Once both are done: verify a real AI reply + action button live

@@ -101,10 +101,20 @@ Deno.serve(async (req: Request) => {
         'x-api-key': apiKey,
         'anthropic-version': '2023-06-01',
         'content-type': 'application/json',
+        // If Sonnet declines a message on safety grounds, the API retries it on
+        // a fallback model inside the same call instead of failing.
+        'anthropic-beta': 'server-side-fallback-2026-07-01',
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5-5',
-        max_tokens: helperPrompt ? 420 : 300,
+        // Thinks before answering (adaptive thinking at high effort). Thinking
+        // counts toward max_tokens, so the cap leaves plenty of room; the reply
+        // itself stays short because the prompt asks for one to three sentences.
+        // Only tokens actually generated are billed.
+        thinking: { type: 'adaptive' },
+        output_config: { effort: 'high' },
+        max_tokens: 16000,
+        fallbacks: 'default',
         system,
         messages: recent,
       }),
@@ -120,7 +130,22 @@ Deno.serve(async (req: Request) => {
     }
 
     const data = await anthropicRes.json();
+
+    // Every model in the chain declined: answer gently instead of failing.
+    if (data.stop_reason === 'refusal') {
+      console.warn('refusal', data.stop_details?.category ?? 'unknown');
+      return json({
+        reply: 'That’s one I can’t answer. I’m still here, though. If something feels heavy, there are people you can reach any time.',
+        action: 'help',
+      });
+    }
+
+    // Thinking blocks come first and carry no visible text; the reply is the text block.
     let reply: string = data.content?.find((b: { type: string }) => b.type === 'text')?.text ?? '';
+    if (!reply.trim()) {
+      console.error('empty reply', data.stop_reason);
+      return json({ error: 'Ember can’t think right now', code: 'upstream' }, 502);
+    }
 
     let action: string | null = null;
     const tag = reply.match(/\[\[action:([a-z]+)\]\]\s*$/i);

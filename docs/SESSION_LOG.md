@@ -1588,3 +1588,11 @@ life.json. Stores now wait for load, and unreadable files are kept aside
 (`core/saveAside.ts`). The Mac restarted mid-session; Metro now starts from
 the "metro" entry in ~/Desktop/.claude/launch.json (never CI=1).
 
+Later on 2026-10-01: committed and pushed groups G–J as 4382c37. The user
+asked how to add Anthropic credit cheaply (Console → Settings → Billing,
+smallest amount, auto-reload off, a monthly spend limit), then chose
+"claude sonnet with deep thinking" for Ember. `supabase/functions/ember/
+index.ts` now asks Sonnet 5.5 for adaptive thinking at effort `high`
+(max_tokens 16000), turns on server-side fallbacks, and answers refusals
+gently. Not committed or deployed yet. Still waiting on the user: credit,
+then deploying `ember` from the Supabase dashboard, then a live test.

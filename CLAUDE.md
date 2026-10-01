@@ -354,7 +354,13 @@ Adding credits in the Anthropic Console is the user's step, never ours.
 
 - `supabase/functions/ember/index.ts` — Ember's persona + safety rules
   (not a therapist; crisis → 988), receives `{ messages, context }`,
-  calls `claude-sonnet-5-5` (max 300 tokens), returns `{ reply, action }`
+  calls `claude-sonnet-5-5` with **deep thinking** (user's choice
+  2026-10-01: `thinking: {type:'adaptive'}`, `output_config.effort: 'high'`,
+  `max_tokens: 16000` because thinking counts toward it, plus server-side
+  fallbacks via header `server-side-fallback-2026-07-01` + `fallbacks:
+  'default'`). A `stop_reason: 'refusal'` gets a gentle reply with the
+  `help` action; an empty text block returns `upstream`. Roughly 1–3 cents
+  a reply (thinking bills as output at $10/M). Returns `{ reply, action }`
   where `action` is one optional next step (breathe, vent, ground,
   checkin, setdown, loops, tasks, habits, map, trends). Errors come back as
   a short `code` (`no_credit`, `busy`, `upstream`) — never the raw body.
