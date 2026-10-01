@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Chip } from '../components/ui/Chip';
+import { ProgressBar } from '../components/ui/ProgressBar';
 import { Field } from '../components/ui/Field';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Card } from '../components/ui/Card';
@@ -14,6 +15,7 @@ import { Section } from '../components/ui/Section';
 import { NOTE_TEMPLATES, type Note, useHubStore } from '../core/hubStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
+import { essayWords, wordGoalFor } from '../core/words';
 
 function ago(iso: string) {
   const mins = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
@@ -51,7 +53,7 @@ export default function NotesScreen() {
   };
 
   return (
-    <Screen title="Notebook" subtitle="Notes, study guides, plans — your own pages.">
+    <Screen title="Notebook" subtitle="Notes, study guides, and plans. Your own pages.">
       <Reveal index={0}>
         <Section title="New page">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.templates}>
@@ -95,7 +97,7 @@ export default function NotesScreen() {
             notes.length ? (
               <EmptyState title="Nothing matches." body="Try another word or class." />
             ) : (
-              <EmptyState gear="glasses" title="A blank notebook." body="Start with a template above — class notes and study guides come with the headings already in." />
+              <EmptyState gear="glasses" title="A blank notebook." body="Start with a template above. Class notes and study guides come with the headings already in." />
             )
           ) : (
             <View style={styles.list}>
@@ -114,6 +116,8 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
   const preview = n.blocks.find((b) => b.type !== 'heading' && b.text.trim())?.text ?? n.blocks.find((b) => b.text.trim())?.text ?? '';
   const todos = n.blocks.filter((b) => b.type === 'todo' && b.text.trim());
   const done = todos.filter((b) => b.checked).length;
+  const goal = wordGoalFor(n);
+  const words = goal ? essayWords(n.blocks) : 0;
   return (
     <Animated.View entering={FadeInDown.delay(i * 40).duration(320)}>
       <Card onPress={() => router.push(`/note/${n.id}`)} style={styles.card}>
@@ -135,8 +139,10 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
           <Text style={styles.meta}>
             {className ? `${className}, ` : ''}
             {todos.length ? `${done}/${todos.length} checked, ` : ''}
+            {goal ? `${words} of ${goal} words, ` : ''}
             {ago(n.updatedAt)}
           </Text>
+          {goal ? <ProgressBar value={Math.min(1, words / goal)} color={words > goal ? colors.danger : n.color} height={3} style={styles.wordBar} /> : null}
         </View>
       </Card>
     </Animated.View>
@@ -144,6 +150,9 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
 }
 
 const styles = StyleSheet.create({
+  wordBar: {
+    marginTop: 6,
+  },
   search: {
     marginTop: 20,
   },

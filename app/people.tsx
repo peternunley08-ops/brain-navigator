@@ -1,3 +1,4 @@
+import * as Haptics from '../core/haptics';
 import { useState } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -106,6 +107,17 @@ export default function PeopleScreen() {
                   <Text style={styles.name}>{p.name}</Text>
                   <Text style={styles.note}>{p.note || p.phone}</Text>
                   {p.reachedAt ? <Text style={styles.reached}>{sinceLine(p.reachedAt)}</Text> : null}
+                  <Pressy
+                    onPress={() => {
+                      reached(p);
+                      Haptics.selectionAsync().catch(() => {});
+                    }}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Talked to ${p.name} in person`}
+                  >
+                    <Text style={styles.inPerson}>Talked in person</Text>
+                  </Pressy>
                 </View>
               </Pressy>
               <IconButton icon="message" label={`Text ${p.name}`} tint={PINK} onPress={() => text(p)} />
@@ -127,6 +139,12 @@ function sinceLine(iso: string) {
 }
 
 const styles = StyleSheet.create({
+  inPerson: {
+    marginTop: 4,
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: '#E89AB8',
+  },
   reached: {
     marginTop: 2,
     fontFamily: fonts.body,

@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import { useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -28,6 +28,8 @@ const META: Record<Kind, { color: string; noun: string; placeholder: string }> =
   work: { color: '#D99A6C', noun: 'work', placeholder: 'Where? e.g. Café shift' },
 };
 
+const DRIVE_TAGS = ['Highway', 'Rain', 'Parking', 'City', 'Freeway merge'];
+
 function h(n: number) {
   return Math.round(n * 10) / 10;
 }
@@ -50,6 +52,7 @@ export default function HoursScreen() {
   const [minutes, setMinutes] = useState(60);
   const [note, setNote] = useState('');
   const [night, setNight] = useState(false);
+  const [driveTags, setDriveTags] = useState<string[]>([]);
   const [day, setDay] = useState(dateKey());
   const nowMin = Math.min(23 * 60 + 45, Math.round((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15);
   const [at, setAt] = useState(nowMin);
@@ -78,10 +81,21 @@ export default function HoursScreen() {
   const list = hours.filter((x) => x.kind === kind).sort((a, b) => b.date.localeCompare(a.date));
   const weekAgo = addDays(dateKey(), -6);
   const workWeek = hours.filter((x) => x.kind === 'work' && x.date >= weekAgo).reduce((s, x) => s + x.minutes, 0) / 60;
+  // The pace over the last four weeks, and when the goal arrives at that pace.
+  const monthAgo = addDays(dateKey(), -27);
+  const perWeek = hours.filter((x) => x.kind === kind && x.date >= monthAgo).reduce((s, x) => s + x.minutes, 0) / 60 / 4;
+  const paceLine = (() => {
+    if (!goal || total >= goal || perWeek <= 0) return null;
+    const weeks = Math.ceil((goal - total) / perWeek);
+    if (weeks > 104) return `About ${h(perWeek)} hours a week lately. A little more each week gets you there sooner.`;
+    const when = new Date(Date.now() + weeks * 7 * 86400000).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    return `About ${h(perWeek)} hours a week lately. At that pace you’ll reach ${goal} around ${when}.`;
+  })();
 
   const log = () => {
     const before = total;
-    saveHours({ kind, date: day, minutes, note: note.trim(), at, ...(kind === 'driving' ? { night } : {}) });
+    saveHours({ kind, date: day, minutes, note: note.trim(), at, ...(kind === 'driving' ? { night, ...(driveTags.length ? { tags: driveTags } : {}) } : {}) });
+    setDriveTags([]);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const after = before + minutes / 60;
     if (goal && before < goal && after >= goal) emberSay(`${goal} hours of ${m.noun}. Goal reached!`, 'cheer');
@@ -90,7 +104,7 @@ export default function HoursScreen() {
   };
 
   return (
-    <Screen glowColor={m.color} title="Hours" subtitle="Service, driving practice, and work — logged as you go.">
+    <Screen glowColor={m.color} title="Hours" subtitle="Service, driving practice, and work, logged as you go.">
       <Reveal index={0}>
         <Segmented<Kind>
           options={[
@@ -111,6 +125,7 @@ export default function HoursScreen() {
             <Text style={styles.unit}> {goal ? `of ${goal} hours` : 'hours total'}</Text>
           </Text>
           {goal ? <ProgressBar value={total / goal} color={m.color} /> : null}
+          {paceLine ? <Text style={styles.sub}>{paceLine}</Text> : null}
           {kind === 'driving' ? (
             <>
               <Text style={styles.sub}>
@@ -121,7 +136,9 @@ export default function HoursScreen() {
           ) : null}
           {kind === 'work' ? (
             <>
-              <Text style={styles.sub}>{h(workWeek)} hours in the last 7 days. Keep school nights sane.</Text>
+              <Text style={styles.sub}>
+                {h(workWeek)} hours in the last 7 days{settings.wage ? `, about $${Math.round(workWeek * settings.wage)}` : ''}. Keep school nights sane.
+              </Text>
               <View style={styles.row}>
                 <Text style={styles.label}>Pay per hour</Text>
                 <Field
@@ -163,10 +180,23 @@ export default function HoursScreen() {
               ))}
             </ChipRow>
             {kind === 'driving' ? (
-              <Pressy onPress={() => setNight((v) => !v)} style={styles.night} accessibilityRole="checkbox" accessibilityState={{ checked: night }}>
-                <Icon name={night ? 'check' : 'moon'} size={17} color={night ? colors.secured : colors.textMuted} />
-                <Text style={styles.nightText}>After dark</Text>
-              </Pressy>
+              <>
+                <Pressy onPress={() => setNight((v) => !v)} style={styles.night} accessibilityRole="checkbox" accessibilityState={{ checked: night }}>
+                  <Icon name={night ? 'check' : 'moon'} size={17} color={night ? colors.secured : colors.textMuted} />
+                  <Text style={styles.nightText}>After dark</Text>
+                </Pressy>
+                <ChipRow style={styles.gapSm}>
+                  {DRIVE_TAGS.map((t) => (
+                    <Chip
+                      key={t}
+                      label={t}
+                      selected={driveTags.includes(t)}
+                      color={META.driving.color}
+                      onPress={() => setDriveTags(driveTags.includes(t) ? driveTags.filter((x) => x !== t) : [...driveTags, t])}
+                    />
+                  ))}
+                </ChipRow>
+              </>
             ) : null}
             <Field value={note} onChangeText={setNote} placeholder={m.placeholder} containerStyle={styles.gap} />
             <Button label="Log it" icon="plus" onPress={log} style={styles.gap} />
@@ -185,6 +215,7 @@ export default function HoursScreen() {
                       <Text style={styles.entryTitle}>
                         {h(x.minutes / 60)} h{x.at != null ? ` from ${clock(x.at)}` : ''}
                         {x.night ? ', night' : ''}
+                        {x.tags?.length ? `, ${x.tags.join(', ').toLowerCase()}` : ''}
                       </Text>
                       <Text style={styles.sub}>
                         {dueLabel(x.date)}

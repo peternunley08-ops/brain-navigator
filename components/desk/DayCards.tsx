@@ -120,7 +120,7 @@ export function HelperNudge() {
       icon="people"
       color={helper.color}
       title={soon ? `${target.title} is ${when}` : `${target.title} is due ${when}`}
-      body={soon ? `Warm up with ${helper.name} — a quick game from your flashcards.` : `${helper.name} can help you find what to say. You write it.`}
+      body={soon ? `Warm up with ${helper.name}: a quick game from your flashcards.` : `${helper.name} can help you find what to say. You write it.`}
       onPress={() => router.push({ pathname: '/helper/[id]', params: { id: helper.id, about: target.id } })}
       onClose={() => setHidden(true)}
     />
@@ -129,7 +129,7 @@ export function HelperNudge() {
 
 // What today's check-in said was weighing on you, matched with the tool
 // that fits it. Hidden once dismissed for the day.
-const TAG_TOOLS: Record<string, { title: string; body: string; icon: IconName; color: string; href: string }> = {
+export const TAG_TOOLS: Record<string, { title: string; body: string; icon: IconName; color: string; href: string }> = {
   Tests: { title: 'Tests on your mind', body: 'Quizzo can turn your flashcards into a quick warm-up.', icon: 'bolt', color: '#B79AF0', href: '/helper/quizzo' },
   Homework: { title: 'Homework piling up', body: 'Pip can fit tonight into your cap, with breaks.', icon: 'calendar', color: '#7CC4F2', href: '/helper/pip' },
   Friends: { title: 'Friend stuff', body: 'Talking it through with Ember can untangle it a little.', icon: 'chat', color: '#F08A8A', href: '/companion' },
@@ -292,7 +292,7 @@ export function WorryTime() {
       color="#AFA2DE"
       title="It’s worry time"
       body={`${open} worr${open === 1 ? 'y is' : 'ies are'} waiting in the box. Give each fifteen minutes, then let the rest of the evening be yours.`}
-      onPress={() => router.push('/worry')}
+      onPress={() => router.push({ pathname: '/worry', params: { timer: '15' } })}
     />
   );
 }

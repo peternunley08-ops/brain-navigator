@@ -2,6 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import type { IconName } from '../components/ui/Icon';
 import { create } from 'zustand';
 import { addDays, dateKey } from './dates';
+import { saveAside } from './saveAside';
 
 // Everything around school that makes a student's life easier: wins,
 // gratitude, service and driving hours, countdowns, trusted people, the
@@ -25,6 +26,8 @@ export interface HoursEntry {
   night?: boolean;
   /** Minutes after midnight it started, when known. */
   at?: number;
+  /** Driving: conditions practiced (highway, rain, parking…). */
+  tags?: string[];
 }
 
 export type CountdownKind = 'event' | 'break' | 'finals' | 'birthday';
@@ -152,6 +155,10 @@ export interface LifeSettings {
   sageLevel?: string;
   /** A class name as it appears in screenshots (lowercase) → your class's id. */
   classAliases?: Record<string, string>;
+  /** Days (YYYY-MM-DD) a breathing tool was finished; the last 90 are kept. */
+  breathDays?: string[];
+  /** How much the phone vibrates: off, light taps only, or full (default). */
+  haptics?: 'off' | 'light' | 'full';
 }
 
 export interface HelperTurn {
@@ -392,6 +399,10 @@ export const useLifeStore = create<LifeStore>((set, get) => {
   };
   const commit = (patch: Partial<LifeData>) => {
     set(patch);
+    // Never save before the file has been read: a store that isn't loaded yet
+    // (first moments of launch, or re-created by a dev hot reload) is empty,
+    // and saving it would overwrite everything on disk.
+    if (!get().loaded) return;
     persist(data());
   };
   const mapDeck = (deckId: string, fn: (d: Deck) => Deck) => commit({ decks: get().decks.map((d) => (d.id === deckId ? fn(d) : d)) });
@@ -402,10 +413,12 @@ export const useLifeStore = create<LifeStore>((set, get) => {
 
     load: async () => {
       if (get().loaded) return;
+      let raw = '';
       try {
         const f = new File(Paths.document, FILE);
         if (f.exists) {
-          const d = JSON.parse(await f.text()) as Partial<LifeData>;
+          raw = await f.text();
+          const d = JSON.parse(raw) as Partial<LifeData>;
           // Helper chats nobody has touched in 30 days are let go.
           const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
           const chatAt = d.helperChatAt ?? {};
@@ -420,12 +433,21 @@ export const useLifeStore = create<LifeStore>((set, get) => {
             // Day-by-day lists only need recent days; a few months of "one thing" is plenty.
             packDone: trimDays(d.packDone ?? {}),
             windDownDone: trimDays(d.windDownDone ?? {}),
+            // A birthday that's passed comes back next year on its own.
+            countdowns: (d.countdowns ?? []).map((c) => {
+              if (c.kind !== 'birthday' || c.date >= dateKey()) return c;
+              const [y, m, dd] = c.date.split('-').map(Number);
+              let next = new Date(y + 1, m - 1, dd);
+              while (dateKey(next) < dateKey()) next = new Date(next.getFullYear() + 1, m - 1, dd);
+              return { ...c, date: dateKey(next), createdAt: new Date().toISOString() };
+            }),
             oneThing: keepSince(d.oneThing ?? {}, 90),
             oneThingDone: keepSince(d.oneThingDone ?? {}, 90),
           });
         }
       } catch {
-        // Start fresh.
+        // Start fresh, but keep the file that couldn't be read.
+        if (raw) saveAside(FILE, raw);
       }
       set({ loaded: true });
     },
@@ -574,6 +596,14 @@ export function deckStats(deck: Deck) {
 }
 
 /** "front :: back" or "front - back" or "front\tback", one per line. */
+/** Note a day a breathing tool was finished (once per day). */
+export function noteBreathDay() {
+  const st = useLifeStore.getState();
+  const today = dateKey();
+  const days = st.settings.breathDays ?? [];
+  if (!days.includes(today)) st.setSettings({ breathDays: [...days, today].slice(-90) });
+}
+
 /** The lower Desk sections, top to bottom, unless the student reorders them. */
 export const DESK_ORDER = ['due', 'mind', 'checkin', 'tiles', 'line'];
 

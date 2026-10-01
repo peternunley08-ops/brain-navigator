@@ -32,7 +32,7 @@ export default function AbsentScreen() {
   const missed = classes.filter((c) => c.days.length === 0 || c.days.some((d) => missedDays.includes(d)));
 
   const note = (teacher: string, name: string) =>
-    `Hi ${teacher || 'there'},\n\nI was out ${daysOut === 1 ? 'yesterday' : `the last ${daysOut} school days`} and missed ${name}. Could you let me know what I missed — notes, homework, or anything I need to make up? I want to get caught up.\n\nThank you!`;
+    `Hi ${teacher || 'there'},\n\nI was out ${daysOut === 1 ? 'yesterday' : `the last ${daysOut} school days`} and missed ${name}. Could you let me know what I missed, like notes, homework, or anything I need to make up? I want to get caught up.\n\nThank you!`;
 
   return (
     <Screen title="I was out" subtitle="Getting caught up is a to-do list, not a mountain.">

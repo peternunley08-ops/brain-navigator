@@ -1,5 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
+import { saveAside } from './saveAside';
 
 // School life: classes, what's due, focus sessions, and a small profile.
 // Kept on the phone (a JSON file in the app's documents folder) rather
@@ -170,6 +171,10 @@ export function uid() {
 export const useSchoolStore = create<SchoolStore>((set, get) => {
   const commit = (patch: Partial<SchoolData>) => {
     set(patch);
+    // Never save before the file has been read: a store that isn't loaded yet
+    // (first moments of launch, or re-created by a dev hot reload) is empty,
+    // and saving it would overwrite everything on disk.
+    if (!get().loaded) return;
     const { classes, assignments, focus, profile, stressTags, grades } = get();
     persist({ classes, assignments, focus, profile, stressTags, grades });
   };
@@ -180,10 +185,12 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
 
     load: async () => {
       if (get().loaded) return;
+      let raw = '';
       try {
         const f = file();
         if (f.exists) {
-          const d = JSON.parse(await f.text()) as Partial<SchoolData>;
+          raw = await f.text();
+          const d = JSON.parse(raw) as Partial<SchoolData>;
           set({
             classes: d.classes ?? [],
             assignments: d.assignments ?? [],
@@ -194,7 +201,8 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
           });
         }
       } catch {
-        // Start fresh rather than crash on a bad file.
+        // Start fresh rather than crash on a bad file, but keep the file.
+        if (raw) saveAside('school.json', raw);
       }
       set({ loaded: true });
     },

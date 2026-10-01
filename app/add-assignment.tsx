@@ -96,7 +96,7 @@ export default function AddAssignmentScreen() {
     if ((kind === 'test' || kind === 'quiz') && n >= 1 && n <= 4) {
       emberSay(`A ${KIND_LABEL[kind].toLowerCase()} ${dueLabel(due).toLowerCase() === 'tomorrow' ? 'tomorrow' : `on ${dueLabel(due)}`}. Short study sessions between now and then beat one long cram.`, 'curious');
     } else {
-      emberSay(`Got it — due ${dueLabel(due).toLowerCase() === 'today' || dueLabel(due).toLowerCase() === 'tomorrow' ? dueLabel(due).toLowerCase() : dueLabel(due)}.`, 'happy');
+      emberSay(`Got it, due ${dueLabel(due).toLowerCase() === 'today' || dueLabel(due).toLowerCase() === 'tomorrow' ? dueLabel(due).toLowerCase() : dueLabel(due)}.`, 'happy');
     }
   };
 
@@ -106,7 +106,7 @@ export default function AddAssignmentScreen() {
       backIcon="close"
       glowColor={accent}
       title={existing ? 'Edit' : 'What’s due?'}
-      subtitle={existing ? undefined : 'Homework, a test, a project — get it out of your head.'}
+      subtitle={existing ? undefined : 'Homework, a test, a project. Get it out of your head.'}
     >
       <Reveal index={0}>
         <Field big containerStyle={styles.block} placeholder="e.g. Chapter 6 problems" value={title} onChangeText={setTitle} />

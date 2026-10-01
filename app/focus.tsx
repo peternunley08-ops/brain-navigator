@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
@@ -46,7 +46,7 @@ function mmss(ms: number) {
 // timestamps, so it stays right if you lock the phone mid-session.
 export default function FocusScreen() {
   const { width: winW } = useWindowDimensions();
-  const { assignment: assignmentParam, quick } = useLocalSearchParams<{ assignment?: string; quick?: string }>();
+  const { assignment: assignmentParam, quick, topic } = useLocalSearchParams<{ assignment?: string; quick?: string; topic?: string }>();
   const assignments = useSchoolStore((s) => s.assignments);
   const classes = useSchoolStore((s) => s.classes);
   const focus = useSchoolStore((s) => s.focus);
@@ -294,7 +294,7 @@ export default function FocusScreen() {
         {phase === 'running' || phase === 'paused' ? (
           <Animated.View entering={FadeIn.duration(300)} style={styles.center}>
             <Text style={styles.timer}>{mmss(total - elapsed)}</Text>
-            <Text style={styles.label}>{phase === 'paused' ? 'Paused' : t ? `Working on ${t.title}` : 'Just focusing'}</Text>
+            <Text style={styles.label}>{phase === 'paused' ? 'Paused' : t ? `Working on ${t.title}` : topic ? `Studying ${topic}` : 'Just focusing'}</Text>
             {autoCycle ? (
               <View style={styles.rounds} accessible accessibilityLabel={`Round ${(round % 4) + 1} of 4`}>
                 {[0, 1, 2, 3].map((k) => (
@@ -586,6 +586,7 @@ export default function FocusScreen() {
                 />
               ))}
             </View>
+            {!focus.length ? <Text style={styles.best}>Your first session lights the first square.</Text> : null}
             <View style={styles.legend}>
               <Text style={styles.legendText}>Less</Text>
               {[0, 0.35, 0.65, 1].map((v) => (

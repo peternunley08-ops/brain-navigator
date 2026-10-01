@@ -106,6 +106,20 @@ export default function RecsScreen() {
                     <Text style={styles.thanksText}>{r.thanked ? 'Thank-you sent' : 'Send a thank-you note'}</Text>
                   </Pressy>
                 ) : null}
+                {r.status === 'submitted' && !r.thanked ? (
+                  <Button
+                    label="Draft the thank-you"
+                    icon="message"
+                    variant="secondary"
+                    size="sm"
+                    onPress={() =>
+                      Share.share({
+                        message: `Dear ${r.teacher.split('(')[0].trim()},\n\nThank you so much for writing my recommendation letter. I know it took real time, and it means a lot that you’d vouch for me. I’ll let you know where I end up.\n\nThank you again.`,
+                      })
+                    }
+                    style={styles.gapSm}
+                  />
+                ) : null}
               </Card>
             </Animated.View>
           </Reveal>

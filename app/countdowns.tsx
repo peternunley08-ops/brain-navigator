@@ -132,7 +132,7 @@ export default function CountdownsScreen() {
                     <View style={styles.finals}>
                       <Text style={styles.sub}>
                         {finalsTests.length
-                          ? `${finalsTests.length} test${finalsTests.length === 1 ? '' : 's'} and project${finalsTests.length === 1 ? '' : 's'} before then. Plan each one backward — a little every day beats a week of cramming.`
+                          ? `${finalsTests.length} test${finalsTests.length === 1 ? '' : 's'} and project${finalsTests.length === 1 ? '' : 's'} before then. Plan each one backward. A little every day beats a week of cramming.`
                           : 'Add each final as a test so they can be planned backward.'}
                       </Text>
                       <Button label={finalsTests.length ? 'See them' : 'Add a final'} size="sm" variant="secondary" onPress={() => router.push(finalsTests.length ? '/school' : '/add-assignment')} style={styles.gapSm} />

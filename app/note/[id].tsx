@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../core/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -15,6 +15,7 @@ import { Pressy } from '../../components/ui/Pressy';
 import { Screen } from '../../components/ui/Screen';
 import { type BlockType, type NoteBlock, uid, useHubStore } from '../../core/hubStore';
 import { parseCards, useLifeStore } from '../../core/lifeStore';
+import { essayWords, wordGoalFor } from '../../core/words';
 import { useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 
@@ -46,9 +47,6 @@ const OWN_PREFIX: Partial<Record<BlockType, RegExp>> = {
   numbered: /^1[.)] /,
 };
 
-function wordCount(blocks: NoteBlock[]) {
-  return blocks.reduce((s, b) => s + (b.text.trim() ? b.text.trim().split(/\s+/).length : 0), 0);
-}
 
 // Plain text for sharing: headings, bullets, checkboxes, numbers.
 function asText(title: string, blocks: NoteBlock[]) {
@@ -168,10 +166,11 @@ export default function NoteScreen() {
     router.push(`/deck/${deck.id}`);
   };
 
-  const words = wordCount(note.blocks);
+  // Headings don't count toward an essay's limit.
+  const words = essayWords(note.blocks);
   const isEssay = /essay|personal statement|supplement|brainstorm/i.test(note.title) || note.icon === 'feather';
   // An essay's word limit: 650 (the Common App) unless you pick another; none for other pages.
-  const goal = note.wordGoal !== undefined ? note.wordGoal : isEssay ? 650 : null;
+  const goal = wordGoalFor(note);
   let numbered = 0;
 
   const remove = (index: number) => {
@@ -194,6 +193,7 @@ export default function NoteScreen() {
       glowColor={note.color}
       right={
         <View style={styles.headerBtns}>
+          <IconButton icon="timer" label="Focus on this page" onPress={() => router.push({ pathname: '/focus', params: { topic: note.title || 'Notes' } })} />
           <IconButton icon="share" label="Share as text" onPress={() => Share.share({ message: asText(note.title, note.blocks) })} />
           <IconButton
             icon="pin"
@@ -341,6 +341,7 @@ export default function NoteScreen() {
                 key={n}
                 onPress={() => updateNote(note.id, { wordGoal: goal === n ? null : n })}
                 depth={0.9}
+                hitSlop={8}
                 accessibilityRole="button"
                 accessibilityState={{ selected: goal === n }}
                 style={[styles.limit, goal === n && { borderColor: note.color, backgroundColor: alpha(note.color, 0.14) }]}

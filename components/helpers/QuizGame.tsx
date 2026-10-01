@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../core/haptics';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -113,7 +113,7 @@ export function QuizGame({
 
   if (!usable.length) {
     return (
-      <EmptyState gear="glasses" title="No flashcards yet." body="Quizzo builds games from your flashcards. Make a deck — or switch to AI chat and get quizzed on any topic.">
+      <EmptyState gear="glasses" title="No flashcards yet." body="Quizzo builds games from your flashcards. Make a deck, or switch to AI chat and get quizzed on any topic.">
         <Button label="Make flashcards" icon="cards" onPress={() => router.push('/flashcards')} />
         <Button label="Quiz me with AI" variant="ghost" size="sm" onPress={onAskAI} />
       </EmptyState>

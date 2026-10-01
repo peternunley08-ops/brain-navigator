@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeText, textRecognitionAvailable } from '../modules/text-recognition';
 import { type FoundGrade, parseGrades } from '../core/scanParser';
@@ -353,7 +353,7 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                     {needed <= 0
                       ? `Even a zero on the final keeps you at ${target}%. Still worth showing up.`
                       : needed > 100
-                        ? `More than 100% — out of reach this time. Aim for the next line down, and ask about extra credit.`
+                        ? `More than 100%, so out of reach this time. Aim for the next line down, and ask about extra credit.`
                         : `on the final to finish at ${target}%.`}
                   </Text>
                 </View>

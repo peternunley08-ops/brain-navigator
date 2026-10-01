@@ -137,7 +137,7 @@ export default function ScanScreen() {
       setStage(more ? 'review' : 'intro');
       return;
     }
-    if (failed.length) setError(`Couldn’t read screenshot ${failed.join(', ')} — the rest are below.`);
+    if (failed.length) setError(`Couldn’t read screenshot ${failed.join(', ')}. The rest are below.`);
     const all = [...base, ...found];
     setParts(all);
     // Let the scan line pass at least once — it reads as "looking".

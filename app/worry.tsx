@@ -1,5 +1,6 @@
-import * as Haptics from 'expo-haptics';
-import { useState } from 'react';
+import * as Haptics from '../core/haptics';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -28,6 +29,24 @@ export default function WorryScreen() {
   const deleteWorry = useLifeStore((s) => s.deleteWorry);
   const [text, setText] = useState('');
   const [showOld, setShowOld] = useState(false);
+  // Worry time, timed: fifteen minutes for the box, then it closes for the day.
+  const { timer } = useLocalSearchParams<{ timer?: string }>();
+  const [endsAt, setEndsAt] = useState<number | null>(null);
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!endsAt) return;
+    const iv = setInterval(() => {
+      tick((n) => n + 1);
+      if (Date.now() >= endsAt) {
+        clearInterval(iv);
+        setEndsAt(null);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+        emberSay('Worry time’s up. The box stays closed until tomorrow. You did the hard part.', 'happy');
+      }
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [endsAt]);
+  const leftMs = endsAt ? Math.max(0, endsAt - Date.now()) : 0;
 
   const open = worries.filter((w) => !w.resolved);
   const handled = worries.filter((w) => w.resolved);
@@ -55,6 +74,24 @@ export default function WorryScreen() {
           </Text>
         </Card>
       </Reveal>
+
+      {(timer || worryTime) && open.length ? (
+        <Reveal index={1}>
+          <Card style={styles.gap}>
+            {endsAt ? (
+              <>
+                <Text style={styles.timer}>
+                  {Math.floor(leftMs / 60000)}:{String(Math.floor((leftMs % 60000) / 1000)).padStart(2, '0')}
+                </Text>
+                <Text style={styles.hint}>One at a time. Is there one small step? Write it down, or mark it handled.</Text>
+                <Button label="Close the box early" variant="ghost" size="sm" onPress={() => setEndsAt(null)} />
+              </>
+            ) : (
+              <Button label="Start 15 minutes of worry time" icon="timer" variant="secondary" tint={LAVENDER} onPress={() => setEndsAt(Date.now() + 15 * 60_000)} />
+            )}
+          </Card>
+        </Reveal>
+      ) : null}
 
       <Reveal index={1}>
         <Section title="In the box" note={open.length ? `${open.length}` : undefined}>
@@ -122,6 +159,13 @@ export default function WorryScreen() {
 }
 
 const styles = StyleSheet.create({
+  timer: {
+    fontFamily: fonts.display,
+    fontSize: 40,
+    color: colors.text,
+    textAlign: 'center',
+    fontVariant: ['tabular-nums'],
+  },
   gap: {
     marginTop: 12,
   },

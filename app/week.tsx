@@ -219,7 +219,7 @@ function NextFor({ classId, onClose }: { classId: string; onClose: () => void })
         </Pressy>
       </View>
       <Text style={styles.nextSub}>
-        {cls.days.map((d) => DAY_NAMES[d - 1]).join(', ')}, {clock(cls.start)} to {clock(cls.end)}
+        {cls.days.join() === '1,2,3,4,5' ? 'Weekdays' : cls.days.map((d) => DAY_NAMES[d - 1]).join(', ')}, {clock(cls.start)} to {clock(cls.end)}
         {cls.room ? `, room ${cls.room}` : ''}
       </Text>
       {next.length ? (

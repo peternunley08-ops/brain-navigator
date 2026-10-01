@@ -16,7 +16,7 @@ import { useGoogleCalendarStore } from '../core/googleCalendarStore';
 import { useHubStore } from '../core/hubStore';
 import { alpha, colors, fonts } from '../core/theme';
 
-const SCHOOL_REQUEST = `Hi — I use an app called Brain Navigator to keep track of my classes and assignments. My school Google account blocks it from connecting to Google Classroom and Calendar. Could the school approve it in the Google Admin console (Security → API controls → App access control)? It only needs read-only access to my own classes and coursework. Thank you!`;
+const SCHOOL_REQUEST = `Hi, I use an app called Brain Navigator to keep track of my classes and assignments. My school Google account blocks it from connecting to Google Classroom and Calendar. Could the school approve it in the Google Admin console (Security → API controls → App access control)? It only needs read-only access to my own classes and coursework. Thank you!`;
 
 // Everything a student already uses, in one place: what can truly connect
 // (Google Calendar, Canvas), what comes in by screenshot (Classroom), and
@@ -66,7 +66,7 @@ export default function ConnectionsScreen() {
             icon="calendar"
             color="#D99A6C"
             title="Google Calendar"
-            body={googleSignedIn ? 'Connected — today’s events show on your Calendar.' : 'See today’s events, and add study blocks.'}
+            body={googleSignedIn ? 'Connected. Today’s events show on your Calendar.' : 'See today’s events, and add study blocks.'}
             status={googleSignedIn ? 'on' : undefined}
             onPress={() => router.push('/calendar')}
           />
@@ -167,7 +167,7 @@ export default function ConnectionsScreen() {
           <Row icon="message" color="#F07060" title="Gmail" body="Your inbox" onPress={() => Linking.openURL('https://mail.google.com')} />
           <Row icon="jar" color="#8CC0A8" title="Google Drive" body="Docs and files" onPress={() => Linking.openURL('https://drive.google.com')} />
           <Row icon="pen" color="#C3B3A0" title="Notion" body="Your tasks, check-ins, and entries sync there automatically" onPress={() => Linking.openURL('https://www.notion.so')} />
-          <Row icon="sparkle" color="#D99A6C" title="Claude" body="Ember’s thinking brain — or open Claude itself" onPress={() => router.push('/companion')} extra={{ label: 'Open Claude', onPress: () => Linking.openURL('https://claude.ai') }} />
+          <Row icon="sparkle" color="#D99A6C" title="Claude" body="Ember’s thinking brain, or open Claude itself" onPress={() => router.push('/companion')} extra={{ label: 'Open Claude', onPress: () => Linking.openURL('https://claude.ai') }} />
         </Section>
       </Reveal>
     </Screen>

@@ -22,8 +22,8 @@ import { useAIStatus } from '../components/helpers/Quota';
 import { warmth } from '../core/achievements';
 import { ACCESSORIES, EMBER_THEMES } from '../core/emberLook';
 import { useHubStore } from '../core/hubStore';
-import { DESK_ORDER, type EmberTheme, useLifeStore } from '../core/lifeStore';
-import { useSchoolStore } from '../core/schoolStore';
+import { DESK_ORDER, type EmberTheme, hoursTotal, useLifeStore } from '../core/lifeStore';
+import { classAverage, dueLabel, letterFor, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
 
 const GRADES = [9, 10, 11, 12];
@@ -32,6 +32,7 @@ const DESK_PARTS: { key: string; label: string }[] = [
   { key: 'countdowns', label: 'Countdowns' },
   { key: 'onething', label: 'One thing' },
   { key: 'capture', label: 'Quick add' },
+  { key: 'pinned', label: 'Pinned notes' },
   { key: 'brief', label: 'Morning and evening brief' },
   { key: 'nudges', label: 'Nudges' },
   { key: 'due', label: 'Due soon' },
@@ -118,6 +119,33 @@ export default function SettingsScreen() {
     } catch {
       await Share.share({ message: json });
     }
+  };
+
+  // A plain summary anyone can read: for a parent, a counselor, or just to keep.
+  const shareSummary = () => {
+    const school = useSchoolStore.getState();
+    const hub = useHubStore.getState();
+    const life = useLifeStore.getState();
+    const open = school.assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due));
+    const cls = (id: string | null) => school.classes.find((c) => c.id === id)?.name;
+    const lines = [
+      `${school.profile.name || 'My'} school summary, ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`,
+      '',
+      'Classes',
+      ...school.classes.filter((c) => c.kind === 'class').map((c) => {
+        const avg = classAverage(school.grades, c);
+        return `• ${c.name}${c.teacher ? `, ${c.teacher}` : ''}${avg != null ? `: ${avg.toFixed(1)}% (${letterFor(avg)})` : ''}`;
+      }),
+      '',
+      `Still to do (${open.length})`,
+      ...open.slice(0, 20).map((a) => `• ${a.title}${cls(a.classId) ? `, ${cls(a.classId)}` : ''}, due ${dueLabel(a.due)}`),
+      ...(hub.colleges.length ? ['', 'Colleges', ...hub.colleges.map((c) => `• ${c.name}, ${c.plan}${c.deadline ? `, ${dueLabel(c.deadline)}` : ''}, ${c.status}`)] : []),
+      ...(hub.scholarships.length ? ['', 'Scholarships', ...hub.scholarships.map((x) => `• ${x.name}${x.amount ? `, $${x.amount}` : ''}, ${x.status}`)] : []),
+      '',
+      `Service hours: ${Math.round(hoursTotal(life.hours, 'service') * 10) / 10}. Driving: ${Math.round(hoursTotal(life.hours, 'driving') * 10) / 10}.`,
+      `Badges: ${Object.keys(life.achievements).length}. Wins in the jar: ${life.wins.length}.`,
+    ];
+    Share.share({ message: lines.join('\n') });
   };
 
   // Restore: paste a backup's text, see what's in it, then hold to replace.
@@ -237,6 +265,12 @@ export default function SettingsScreen() {
               />
             </ChipRow>
             <Text style={styles.hint}>Quiet keeps the big moments and important tips. Silent in class uses your class times.</Text>
+            <Text style={styles.label}>Vibration</Text>
+            <ChipRow>
+              {(['full', 'light', 'off'] as const).map((h) => (
+                <Chip key={h} label={h === 'full' ? 'Full' : h === 'light' ? 'Light taps' : 'Off'} selected={(settings.haptics ?? 'full') === h} onPress={() => setSettings({ haptics: h })} />
+              ))}
+            </ChipRow>
             <Text style={styles.label}>Big moments</Text>
             <ChipRow>
               <Chip label="Whole screen" selected={!settings.quietCelebrations} onPress={() => setSettings({ quietCelebrations: false })} />
@@ -399,6 +433,7 @@ export default function SettingsScreen() {
         <Section title="Your data" icon="share" iconColor="#8CC0A8" note="Schoolwork, notes, and everything on this page live on this phone.">
           <Card>
             <Button label="Export a backup" icon="share" variant="secondary" onPress={exportAll} />
+            <Button label="Share a summary as text" icon="list" variant="ghost" size="sm" onPress={shareSummary} style={styles.restoreToggle} />
             <Text style={[styles.hint, styles.center]}>A file with everything. The Canvas key is left out.</Text>
             <Button label="Where your stuff lives" icon="pin" variant="ghost" size="sm" onPress={() => router.push('/privacy')} style={styles.restoreToggle} />
             <Button

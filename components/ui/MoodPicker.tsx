@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { useEffect } from 'react';
+import Animated, { cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { alpha, colors, fonts } from '../../core/theme';
 import { Pressy } from './Pressy';
@@ -40,6 +41,18 @@ function Face({
   onPress: () => void;
 }) {
   const S = 44;
+  // The chosen Ember bobs gently, like it's glad you picked it. Still under Reduce Motion.
+  const reduced = useReducedMotion();
+  const bob = useSharedValue(0);
+  useEffect(() => {
+    if (selected && !reduced) {
+      bob.value = withRepeat(withSequence(withTiming(-2.5, { duration: 900 }), withTiming(0, { duration: 900 })), -1);
+    } else {
+      cancelAnimation(bob);
+      bob.value = withTiming(0, { duration: 200 });
+    }
+  }, [selected, reduced, bob]);
+  const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: bob.value }] }));
   const lift = useAnimatedStyle(() => ({
     // A lift, not a scale: scaling the glowing face made iOS draw it blurry and blocky.
     transform: [{ translateY: withSpring(selected ? -5 : 0, { damping: 12, stiffness: 260 }) }],
@@ -55,9 +68,11 @@ function Face({
           lift,
         ]}
       >
-        <Svg width={S} height={S} viewBox="0 0 44 44">
-          <EmberFace v={mood.v} color={mood.color} selected={selected} />
-        </Svg>
+        <Animated.View style={bobStyle}>
+          <Svg width={S} height={S} viewBox="0 0 44 44">
+            <EmberFace v={mood.v} color={mood.color} selected={selected} />
+          </Svg>
+        </Animated.View>
       </Animated.View>
       <Text style={[styles.label, selected && { color: mood.color, fontFamily: fonts.bodySemi }]}>{mood.label}</Text>
     </Pressy>

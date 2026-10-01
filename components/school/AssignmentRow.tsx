@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../../core/haptics';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
@@ -105,12 +105,12 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
           </Text>
           <View style={styles.meta}>
             {cls ? (
-              <>
+              <View style={styles.classTag}>
                 <View style={[styles.dot, { backgroundColor: color }]} />
                 <Text style={styles.metaText} numberOfLines={1}>
                   {cls.name}
                 </Text>
-              </>
+              </View>
             ) : null}
             {big ? (
               <View style={[styles.kind, { backgroundColor: alpha(color, 0.16) }]}>
@@ -194,16 +194,26 @@ const styles = StyleSheet.create({
     color: colors.textFaint,
     textDecorationLine: 'line-through',
   },
+  // Wraps instead of squeezing, so large text never breaks "steps" mid-word or clips the badge.
   meta: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    gap: 6,
+    columnGap: 6,
+    rowGap: 2,
     marginTop: 4,
   },
   dot: {
     width: 7,
     height: 7,
     borderRadius: 4,
+  },
+  classTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 1,
+    maxWidth: '100%',
   },
   metaText: {
     flexShrink: 1,
@@ -213,7 +223,8 @@ const styles = StyleSheet.create({
   },
   kind: {
     paddingHorizontal: 7,
-    height: 18,
+    paddingVertical: 1,
+    minHeight: 18,
     borderRadius: 9,
     justifyContent: 'center',
   },

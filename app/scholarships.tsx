@@ -132,6 +132,15 @@ export default function ScholarshipsScreen() {
                     />
                   ))}
                 </ChipRow>
+                {x.status === 'applied' ? (
+                  <Field
+                    defaultValue={x.hearBy ? dueLabel(x.hearBy) : ''}
+                    onEndEditing={(e) => save({ ...x, hearBy: parseDue(e.nativeEvent.text) })}
+                    placeholder="When do they announce? e.g. Nov 15"
+                    hint={x.hearBy ? `Hear back ${dueLabel(x.hearBy)}. It shows in College, Coming up.` : undefined}
+                    containerStyle={styles.gapSm}
+                  />
+                ) : null}
               </Card>
             </Animated.View>
           );

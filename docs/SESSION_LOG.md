@@ -1557,3 +1557,34 @@ Then the user asked for 100 more ideas and UI-wide improvements —
 sheets, swipe rows, tab long-press, pull to refresh, skeletons, …) and the
 Desk group (quick capture with natural-language parsing, morning/evening
 briefs, helper nudge, customization, …), several verified live.
+
+Round 2 was finished (all 100; groups D through I) and verified live where it
+can be without an AI key or real accounts.
+
+## 2026-09-30 → 10-01 — Round 3: 100 more, built on rounds 1 and 2
+
+The user asked for "100 more ideas to improve on any ideas you had" and left
+the orchestration to me. Plan and tracker: `docs/masterpiece-3.md`, groups
+A–J (celebrations, flashcards and Quizzo, focus, Desk, helpers, school and
+scanning, wellness, college and life, notes and search, quality). Highlights:
+one-time whole-screen celebrations that also fill the wins jar; Quizzo
+true/false and replay-missed; decks that remember how you study them; focus
+day detail and a daily goal; reorderable Desk sections; smarter dates ("next
+friday", "in 3 days", "every monday 20 min"); scan duplicate flags and
+remembered class names; quick breath 1 or 3 minutes; a 15-minute worry
+timer; supplements, fee waivers, hear-back dates, and hours pace; a Full /
+Light / Off vibration setting; restore from a pasted backup.
+
+On 2026-10-01 the user said "push and commit everything so far": committed
+as c454311 (rounds 2 and 3 through group F) and pushed to origin/main along
+with round 1 (da32a82).
+
+Bugs found while testing and fixed: the Desk froze ("Maximum update depth")
+from a selector returning `?? []`; "5/14" typed in September meant last May;
+up/down arrows pointed left because Pressy's press transform replaced the
+rotate style; and a data-loss bug where a store could save before loading,
+so a Fast Refresh of a store file (dev only) wrote an empty store over
+life.json. Stores now wait for load, and unreadable files are kept aside
+(`core/saveAside.ts`). The Mac restarted mid-session; Metro now starts from
+the "metro" entry in ~/Desktop/.claude/launch.json (never CI=1).
+

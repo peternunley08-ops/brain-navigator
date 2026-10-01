@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { Linking, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -30,8 +30,10 @@ import {
 } from '../core/hubStore';
 import { type IconName } from '../components/ui/Icon';
 import { celebrate } from '../core/celebrateStore';
+import { essayWords } from '../core/words';
 import { parseDue } from '../core/scanParser';
 import { alpha, colors, fonts } from '../core/theme';
+import { offerUndo } from '../core/undoStore';
 
 const PLANS: CollegePlan[] = ['ED', 'EA', 'REA', 'RD', 'Rolling'];
 const PLAN_LABEL: Record<CollegePlan, string> = { ED: 'Early Decision', EA: 'Early Action', REA: 'Restrictive EA', RD: 'Regular', Rolling: 'Rolling' };
@@ -69,6 +71,7 @@ const TOOLS: { label: string; icon: IconName; path: string }[] = [
 
 export default function CollegeScreen() {
   const colleges = useHubStore((s) => s.colleges);
+  const notes = useHubStore((s) => s.notes);
   const saveCollege = useHubStore((s) => s.saveCollege);
   const createNote = useHubStore((s) => s.createNote);
   const [adding, setAdding] = useState(false);
@@ -87,6 +90,15 @@ export default function CollegeScreen() {
     ...active.filter((c) => c.deadline).map((c) => ({ key: `c${c.id}`, date: c.deadline!, title: c.name, kind: c.plan, color: '#8FB4E8' })),
     ...scholarships.filter((x) => x.deadline && x.status === 'todo').map((x) => ({ key: `s${x.id}`, date: x.deadline!, title: x.name, kind: 'Scholarship', color: '#E6C46A' })),
     ...recs.filter((x) => x.due && x.status !== 'submitted').map((x) => ({ key: `r${x.id}`, date: x.due!, title: `${x.teacher}’s letter`, kind: 'Rec', color: '#E89AB8' })),
+    // Supplements not started yet, for a deadline within two weeks.
+    ...active
+      .filter((c) => c.deadline && daysUntil(c.deadline) <= 14)
+      .flatMap((c) =>
+        (c.supplements ?? [])
+          .filter((sup) => !sup.done && (!sup.noteId || !notes.find((n) => n.id === sup.noteId)?.blocks.some((b) => b.text.trim())))
+          .map((sup) => ({ key: `p${sup.id}`, date: c.deadline!, title: `${c.name}: ${sup.prompt}`, kind: 'Supplement, not started', color: '#8FB4E8' }))
+      ),
+    ...scholarships.filter((x) => x.status === 'applied' && x.hearBy).map((x) => ({ key: `h${x.id}`, date: x.hearBy!, title: x.name, kind: 'Hear back', color: '#E6C46A' })),
   ]
     .filter((x) => daysUntil(x.date) >= 0)
     .sort((a, b) => a.date.localeCompare(b.date))
@@ -350,12 +362,21 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
               ))}
             </View>
             <Text style={styles.label}>Supplement essays</Text>
-            {sups.map((sup) => {
+            {[...sups].sort((a, b) => Number(!!a.done) - Number(!!b.done)).map((sup) => {
               const note = sup.noteId ? notes.find((x) => x.id === sup.noteId) : undefined;
-              const words = note ? note.blocks.reduce((s, b) => s + (b.text.trim() ? b.text.trim().split(/\s+/).length : 0), 0) : 0;
+              const words = note ? essayWords(note.blocks) : 0;
               return (
-                <Pressy key={sup.id} onPress={() => writeSup(sup)} style={styles.sup} accessibilityRole="button" accessibilityLabel={`${sup.prompt}, ${words} of ${sup.limit} words`}>
-                  <Icon name="feather" size={16} color="#8FB4E8" />
+                <Pressy key={sup.id} onPress={() => writeSup(sup)} style={[styles.sup, sup.done && styles.supDone]} accessibilityRole="button" accessibilityLabel={`${sup.prompt}, ${sup.done ? 'done' : `${words} of ${sup.limit} words`}`}>
+                  <Pressy
+                    onPress={() => saveCollege({ ...c, supplements: sups.map((x) => (x.id === sup.id ? { ...x, done: !x.done } : x)) })}
+                    hitSlop={12}
+                    style={[styles.box, sup.done && styles.boxOn]}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: !!sup.done }}
+                    accessibilityLabel={`${sup.prompt} finished`}
+                  >
+                    {sup.done ? <Icon name="check" size={12} color={colors.flameInk} strokeWidth={3} /> : null}
+                  </Pressy>
                   <View style={styles.flex}>
                     <Text style={styles.stepText} numberOfLines={2}>
                       {sup.prompt}
@@ -363,7 +384,14 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
                     <Text style={styles.meta}>{note ? `${words} of ${sup.limit} words` : `${sup.limit} words. Tap to start writing.`}</Text>
                   </View>
                   <Pressy
-                    onPress={() => saveCollege({ ...c, supplements: sups.filter((x) => x.id !== sup.id) })}
+                    onPress={() => {
+                      const before = sups;
+                      saveCollege({ ...c, supplements: sups.filter((x) => x.id !== sup.id) });
+                      offerUndo(`Removed “${sup.prompt}”`, () => {
+                        const cur = useHubStore.getState().colleges.find((k) => k.id === c.id);
+                        if (cur) useHubStore.getState().saveCollege({ ...cur, supplements: before });
+                      });
+                    }}
                     hitSlop={10}
                     accessibilityLabel={`Remove ${sup.prompt}`}
                   >
@@ -381,7 +409,22 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
                 <Chip label="Add" icon="plus" color={colors.flame} onPress={addSup} />
               </ChipRow>
             ) : null}
-            <Text style={styles.label}>Application fee</Text>
+            <View style={styles.feeHead}>
+              <Text style={styles.label}>Application fee</Text>
+              {c.fee && !c.waiver ? (
+                <Pressy
+                  onPress={() =>
+                    Share.share({
+                      message: `Hi,\n\nI’m applying to ${c.name} and the application fee ($${c.fee}) is a real cost for my family. Could you help me request a fee waiver, or tell me how to qualify?\n\nThank you.`,
+                    })
+                  }
+                  hitSlop={6}
+                  accessibilityRole="button"
+                >
+                  <Text style={styles.waiverAsk}>Ask about a waiver</Text>
+                </Pressy>
+              ) : null}
+            </View>
             <View style={styles.feeRow}>
               <Field
                 value={c.fee != null ? String(c.fee) : ''}
@@ -438,7 +481,13 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
                 />
               ))}
             </ChipRow>
-            <Button label="Remove from list" variant="ghost" size="sm" icon="trash" tint={colors.danger} onPress={() => deleteCollege(c.id)} style={styles.remove} />
+            <Button label="Remove from list" variant="ghost" size="sm" icon="trash" tint={colors.danger} onPress={() => {
+                const index = useHubStore.getState().colleges.findIndex((x) => x.id === c.id);
+                deleteCollege(c.id);
+                offerUndo(`Removed ${c.name}`, () => useHubStore.getState().restoreCollege(c, index));
+              }}
+              style={styles.remove}
+            />
           </Animated.View>
         ) : null}
       </Card>
@@ -447,6 +496,20 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
 }
 
 const styles = StyleSheet.create({
+  supDone: {
+    opacity: 0.55,
+  },
+  feeHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  waiverAsk: {
+    marginTop: 14,
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    color: colors.flame,
+  },
   sup: {
     flexDirection: 'row',
     alignItems: 'center',

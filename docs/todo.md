@@ -634,5 +634,21 @@ on Anthropic billing. **Do not build until the user approves.**
   save, worry box, your people (Messages hand-off), scholarships / recs /
   activities / aid forms, triage with real overdue work, "I was out" note
   drafts, export backup share sheet, hold-to-erase (deliberately not run)
-- [ ] Rebuild for the phone after commit
-- [ ] Commit (waiting for the user's "commit")
+- [ ] Rebuild for the phone (2026-10-01 attempt stopped: the phone was locked, so the developer disk image couldn't mount; unlock it and rerun the recipe in CLAUDE.md)
+- [x] Commit (da32a82, pushed 2026-10-01)
+
+## Phase 32 — Masterpiece round 2 (2026-09-30)
+
+Plan and status: `docs/masterpiece-2.md` (100 ideas, all built).
+- [x] Helper crew, AI allowance + Plus screen, multi-screenshot scan
+- [x] Committed and pushed as c454311 (2026-10-01)
+- [ ] Ember's AI and the helpers' AI chat: needs Anthropic credit and the
+  `ember` Edge Function deployed (the user's steps)
+- [ ] Plus purchases: needs the paid Apple Developer Program, an App Store
+  Connect subscription, and a StoreKit library
+
+## Phase 33 — Masterpiece round 3 (2026-09-30 → 10-01)
+
+Plan and status: `docs/masterpiece-3.md` (100 ideas, groups A–J).
+- [x] A–F committed in c454311; G–J committed and pushed 2026-10-01
+

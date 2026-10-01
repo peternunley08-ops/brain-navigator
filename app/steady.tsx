@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -15,6 +15,8 @@ import { QuickBreath } from '../components/ui/QuickBreath';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { useFlameClock } from '../core/hooks/useFlameClock';
+import { dateKey } from '../core/dates';
+import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
 
 const ART = 72;
@@ -33,6 +35,9 @@ const GROUNDING = [
 export default function SteadyScreen() {
   const time = useFlameClock();
   const reducedMotion = useReducedMotion();
+  const breathDays = useLifeStore((s) => s.settings.breathDays);
+  const month = dateKey().slice(0, 7);
+  const breathedThisMonth = (breathDays ?? []).filter((d) => d.startsWith(month)).length;
 
   return (
     <Screen back={false} tone="dusk" glowColor={BLUE} motes kicker="Take a breath." title="Steady" subtitle="For when it’s a lot, right now.">
@@ -49,6 +54,11 @@ export default function SteadyScreen() {
         </Reveal>
         <Reveal index={0}>
           <QuickBreath color={BLUE} />
+          {breathedThisMonth ? (
+            <Text style={styles.breathCount}>
+              You took a breathing break on {breathedThisMonth} day{breathedThisMonth === 1 ? '' : 's'} this month.
+            </Text>
+          ) : null}
         </Reveal>
         <Reveal index={0}>
           <Door
@@ -216,7 +226,7 @@ function Grounding() {
               ))}
             </View>
             <Pressy onPress={tick} style={styles.tapZone} depth={0.97} accessibilityRole="button" accessibilityLabel={`Noticed one. ${count} of ${cur.n}.`}>
-              <Text style={styles.tapText}>{count === 0 ? 'Tap for each one you notice' : `${count} of ${cur.n} — keep going`}</Text>
+              <Text style={styles.tapText}>{count === 0 ? 'Tap for each one you notice' : `${count} of ${cur.n}, keep going`}</Text>
             </Pressy>
           </Animated.View>
         )}
@@ -226,6 +236,13 @@ function Grounding() {
 }
 
 const styles = StyleSheet.create({
+  breathCount: {
+    marginTop: 8,
+    fontFamily: fonts.displaySoft,
+    fontSize: 13,
+    color: colors.textFaint,
+    textAlign: 'center',
+  },
   tools: {
     flexDirection: 'row',
     flexWrap: 'wrap',

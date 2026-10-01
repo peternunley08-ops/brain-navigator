@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -92,7 +92,7 @@ export default function SleepScreen() {
       <Reveal index={3}>
         <Checklist
           title="Wind down"
-          note={`Starts at ${clock(settings.windDown)}. Change it in Settings.`}
+          note={windDownNote(settings.windDown)}
           items="windDownItems"
           done="windDownDone"
           color={MOON}
@@ -110,6 +110,19 @@ export default function SleepScreen() {
       </Reveal>
     </Screen>
   );
+}
+
+/** "Starts at 9:30 PM, in 40 minutes." before it begins; "Started at 9:30 PM." after. */
+function windDownNote(at: number) {
+  const now = new Date().getHours() * 60 + new Date().getMinutes();
+  const until = at - now;
+  if (until > 0 && until <= 180) {
+    const h = Math.floor(until / 60);
+    const m = until % 60;
+    return `Starts at ${clock(at)}, in ${h ? `${h} h${m ? ` ${m} min` : ''}` : `${m} minutes`}.`;
+  }
+  if (until <= 0 && until > -180) return `Started at ${clock(at)}. Phone down soon.`;
+  return `Starts at ${clock(at)}. Change it in Settings.`;
 }
 
 function Checklist({

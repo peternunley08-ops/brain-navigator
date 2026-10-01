@@ -1,6 +1,8 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { TAG_TOOLS } from '../components/desk/DayCards';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -31,6 +33,8 @@ const DATE_LABEL = new Date().toLocaleDateString('en-US', {
   month: 'long',
   day: 'numeric',
 });
+
+const STEADY_OFFER = { title: 'Stress is high', body: 'Two minutes of slow breathing settles the body fast.', icon: 'wind', color: '#8FB4E8', href: '/breathe' };
 
 export default function CheckinScreen() {
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
@@ -86,11 +90,16 @@ export default function CheckinScreen() {
 
   const existing = todaysCheckin();
 
+  // What to offer right after saving: the tool for what's weighing on you, or breathing when stress is high.
+  const offer = tags.map((t) => TAG_TOOLS[t]).find(Boolean) ?? (stressLevel != null && stressLevel >= 7 ? STEADY_OFFER : null);
+
   const handleSave = async () => {
     const ok = await saveTodayCheckin({ mood, sleepHours, sleepQuality, stressLevel, notes });
     if (ok) {
       setStressTags(dateKey(), tags);
       setSaved(true);
+      // With something to offer, stay a moment so it can be tapped.
+      if (offer) return;
       setTimeout(() => {
         router.back();
         if (stressLevel != null && stressLevel >= 7) {
@@ -155,7 +164,7 @@ export default function CheckinScreen() {
                 {sleepHours == null
                   ? 'Teens need 8–10 hours'
                   : sleepHours >= sleepGoal
-                    ? `${sleepHours} hours — right on target`
+                    ? `${sleepHours} hours, right on target`
                     : `${sleepHours} hours, ${+(sleepGoal - sleepHours).toFixed(1)} short of your goal`}
               </Text>
             </View>
@@ -219,12 +228,45 @@ export default function CheckinScreen() {
           style={styles.save}
         />
         {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
+        {saved && offer ? (
+          <Animated.View entering={FadeInDown.duration(260)}>
+            <Card tint={offer.color} style={styles.offer}>
+              <Text style={styles.offerTitle}>Saved. {offer.title}?</Text>
+              <Text style={styles.offerBody}>{offer.body}</Text>
+              <View style={styles.offerRow}>
+                <Button label="Try it" icon="arrow" size="sm" tint={offer.color} variant="secondary" onPress={() => router.replace(offer.href as never)} />
+                <Button label="Done for now" size="sm" variant="ghost" onPress={() => router.back()} />
+              </View>
+            </Card>
+          </Animated.View>
+        ) : null}
       </Reveal>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  offer: {
+    marginTop: 14,
+    gap: 4,
+  },
+  offerTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
+  offerBody: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textMuted,
+  },
+  offerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+  },
   glance: {
     marginTop: 14,
     flexDirection: 'row',

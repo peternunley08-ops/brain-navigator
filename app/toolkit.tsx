@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -13,6 +13,7 @@ import { ProgressBar } from '../components/ui/ProgressBar';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
+import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts } from '../core/theme';
 
@@ -190,6 +191,16 @@ function Reset({ color }: { color: string }) {
 
   const begin = () => setSt({ i: 0, left: 60 });
   const skip = () => setSt((s) => ({ i: s.i + 1, left: 60 }));
+  // The last step names one next thing; it can go straight onto the Desk as today's one thing.
+  const [one, setOne] = useState('');
+  const saveOne = () => {
+    if (one.trim()) {
+      useLifeStore.getState().setOneThing(dateKey(), one.trim());
+      emberSay('That’s today’s one thing. It’s on your Desk.', 'happy');
+      setOne('');
+    }
+    skip();
+  };
 
   if (i < 0) {
     return (
@@ -215,7 +226,17 @@ function Reset({ color }: { color: string }) {
       </Text>
       <Text style={styles.muscle}>{RESET[i].line}</Text>
       <Text style={styles.count}>{left}</Text>
-      <Button label={i + 1 < RESET.length ? 'Next step' : 'Finish'} icon="arrow" variant="ghost" size="sm" onPress={skip} />
+      {i === RESET.length - 1 ? (
+        <Field
+          value={one}
+          onChangeText={setOne}
+          placeholder="Your one next thing"
+          returnKeyType="done"
+          onSubmitEditing={saveOne}
+          containerStyle={styles.inline}
+        />
+      ) : null}
+      <Button label={i + 1 < RESET.length ? 'Next step' : one.trim() ? 'Make it today’s one thing' : 'Finish'} icon="arrow" variant="ghost" size="sm" onPress={i + 1 < RESET.length ? skip : saveOne} />
     </Animated.View>
   );
 }

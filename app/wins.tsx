@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedProps, useSharedValue, withSpring } from 'react-native-reanimated';
@@ -46,7 +46,8 @@ export default function WinsScreen() {
   const three = gratitude[today] ?? ['', '', ''];
   // A different set of prompts each day, so it doesn't turn into the same three answers.
   const [py, pm, pd] = today.split('-').map(Number);
-  const prompts = PROMPTS[Math.floor(Date.UTC(py, pm - 1, pd) / 86400000) % PROMPTS.length];
+  const [shuffle, setShuffle] = useState(0);
+  const prompts = PROMPTS[(Math.floor(Date.UTC(py, pm - 1, pd) / 86400000) + shuffle) % PROMPTS.length];
   const [draft, setDraft] = useState<string[]>([...three, '', '', ''].slice(0, 3));
 
   const add = () => {
@@ -89,7 +90,11 @@ export default function WinsScreen() {
       </Reveal>
 
       <Reveal index={2}>
-        <Section title="Three good things" note="Today. Small is fine — small is the point.">
+        <Section
+          title="Three good things"
+          note="Today. Small is fine; small is the point."
+          action={{ label: 'Other prompts', onPress: () => setShuffle((n) => n + 1) }}
+        >
           <Card>
             {[0, 1, 2].map((i) => (
               <View key={i} style={styles.goodRow}>

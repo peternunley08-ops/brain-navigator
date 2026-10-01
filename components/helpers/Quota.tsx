@@ -44,7 +44,7 @@ export function LimitCard({ offlineLabel, onOffline }: { offlineLabel?: string; 
       <Text style={styles.body}>
         {st.plus
           ? `They come back on ${st.resets}. Everything on your phone still works.`
-          : `They come back ${st.resets}. Plus gives you 400 a month for all of Ember and the crew — or keep going for free without AI.`}
+          : `They come back ${st.resets}. Plus gives you 400 a month for all of Ember and the crew. Or keep going for free without AI.`}
       </Text>
       {!st.plus ? <Button label="See Plus" icon="sparkle" onPress={() => router.push('/plus')} style={styles.btn} /> : null}
       {onOffline ? <Button label={`${offlineLabel ?? 'Keep going without AI'} (free)`} variant="ghost" size="sm" onPress={onOffline} style={styles.ghost} /> : null}

@@ -1,5 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
+import { saveAside } from './saveAside';
 
 // The hub: notes (a small Notion), colleges (a better Common App
 // checklist), plan blocks (a Structured-style day), and connection
@@ -45,7 +46,7 @@ export interface College {
   visitRating?: number;
   visitNotes?: string;
   /** Supplement essays: the prompt, its word limit, and the note it's written in. */
-  supplements?: { id: string; prompt: string; limit: number; noteId?: string }[];
+  supplements?: { id: string; prompt: string; limit: number; noteId?: string; done?: boolean }[];
   /** Application fee in dollars, and whether a fee waiver covers it. */
   fee?: number | null;
   waiver?: boolean;
@@ -59,6 +60,8 @@ export interface Scholarship {
   amount: number | null;
   deadline: string | null;
   status: 'todo' | 'applied' | 'won' | 'no';
+  /** When they said they'd announce winners. */
+  hearBy?: string | null;
 }
 
 export interface RecLetter {
@@ -154,6 +157,8 @@ interface HubStore extends HubData {
 
   saveCollege: (c: Omit<College, 'id'> & { id?: string }) => void;
   deleteCollege: (id: string) => void;
+  /** Put a removed college back where it was (for Undo). */
+  restoreCollege: (c: College, index: number) => void;
   toggleStep: (id: string, step: string) => void;
 
   addBlock: (b: Omit<PlanBlock, 'id' | 'done'>) => void;
@@ -213,6 +218,10 @@ export function uid() {
 export const useHubStore = create<HubStore>((set, get) => {
   const commit = (patch: Partial<HubData>) => {
     set(patch);
+    // Never save before the file has been read: a store that isn't loaded yet
+    // (first moments of launch, or re-created by a dev hot reload) is empty,
+    // and saving it would overwrite everything on disk.
+    if (!get().loaded) return;
     const { notes, colleges, plan, links, canvas, scholarships, recs, activities, aid } = get();
     persist({ notes, colleges, plan, links, canvas, scholarships, recs, activities, aid });
   };
@@ -234,10 +243,12 @@ export const useHubStore = create<HubStore>((set, get) => {
 
     load: async () => {
       if (get().loaded) return;
+      let raw = '';
       try {
         const f = new File(Paths.document, FILE);
         if (f.exists) {
-          const d = JSON.parse(await f.text()) as Partial<HubData>;
+          raw = await f.text();
+          const d = JSON.parse(raw) as Partial<HubData>;
           set({
             notes: d.notes ?? [],
             colleges: d.colleges ?? [],
@@ -251,7 +262,8 @@ export const useHubStore = create<HubStore>((set, get) => {
           });
         }
       } catch {
-        // Start fresh.
+        // Start fresh, but keep the file that couldn't be read.
+        if (raw) saveAside(FILE, raw);
       }
       set({ loaded: true });
     },
@@ -293,6 +305,13 @@ export const useHubStore = create<HubStore>((set, get) => {
     },
 
     deleteCollege: (id) => commit({ colleges: get().colleges.filter((c) => c.id !== id) }),
+    restoreCollege: (c, index) => {
+      const list = get().colleges;
+      if (list.some((x) => x.id === c.id)) return;
+      const next = [...list];
+      next.splice(Math.min(index, next.length), 0, c);
+      commit({ colleges: next });
+    },
 
     toggleStep: (id, step) => {
       commit({

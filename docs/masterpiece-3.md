@@ -82,60 +82,60 @@ Status marks:
 55. [x] Grades: a trend line for each class as grades come in
 56. [~] Assignment: focus time so far against your estimate
 57. [~] Desk card: a test in three days with no plan offers "Plan it backward"
-58. [~] School: filter the list by class
-59. [~] Week: tap a class block to see what's next for that class
+58. [x] School: filter the list by class
+59. [x] Week: tap a class block to see what's next for that class
 60. [~] Triage: mark the five-minute ones and do them first
 
 ## G. Wellness
-61. [ ] Mood faces bob when chosen (still under Reduce Motion)
-62. [ ] After a check-in, the matching tool is offered right there
-63. [ ] Mood map shows small dots for days with stress tags
-64. [ ] Quick breath: one minute or three
-65. [ ] Steady counts the days you used a breathing tool this month
-66. [ ] Wind-down shows "starts in 40 minutes" before it begins
-67. [ ] Five-minute reset's last step can set today's one thing
-68. [ ] Gratitude: shuffle for a different set of prompts
-69. [ ] Your people: "Talked in person" counts as reaching out
-70. [ ] Worry time card opens the worry box with a 15-minute timer
+61. [~] Mood faces bob when chosen (still under Reduce Motion)
+62. [~] After a check-in, the matching tool is offered right there
+63. [x] Mood map shows small dots for days with stress tags
+64. [x] Quick breath: one minute or three
+65. [~] Steady counts the days you used a breathing tool this month
+66. [~] Wind-down shows "starts in 40 minutes" before it begins
+67. [~] Five-minute reset's last step can set today's one thing
+68. [~] Gratitude: shuffle for a different set of prompts
+69. [~] Your people: "Talked in person" counts as reaching out
+70. [x] Worry time card opens the worry box with a 15-minute timer
 
 ## H. College and life
-71. [ ] College: "Ask for a fee waiver" note template
-72. [ ] Supplements: mark one done; done ones sink and show a check
-73. [ ] Coming up includes supplements not started within 14 days of a deadline
-74. [ ] Scholarships: when you hear back, as a date in Coming up
-75. [ ] Hours: weekly average and when you'll reach your goal at this pace
-76. [ ] Driving: tag a drive (highway, rain, parking)
-77. [ ] Work: this week's pay estimate
-78. [ ] Countdowns: birthdays repeat every year
-79. [ ] Activities: description character counter that turns red past 150
-80. [ ] Rec letters: thank-you note draft once a rec is in
+71. [~] College: "Ask for a fee waiver" note template
+72. [~] Supplements: mark one done; done ones sink and show a check
+73. [~] Coming up includes supplements not started within 14 days of a deadline
+74. [~] Scholarships: when you hear back, as a date in Coming up
+75. [~] Hours: weekly average and when you'll reach your goal at this pace
+76. [x] Driving: tag a drive (highway, rain, parking)
+77. [~] Work: this week's pay estimate
+78. [~] Countdowns: birthdays repeat every year
+79. [x] Activities: description character counter that turns red past 150
+80. [~] Rec letters: thank-you note draft once a rec is in
 
 ## I. Notes and search
-81. [ ] Notebook list shows word-limit progress on essay notes
-82. [ ] Note: "Focus on this" starts a focus session named for the note
-83. [ ] Pinned notes show as chips on the Desk
-84. [ ] "Term — definition" lines show the term in bold
-85. [ ] Essay word count leaves out headings
+81. [~] Notebook list shows word-limit progress on essay notes
+82. [~] Note: "Focus on this" starts a focus session named for the note
+83. [~] Pinned notes show as chips on the Desk
+84. [-] "Term — definition" lines show the term in bold (skipped: the editor fields are uncontrolled on purpose, and styled text inside them would bring back lost keystrokes)
+85. [~] Essay word count leaves out headings
 86. [~] Search remembers your recent searches
 
 ## J. Quality, accessibility, settings
-87. [ ] VoiceOver labels on the celebration, badges, charts, and heat map
-88. [ ] Larger text check on the new cards
-89. [ ] Haptics setting: off, light, full
-90. [ ] Settings: "Everything as text" summary to share or save
-91. [ ] Error screen: share the details for a bug report
-92. [ ] Desk work is memoized so it stays smooth with lots of data
-93. [ ] Undo for removing a supplement or a college
+87. [~] VoiceOver labels on the celebration, badges, charts, and heat map
+88. [x] Larger text check on the new cards
+89. [~] Haptics setting: off, light, full
+90. [~] Settings: "Everything as text" summary to share or save
+91. [x] Error screen: share the details for a bug report
+92. [~] Desk work is memoized so it stays smooth with lots of data
+93. [~] Undo for removing a supplement or a college
 94. [x] Dates: "next friday", "in 3 days", "end of month"
 95. [x] Quick capture: "every monday" makes it weekly
-96. [ ] Empty states for the new charts and maps
-97. [ ] Every new tap target is at least 44 points
-98. [ ] Copy sweep: no dash fragments or middle dots in rounds 2 and 3
-99. [ ] Docs: CLAUDE.md, SESSION_LOG, and this tracker brought up to date
-100. [ ] Phone rebuild once the user says "commit"
+96. [~] Empty states for the new charts and maps
+97. [~] Every new tap target is at least 44 points
+98. [x] Copy sweep: no dash fragments or middle dots in rounds 2 and 3
+99. [x] Docs: CLAUDE.md, SESSION_LOG, and this tracker brought up to date
+100. [ ] Phone rebuild once the user says "commit" (tried 2026-10-01: phone locked, developer disk image could not mount)
 
 ## RESUME HERE (for a fresh session after compaction)
-- Rounds 2 and 3 (through group F) committed and pushed 2026-10-01 at the user's request.
+- Rounds 2 and 3 committed and pushed 2026-10-01 at the user's request (A–F in c454311, G–J after).
 - Round 2 is done. Work through this file A → J.
 - Metro: start the "metro" entry in ~/Desktop/.claude/launch.json with the
   preview tool (never CI=1, which disables reloads). Relaunch the app in the
@@ -210,4 +210,50 @@ Status marks:
   days with no plan; School list filters by class; tapping a timetable
   block on Your week shows that class's next three things; Triage puts
   10-minute items first and labels them "Quick".
+- Group F verified after the commit: School class filter (AP Chemistry →
+  just the Chem worksheet) and Your week block detail ("Weekdays, 8:00 AM to
+  8:50 AM, room 214", next item, Open the class).
+- Group G: chosen mood face bobs (still under Reduce Motion); after saving a
+  check-in, the tool for today's stress tag (or breathing at stress 7+) is
+  offered before leaving (built; not tested live because a check-in save
+  writes to the real Supabase table); mood map marks days with stress tags
+  (verified, Sep 30); quick breath 1 or 3 minutes (verified); breathing days
+  counted on Steady (`settings.breathDays`, from the quick breath and the
+  Breathe screen); wind-down note says "Starts at 9:30 PM, in 40 minutes";
+  the reset's last step can set today's one thing; gratitude "Other
+  prompts"; Your people "Talked in person"; worry box 15-minute timer, also
+  opened from the Desk's worry-time card (verified: 14:57 counting down).
+- Group H: "Ask about a waiver" share draft beside an unwaived fee;
+  supplements get a done check (done ones sink, dimmed) and removing one
+  offers Undo; College "Coming up" adds supplements not started within 14
+  days of a deadline and scholarships' "Hear back" dates (new `hearBy`
+  field, entered once a scholarship is marked applied); Hours shows the
+  four-week pace and when the goal arrives (or no date when it's 2+ years
+  off); driving tags (Highway, Rain, Parking, City, Freeway merge; verified
+  chips); work week shows pay with a wage set; birthday countdowns roll to
+  next year at load; Activities' counter already existed (#79); rec letters
+  get "Draft the thank-you".
+- Found and fixed a data-loss bug: the three local stores could save before
+  loading, so a Fast Refresh of a store file (dev only) wrote an empty store
+  over life.json. Saves now wait for load, unreadable files are kept aside
+  (`core/saveAside.ts`), and the exact sequence was re-run with the data
+  surviving. Simulator test data restored from the earlier backup.
+- Group I: Notebook rows show "N of 650 words" with a bar on essay notes;
+  word counts skip headings (`core/words.ts`, shared by the note, the
+  Notebook, and college supplements); "Focus on this page" from a note
+  ("Studying <title>" on Focus); pinned notes as Desk chips (hideable in
+  Settings); #84 skipped (see above).
+- Group J so far: every vibration goes through `core/haptics.ts` with a
+  Full / Light taps / Off setting (34 files rewired from expo-haptics);
+  "Share a summary as text" in Settings; Undo for removing a college
+  (`restoreCollege` puts it back in place); empty heat map line; bigger
+  hit areas on word-limit chips and supplement checks; copy sweep fixed
+  ~16 dash fragments in labels, notes, and messages. #91 was done in round
+  2; #92: the Desk's derived lists are cheap filters over small arrays, so
+  no memo was needed after a read-through.
+- Large text (#88), checked at accessibility-large in the Simulator: the
+  Desk reflows well; assignment rows squeezed their meta line ("0/6 step s",
+  clipped Test badge), now fixed with a wrapping row (verified).
+- #100: the Release build stopped at "developer disk image could not be
+  mounted": the phone was locked. Unlock it and rerun the CLAUDE.md recipe.
 

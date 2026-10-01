@@ -111,6 +111,18 @@ quick capture (`core/quickParse.ts`), Desk cards (`components/desk/*`),
 `app/_layout.tsx`. The Edge Function `ember` takes an `agent` id for the
 helpers' personas (still not deployed).
 
+**Round 3 (2026-09-30 → 10-01, `docs/masterpiece-3.md`):** improvements on
+rounds 1 and 2. New pieces: `core/celebrateStore.ts` + `components/Celebration.tsx`
+(`celebrate(title, body, color, { key, win })`: once per key, optional
+wins-jar entry, "Just Ember" setting), `core/haptics.ts` (every vibration goes
+through it; Full / Light / Off in Settings; import it instead of
+expo-haptics), `core/words.ts` (essay word counts skip headings),
+`core/saveAside.ts`, `components/desk/PinnedNotes.tsx`, `app/ai.tsx`,
+`app/privacy.tsx`, `app/whats-new.tsx`. Life settings gained many optional
+fields (deskOrder, celebrated, dailyFocusGoal, combo, classAliases,
+breathDays, haptics, …); all optional, so older life.json files load as-is.
+Committed and pushed 2026-10-01 (A–F in c454311, G–J right after).
+
 Gotchas found while verifying:
 
 - **`alpha()` in `core/theme.ts` is a worklet** (`'worklet'` directive)
@@ -129,6 +141,14 @@ Gotchas found while verifying:
   primary `Button`) mounts after Fast Refresh. Not a production bug —
   relaunch the app after edits before testing flows. Release builds are
   unaffected.
+- **The local stores never save before they've loaded** (`commit` returns
+  early while `loaded` is false), and a data file that won't parse is kept
+  as `<name>.unreadable-<time>` before starting fresh (`core/saveAside.ts`).
+  Before this, editing a store file while the dev app ran re-created the
+  store empty via Fast Refresh, and the next save wrote that empty state
+  over `life.json`, wiping decks, wins, hours, and countdowns in the
+  Simulator. Still relaunch after editing a store: the re-created store
+  shows empty until it loads again.
 - The simulator's `text` action types at ~1 ms/char and drops a trailing
   space; fast-typing races there aren't real-world bugs, but they did
   expose the two real ones above.

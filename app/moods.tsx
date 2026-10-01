@@ -126,6 +126,8 @@ export default function MoodsScreen() {
                   >
                     <Text style={[styles.dayNum, color ? { color: colors.flameInk } : future && { color: colors.hint }]}>{Number(k.slice(8))}</Text>
                   </View>
+                  {/* A small mark under days you tagged something as weighing on you. */}
+                  {stressTags[k]?.length ? <View style={styles.tagDot} /> : null}
                 </Pressy>
               );
             })}
@@ -205,6 +207,14 @@ export default function MoodsScreen() {
 }
 
 const styles = StyleSheet.create({
+  tagDot: {
+    position: 'absolute',
+    bottom: 1,
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.unlocked,
+  },
   flex: {
     flex: 1,
   },

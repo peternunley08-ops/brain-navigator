@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import * as Haptics from '../core/haptics';
 import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
@@ -25,6 +25,7 @@ import { IconButton } from '../components/ui/IconButton';
 import { BREATH_PATTERNS, cycleLength, PHASE_WORDS, phaseAt } from '../core/breathPatterns';
 import { useHealthStore } from '../core/healthStore';
 import { colors, fonts, spacing } from '../core/theme';
+import { noteBreathDay } from '../core/lifeStore';
 
 type UiStatus = 'idle' | 'running' | 'paused' | 'done';
 
@@ -139,6 +140,7 @@ export default function BreatheScreen() {
       second: (s: number) => setSecondsLeft(s),
       done: () => {
         setUi('done');
+        noteBreathDay();
         settleBead();
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       },

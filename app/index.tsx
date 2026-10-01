@@ -5,6 +5,7 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
+import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { Birthday, DayBrief, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
@@ -165,7 +166,7 @@ show('due') ? (
       <Reveal index={1}>
         <Section
           title="Due soon"
-          note={load.items.length ? `Tonight: ${load.minutes} of ${cap} minutes${load.minutes > cap ? ' — over your cap' : ''}` : undefined}
+          note={load.items.length ? `Tonight: ${load.minutes} of ${cap} minutes${load.minutes > cap ? ', over your cap' : ''}` : undefined}
           action={{ label: assignments.some((a) => !a.done) ? 'All' : 'Add', onPress: () => router.push(assignments.some((a) => !a.done) ? '/school' : '/add-assignment') }}>
           {load.items.length ? <ProgressBar value={load.minutes / Math.max(1, cap)} color={load.minutes > cap ? colors.unlocked : colors.secured} height={5} style={styles.loadBar} /> : null}
           {dueSoon.length ? (
@@ -382,6 +383,7 @@ show('line') ? (
         {show('onething') ? <OneThing /> : null}
         <NowCard />
         {show('capture') ? <QuickCapture /> : null}
+        {show('pinned') ? <PinnedNotes /> : null}
         <Birthday />
         <WelcomeBack />
         {show('brief') ? <DayBrief /> : null}
