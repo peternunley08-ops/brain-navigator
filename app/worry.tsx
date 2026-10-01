@@ -1,4 +1,5 @@
 import * as Haptics from '../core/haptics';
+import { EmberReflect } from '../components/ember/EmberReflect';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -104,6 +105,7 @@ export default function WorryScreen() {
                   <Card style={styles.worry}>
                     <Text style={styles.worryText}>{w.text}</Text>
                     <Text style={styles.date}>{new Date(w.createdAt).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</Text>
+                    <EmberReflect input={`Worry: ${w.text}`} label="Is this in my control?" sends="Sends this worry to Claude. Only if you tap." color={LAVENDER} />
                     <View style={styles.actions}>
                       <Button
                         label="Handled"

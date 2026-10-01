@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { aiFailLine, askJob } from '../core/emberAI';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { recognizeText, textRecognitionAvailable } from '../modules/text-recognition';
@@ -51,6 +52,9 @@ export default function ScanScreen() {
   const [dates, setDates] = useState<Record<string, string | null>>({});
   const [editingDate, setEditingDate] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // Everything the phone read (or was pasted), for "Read it again with AI".
+  const [rawText, setRawText] = useState('');
+  const [tidy, setTidy] = useState<{ busy: boolean; line: string | null }>({ busy: false, line: null });
   // Found items whose title is already on the list with a different date: shown, but unchecked.
   const [already, setAlready] = useState<Record<string, string>>({});
   // A scanned class name → one of your classes: exact name, a name you've matched before, or a close match.
@@ -125,6 +129,8 @@ export default function ScanScreen() {
       setProgress({ done: i, total: uris.length });
       try {
         const lines = (await recognizeText(uri)).map((l) => ({ text: l.text, x: l.x, y: l.y }));
+        const read = lines.map((l) => l.text).join('\n');
+        setRawText((t) => (more || i > 0 ? `${t}\n---\n${read}` : read));
         // A schedule screenshot also brings its class times.
         found.push(attachTimes(parseScan(lines, useSchoolStore.getState().classes), parseSchedule(lines), `t${i}-`));
       } catch {
@@ -142,6 +148,26 @@ export default function ScanScreen() {
     setParts(all);
     // Let the scan line pass at least once — it reads as "looking".
     setTimeout(() => review(all, !more), 700);
+  };
+
+  // The phone's own reader works line by line; jumbled screens (a syllabus,
+  // a portal table) read better with Claude. Only the text goes, never the picture.
+  const tidyWithAI = async () => {
+    setTidy({ busy: true, line: null });
+    const res = await askJob<{ items: { title: string; kind: string; due: string; className: string }[] }>('scan', rawText.slice(0, 7800), { screen: 'Scan', who: 'scan', note: { private: true } });
+    if (!res.ok) return setTidy({ busy: false, line: aiFailLine(res.reason) });
+    const kinds = ['homework', 'test', 'quiz', 'project', 'essay', 'reading'];
+    const assignments = res.data.items.map((it, i) => ({
+      key: `ai${i}-${it.title.toLowerCase()}`,
+      title: it.title,
+      due: /^\d{4}-\d{2}-\d{2}$/.test(it.due) ? it.due : null,
+      kind: (kinds.includes(it.kind) ? it.kind : 'homework') as FoundAssignment['kind'],
+      className: it.className || null,
+    }));
+    setTidy({ busy: false, line: `Claude found ${assignments.length} thing${assignments.length === 1 ? '' : 's'} to do. Check them below.` });
+    const next = [{ assignments, classes: result?.classes ?? [] }];
+    setParts(next);
+    review(next, true);
   };
 
   const importPicked = () => {
@@ -257,6 +283,7 @@ export default function ScanScreen() {
             icon="sparkle"
             onPress={() => {
               const pastedLines = linesFromText(pasted);
+              setRawText((t) => (t ? `${t}\n---\n${pasted}` : pasted));
               const all = [...parts, attachTimes(parseScan(pastedLines, classes), parseSchedule(pastedLines))];
               setParts(all);
               setPasted('');
@@ -281,6 +308,7 @@ export default function ScanScreen() {
       {stage === 'review' && result ? (
         result.assignments.length + result.classes.length === 0 ? (
           <EmptyState title="I couldn’t find classes or due dates in that one." body="Try your Classroom home screen or To-do list, zoomed so the text is clear.">
+            {rawText.trim() ? <AITidyButton busy={tidy.busy} line={tidy.line} onPress={tidyWithAI} /> : null}
             <Button label="Try another" icon="image" variant="secondary" onPress={() => setStage(textRecognitionAvailable ? 'intro' : 'paste')} />
           </EmptyState>
         ) : (
@@ -290,6 +318,9 @@ export default function ScanScreen() {
             <Text style={styles.found}>
               {shots.length > 1 ? `From ${shots.length} screenshots. ` : ''}Here’s what I found. Uncheck anything that’s wrong{result.assignments.some((a) => !a.due) ? ', and pick dates where I couldn’t read one' : ''}.
             </Text>
+
+            {rawText.trim() && !tidy.line?.startsWith('Claude found') ? <AITidyButton busy={tidy.busy} line={tidy.line} onPress={tidyWithAI} /> : null}
+            {tidy.line?.startsWith('Claude found') ? <Text style={styles.found}>{tidy.line}</Text> : null}
 
             {result.classes.length ? (
               <Section title="Classes" note="Add days and times later so I know what’s next.">
@@ -352,6 +383,16 @@ export default function ScanScreen() {
 }
 
 // A row of every screenshot picked, the ones already read marked with a check.
+// "Read it again with AI": sends the text the phone read, never the picture.
+function AITidyButton({ busy, line, onPress }: { busy: boolean; line: string | null; onPress: () => void }) {
+  return (
+    <View style={styles.tidy}>
+      <Button label={busy ? 'Reading it again…' : 'Read it again with AI'} icon="sparkle" variant="secondary" size="sm" onPress={onPress} disabled={busy} />
+      <Text style={styles.tidyNote}>{line ?? 'Missed something, or got it jumbled? Sends the text your phone read (not the picture) to Claude.'}</Text>
+    </View>
+  );
+}
+
 function Shots({ uris, readUpTo }: { uris: string[]; readUpTo: number }) {
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.shots} style={styles.shotsScroll}>
@@ -477,6 +518,18 @@ function ScanPreview({ uri }: { uri: string }) {
 }
 
 const styles = StyleSheet.create({
+  tidy: {
+    marginTop: 12,
+    marginBottom: 4,
+    gap: 6,
+    alignItems: 'flex-start',
+  },
+  tidyNote: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    lineHeight: 16,
+    color: colors.textFaint,
+  },
   stage: {
     alignItems: 'center',
     marginTop: 6,

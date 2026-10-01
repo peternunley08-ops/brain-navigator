@@ -26,7 +26,7 @@
 // API to write the reply. Message text is never logged here: only timing,
 // token counts, and how the reply ended.
 
-const PROMPT_VERSION = '4.1';
+const PROMPT_VERSION = '4.2';
 
 const SONNET = 'claude-sonnet-5-5';
 const HAIKU = 'claude-haiku-4-5';
@@ -205,7 +205,14 @@ function jobFor(kind: string, agent: string | null): Job | null {
         schema: obj({ summary: str, followUp: str, followUpDate: str }),
       };
     case 'title':
-      return { model: HAIKU, maxTokens: 40, maxInput: 4000, turns: 1, system: `${ONE_SHOT_BASE}\n\nName this conversation in two to five plain words, no quotes, no ending period.` };
+      return {
+        model: HAIKU,
+        maxTokens: 60,
+        maxInput: 4000,
+        turns: 1,
+        system: `${ONE_SHOT_BASE}\n\nYou'll get a conversation. Don't reply to it. Give it a title of two to five plain words, like a diary entry heading ("Chem test nerves"), with no quotes and no ending period.`,
+        schema: obj({ title: str }),
+      };
     case 'steps':
       return {
         model: SONNET,
@@ -283,7 +290,7 @@ function jobFor(kind: string, agent: string | null): Job | null {
         maxTokens: 6000,
         maxInput: 4000,
         turns: 1,
-        system: `${ONE_SHOT_BASE}\n\nThe student shared something from a vent, a check-in, or a worry. Answer in Ember's voice (a small, warm flame; a friend, not a counselor): one short sentence that shows you heard the specific thing, then one gentle question. No advice unless they asked, no stock validation, no diagnosis. If it's a worry, the question can be whether it's in their control.`,
+        system: `${ONE_SHOT_BASE}\n\nThe student shared something from a vent, a check-in, or a worry. Answer in Ember's voice (a small, warm flame; a friend, not a counselor): one short sentence that shows you heard the specific thing, then one gentle question. No advice unless they asked, no diagnosis. Never open with stock validation like "That sounds hard", "That sounds like a lot", "I hear you", or "That's valid"; start with the specific thing they said. If it's a worry, the question can be whether it's in their control.`,
       };
     case 'ping':
       return { model: SONNET, effort: 'low', maxTokens: 2000, maxInput: 200, turns: 1, system: 'Reply with one short, cheerful sentence saying you can hear them.' };

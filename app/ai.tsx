@@ -110,7 +110,7 @@ export default function AIScreen() {
         </Section>
       </Reveal>
       <Reveal index={n++}>
-        <Section title="What Ember remembers" note={memoryOff ? 'Off' : `${memory.length}`}>
+        <Section title="What Ember remembers" note={memoryOff ? 'Off' : memory.length ? `${memory.length} kept` : undefined}>
           <Card>
             <View style={styles.switchRow}>
               <View style={styles.flex}>

@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { AIPicker } from '../../components/ember/AIPicker';
 import { emberSay } from '../../components/ember/EmberBuddy';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
@@ -22,6 +23,7 @@ import { alpha, colors, fonts } from '../../core/theme';
 import { helperById, type HelperId } from '../../core/helpers';
 import { useLifeStore } from '../../core/lifeStore';
 import { celebrate } from '../../core/celebrateStore';
+import { askJob } from '../../core/emberAI';
 import { offerUndo } from '../../core/undoStore';
 
 // A polite, specific note to a teacher. The student reads it, edits it,
@@ -210,6 +212,31 @@ export default function AssignmentScreen() {
                 <Field value={step} onChangeText={setStep} placeholder="Add a step" returnKeyType="done" onSubmitEditing={addStep} containerStyle={styles.flex} />
                 <IconButton icon="plus" label="Add step" onPress={addStep} tint={colors.flame} />
               </View>
+            ) : null}
+            {!a.done ? (
+              <AIPicker
+                label="Break it into steps"
+                sends="Sends this assignment’s title, class, due date, time estimate, and notes to Claude."
+                color={color}
+                load={async () => {
+                  const input = [
+                    `${KIND_LABEL[a.kind]}: ${a.title}${cls ? ` (${cls.name})` : ''}, due ${dueLabel(a.due)} (${a.due})${a.minutes ? `, about ${a.minutes} minutes` : ''}`,
+                    subtasks.length ? `Steps they already have: ${subtasks.map((t) => t.text).join('; ')}` : '',
+                    a.notes ? `Their notes: ${a.notes.slice(0, 1500)}` : '',
+                  ]
+                    .filter(Boolean)
+                    .join('\n');
+                  const res = await askJob<{ steps: { title: string; minutes: number }[] }>('steps', input, { who: 'steps' });
+                  if (!res.ok) return res;
+                  return { ok: true, items: res.data.steps.map((st) => ({ title: st.title, detail: `About ${st.minutes} min` })) };
+                }}
+                addLabel={(k) => (k === 1 ? 'Add 1 step' : `Add ${k} steps`)}
+                onAdd={(picked) => {
+                  const before = subtasks;
+                  setSubtasks([...subtasks, ...picked.map((p) => ({ id: uid(), text: `${p.title}${p.detail ? ` (${p.detail.replace('About ', '')})` : ''}`, done: false }))]);
+                  offerUndo(`Added ${picked.length} step${picked.length === 1 ? '' : 's'}`, () => update(a.id, { subtasks: before }), 'list');
+                }}
+              />
             ) : null}
           </Card>
         </Section>

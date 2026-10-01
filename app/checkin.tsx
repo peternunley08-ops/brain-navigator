@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { EmberReflect } from '../components/ember/EmberReflect';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -228,6 +229,23 @@ export default function CheckinScreen() {
           style={styles.save}
         />
         {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
+        {saved ? (
+          <EmberReflect
+            input={[
+              'Check-in:',
+              mood != null ? `mood ${mood}/5` : null,
+              stressLevel != null ? `stress ${stressLevel}/10` : null,
+              sleepHours != null ? `slept ${sleepHours}h` : null,
+              sleepQuality != null ? `sleep quality ${sleepQuality}/5` : null,
+              tags.length ? `what's on it: ${tags.join(', ')}` : null,
+              notes.trim() ? `note: ${notes.trim()}` : null,
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            label="A word from Ember"
+            sends="Sends today’s numbers, tags, and note to Claude. Only if you tap."
+          />
+        ) : null}
         {saved && offer ? (
           <Animated.View entering={FadeInDown.duration(260)}>
             <Card tint={offer.color} style={styles.offer}>

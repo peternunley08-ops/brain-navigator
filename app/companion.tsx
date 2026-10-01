@@ -175,8 +175,10 @@ export default function CompanionScreen() {
     setThinking(false);
 
     if (res.ok) {
-      if (res.refused || res.actions.includes('help')) setCrisis(true);
-      rig.setMood(res.actions.length ? 'happy' : 'idle');
+      const heavy = res.refused || res.actions.includes('help');
+      if (heavy) setCrisis(true);
+      // Never a happy face on a reply about getting help.
+      rig.setMood(heavy || crisis ? 'concerned' : res.actions.length ? 'happy' : 'idle');
       say(res.reply, { ai: res });
       lateNudge();
       if (answers >= MAX_TURNS) setTimeout(() => finish(), 1500);
@@ -321,7 +323,6 @@ export default function CompanionScreen() {
         automaticallyAdjustKeyboardInsets
         showsVerticalScrollIndicator={false}
       >
-        {crisis ? <HelpCard /> : null}
         {lines.map((l, i) => {
           const isLast = i === lines.length - 1;
           return (
@@ -389,6 +390,8 @@ export default function CompanionScreen() {
 
         {!finished && lines.length > 0 ? (
           <Animated.View entering={FadeInDown.delay(300).duration(360)} style={styles.reply}>
+            {/* Kept right by the box, so it never scrolls out of sight. */}
+            {crisis ? <HelpCard /> : null}
             {chips.length ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
                 {chips.map((c) => (
@@ -436,6 +439,7 @@ export default function CompanionScreen() {
 
         {finished ? (
           <Animated.View entering={FadeInDown.delay(900).duration(360)} style={styles.reply}>
+            {crisis ? <HelpCard /> : null}
             <Button label="Done" icon="check" variant="secondary" onPress={() => router.back()} />
           </Animated.View>
         ) : null}

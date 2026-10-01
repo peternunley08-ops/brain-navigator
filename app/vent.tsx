@@ -1,4 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
+import { EmberReflect } from '../components/ember/EmberReflect';
 import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -39,6 +40,8 @@ export default function VentScreen() {
   const [typedText, setTypedText] = useState('');
   const [permissionError, setPermissionError] = useState<string | null>(null);
   const [released, setReleased] = useState(false);
+  // What was just let out, so Ember can answer it if they ask.
+  const [lastVent, setLastVent] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const reduced = useReducedMotion();
 
@@ -101,6 +104,7 @@ export default function VentScreen() {
 
     const ok = await saveEntry(content, mode);
     if (!ok) return;
+    setLastVent(content);
 
     lift.value = withTiming(1, { duration: reduced ? 200 : 900, easing: Easing.in(Easing.quad) });
     setTimeout(() => {
@@ -161,6 +165,7 @@ export default function VentScreen() {
           </Animated.Text>
         ) : null}
         {!released && saveError ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
+        {lastVent && !content.trim() ? <EmberReflect key={lastVent} input={`Vent: ${lastVent}`} sends="Sends what you just let out to Claude. Only if you tap." color={EMBER_RED} /> : null}
       </Reveal>
 
       {history.length > 0 ? (

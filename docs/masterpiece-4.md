@@ -36,7 +36,7 @@ Status marks:
 
 ## A. The engine: right model, right cost
 1. [x] One task table in the function: each kind of job (talk, plan, quiz, title, summary, chips) picks its model, effort, and token cap
-2. [~] Cheap jobs (titles, summaries, quick chips) run on Haiku 4.5, without thinking
+2. [x] Cheap jobs (titles, summaries, quick chips) run on Haiku 4.5, without thinking
 3. [x] Prompt caching: the long, unchanging persona is cached (Sonnet 5.5 caches prompts of 512+ tokens), so turns 2+ of a chat read it at a tenth of the price
 4. [x] "What the app knows" moves out of the system prompt and into the latest message, so the cached part stays identical
 5. [x] The function returns token usage; the app keeps a running cost estimate per reply
@@ -44,7 +44,7 @@ Status marks:
 7. [~] One automatic retry when Anthropic is busy (429/529), then a plain "busy" message
 8. [~] The app gives up after 45 seconds with a friendly line instead of spinning forever
 9. [ ] A daily server-side spend guard (a counter row in Supabase) so a bug can never run up the bill
-10. [~] "Test Ember's brain" button on the AI screen: which model answered and how long it took
+10. [x] "Test Ember's brain" button on the AI screen: which model answered and how long it took
 
 ## B. Ember's voice
 11. [x] Rewrite Ember's prompt in clear sections (who you are, how the app works, how you talk, safety, actions) with two short example exchanges
@@ -62,9 +62,9 @@ Status marks:
 21. [~] After Done, Haiku writes a one-line summary of the conversation, kept on the phone
 22. [~] Ember reads the last three summaries next time (only if memory is on)
 23. [~] "What Ember remembers" screen: read, edit, or delete each memory
-24. [~] Memory switch on the AI screen (off means nothing from past chats is sent)
+24. [x] Memory switch on the AI screen (off means nothing from past chats is sent)
 25. [ ] Follow-up card on the Desk: "How did the chem test go?" the day after it was mentioned
-26. [~] Facts Ember can keep only when they say yes ("Remember that breathing exercises don't help me?")
+26. [x] Facts Ember can keep only when they say yes ("Remember that breathing exercises don't help me?")
 27. [~] "Pick up where we left off" on the Ember screen
 28. [ ] Past Ember conversations listed, each with a short auto title
 29. [~] "Forget this conversation" removes its summary and the saved chat
@@ -76,43 +76,43 @@ Status marks:
 33. [~] "Add to-do" proposals: Ember suggests a task with a title; tap to add
 34. [~] "Set it down" with the title and weight already filled in
 35. [x] Open a specific assignment, deck, or note from a reply
-36. [ ] Pip's plan comes back as time blocks: "Put this on tonight" adds them
-37. [ ] Break an assignment into steps: a preview with checkboxes, then add them as subtasks
+36. [x] Pip's plan comes back as time blocks: "Put this on tonight" adds them
+37. [x] Break an assignment into steps: a preview with checkboxes, then add them as subtasks
 38. [ ] Test prep spread across days, added to the week with one tap
 39. [~] Start a Focus session for the exact thing named, with minutes set
 40. [~] Everything the AI adds can be undone from the toast
 
 ## E. Smarter helpers
 41. [~] Each helper gets a full server-side prompt with an example and its own effort level
-42. [~] Quizzo keeps score as data and shows a scoreboard (right, wrong, streak)
-43. [ ] Quizzo quizzes from your actual deck when one is picked
+42. [x] Quizzo keeps score as data and shows a scoreboard (right, wrong, streak)
+43. [~] Quizzo quizzes from your actual deck when one is picked
 44. [ ] Sage grades your explain-back: what you got, what's missing, one question
 45. [ ] Quill reads a pasted paragraph and leaves up to three margin comments, and never rewrites it
-46. [ ] Pip builds plans around real classes, "busy until", the homework cap, and bedtime
+46. [x] Pip builds plans around real classes, "busy until", the homework cap, and bedtime
 47. [~] Spark's "tiny first step" comes with a 5-minute Focus button
 48. [x] Hand-offs: "Sage is better at this. Bring Sage in?" with the chat carried over
-49. [~] Chips fit the moment (an assignment chat gets chips about that assignment)
+49. [x] Chips fit the moment (an assignment chat gets chips about that assignment)
 50. [x] "Who should I ask?" Ember picks the helper for what you describe
 
 ## F. Care and safety
-51. [~] On-phone crisis check before anything is sent: crisis words show the help card right away, even offline or out of replies
-52. [~] When a refusal or crisis happens, the help card stays pinned in the chat
+51. [x] On-phone crisis check before anything is sent: crisis words show the help card right away, even offline or out of replies
+52. [x] When a refusal or crisis happens, the help card stays pinned in the chat
 53. [~] After a heavy conversation, Ember offers a grounding tool instead of just ending
 54. [ ] When the same worry keeps coming up, Ember suggests telling a person they trust
 55. [~] Late-night nudge: after 20 minutes past bedtime, Ember says it'll be here tomorrow
-56. [ ] Worry box: "Is this in my control?" questions from Ember (opt-in, CBT-style, not therapy)
-57. [ ] After a vent entry, an optional one-line reflection and one gentle question (opt-in each time)
-58. [ ] Check-in reply: one warm line about today's numbers (opt-in)
+56. [~] Worry box: "Is this in my control?" questions from Ember (opt-in, CBT-style, not therapy)
+57. [~] After a vent entry, an optional one-line reflection and one gentle question (opt-in each time)
+58. [~] Check-in reply: one warm line about today's numbers (opt-in)
 59. [ ] Weekly pattern note from check-in numbers only (opt-in)
 60. [x] Safety rules live in one shared block used by Ember and every helper, so they can't drift apart
 
 ## G. School
-61. [ ] Scan → AI tidy: text the phone already read from a sheet becomes assignments to preview (opt-in)
-62. [ ] "What should I do first?" on School: one pick and one reason
+61. [~] Scan → AI tidy: text the phone already read from a sheet becomes assignments to preview (opt-in)
+62. [x] "What should I do first?" on School: one pick and one reason
 63. [ ] "Help me start" on an assignment opens Spark or Pip with it loaded
-64. [ ] Practice questions from a note for a test (opt-in, sends that note only)
-65. [ ] Note to key points: a short summary saved under the note (opt-in)
-66. [ ] Terms in a note become flashcards to preview
+64. [~] Practice questions from a note for a test (opt-in, sends that note only)
+65. [x] Note to key points: a short summary saved under the note (opt-in)
+66. [~] Terms in a note become flashcards to preview
 67. [ ] Quill checks an outline note's structure
 68. [ ] After Focus: "What did you get done?" and a suggested next step
 69. [ ] Final-grade math stays on the phone; AI only explains the strategy
@@ -120,7 +120,7 @@ Status marks:
 
 ## H. How it feels
 71. [x] Replies stream in word by word while Ember's mouth moves
-72. [~] Thinking state: Ember looks up and sparks; after 6 seconds, "thinking it through…"
+72. [x] Thinking state: Ember looks up and sparks; after 6 seconds, "thinking it through…"
 73. [~] Retry button on any failed reply
 74. [~] Hold an Ember reply to copy it or save it to the Notebook (helpers already save)
 75. [ ] Edit and resend your last message
@@ -134,7 +134,7 @@ Status marks:
 81. [~] "What did Ember see?" shows the exact note sent with that reply
 82. [~] Per-chat switch: "Don't send my Desk or check-in this time"
 83. [x] Phone numbers, emails, and street addresses are blanked before sending
-84. [~] AI screen: which model, deep thinking on, about how much a reply costs
+84. [x] AI screen: which model, deep thinking on, about how much a reply costs
 85. [~] Clear every AI chat and memory in one place
 86. [~] "Turn off AI everywhere": the app runs fully on the phone
 87. [ ] Thumbs up or down on replies, kept on the phone
@@ -173,10 +173,12 @@ The live function already answers these (each tested once with curl on
 `summary` (#21). Build the buttons with `askJob(kind, input, { screen })`
 from core/emberAI.ts.
 
-Fix in the next redeploy: `title` (Haiku) chatted back instead of giving a
-title, so make it a JSON schema `{ title }`; `reflect` opened with stock
-validation ("That sounds like a lot…"), so add the banned openers to its
-prompt. Then bump PROMPT_VERSION to 4.2.
+Done in prompt v4.2 (deployed 2026-10-01): `title` is a JSON schema
+`{ title }`, and `reflect` has the banned openers.
+
+Fix in the next redeploy: `pick`'s reason ran long and rambled ("…and the
+test is something you can't really prep for now…"); cap it at one sentence
+under 25 words. Ember once wrote "With until Monday" (a slip, watch for it).
 
 ## RESUME HERE (for a fresh session after compaction)
 
@@ -206,3 +208,23 @@ user signed in to Supabase in the browser pane.
   a reply used real planner data, offered "Ask Spark", chips sent a
   follow-up, and "Open: Unit 2 Test" opened that assignment. Not yet seen
   live: crisis card, retry, memory, AI screen changes.
+- 2026-10-01 (later): every server job got an app button. AIPicker (preview
+  with checkboxes before anything changes) powers "Break it into steps" on
+  assignments, Flashcards / Practice test / Key points on notes, and Pip's
+  "Put this on tonight" (time blocks → plate to-dos). EmberPick on School,
+  "Read it again with AI" on Scan (sends only the text the phone read),
+  EmberReflect ("Hear from Ember") after a vent, a check-in, and on each
+  worry. Prompt v4.2 deployed by editing the three changed spots in the
+  dashboard editor (SHA-256 matched). Verified live in the Simulator (run
+  from Xcode): steps preview → untick → 6 steps saved; key points preview;
+  Ember's pick with reasons; crisis words show the help card before the AI
+  answers, and the AI's reply is right; Ember's remember offer saved a fact
+  on the phone; AI screen costs, switches, and Test Ember's brain (Sonnet,
+  1.4 s); Quizzo used the real next test and kept score; Pip asked a
+  clarifying question, gave a plan, offered "Put this on tonight", and the
+  preview showed the blocks. Fixed while testing: the help card now sits
+  right above the input (it scrolled out of view at the top); Ember's face
+  no longer turns happy on a reply about getting help; note AI chips and
+  buttons had the same words; the memory count showed a bare "0"; Pip's
+  plan preview was squeezed inside the chat box. In-app testing cost about
+  6¢ (the app's own log). Test steps were left on the Gatsby assignment.

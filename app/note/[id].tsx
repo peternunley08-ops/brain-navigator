@@ -2,6 +2,7 @@ import * as Haptics from '../../core/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { AIPicker, type PickItem } from '../../components/ember/AIPicker';
 import { emberSay } from '../../components/ember/EmberBuddy';
 import { ProgressBar } from '../../components/ui/ProgressBar';
 import { offerUndo } from '../../core/undoStore';
@@ -16,6 +17,7 @@ import { Screen } from '../../components/ui/Screen';
 import { type BlockType, type NoteBlock, uid, useHubStore } from '../../core/hubStore';
 import { parseCards, useLifeStore } from '../../core/lifeStore';
 import { essayWords, wordGoalFor } from '../../core/words';
+import { askJob } from '../../core/emberAI';
 import { useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 
@@ -79,6 +81,8 @@ export default function NoteScreen() {
   // Flashcards from this page: which new lines are picked, while the preview is open.
   const [cardPick, setCardPick] = useState<string[] | null>(null);
   const decks = useLifeStore((s) => s.decks);
+  // Which AI study help is picked under the page.
+  const [aiMode, setAiMode] = useState<'cards' | 'points' | 'practice'>('cards');
 
   if (!note) {
     return (
@@ -165,6 +169,56 @@ export default function NoteScreen() {
     emberSay(`${chosen.length} flashcard${chosen.length === 1 ? '' : 's'} ${linked ? `added to “${deck.name}”` : 'made from this page'}.`, 'happy');
     router.push(`/deck/${deck.id}`);
   };
+
+  // AI study help from this page. Cards and practice questions go into the
+  // page's deck; key points go at the bottom of the page.
+  const pageText = asText(note.title, note.blocks);
+  const pageHasText = pageText.replace(/\s+/g, ' ').length >= 60;
+  const toDeck = (picked: PickItem[]) => {
+    const life = useLifeStore.getState();
+    const cls = classes.find((c) => c.id === note.classId);
+    const deck = linked ?? life.saveDeck({ name: deckName, classId: note.classId, color: cls?.color ?? note.color });
+    if (deck.noteId !== note.id) life.updateDeck(deck.id, { noteId: note.id });
+    life.addCards(deck.id, picked.map((p) => ({ front: p.title, back: p.detail ?? '' })));
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    emberSay(`${picked.length} card${picked.length === 1 ? '' : 's'} added to “${deck.name}”. Quizzo can play them with you.`, 'happy');
+  };
+  const AI_MODES = {
+    cards: {
+      chip: 'Flashcards',
+      label: 'Make flashcards',
+      add: (k: number) => `Add ${k} card${k === 1 ? '' : 's'}`,
+      load: async () => {
+        const res = await askJob<{ cards: { front: string; back: string }[] }>('cards', pageText.slice(0, 7500), { who: 'cards' });
+        return res.ok ? { ok: true as const, items: res.data.cards.map((c) => ({ title: c.front, detail: c.back })) } : res;
+      },
+      onAdd: toDeck,
+    },
+    practice: {
+      chip: 'Practice test',
+      label: 'Write practice questions',
+      add: (k: number) => `Add ${k} to the deck`,
+      load: async () => {
+        const res = await askJob<{ questions: { q: string; a: string }[] }>('practice', pageText.slice(0, 7500), { who: 'practice' });
+        return res.ok ? { ok: true as const, items: res.data.questions.map((q) => ({ title: q.q, detail: q.a })) } : res;
+      },
+      onAdd: toDeck,
+    },
+    points: {
+      chip: 'Key points',
+      label: 'Pull out key points',
+      add: (k: number) => `Add ${k} to this page`,
+      load: async () => {
+        const res = await askJob<{ points: string[] }>('points', pageText.slice(0, 7500), { who: 'points' });
+        return res.ok ? { ok: true as const, items: res.data.points.map((t) => ({ title: t })) } : res;
+      },
+      onAdd: (picked: PickItem[]) => {
+        const before = note.blocks;
+        setBlocks([...note.blocks, { id: uid(), type: 'heading', text: 'Key points' }, ...picked.map((p) => ({ id: uid(), type: 'bullet' as const, text: p.title }))]);
+        offerUndo('Key points added', () => setBlocks(before), 'list');
+      },
+    },
+  } as const;
 
   // Headings don't count toward an essay's limit.
   const words = essayWords(note.blocks);
@@ -367,6 +421,24 @@ export default function NoteScreen() {
             </Text>
           </Pressy>
         ) : null}
+        {pageHasText && !cardPick ? (
+          <View style={styles.aiStudy}>
+            <ChipRow>
+              {(Object.keys(AI_MODES) as (keyof typeof AI_MODES)[]).map((k) => (
+                <Chip key={k} label={AI_MODES[k].chip} icon={k === 'points' ? 'list' : 'cards'} selected={aiMode === k} color={note.color} onPress={() => setAiMode(k)} />
+              ))}
+            </ChipRow>
+            <AIPicker
+              key={aiMode}
+              label={AI_MODES[aiMode].label}
+              sends="Sends this page’s title and text to Claude. Only what’s on this page."
+              color={note.color}
+              load={AI_MODES[aiMode].load}
+              addLabel={AI_MODES[aiMode].add}
+              onAdd={AI_MODES[aiMode].onAdd}
+            />
+          </View>
+        ) : null}
         {cardPick ? (
           <Animated.View entering={FadeIn.duration(180)} style={styles.pick}>
             {fresh.map((p) => {
@@ -415,6 +487,9 @@ export default function NoteScreen() {
 }
 
 const styles = StyleSheet.create({
+  aiStudy: {
+    marginTop: 16,
+  },
   limits: {
     flexDirection: 'row',
     alignItems: 'center',

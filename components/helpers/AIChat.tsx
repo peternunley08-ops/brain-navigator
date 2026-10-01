@@ -2,12 +2,14 @@ import * as Haptics from '../../core/haptics';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { type AIFailure, askHelper, type EmberReply, soundsLikeCrisis, whyOffline } from '../../core/emberAI';
+import { type AIFailure, askHelper, askJob, type EmberReply, soundsLikeCrisis, whyOffline } from '../../core/emberAI';
+import { useTasksStore } from '../../core/tasksStore';
 import type { Helper } from '../../core/helpers';
 import { type NoteBlock, uid, useHubStore } from '../../core/hubStore';
 import { type HelperTurn, useLifeStore } from '../../core/lifeStore';
 import { offerUndo } from '../../core/undoStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
+import { AIPicker } from '../ember/AIPicker';
 import { HelpCard } from '../ember/HelpCard';
 import { ReplyExtras } from '../ember/ReplyExtras';
 import { RichText } from '../ember/RichText';
@@ -141,6 +143,33 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
     const t = turnsRef.current;
     if (t.length && t[t.length - 1].role === 'user') answer(t);
   };
+  // Pip's plan, turned into time blocks and put on the plate as to-dos.
+  const loadPlan = async () => {
+    const transcript = turnsRef.current
+      .slice(-8)
+      .map((t) => `${t.role === 'assistant' ? helper.name : 'Student'}: ${t.content}`)
+      .join('\n');
+    const res = await askJob<{ blocks: { start: string; minutes: number; title: string; kind: 'work' | 'break' }[] }>('plan', transcript, { who: 'plan' });
+    if (!res.ok) return res;
+    return {
+      ok: true as const,
+      items: res.data.blocks.filter((b) => b.kind === 'work').map((b) => ({ title: `${clock12(b.start)} ${b.title}`, detail: `${b.minutes} min` })),
+    };
+  };
+  const addPlan = async (picked: { title: string; detail?: string }[]) => {
+    const added: string[] = [];
+    for (const p of picked) {
+      if (await useTasksStore.getState().addTask(p.title, 'occupational', parseInt(p.detail ?? '', 10) || null)) added.push(p.title);
+    }
+    if (!added.length) return;
+    offerUndo(`${added.length} block${added.length === 1 ? '' : 's'} on your plate`, () => {
+      for (const title of added) {
+        const t = [...useTasksStore.getState().tasks].reverse().find((x) => x.title === title);
+        if (t) useTasksStore.getState().deleteTask(t.id);
+      }
+    }, 'plate');
+  };
+
   // The helper's own suggestions fit the moment; its fixed chips are the fallback.
   const chips = last?.chips.length ? last.chips : helper.chips;
 
@@ -154,7 +183,6 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
         </View>
       ) : null}
       <ScrollView ref={scroll} style={styles.chat} contentContainerStyle={styles.chatContent} nestedScrollEnabled keyboardShouldPersistTaps="handled">
-        {crisis ? <HelpCard /> : null}
         {turns.map((t, i) => (
           <Animated.View key={i} entering={(t.role === 'assistant' ? FadeInUp : FadeInDown).duration(300)}>
             {t.role === 'assistant' && i > 0 ? (
@@ -180,6 +208,7 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
           </Animated.View>
         ))}
         {last && !thinking ? <ReplyExtras reply={last} color={helper.color} /> : null}
+
         {thinking ? (
           <Animated.View entering={FadeIn} style={[styles.bubble, styles.fromHelper, { borderColor: alpha(helper.color, 0.35) }]}>
             <Text style={[styles.who, { color: helper.color }]}>{helper.name}</Text>
@@ -205,6 +234,21 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
         </Animated.View>
       ) : null}
 
+      {last?.plan && !thinking ? (
+        <AIPicker
+          label="Put this on tonight"
+          sends={`Sends this chat with ${helper.name} to Claude to turn it into time blocks.`}
+          color={helper.color}
+          load={loadPlan}
+          addLabel={(k) => `Add ${k} to my plate`}
+          onAdd={addPlan}
+        />
+      ) : null}
+      {crisis ? (
+        <View style={styles.helpWrap}>
+          <HelpCard />
+        </View>
+      ) : null}
       {helper.id === 'sage' ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll} keyboardShouldPersistTaps="handled">
           {LEVELS.map((l) => (
@@ -295,6 +339,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignSelf: 'flex-start',
   },
+  helpWrap: {
+    marginTop: 12,
+  },
   noticeRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -355,3 +402,10 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
 });
+
+/** "19:30" → "7:30 pm" */
+function clock12(hhmm: string) {
+  const [h, m] = hhmm.split(':').map(Number);
+  if (!Number.isFinite(h)) return hhmm;
+  return `${((h + 11) % 12) + 1}:${String(m || 0).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`;
+}

@@ -371,6 +371,28 @@ export async function askJob<T = { reply: string }>(kind: Kind, input: string, o
   return { ok: true, data: payload as T, cents, ms, model: String(res.data.usage?.model ?? ''), refs: built?.refs ?? {} };
 }
 
+/** Why a one-tap AI button couldn't help, in a line (not in Ember's voice). */
+export function aiFailLine(reason: AIFailure) {
+  switch (reason) {
+    case 'off':
+      return 'AI is turned off. You can turn it back on from How AI works here.';
+    case 'limit':
+      return 'That’s all your free AI replies for this week.';
+    case 'no_credit':
+      return 'The AI account behind this is out of credit right now.';
+    case 'spend_limit':
+      return 'The AI hit this month’s spending limit.';
+    case 'offline':
+      return 'No connection right now. Try again in a bit.';
+    case 'busy':
+      return 'The AI is swamped for a moment. Try again in a minute.';
+    case 'timeout':
+      return 'That took too long. Try again.';
+    default:
+      return 'The AI isn’t answering right now. Try again later.';
+  }
+}
+
 export function whyOffline(reason: AIFailure) {
   if (reason === 'off') return 'AI is turned off in Settings, so I’ll use my own questions. Everything else still works.';
   if (reason === 'busy') return 'My thinking brain is swamped for a moment. Try again in a minute, or I’ll use my own questions for now.';

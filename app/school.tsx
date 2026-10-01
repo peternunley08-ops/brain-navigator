@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { AssignmentRow } from '../components/school/AssignmentRow';
+import { EmberPick } from '../components/school/EmberPick';
 import { Chip } from '../components/ui/Chip';
 import { NowCard } from '../components/school/NowCard';
 import { Button } from '../components/ui/Button';
@@ -119,6 +120,7 @@ export default function SchoolScreen() {
             <Icon name="timer" size={18} color={colors.textFaint} />
           </Card>
         ) : null}
+        {open.length >= 2 ? <EmberPick /> : null}
       </Reveal>
 
       {load.items.length > 0 ? (
