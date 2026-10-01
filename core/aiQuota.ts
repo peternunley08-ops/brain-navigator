@@ -81,11 +81,34 @@ export function canUseAI() {
   return aiStatus().left > 0;
 }
 
-/** Count one AI reply. Only called after a reply actually arrives. */
-export function recordAIUse(who = 'ember') {
+/**
+ * Count one AI reply. Only called after a reply actually arrives. `cents`
+ * is what it roughly cost; `counts` is false for background jobs (titles,
+ * memory summaries) that don't use up the student's replies.
+ */
+export function recordAIUse(who = 'ember', cents = 0, counts = true, ms = 0) {
   const u = current();
-  const log = [...(useLifeStore.getState().ai.log ?? []), { at: new Date().toISOString(), who }].slice(-60);
-  useLifeStore.getState().setAI({ week: u.week, weekUsed: u.weekUsed + 1, month: u.month, monthUsed: u.monthUsed + 1, log });
+  const log = [...(useLifeStore.getState().ai.log ?? []), { at: new Date().toISOString(), who, cents, ms, ...(counts ? {} : { free: true }) }].slice(-200);
+  const add = counts ? 1 : 0;
+  useLifeStore.getState().setAI({ week: u.week, weekUsed: u.weekUsed + add, month: u.month, monthUsed: u.monthUsed + add, log });
+}
+
+/** Rough AI spending (cents) and reply count over the last `days` days, from the phone's own log. */
+export function aiSpend(days = 7) {
+  const since = Date.now() - days * 86400000;
+  let cents = 0;
+  let replies = 0;
+  const times: number[] = [];
+  for (const e of useLifeStore.getState().ai.log ?? []) {
+    if (new Date(e.at).getTime() < since) continue;
+    cents += e.cents ?? 0;
+    if (!e.free) replies += 1;
+    if (!e.free && e.ms) times.push(e.ms);
+  }
+  times.sort((a, b) => a - b);
+  // The typical wait, not the average, so one slow reply doesn't skew it.
+  const typicalMs = times.length ? times[Math.floor(times.length / 2)] : 0;
+  return { cents, replies, perReply: replies ? cents / replies : 0, typicalMs };
 }
 
 /** This week's (or, on Plus, this month's) replies, grouped by who they went to. */
@@ -96,7 +119,7 @@ export function aiBreakdown(): { who: string; count: number }[] {
   for (const e of useLifeStore.getState().ai.log ?? []) {
     const d = new Date(e.at);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    if (key >= since) counts[e.who] = (counts[e.who] ?? 0) + 1;
+    if (key >= since && !e.free) counts[e.who] = (counts[e.who] ?? 0) + 1;
   }
   return Object.entries(counts)
     .map(([who, count]) => ({ who, count }))

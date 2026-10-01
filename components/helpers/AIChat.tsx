@@ -2,13 +2,17 @@ import * as Haptics from '../../core/haptics';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
-import { type AIFailure, askHelper, whyOffline } from '../../core/emberAI';
+import { type AIFailure, askHelper, type EmberReply, soundsLikeCrisis, whyOffline } from '../../core/emberAI';
 import type { Helper } from '../../core/helpers';
 import { type NoteBlock, uid, useHubStore } from '../../core/hubStore';
 import { type HelperTurn, useLifeStore } from '../../core/lifeStore';
 import { offerUndo } from '../../core/undoStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
+import { HelpCard } from '../ember/HelpCard';
+import { ReplyExtras } from '../ember/ReplyExtras';
+import { RichText } from '../ember/RichText';
 import type { EmberRig } from '../ember/useEmberRig';
+import { Icon } from '../ui/Icon';
 import { Button } from '../ui/Button';
 import { Chip } from '../ui/Chip';
 import { Field } from '../ui/Field';
@@ -44,6 +48,11 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
   const [draft, setDraft] = useState(starter ?? '');
   const [thinking, setThinking] = useState(false);
   const [failure, setFailure] = useState<AIFailure | null>(null);
+  // The newest reply's buttons and chips (not saved with the chat).
+  const [last, setLast] = useState<EmberReply | null>(null);
+  const [crisis, setCrisis] = useState(false);
+  // Quizzo's running score, as Quizzo reports it.
+  const [score, setScore] = useState<{ right: number; wrong: number } | null>(null);
   const level = useLifeStore((s) => s.settings.sageLevel) ?? 'hs';
   const setLevel = (l: string) => useLifeStore.getState().setSettings({ sageLevel: l });
   const scroll = useRef<ScrollView>(null);
@@ -80,9 +89,16 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
   const send = async (raw?: string) => {
     const text = (raw ?? draft).trim();
     if (!text || thinking) return;
+    if (soundsLikeCrisis(text)) setCrisis(true);
     const next: HelperTurn[] = [...turnsRef.current, { role: 'user', content: text }];
     setTurns(next);
     setDraft('');
+    await answer(next);
+  };
+
+  // Ask the helper about the chat so far (also used by Try again).
+  const answer = async (next: HelperTurn[]) => {
+    setLast(null);
     setFailure(null);
     setThinking(true);
     rig.setMood('listening');
@@ -95,6 +111,9 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
       const done: HelperTurn[] = [...next, { role: 'assistant', content: res.reply }];
       setTurns(done);
       setChat(helper.id, done);
+      setLast(res);
+      if (res.score) setScore(res.score);
+      if (res.refused || res.actions.includes('help')) setCrisis(true);
       rig.setMood('happy');
       rig.talk(true);
       setTimeout(() => {
@@ -114,11 +133,28 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
     setTurns(fresh);
     setChat(helper.id, fresh);
     setFailure(null);
+    setLast(null);
+    setScore(null);
   };
+
+  const retry = () => {
+    const t = turnsRef.current;
+    if (t.length && t[t.length - 1].role === 'user') answer(t);
+  };
+  // The helper's own suggestions fit the moment; its fixed chips are the fallback.
+  const chips = last?.chips.length ? last.chips : helper.chips;
 
   return (
     <View style={styles.wrap}>
+      {score ? (
+        <View style={[styles.score, { borderColor: alpha(helper.color, 0.4) }]} accessibilityLabel={`Score: ${score.right} right, ${score.wrong} wrong`}>
+          <Icon name="trophy" size={14} color={helper.color} />
+          <Text style={[styles.scoreText, { color: helper.color }]}>{score.right} right</Text>
+          <Text style={styles.scoreMuted}>{score.wrong} missed</Text>
+        </View>
+      ) : null}
       <ScrollView ref={scroll} style={styles.chat} contentContainerStyle={styles.chatContent} nestedScrollEnabled keyboardShouldPersistTaps="handled">
+        {crisis ? <HelpCard /> : null}
         {turns.map((t, i) => (
           <Animated.View key={i} entering={(t.role === 'assistant' ? FadeInUp : FadeInDown).duration(300)}>
             {t.role === 'assistant' && i > 0 ? (
@@ -129,8 +165,11 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
                 accessibilityHint="Hold to save this reply to your Notebook"
                 style={[styles.bubble, styles.fromHelper, { borderColor: alpha(helper.color, 0.35) }]}
               >
-                <Text style={[styles.who, { color: helper.color }]}>{helper.name}</Text>
-                <Text style={styles.text}>{t.content}</Text>
+                <View style={styles.whoRow}>
+                  <Text style={[styles.who, { color: helper.color }]}>{helper.name}</Text>
+                  <Icon name="sparkle" size={9} color={colors.textFaint} />
+                </View>
+                <RichText text={t.content} style={styles.text} reveal={i === turns.length - 1 && !!last} />
               </Pressy>
             ) : (
               <View style={[styles.bubble, t.role === 'assistant' ? [styles.fromHelper, { borderColor: alpha(helper.color, 0.35) }] : styles.fromYou]}>
@@ -140,6 +179,7 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
             )}
           </Animated.View>
         ))}
+        {last && !thinking ? <ReplyExtras reply={last} color={helper.color} /> : null}
         {thinking ? (
           <Animated.View entering={FadeIn} style={[styles.bubble, styles.fromHelper, { borderColor: alpha(helper.color, 0.35) }]}>
             <Text style={[styles.who, { color: helper.color }]}>{helper.name}</Text>
@@ -156,7 +196,12 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
               .replace('My thinking brain', `${helper.name}’s AI brain`)
               .replace('I can’t reach my thinking brain', `${helper.name} can’t reach its AI brain`)
               .replace('so I’ll use my own questions for now', `but ${helper.name} can still help right on your phone`)}</Text>
-          <Button label={helper.offlineLabel} icon="arrow" variant="secondary" size="sm" onPress={onUseOffline} style={styles.noticeBtn} />
+          <View style={styles.noticeRow}>
+            {failure === 'busy' || failure === 'timeout' || failure === 'offline' || failure === 'unavailable' ? (
+              <Button label="Try again" icon="repeat" size="sm" onPress={retry} style={styles.noticeBtn} />
+            ) : null}
+            <Button label={helper.offlineLabel} icon="arrow" variant="secondary" size="sm" onPress={onUseOffline} style={styles.noticeBtn} />
+          </View>
         </Animated.View>
       ) : null}
 
@@ -168,7 +213,7 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
         </ScrollView>
       ) : null}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll} keyboardShouldPersistTaps="handled">
-        {helper.chips.map((c) => (
+        {chips.map((c) => (
           <Chip key={c} label={c} color={helper.color} onPress={() => send(c)} />
         ))}
       </ScrollView>
@@ -249,6 +294,36 @@ const styles = StyleSheet.create({
   noticeBtn: {
     marginTop: 10,
     alignSelf: 'flex-start',
+  },
+  noticeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  whoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  score: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 8,
+    marginBottom: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  scoreText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+  },
+  scoreMuted: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
   },
   chipScroll: {
     marginTop: 12,

@@ -343,14 +343,36 @@ it through" link, and "Talk to me" in Ember's tips. Saves into
 `vent_entries` (same table as Let It Out), `input_mode = 'companion'`,
 only after the save succeeds.
 
-### Ember's AI brain (built 2026-09-29, waiting on Anthropic credit)
+### Ember's AI brain (built 2026-09-29, live since 2026-10-01)
+
+**Round 4 (2026-10-01, `docs/masterpiece-4.md`): the AI design.** The
+`ember` function is now a job router (prompt v4.1): `kind` = talk, helper,
+summary, title, steps, plan, scan, cards, points, practice, pick, reflect,
+ping. Sonnet 5.5 (adaptive thinking, effort per job) for most, Haiku 4.5
+for summary/title. The system prompt is cached; the app note rides on the
+newest message. Replies end in `[[tags]]` (action ×2, chips, todo,
+setdown, focus, helper, open a1/d1, remember, score, plan) that the
+function parses into fields. Structured jobs use JSON schema output and
+return `{ data }`. Every response carries `usage` and `ms`; the app turns
+that into cents (`centsFor`) and logs it. App side: `askEmber`,
+`askHelper`, `askJob` in core/emberAI.ts; `redact()` blanks phone numbers,
+emails, and addresses; `soundsLikeCrisis()` pins `HelpCard` before any AI
+is asked; memory (`emberMemory`, `lastEmberChat` in lifeStore) is kept
+only when the student says yes, and `settings.memoryOff` / `aiOff` turn
+things off. Redeploys: open the function's Code tab in the dashboard
+(user signs in to the browser pane), set the Monaco model with
+`executeEdits`, compare SHA-256 with the repo file, Deploy updates.
+The user asked to "work within Xcode": run the app from Xcode
+(`ios/brainnavigator.xcworkspace`, scheme brainnavigator, iPhone 17 Pro)
+and verify in its Simulator.
 
 The user asked for the mascot to run on AI. There is **no AI key in
 `.env`** (only Supabase, Google, Notion). The only AI key is the Anthropic
 key in the Supabase Edge Function secret **`brain-navigator-v2`** (not
 `ANTHROPIC_API_KEY` — accidental naming, left as-is), and every call still
-returns Anthropic 400 **"credit balance is too low"** — checked 2026-09-29.
-Adding credits in the Anthropic Console is the user's step, never ours.
+returned Anthropic 400 **"credit balance is too low"** until the user added
+credit on 2026-10-01. Adding credits in the Anthropic Console is the user's
+step, never ours.
 
 - `supabase/functions/ember/index.ts` — Ember's persona + safety rules
   (not a therapist; crisis → 988), receives `{ messages, context }`,
@@ -364,9 +386,15 @@ Adding credits in the Anthropic Console is the user's step, never ours.
   where `action` is one optional next step (breathe, vent, ground,
   checkin, setdown, loops, tasks, habits, map, trends). Errors come back as
   a short `code` (`no_credit`, `busy`, `upstream`) — never the raw body.
-  **Not deployed yet**: deploy it from the Supabase dashboard (Edge
-  Functions → Deploy new function → via editor → name `ember` → paste →
-  Deploy). CLI login doesn't work here.
+  **Deployed 2026-10-01** from the Supabase dashboard (Edge Functions →
+  Deploy new function → Via Editor → name `ember` → Deploy function); CLI
+  login doesn't work here. To redeploy: open the function → Code, replace
+  the contents, deploy. The user signs in to Supabase in the browser pane
+  themselves. Pasting from the clipboard doesn't reach that editor and
+  typing re-indents; setting the Monaco model with `executeEdits` and
+  comparing a SHA-256 of the result with the local file worked.
+  Verified live: replies in about 3–5 s, the app's Ember conversation
+  answered using planner context, and Quizzo works through `agent`.
 - `core/emberAI.ts` — `askEmber(turns, screen)` tries `ember`, falls back
   to the older `chat` function (persona folded into the first message) if
   `ember` returns 404, and reports `no_credit | offline | unavailable`

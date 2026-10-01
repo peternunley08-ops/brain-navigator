@@ -46,7 +46,7 @@ function mmss(ms: number) {
 // timestamps, so it stays right if you lock the phone mid-session.
 export default function FocusScreen() {
   const { width: winW } = useWindowDimensions();
-  const { assignment: assignmentParam, quick, topic } = useLocalSearchParams<{ assignment?: string; quick?: string; topic?: string }>();
+  const { assignment: assignmentParam, quick, topic, mins } = useLocalSearchParams<{ assignment?: string; quick?: string; topic?: string; mins?: string }>();
   const assignments = useSchoolStore((s) => s.assignments);
   const classes = useSchoolStore((s) => s.classes);
   const focus = useSchoolStore((s) => s.focus);
@@ -59,9 +59,13 @@ export default function FocusScreen() {
 
   const open = useMemo(() => assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 6), [assignments]);
   const [target, setTarget] = useState<string | null>(assignmentParam ?? null);
-  const [length, setLength] = useState(25);
+  // Ember or a helper can suggest a length (`mins`); short ones come as `quick` and start right away.
+  const [length, setLength] = useState(() => {
+    const m = Number(mins);
+    return m >= 5 && m <= 120 ? m : 25;
+  });
   const [breakMin, setBreakMin] = useState(5);
-  const [preset, setPreset] = useState<string>('pomodoro');
+  const [preset, setPreset] = useState<string>(() => (mins ? (PRESETS.find((p) => p.work === Number(mins))?.key ?? 'custom') : 'pomodoro'));
   const [stray, setStray] = useState('');
   const [gotDone, setGotDone] = useState('');
   const [heatDay, setHeatDay] = useState<string | null>(null);

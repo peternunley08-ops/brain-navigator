@@ -1,17 +1,18 @@
-// Ember's AI voice. Talks to the `ember` Edge Function (Claude, with the
-// key kept server-side — see supabase/functions/ember). If that function
-// isn't deployed yet, falls back to the older `chat` function with Ember's
-// persona folded into the message. If neither can answer (no network, or
-// the Anthropic account has no credit), callers get a reason back and
-// Ember falls back to its built-in, no-AI questions.
+// Ember's AI voice, and every other AI job in the app. Talks to the
+// `ember` Edge Function (Claude, with the key kept server-side — see
+// supabase/functions/ember), which picks the model and prompt for each job.
+// If it can't answer (no network, no credit, out of replies, AI turned
+// off), callers get a reason back and fall back to the on-phone version.
 //
-// Privacy: what's typed to Ember, plus the short summary from
-// `emberContext()`, is sent to Anthropic to write the reply.
+// Privacy: what's typed (with phone numbers, emails, and addresses blanked
+// by `redact`), plus the short note from `buildNote()`, is sent to
+// Anthropic to write the reply. Nothing else.
 
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { IconName } from '../components/ui/Icon';
 import { canUseAI, recordAIUse } from './aiQuota';
-import type { Helper } from './helpers';
+import { type Helper, type HelperId, helperById } from './helpers';
+import { useLifeStore } from './lifeStore';
 import { useHabitsStore } from './habitsStore';
 import { clock, daysUntil, dueLabel, KIND_LABEL, nowState, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
@@ -42,30 +43,107 @@ export const EMBER_ACTIONS: Record<EmberActionKey, { label: string; href: string
   help: { label: 'Need help now', href: '/help', icon: 'phone' },
 };
 
-export type EmberAIResult =
-  | { ok: true; reply: string; action: EmberActionKey | null }
-  | { ok: false; reason: AIFailure };
+/** Something listed in the app note that a reply can offer to open. */
+export interface NoteRef {
+  kind: 'assignment' | 'desk';
+  id: string;
+  label: string;
+}
 
-/** Why the AI didn't answer. `limit` = this week's free AI replies are used up. */
-export type AIFailure = 'no_credit' | 'offline' | 'unavailable' | 'limit';
+export interface EmberReply {
+  ok: true;
+  reply: string;
+  /** The first suggested action (older code reads only this). */
+  action: EmberActionKey | null;
+  actions: EmberActionKey[];
+  /** Short things the student might say next. */
+  chips: string[];
+  todo: string | null;
+  setdown: { title: string; weight: number } | null;
+  focus: { minutes: number; what: string } | null;
+  helper: HelperId | null;
+  open: NoteRef | null;
+  /** Something Ember would like to remember; the app asks first. */
+  remember: string | null;
+  score: { right: number; wrong: number } | null;
+  /** Pip gave a plan that could go on tonight. */
+  plan: boolean;
+  /** Every model declined, and this is the gentle stand-in reply. */
+  refused: boolean;
+  /** Rough cost of this reply in cents. */
+  cents: number;
+  ms: number;
+  /** Exactly what was sent along about the app, for "What did Ember see?" */
+  note: string;
+}
+
+export type EmberAIResult = EmberReply | { ok: false; reason: AIFailure };
+
+/**
+ * Why the AI didn't answer.
+ * `limit` = this week's free AI replies are used up; `off` = the student
+ * turned AI off; `spend_limit` = the Anthropic account hit its monthly cap.
+ */
+export type AIFailure = 'no_credit' | 'spend_limit' | 'offline' | 'unavailable' | 'limit' | 'busy' | 'timeout' | 'off';
 
 const DAY = 24 * 60 * 60 * 1000;
+const TIMEOUT = 45_000;
 
 function todayKey(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// A short, factual note about right now, so Ember's answers can be about
-// this person's actual day. Only what the app already shows on screen.
-export function emberContext(screen: string, now = new Date()) {
+function clockOf(min: number) {
+  const h = Math.floor(min / 60) % 24;
+  const m = min % 60;
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${h < 12 ? 'am' : 'pm'}`;
+}
+
+// Phone numbers, emails, and street addresses never leave the phone: they're
+// blanked in anything the student typed before it's sent.
+export function redact(text: string) {
+  return text
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
+    .replace(/(?:\+?1[\s.-]?)?\(?\b\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}\b/g, '[phone]')
+    .replace(/\b\d{1,5}\s+(?:[A-Z][a-z]+\s+){1,3}(?:St|Street|Ave|Avenue|Rd|Road|Blvd|Boulevard|Ln|Lane|Dr|Drive|Ct|Court|Way|Pl|Place|Cir|Circle)\b\.?/g, '[address]');
+}
+
+// Words that mean the help lines should be on screen right now, before any
+// AI is asked, and even when there's no connection or no replies left.
+const CRISIS =
+  /\b(suicid\w*|kill (my ?self|me)|end (it all|my life)|want(ed)? to die|wanna die|don'?t want to (live|be here|exist)|no reason to live|better off (dead|without me)|self[- ]?harm\w*|hurt(ing)? my ?self|cut(ting)? my ?self|overdos\w*|(he|she|they|my (?:dad|mom|father|mother|step ?(?:dad|mom)|parents?|brother|sister|boyfriend|girlfriend)) (hits?|hurts?|hit|hurt) me|being abused|not safe at home)\b/i;
+
+export function soundsLikeCrisis(text: string) {
+  return CRISIS.test(text);
+}
+
+export interface NoteOptions {
+  /** Ember only reflects and asks; no advice. */
+  justListen?: boolean;
+  /** Leave the Desk and today's check-in out of what's sent. */
+  private?: boolean;
+  /** One-line memories from earlier conversations. */
+  memories?: string[];
+}
+
+// A short, factual note about right now, so answers can be about this
+// person's actual day. Only what the app already shows on screen. Things it
+// lists get short references (a1, d1) a reply can use to offer opening them.
+export function buildNote(screen: string, opts: NoteOptions = {}, now = new Date()): { text: string; refs: Record<string, NoteRef> } {
   const lines: string[] = [];
+  const refs: Record<string, NoteRef> = {};
   lines.push(
-    `Local time: ${now.toLocaleDateString('en-US', { weekday: 'long' })}, ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}.`
+    `Today: ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} (${todayKey(now)}), ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}.`
   );
-  lines.push(`They opened this conversation from: ${screen}.`);
+  lines.push(`They opened this from: ${screen}.`);
+  if (opts.justListen) lines.push('Just listen is on: reflect and ask, no advice.');
 
   const school = useSchoolStore.getState();
+  const first = school.profile.name.trim().split(/\s+/)[0];
+  if (first) lines.push(`Their first name: ${first.slice(0, 30)}.`);
   if (school.profile.grade) lines.push(`They're in grade ${school.profile.grade}.`);
+  const settings = useLifeStore.getState().settings;
+  lines.push(`Wind-down starts at ${clockOf(settings.windDown)}. Nightly homework cap: ${school.profile.nightlyCap} min. Sleep goal: ${school.profile.sleepGoal} h.`);
   const ns = nowState(school.classes, now);
   if (ns.kind === 'in') lines.push(`Right now: in ${ns.cls.name} until ${clock(ns.cls.end)}.`);
   else if (ns.kind === 'next') lines.push(`Next class: ${ns.cls.name} at ${clock(ns.cls.start)}.`);
@@ -75,36 +153,45 @@ export function emberContext(screen: string, now = new Date()) {
     .slice(0, 8);
   if (due.length) {
     lines.push('Due in the next week:');
-    for (const a of due) {
+    due.forEach((a, i) => {
+      const ref = `a${i + 1}`;
+      refs[ref] = { kind: 'assignment', id: a.id, label: a.title.slice(0, 40) };
       const cls = school.classes.find((c) => c.id === a.classId)?.name;
-      lines.push(`- ${KIND_LABEL[a.kind]}: "${a.title.slice(0, 60)}"${cls ? ` (${cls})` : ''}, due ${dueLabel(a.due)}${a.minutes ? `, ~${a.minutes} min` : ''}`);
-    }
+      const steps = a.subtasks?.length ? `, ${a.subtasks.filter((t) => t.done).length}/${a.subtasks.length} steps done` : '';
+      lines.push(`- [${ref}] ${KIND_LABEL[a.kind]}: "${a.title.slice(0, 60)}"${cls ? ` (${cls})` : ''}, due ${dueLabel(a.due)} (${a.due})${a.minutes ? `, ~${a.minutes} min` : ''}${steps}`);
+    });
   } else if (school.classes.length) {
     lines.push('Nothing due in the next week.');
   }
 
-  const open = [...useBrainNavigatorStore.getState().openLoops].sort((a, b) => a.created_at.localeCompare(b.created_at));
-  if (open.length === 0) {
-    lines.push('Nothing is open on their Desk right now.');
-  } else {
-    lines.push(`Open on their Desk (${open.length}):`);
-    for (const e of open.slice(0, 6)) {
-      const days = Math.floor((now.getTime() - new Date(e.created_at).getTime()) / DAY);
-      lines.push(`- "${(e.mood ?? 'Untitled').slice(0, 60)}", weight ${e.intensity ?? '?'}/10, open ${days <= 0 ? 'since today' : `${days} days`}`);
+  if (!opts.private) {
+    const open = [...useBrainNavigatorStore.getState().openLoops].sort((a, b) => a.created_at.localeCompare(b.created_at));
+    if (open.length === 0) {
+      lines.push('Nothing is open on their Desk right now.');
+    } else {
+      lines.push(`Open on their Desk (${open.length}):`);
+      open.slice(0, 6).forEach((e, i) => {
+        const ref = `d${i + 1}`;
+        refs[ref] = { kind: 'desk', id: e.id, label: (e.mood ?? 'Untitled').slice(0, 40) };
+        const days = Math.floor((now.getTime() - new Date(e.created_at).getTime()) / DAY);
+        lines.push(`- [${ref}] "${(e.mood ?? 'Untitled').slice(0, 60)}", weight ${e.intensity ?? '?'}/10, open ${days <= 0 ? 'since today' : `${days} days`}`);
+      });
     }
-  }
 
-  const c = useWellnessStore.getState().todaysCheckin();
-  if (c) {
-    const parts = [
-      c.mood != null ? `mood ${c.mood}/5` : null,
-      c.stress_level != null ? `stress ${c.stress_level}/10` : null,
-      c.sleep_hours != null ? `slept ${c.sleep_hours}h` : null,
-      c.sleep_quality != null ? `sleep quality ${c.sleep_quality}/5` : null,
-    ].filter(Boolean);
-    lines.push(`Today's check-in: ${parts.join(', ') || 'saved, no numbers'}.`);
+    const c = useWellnessStore.getState().todaysCheckin();
+    if (c) {
+      const parts = [
+        c.mood != null ? `mood ${c.mood}/5` : null,
+        c.stress_level != null ? `stress ${c.stress_level}/10` : null,
+        c.sleep_hours != null ? `slept ${c.sleep_hours}h` : null,
+        c.sleep_quality != null ? `sleep quality ${c.sleep_quality}/5` : null,
+      ].filter(Boolean);
+      lines.push(`Today's check-in: ${parts.join(', ') || 'saved, no numbers'}.`);
+    } else {
+      lines.push('No check-in yet today.');
+    }
   } else {
-    lines.push('No check-in yet today.');
+    lines.push('They asked not to share their Desk or check-in this time.');
   }
 
   const { tasks, dailyCap } = useTasksStore.getState();
@@ -121,7 +208,40 @@ export function emberContext(screen: string, now = new Date()) {
     lines.push(`Daily habits: ${done} of ${active.length} done today.`);
   }
 
-  return lines.join('\n');
+  if (opts.memories?.length) {
+    lines.push('Ember remembers from before (use lightly):');
+    for (const m of opts.memories.slice(0, 5)) lines.push(`- ${m.slice(0, 160)}`);
+  }
+
+  return { text: lines.join('\n'), refs };
+}
+
+/**
+ * What Ember remembers, for the note: the last three chat summaries and up
+ * to five facts the student agreed to. Nothing when memory is off.
+ */
+export function memoriesForNote() {
+  const { emberMemory, settings } = useLifeStore.getState();
+  if (settings.memoryOff) return [];
+  const chats = emberMemory.filter((m) => m.kind === 'chat').slice(-3);
+  const facts = emberMemory.filter((m) => m.kind === 'fact').slice(-5);
+  return [
+    ...facts.map((m) => m.text),
+    ...chats.map((m) => `${new Date(m.at).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}: ${m.text}`),
+  ];
+}
+
+/** A follow-up that's due: something they mentioned that has now happened (within the last 3 days). */
+export function dueFollowUp(today = todayKey()) {
+  const { emberMemory, settings } = useLifeStore.getState();
+  if (settings.memoryOff) return null;
+  const threeAgo = todayKey(new Date(Date.now() - 3 * DAY));
+  return [...emberMemory].reverse().find((m) => m.followUp && m.followUpDate && !m.followedUp && m.followUpDate <= today && m.followUpDate >= threeAgo) ?? null;
+}
+
+/** The note as text (older callers). */
+export function emberContext(screen: string, now = new Date()) {
+  return buildNote(screen, {}, now).text;
 }
 
 async function readError(error: unknown): Promise<{ status: number; body: Record<string, unknown> | null } | null> {
@@ -138,22 +258,78 @@ async function readError(error: unknown): Promise<{ status: number; body: Record
   return null;
 }
 
-function reasonFrom(body: Record<string, unknown> | null): 'no_credit' | 'unavailable' {
-  const text = JSON.stringify(body ?? {});
-  return body?.code === 'no_credit' || /credit balance/i.test(text) ? 'no_credit' : 'unavailable';
+function reasonFrom(info: { status: number; body: Record<string, unknown> | null }): AIFailure {
+  const code = info.body?.code;
+  if (code === 'no_credit' || /credit balance/i.test(JSON.stringify(info.body ?? {}))) return 'no_credit';
+  if (code === 'spend_limit') return 'spend_limit';
+  if (code === 'busy' || info.status === 429) return 'busy';
+  return 'unavailable';
 }
 
-const PERSONA =
-  'You are Ember, the small warm flame mascot in this wellness and school app for a high school student. Reply in one to three short sentences, one question at a time. Help plan and study, never do their assignments. If one of these would genuinely help, end with exactly one tag like [[action:breathe]] using: breathe, vent, ground, checkin, setdown, loops, tasks, habits, map, trends, school, focus, help.';
+// What a reply costs, from the token counts the function sends back.
+// Dollars per million tokens (Sonnet 5.5: $2 in / $10 out; Haiku 4.5: $1 / $5).
+// Cache writes cost 1.25× input, cache reads 0.1×.
+export function centsFor(usage: { model?: string; input?: number; output?: number; cacheRead?: number; cacheWrite?: number } | undefined) {
+  if (!usage) return 0;
+  const p = /haiku/.test(usage.model ?? '') ? { i: 1, o: 5 } : { i: 2, o: 10 };
+  const dollars = ((usage.input ?? 0) * p.i + (usage.cacheWrite ?? 0) * p.i * 1.25 + (usage.cacheRead ?? 0) * p.i * 0.1 + (usage.output ?? 0) * p.o) / 1e6;
+  return Math.round(dollars * 100 * 1000) / 1000;
+}
 
-// Once we know the `ember` function isn't deployed, go straight to `chat`.
-let emberMissing = false;
+type Kind = 'talk' | 'helper' | 'summary' | 'title' | 'steps' | 'plan' | 'scan' | 'cards' | 'points' | 'practice' | 'pick' | 'reflect' | 'ping';
 
-export async function askEmber(turns: EmberTurn[], screen: string): Promise<EmberAIResult> {
+/** Background jobs that don't use up the student's weekly AI replies. */
+const FREE_KINDS = new Set<Kind>(['summary', 'title', 'ping']);
+
+async function callEmber(body: Record<string, unknown>): Promise<{ ok: true; data: Record<string, any> } | { ok: false; reason: AIFailure }> {
+  if (useLifeStore.getState().settings.aiOff) return { ok: false, reason: 'off' };
+  const started = Date.now();
+  const { data, error } = await supabase.functions.invoke('ember', { body, timeout: TIMEOUT });
+  if (!error && data) return { ok: true, data };
+  const info = await readError(error);
+  if (!info) return { ok: false, reason: Date.now() - started >= TIMEOUT - 250 ? 'timeout' : 'offline' };
+  return { ok: false, reason: reasonFrom(info) };
+}
+
+function cleanTurns(turns: EmberTurn[]) {
+  return turns.map((t) => (t.role === 'user' ? { ...t, content: redact(t.content) } : t));
+}
+
+const asAction = (a: unknown) => (typeof a === 'string' && a in EMBER_ACTIONS ? (a as EmberActionKey) : null);
+
+function toReply(data: Record<string, any>, refs: Record<string, NoteRef>, note: string): EmberReply {
+  const actions = (Array.isArray(data.actions) ? data.actions : [data.action]).map(asAction).filter((a: EmberActionKey | null): a is EmberActionKey => !!a);
+  return {
+    ok: true,
+    reply: String(data.reply),
+    action: actions[0] ?? null,
+    actions,
+    chips: Array.isArray(data.chips) ? data.chips.map(String).slice(0, 3) : [],
+    todo: typeof data.todo === 'string' ? data.todo : null,
+    setdown: data.setdown ?? null,
+    focus: data.focus ?? null,
+    helper: helperById(data.helper)?.id ?? null,
+    open: typeof data.open === 'string' ? (refs[data.open] ?? null) : null,
+    remember: typeof data.remember === 'string' ? data.remember : null,
+    score: data.score ?? null,
+    plan: !!data.plan,
+    refused: !!data.refused,
+    cents: centsFor(data.usage),
+    ms: Number(data.ms) || 0,
+    note,
+  };
+}
+
+/** Ember's conversation. */
+export async function askEmber(turns: EmberTurn[], screen: string, opts: NoteOptions = {}): Promise<EmberAIResult> {
   if (!canUseAI()) return { ok: false, reason: 'limit' };
-  const res = await askRaw(turns, screen, null);
-  if (res.ok) recordAIUse();
-  return res;
+  const { text, refs } = buildNote(screen, { ...opts, memories: opts.memories ?? memoriesForNote() });
+  const res = await callEmber({ kind: 'talk', messages: cleanTurns(turns), context: text });
+  if (!res.ok) return res;
+  if (!res.data.reply) return { ok: false, reason: 'unavailable' };
+  const reply = toReply(res.data, refs, text);
+  recordAIUse('ember', reply.cents, true, reply.ms);
+  return reply;
 }
 
 /**
@@ -163,51 +339,43 @@ export async function askEmber(turns: EmberTurn[], screen: string): Promise<Embe
  */
 export async function askHelper(helper: Helper, turns: EmberTurn[], extra?: string): Promise<EmberAIResult> {
   if (!canUseAI()) return { ok: false, reason: 'limit' };
-  const res = await askRaw(turns, `Talking with ${helper.name} (${helper.role})`, helper, extra);
-  if (res.ok) recordAIUse(helper.id);
-  return res;
+  const { text, refs } = buildNote(`Talking with ${helper.name} (${helper.role})`);
+  const note = [text, extra].filter(Boolean).join('\n');
+  const res = await callEmber({ kind: 'helper', agent: helper.id, messages: cleanTurns(turns), context: note });
+  if (!res.ok) return res;
+  if (!res.data.reply) return { ok: false, reason: 'unavailable' };
+  const reply = toReply(res.data, refs, note);
+  recordAIUse(helper.id, reply.cents, true, reply.ms);
+  return reply;
 }
 
-async function askRaw(turns: EmberTurn[], screen: string, helper: Helper | null, extra?: string): Promise<EmberAIResult> {
-  const context = [emberContext(screen), extra].filter(Boolean).join('\n');
+export type JobResult<T> = { ok: true; data: T; cents: number; ms: number; model: string; refs: Record<string, NoteRef> } | { ok: false; reason: AIFailure };
 
-  if (!emberMissing) {
-    const { data, error } = await supabase.functions.invoke('ember', { body: { messages: turns, context, agent: helper?.id ?? null } });
-    if (!error && data?.reply) {
-      const action = data.action && data.action in EMBER_ACTIONS ? (data.action as EmberActionKey) : null;
-      return { ok: true, reply: String(data.reply), action };
-    }
-    const info = await readError(error);
-    if (!info) return { ok: false, reason: 'offline' };
-    if (info.status !== 404) return { ok: false, reason: reasonFrom(info.body) };
-    emberMissing = true;
-  }
-
-  // Fallback: the older general `chat` function. Fold Ember's persona and
-  // the context into the first message, since that function has its own
-  // fixed system prompt.
-  const first = turns.findIndex((t) => t.role === 'user');
-  const messages = turns.slice(first).map((t, i) =>
-    i === 0 ? { role: t.role, content: `(${helper?.persona ?? PERSONA}\n\nWhat the app knows right now:\n${context})\n\n${t.content}` } : t
-  );
-  const { data, error } = await supabase.functions.invoke('chat', { body: { messages } });
-  if (!error && data?.reply) {
-    let reply = String(data.reply);
-    let action: EmberActionKey | null = null;
-    const tag = reply.match(/\[\[action:([a-z]+)\]\]\s*$/i);
-    if (tag) {
-      const key = tag[1].toLowerCase();
-      if (key in EMBER_ACTIONS) action = key as EmberActionKey;
-      reply = reply.slice(0, tag.index).trim();
-    }
-    return { ok: true, reply, action };
-  }
-  const info = await readError(error);
-  if (!info) return { ok: false, reason: 'offline' };
-  return { ok: false, reason: reasonFrom(info.body) };
+/**
+ * A one-off job: structured ones (steps, plan, scan, cards, points,
+ * practice, pick, summary) come back as data; text ones (title, reflect,
+ * ping) as `{ reply }`. `input` is what to work on; `screen` adds the app
+ * note when the job needs to know about the day.
+ */
+export async function askJob<T = { reply: string }>(kind: Kind, input: string, opts: { screen?: string; who?: string; note?: NoteOptions } = {}): Promise<JobResult<T>> {
+  const free = FREE_KINDS.has(kind);
+  if (!free && !canUseAI()) return { ok: false, reason: 'limit' };
+  const built = opts.screen ? buildNote(opts.screen, opts.note) : null;
+  const res = await callEmber({ kind, messages: [{ role: 'user', content: redact(input) }], context: built?.text });
+  if (!res.ok) return res;
+  const payload = res.data.data ?? (typeof res.data.reply === 'string' ? { reply: res.data.reply } : null);
+  if (!payload) return { ok: false, reason: 'unavailable' };
+  const cents = centsFor(res.data.usage);
+  const ms = Number(res.data.ms) || 0;
+  recordAIUse(opts.who ?? kind, cents, !free, ms);
+  return { ok: true, data: payload as T, cents, ms, model: String(res.data.usage?.model ?? ''), refs: built?.refs ?? {} };
 }
 
 export function whyOffline(reason: AIFailure) {
+  if (reason === 'off') return 'AI is turned off in Settings, so I’ll use my own questions. Everything else still works.';
+  if (reason === 'busy') return 'My thinking brain is swamped for a moment. Try again in a minute, or I’ll use my own questions for now.';
+  if (reason === 'timeout') return 'That took too long to think through, so I stopped waiting. Try again, or I’ll use my own questions for now.';
+  if (reason === 'spend_limit') return 'My thinking brain hit this month’s spending limit, so I’ll use my own questions for now.';
   if (reason === 'limit') return 'That’s all your free AI replies for this week. Plus gives you way more — or I’ll keep going with my own questions for free.';
   if (reason === 'no_credit') return 'My thinking brain is resting — the Anthropic account behind it is out of credit — so I’ll use my own questions for now.';
   if (reason === 'offline') return 'I can’t reach my thinking brain right now (no connection?), so I’ll use my own questions for now.';

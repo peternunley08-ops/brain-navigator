@@ -153,12 +153,39 @@ export interface LifeSettings {
   combo?: { day: string; step: number } | null;
   /** Sage's explanation level. */
   sageLevel?: string;
+  /** AI turned off everywhere: every tool runs on the phone only. */
+  aiOff?: boolean;
+  /** Ember's memory: off means nothing from past chats is kept or sent. */
+  memoryOff?: boolean;
   /** A class name as it appears in screenshots (lowercase) → your class's id. */
   classAliases?: Record<string, string>;
   /** Days (YYYY-MM-DD) a breathing tool was finished; the last 90 are kept. */
   breathDays?: string[];
   /** How much the phone vibrates: off, light taps only, or full (default). */
   haptics?: 'off' | 'light' | 'full';
+}
+
+/**
+ * Something Ember keeps between conversations, only with the student's OK:
+ * a one-line summary of a chat, or a fact they agreed to. Lives on the
+ * phone; sent along with later Ember chats so Ember can pick up the thread.
+ */
+export interface EmberMemory {
+  id: string;
+  kind: 'chat' | 'fact';
+  text: string;
+  at: string;
+  /** Something coming up worth asking about ("the chem test"), and its date. */
+  followUp?: string;
+  followUpDate?: string;
+  /** The follow-up was asked about or dismissed. */
+  followedUp?: boolean;
+}
+
+/** The last Ember conversation, so it can be picked back up. */
+export interface EmberChat {
+  at: string;
+  lines: { from: 'ember' | 'you'; text: string }[];
 }
 
 export interface HelperTurn {
@@ -173,7 +200,7 @@ export interface AIUsage {
   month: string;
   monthUsed: number;
   /** Who each recent reply went to ('ember' or a helper id), newest last. */
-  log?: { at: string; who: string }[];
+  log?: { at: string; who: string; cents?: number; ms?: number; free?: boolean }[];
 }
 
 interface LifeData {
@@ -207,6 +234,9 @@ interface LifeData {
   helperLast: Record<string, { at: string; line: string }>;
   /** Helper id → when its chat last changed (chats over 30 days old are cleared). */
   helperChatAt: Record<string, string>;
+  /** What Ember remembers, newest last. */
+  emberMemory: EmberMemory[];
+  lastEmberChat: EmberChat | null;
 }
 
 interface LifeStore extends LifeData {
@@ -256,6 +286,11 @@ interface LifeStore extends LifeData {
   setSettings: (patch: Partial<LifeSettings>) => void;
   setAI: (ai: AIUsage) => void;
   setHelperChat: (id: string, turns: HelperTurn[]) => void;
+  remember: (m: Omit<EmberMemory, 'id' | 'at'>) => EmberMemory;
+  updateMemory: (id: string, patch: Partial<EmberMemory>) => void;
+  forget: (id: string) => void;
+  forgetAll: () => void;
+  setLastEmberChat: (chat: EmberChat | null) => void;
   recordQuiz: (score: number, correct: number, lightning?: boolean) => void;
   updateDeck: (id: string, patch: Partial<Omit<Deck, 'id' | 'cards'>>) => void;
   noteHelperUse: (assignmentId: string, helperId: string) => void;
@@ -330,6 +365,8 @@ const EMPTY: LifeData = {
   helperUse: {},
   helperLast: {},
   helperChatAt: {},
+  emberMemory: [],
+  lastEmberChat: null,
 };
 
 const FILE = 'life.json';
@@ -395,6 +432,8 @@ export const useLifeStore = create<LifeStore>((set, get) => {
       helperUse: s.helperUse,
       helperLast: s.helperLast,
       helperChatAt: s.helperChatAt,
+      emberMemory: s.emberMemory,
+      lastEmberChat: s.lastEmberChat,
     };
   };
   const commit = (patch: Partial<LifeData>) => {
@@ -553,6 +592,16 @@ export const useLifeStore = create<LifeStore>((set, get) => {
     // Only the last 40 turns are kept per helper.
     setHelperChat: (id, turns) =>
       commit({ helperChats: { ...get().helperChats, [id]: turns.slice(-40) }, helperChatAt: { ...get().helperChatAt, [id]: new Date().toISOString() } }),
+    remember: (m) => {
+      const mem: EmberMemory = { id: `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`, at: new Date().toISOString(), ...m };
+      // The newest 30 are plenty; only a few are ever sent.
+      commit({ emberMemory: [...get().emberMemory, mem].slice(-30) });
+      return mem;
+    },
+    updateMemory: (id, patch) => commit({ emberMemory: get().emberMemory.map((m) => (m.id === id ? { ...m, ...patch } : m)) }),
+    forget: (id) => commit({ emberMemory: get().emberMemory.filter((m) => m.id !== id) }),
+    forgetAll: () => commit({ emberMemory: [], lastEmberChat: null }),
+    setLastEmberChat: (chat) => commit({ lastEmberChat: chat }),
     noteHelperLast: (id, line) => commit({ helperLast: { ...get().helperLast, [id]: { at: new Date().toISOString(), line } } }),
     noteHelperUse: (assignmentId, helperId) => commit({ helperUse: { ...get().helperUse, [assignmentId]: helperId } }),
     recordQuiz: (score, correct, lightning) => {

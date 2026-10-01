@@ -1596,3 +1596,11 @@ index.ts` now asks Sonnet 5.5 for adaptive thinking at effort `high`
 (max_tokens 16000), turns on server-side fallbacks, and answers refusals
 gently. Not committed or deployed yet. Still waiting on the user: credit,
 then deploying `ember` from the Supabase dashboard, then a live test.
+
+Then the user added Anthropic credit and asked to deploy Ember. The user
+signed in to Supabase in the browser pane; the `ember` function was created
+in the dashboard editor with code matching the repo file (SHA-256 checked)
+and deployed. Ember answered live in about 3–5 seconds, Quizzo answered
+through `agent`, and the app's Ember conversation replied using the
+planner. The test conversation wasn't saved.
+

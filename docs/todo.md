@@ -575,11 +575,12 @@ gracefully until then.
   `ember` now sends adaptive thinking at effort `high`, max_tokens 16000,
   server-side fallbacks, refusal handling (uncommitted until the user says
   "commit")
-- [ ] User: add credits at console.anthropic.com (Settings → Billing; set
-  a small monthly spend limit under Limits)
-- [ ] Deploy `ember` via the Supabase dashboard editor (user, or us via
-  their browser with permission)
-- [ ] Once both are done: verify a real AI reply + action button live
+- [x] User added credits (2026-10-01)
+- [x] Deployed `ember` via the Supabase dashboard editor (2026-10-01; code
+  checksum matched the repo file)
+- [x] Verified live: curl replies from Ember and Quizzo, and the app's
+  Ember conversation answered using planner context (test not saved)
+- [ ] Not yet seen live: an action button on a real reply
 
 ## Phase 30 — High school hub (2026-09-29, committed 309197b)
 
@@ -647,8 +648,8 @@ on Anthropic billing. **Do not build until the user approves.**
 Plan and status: `docs/masterpiece-2.md` (100 ideas, all built).
 - [x] Helper crew, AI allowance + Plus screen, multi-screenshot scan
 - [x] Committed and pushed as c454311 (2026-10-01)
-- [ ] Ember's AI and the helpers' AI chat: needs Anthropic credit and the
-  `ember` Edge Function deployed (the user's steps)
+- [x] Ember's AI and the helpers' AI chat: credit added and `ember`
+  deployed 2026-10-01
 - [ ] Plus purchases: needs the paid Apple Developer Program, an App Store
   Connect subscription, and a StoreKit library
 

@@ -1,13 +1,18 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text } from 'react-native';
+import { useState } from 'react';
+import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
 import { InfoList } from '../components/InfoList';
 import { useAIStatus } from '../components/helpers/Quota';
 import { Button } from '../components/ui/Button';
+import { IconButton } from '../components/ui/IconButton';
 import { Card } from '../components/ui/Card';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
-import { FREE_PER_WEEK, PLANS, PLUS_PER_MONTH } from '../core/aiQuota';
+import { aiSpend, FREE_PER_WEEK, PLANS, PLUS_PER_MONTH } from '../core/aiQuota';
+import { askJob, whyOffline } from '../core/emberAI';
+import { HELPERS } from '../core/helpers';
+import { useLifeStore } from '../core/lifeStore';
 import { colors, fonts } from '../core/theme';
 
 const FREE_TOOLS = [
@@ -18,15 +23,42 @@ const FREE_TOOLS = [
 ];
 
 const SENT = [
-  { icon: 'chat' as const, title: 'What you type, and the chat so far', body: 'The last few messages, so the reply makes sense.' },
-  { icon: 'book' as const, title: 'A short note about your day', body: 'Your grade, your next class, what’s due this week, the titles of what’s open on your Desk, and today’s check-in numbers. Never your notes, grades, or journal.' },
+  { icon: 'chat' as const, title: 'What you type, and the chat so far', body: 'The last few messages, so the reply makes sense. Phone numbers, emails, and street addresses are blanked on your phone first.' },
+  { icon: 'book' as const, title: 'A short note about your day', body: 'Your first name, grade, bedtime, next class, what’s due this week, the titles of what’s open on your Desk, and today’s check-in numbers. “Keep my Desk private” leaves out the Desk and check-in. Hold any Ember reply to see exactly what was sent. Never your notes, grades, or journal, unless you tap a button that says it sends one.' },
   { icon: 'arrow' as const, title: 'Where it goes', body: 'Through this app’s server to Anthropic, the company that makes Claude, which writes the reply.' },
 ];
 
 // What the AI does, what it costs, and what leaves the phone, in plain words.
 export default function AIScreen() {
   const st = useAIStatus();
+  const aiOff = useLifeStore((s) => !!s.settings.aiOff);
+  const memoryOff = useLifeStore((s) => !!s.settings.memoryOff);
+  const memory = useLifeStore((s) => s.emberMemory);
+  useLifeStore((s) => s.ai);
+  const spend = aiSpend(30);
+  const [test, setTest] = useState<{ busy: boolean; line: string | null }>({ busy: false, line: null });
   let n = 0;
+
+  const runTest = async () => {
+    setTest({ busy: true, line: null });
+    const res = await askJob('ping', 'Can you hear me?', { who: 'test' });
+    setTest({
+      busy: false,
+      line: res.ok ? `“${(res.data as { reply: string }).reply}” — ${/haiku/.test(res.model) ? 'Claude Haiku' : 'Claude Sonnet'}, ${(res.ms / 1000).toFixed(1)} seconds.` : whyOffline(res.reason),
+    });
+  };
+
+  const clearChats = () =>
+    Alert.alert('Clear every AI chat?', 'Helper chats start over. Saved Ember conversations stay in your journal.', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Clear',
+        style: 'destructive',
+        onPress: () => {
+          for (const h of HELPERS) useLifeStore.getState().setHelperChat(h.id, []);
+        },
+      },
+    ]);
   return (
     <Screen title="How AI works here" subtitle="What’s free, what’s sent, and what it costs.">
       <Reveal index={n++}>
@@ -35,6 +67,13 @@ export default function AIScreen() {
             {st.left} of {st.limit} AI replies left {st.plus ? 'this month' : 'this week'}
           </Text>
           <Text style={styles.body}>Only replies written by AI count, and only when one actually arrives. If it can’t answer, nothing is used.</Text>
+          <View style={styles.switchRow}>
+            <View style={styles.flex}>
+              <Text style={styles.switchTitle}>Turn off AI everywhere</Text>
+              <Text style={styles.body}>Ember and the helpers use only what’s on your phone. Nothing is sent.</Text>
+            </View>
+            <Switch value={aiOff} onValueChange={(v) => useLifeStore.getState().setSettings({ aiOff: v })} trackColor={{ true: colors.flame }} accessibilityLabel="Turn off AI everywhere" />
+          </View>
         </Card>
       </Reveal>
       <Reveal index={n++}>
@@ -48,7 +87,7 @@ export default function AIScreen() {
         <Section title="What uses AI">
           <Card>
             <Text style={styles.body}>
-              Talking it through with Ember after its first question, and the AI chat with any helper. Each reply is written by Claude. It can be wrong, so check facts that matter.
+              Talking it through with Ember after its first question, the AI chat with any helper, and buttons marked with a sparkle (like breaking an assignment into steps or making cards from a note). Each reply is written by Claude. It can be wrong, so check facts that matter. Nothing the AI suggests happens until you tap it.
             </Text>
           </Card>
         </Section>
@@ -71,7 +110,58 @@ export default function AIScreen() {
         </Section>
       </Reveal>
       <Reveal index={n++}>
-        <Text style={styles.foot}>Right now AI replies are still being set up, so chats will say they can’t answer yet. Everything on this page marked free works today.</Text>
+        <Section title="What Ember remembers" note={memoryOff ? 'Off' : `${memory.length}`}>
+          <Card>
+            <View style={styles.switchRow}>
+              <View style={styles.flex}>
+                <Text style={styles.switchTitle}>Ember’s memory</Text>
+                <Text style={styles.body}>After a chat, Ember can ask to keep one line about it, and facts you agree to. They stay on your phone and go along only with your next chats with Ember.</Text>
+              </View>
+              <Switch
+                value={!memoryOff}
+                onValueChange={(on) => useLifeStore.getState().setSettings({ memoryOff: !on })}
+                trackColor={{ true: colors.flame }}
+                accessibilityLabel="Ember’s memory"
+              />
+            </View>
+            {memory.length ? (
+              <View style={styles.memList}>
+                {[...memory].reverse().map((m) => (
+                  <View key={m.id} style={styles.memRow}>
+                    <View style={styles.flex}>
+                      <Text style={styles.memText}>{m.text}</Text>
+                      <Text style={styles.memMeta}>
+                        {m.kind === 'fact' ? 'Something you told Ember' : new Date(m.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        {m.followUp && !m.followedUp ? ` · will ask about ${m.followUp}` : ''}
+                      </Text>
+                    </View>
+                    <IconButton icon="close" label={`Forget: ${m.text}`} size={30} onPress={() => useLifeStore.getState().forget(m.id)} />
+                  </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={[styles.body, styles.testLine]}>Nothing yet.</Text>
+            )}
+            {memory.length ? <Button label="Forget everything" variant="ghost" size="sm" tint={colors.danger} onPress={() => useLifeStore.getState().forgetAll()} style={styles.btn} /> : null}
+          </Card>
+        </Section>
+      </Reveal>
+      <Reveal index={n++}>
+        <Section title="Under the hood">
+          <Card>
+            <Text style={styles.body}>
+              Ember and the helpers think with Claude Sonnet 5.5, which reasons before it answers. Quick background jobs, like naming a chat, use the faster Claude Haiku 4.5.
+              {spend.replies
+                ? ` Over the last 30 days: ${spend.replies} ${spend.replies === 1 ? 'reply' : 'replies'}, about ${spend.perReply < 1 ? 'a penny or less' : `${spend.perReply.toFixed(1)}¢`} each${spend.typicalMs ? `, usually in about ${Math.max(1, Math.round(spend.typicalMs / 1000))} seconds` : ''}.`
+                : ''}
+            </Text>
+            <View style={styles.btnRow}>
+              <Button label={test.busy ? 'Asking…' : 'Test Ember’s brain'} icon="sparkle" variant="secondary" size="sm" onPress={runTest} disabled={test.busy || aiOff} />
+              <Button label="Clear every AI chat" variant="ghost" size="sm" tint={colors.danger} onPress={clearChats} />
+            </View>
+            {test.line ? <Text style={[styles.body, styles.testLine]}>{test.line}</Text> : null}
+          </Card>
+        </Section>
       </Reveal>
     </Screen>
   );
@@ -96,6 +186,50 @@ const styles = StyleSheet.create({
   btn: {
     marginTop: 12,
     alignSelf: 'flex-start',
+  },
+  btnRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  testLine: {
+    marginTop: 10,
+  },
+  memList: {
+    marginTop: 12,
+    gap: 10,
+  },
+  memRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  memText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 19,
+    color: colors.text,
+  },
+  memMeta: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 12,
+  },
+  switchTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+    color: colors.text,
+  },
+  flex: {
+    flex: 1,
   },
   foot: {
     marginTop: 18,

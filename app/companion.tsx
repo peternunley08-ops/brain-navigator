@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   FadeInDown,
@@ -15,25 +15,37 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { EmberSprite } from '../components/ember/EmberSprite';
+import { HelpCard } from '../components/ember/HelpCard';
+import { ReplyExtras } from '../components/ember/ReplyExtras';
+import { RichText } from '../components/ember/RichText';
 import { Sparks } from '../components/ember/Sparks';
 import { useEmberRig } from '../components/ember/useEmberRig';
 import { Button } from '../components/ui/Button';
+import { Chip } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
 import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
 import { Screen } from '../components/ui/Screen';
 import { CLOSING_LINES, FOLLOW_UP_PROMPTS, OPENING_PROMPTS, randomFrom } from '../core/companionPrompts';
-import { askEmber, EMBER_ACTIONS, type EmberActionKey, type EmberTurn, whyOffline } from '../core/emberAI';
+import { type AIFailure, askEmber, askJob, dueFollowUp, type EmberReply, type EmberTurn, soundsLikeCrisis, whyOffline } from '../core/emberAI';
+import { uid, useHubStore } from '../core/hubStore';
+import { useLifeStore } from '../core/lifeStore';
+import { offerUndo } from '../core/undoStore';
+import { useWellnessStore } from '../core/wellnessStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
 import { useVentStore } from '../core/ventStore';
 
 interface Line {
   from: 'ember' | 'you';
   text: string;
-  action?: EmberActionKey | null;
+  /** An AI reply, with everything it suggested. */
+  ai?: EmberReply;
   /** A note about Ember itself, not part of the conversation. */
   aside?: boolean;
 }
+
+// Failures worth trying again; the rest switch to Ember's own questions.
+const RETRYABLE: AIFailure[] = ['busy', 'timeout', 'offline', 'unavailable'];
 
 // Most conversations are a few turns; this keeps one from running on (and
 // costing) forever.
@@ -45,7 +57,13 @@ const MAX_TURNS = 20;
 // what you said and can offer one next step. If the AI can't answer, Ember
 // says so plainly and falls back to the original two-question flow.
 export default function CompanionScreen() {
-  const opening = useRef(randomFrom(OPENING_PROMPTS)).current;
+  // If they mentioned something coming up last time and it's happened, Ember asks about it.
+  const follow = useRef(dueFollowUp()).current;
+  const opening = useRef(follow ? `Last time you mentioned ${follow.followUp}. How did it go?` : randomFrom(OPENING_PROMPTS)).current;
+  // The last conversation, if it was in the last three days, can be picked back up.
+  const previous = useRef(useLifeStore.getState().lastEmberChat).current;
+  const canResume = !!previous?.lines.length && Date.now() - new Date(previous.at).getTime() < 3 * 86400000 && !useLifeStore.getState().settings.memoryOff;
+  const [memoryOffer, setMemoryOffer] = useState<'ask' | 'saving' | 'done' | null>(null);
   const followUp = useRef(randomFrom(FOLLOW_UP_PROMPTS)).current;
   const closingLine = useRef(randomFrom(CLOSING_LINES)).current;
 
@@ -67,6 +85,15 @@ export default function CompanionScreen() {
   const [finished, setFinished] = useState(false);
   const [burst, setBurst] = useState(0);
   const [limited, setLimited] = useState(false);
+  // Words that sound like danger pin the help lines for the rest of the chat.
+  const [crisis, setCrisis] = useState(false);
+  const [failure, setFailure] = useState<AIFailure | null>(null);
+  const [justListen, setJustListen] = useState(false);
+  const [keepPrivate, setKeepPrivate] = useState(false);
+  const [seeing, setSeeing] = useState<number | null>(null);
+  const startedAt = useRef<number | null>(null);
+  const nudged = useRef(false);
+  const lowMood = (useWellnessStore.getState().todaysCheckin()?.mood ?? 5) <= 2;
 
   const isSaving = useVentStore((s) => s.isSaving);
   const error = useVentStore((s) => s.error);
@@ -86,6 +113,7 @@ export default function CompanionScreen() {
   useEffect(() => {
     rig.setMood('happy');
     rig.hopUp(10);
+    if (follow) useLifeStore.getState().updateMemory(follow.id, { followedUp: true });
     const t = setTimeout(() => {
       rig.setMood('idle');
       say(opening);
@@ -110,12 +138,14 @@ export default function CompanionScreen() {
     }
   };
 
-  const send = async () => {
-    const text = draft.trim();
+  const send = async (chip?: string) => {
+    const text = (chip ?? draft).trim();
     if (!text || thinking) return;
+    if (soundsLikeCrisis(text)) setCrisis(true);
+    if (startedAt.current == null) startedAt.current = Date.now();
     push({ from: 'you', text });
     const next = linesRef.current;
-    setDraft('');
+    if (!chip) setDraft('');
     const answers = next.filter((l) => l.from === 'you').length;
 
     if (mode === 'scripted') {
@@ -124,10 +154,15 @@ export default function CompanionScreen() {
       scriptedNext(answers);
       return;
     }
+    await think(answers);
+  };
 
+  // Ask the AI about the conversation so far (also used by Try again).
+  const think = async (answers: number) => {
+    setFailure(null);
     setThinking(true);
     rig.setMood('curious');
-    const turns: EmberTurn[] = next
+    const turns: EmberTurn[] = linesRef.current
       .filter((l) => !l.aside)
       .map((l) => ({ role: l.from === 'ember' ? 'assistant' : 'user', content: l.text }));
     // The API wants the person to speak first; Ember's opening question
@@ -136,13 +171,23 @@ export default function CompanionScreen() {
     const history = turns.slice(firstUser);
     history[0] = { role: 'user', content: `(You opened by asking: "${opening}")\n\n${history[0].content}` };
 
-    const res = await askEmber(history, 'Talk it through with Ember');
+    const res = await askEmber(history, 'Talk it through with Ember', { justListen, private: keepPrivate });
     setThinking(false);
 
     if (res.ok) {
-      rig.setMood(res.action ? 'happy' : 'idle');
-      say(res.reply, { action: res.action });
+      if (res.refused || res.actions.includes('help')) setCrisis(true);
+      rig.setMood(res.actions.length ? 'happy' : 'idle');
+      say(res.reply, { ai: res });
+      lateNudge();
       if (answers >= MAX_TURNS) setTimeout(() => finish(), 1500);
+      return;
+    }
+
+    // A hiccup: offer to try again, without giving up on the AI.
+    if (RETRYABLE.includes(res.reason)) {
+      setFailure(res.reason);
+      rig.setMood('concerned');
+      setTimeout(() => rig.setMood('idle'), 900);
       return;
     }
 
@@ -153,6 +198,83 @@ export default function CompanionScreen() {
     say(whyOffline(res.reason), { aside: true });
     setTimeout(() => rig.setMood('idle'), 900);
     scriptedNext(answers);
+  };
+
+  // Bring back the last conversation above this one, so Ember has it too.
+  const resume = () => {
+    if (!previous) return;
+    const back: Line[] = [
+      { from: 'ember', text: `Picking up from ${new Date(previous.at).toLocaleDateString('en-US', { weekday: 'long' })}:`, aside: true },
+      ...previous.lines.map((l) => ({ from: l.from, text: l.text })),
+    ];
+    linesRef.current = [...back, ...linesRef.current.filter((l) => l.text !== opening)];
+    setLines(linesRef.current);
+    say('Where were we? Tell me what’s happened since.');
+  };
+
+  // Keep a one-line summary of this chat, only if they say yes.
+  const rememberChat = async () => {
+    setMemoryOffer('saving');
+    const transcript = linesRef.current
+      .filter((l) => !l.aside)
+      .map((l) => `${l.from === 'ember' ? 'Ember' : 'Student'}: ${l.text}`)
+      .join('\n');
+    const res = await askJob<{ summary: string; followUp: string; followUpDate: string }>('summary', transcript, { screen: 'Ember’s memory', who: 'memory' });
+    if (!res.ok || !res.data.summary) {
+      setMemoryOffer(null);
+      say('I couldn’t save that memory just now. That’s okay.', { aside: true });
+      return;
+    }
+    const m = useLifeStore.getState().remember({
+      kind: 'chat',
+      text: res.data.summary,
+      ...(res.data.followUp && res.data.followUpDate ? { followUp: res.data.followUp, followUpDate: res.data.followUpDate } : {}),
+    });
+    setMemoryOffer('done');
+    say(`I’ll remember: “${m.text}”${m.followUp ? ` I’ll ask about ${m.followUp} after.` : ''}`, { aside: true });
+  };
+
+  const keepFact = (fact: string) => {
+    const m = useLifeStore.getState().remember({ kind: 'fact', text: fact });
+    offerUndo('Ember will remember that', () => useLifeStore.getState().forget(m.id), 'heart');
+  };
+
+  const useOwnQuestions = () => {
+    setFailure(null);
+    setMode('scripted');
+    scriptedNext(linesRef.current.filter((l) => l.from === 'you').length);
+  };
+
+  // Twenty minutes into a chat past wind-down, Ember says it'll be here tomorrow. Once.
+  const lateNudge = () => {
+    if (nudged.current || startedAt.current == null) return;
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const windDown = useLifeStore.getState().settings.windDown;
+    const late = mins >= windDown || mins < 4 * 60;
+    if (late && Date.now() - startedAt.current > 20 * 60_000) {
+      nudged.current = true;
+      setTimeout(() => say('It’s getting late. I’ll be right here tomorrow, and sleep will make all of this smaller.', { aside: true }), 2500);
+    }
+  };
+
+  // Hold an Ember reply: keep it, share it, or see what the app sent along with it.
+  const holdReply = (i: number) => {
+    const l = linesRef.current[i];
+    if (!l || l.from !== 'ember' || l.aside) return;
+    Alert.alert('This reply', undefined, [
+      {
+        text: 'Save to Notebook',
+        onPress: () => {
+          const first = l.text.split(/[.!?\n]/)[0].trim().slice(0, 40);
+          const note = useHubStore.getState().createNote({ title: `Ember: ${first}`, icon: 'flame', blocks: [{ id: uid(), type: 'text', text: l.text }] });
+          offerUndo('Saved to your Notebook', () => useHubStore.getState().deleteNote(note.id), 'book');
+        },
+      },
+      { text: 'Copy or share', onPress: () => Share.share({ message: l.text }).catch(() => {}) },
+      ...(l.ai ? [{ text: 'What did Ember see?', onPress: () => setSeeing(i) }] : []),
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
   };
 
   // Save the conversation, then close it warmly. Only once the save works —
@@ -167,6 +289,9 @@ export default function CompanionScreen() {
     const saved = await saveEntry(content, 'companion');
     if (!saved) return;
     setFinished(true);
+    const memoryOff = !!useLifeStore.getState().settings.memoryOff;
+    if (!memoryOff) useLifeStore.getState().setLastEmberChat({ at: new Date().toISOString(), lines: said.slice(-24).map((l) => ({ from: l.from, text: l.text })) });
+    if (!memoryOff && mode === 'ai' && said.some((l) => l.ai) && !crisis) setTimeout(() => setMemoryOffer('ask'), 1800);
     rig.setMood('cheer');
     rig.hopUp(18);
     setBurst((b) => b + 1);
@@ -175,6 +300,9 @@ export default function CompanionScreen() {
       rig.setMood('happy');
     }, 600);
   };
+
+  const lastAI = [...lines].reverse().find((l) => l.from === 'ember' && !l.aside);
+  const chips = !finished && !thinking && lastAI?.ai ? lastAI.ai.chips : [];
 
   return (
     <Screen nav={false} tone="ember" motes scroll={false} contentStyle={styles.frame}>
@@ -193,35 +321,81 @@ export default function CompanionScreen() {
         automaticallyAdjustKeyboardInsets
         showsVerticalScrollIndicator={false}
       >
-        {lines.map((l, i) => (
-          <Animated.View key={i} entering={(l.from === 'ember' ? FadeInUp : FadeInDown).duration(360)}>
-            <View
-              style={[
-                styles.bubble,
-                l.from === 'ember' ? styles.fromEmber : styles.fromYou,
-                l.aside && styles.aside,
-              ]}
-            >
-              <Text style={l.from === 'ember' ? (l.aside ? styles.asideText : styles.emberText) : styles.youText}>{l.text}</Text>
-            </View>
-            {l.action && !finished ? (
+        {crisis ? <HelpCard /> : null}
+        {lines.map((l, i) => {
+          const isLast = i === lines.length - 1;
+          return (
+            <Animated.View key={i} entering={(l.from === 'ember' ? FadeInUp : FadeInDown).duration(360)}>
               <Pressy
-                style={styles.suggest}
-                depth={0.94}
-                onPress={() => router.push(EMBER_ACTIONS[l.action!].href as never)}
-                accessibilityRole="button"
+                onLongPress={l.ai ? () => holdReply(i) : undefined}
+                disabled={!l.ai}
+                depth={0.98}
+                accessibilityHint={l.ai ? 'Hold to save, share, or see what Ember saw' : undefined}
+                style={[styles.bubble, l.from === 'ember' ? styles.fromEmber : styles.fromYou, l.aside && styles.aside]}
               >
-                <Icon name={EMBER_ACTIONS[l.action].icon} size={15} color={colors.flameInk} strokeWidth={2.1} />
-                <Text style={styles.suggestText}>{EMBER_ACTIONS[l.action].label}</Text>
+                {l.from === 'ember' && !l.aside ? (
+                  <RichText text={l.text} style={styles.emberText} reveal={!!l.ai && isLast} />
+                ) : (
+                  <Text style={l.from === 'ember' ? styles.asideText : styles.youText}>{l.text}</Text>
+                )}
+                {l.ai ? (
+                  <View style={styles.mark} accessibilityLabel="Written by AI">
+                    <Icon name="sparkle" size={10} color={colors.textFaint} />
+                    <Text style={styles.markText}>Claude</Text>
+                  </View>
+                ) : null}
               </Pressy>
-            ) : null}
+              {seeing === i && l.ai ? (
+                <Pressy onPress={() => setSeeing(null)} depth={0.99} style={[styles.bubble, styles.aside, styles.seen]} accessibilityHint="Tap to close">
+                  <Text style={styles.seenTitle}>What Ember saw with this message</Text>
+                  <Text style={styles.asideText}>{l.ai.note}</Text>
+                  <Text style={styles.seenFoot}>Plus the conversation above. About {l.ai.cents < 1 ? 'a penny' : `${Math.round(l.ai.cents)}¢`}, {Math.max(1, Math.round(l.ai.ms / 1000))} s to think.</Text>
+                </Pressy>
+              ) : null}
+              {l.ai && !finished ? <ReplyExtras reply={l.ai} onRemember={useLifeStore.getState().settings.memoryOff ? undefined : keepFact} /> : null}
+            </Animated.View>
+          );
+        })}
+
+        {finished && (crisis || lowMood) ? <ReplyExtras reply={{ actions: ['ground', 'breathe'], todo: null, setdown: null, focus: null, helper: null, open: null, remember: null }} /> : null}
+
+        {canResume && yourTurns === 0 && !finished && lines.length === 1 ? (
+          <Animated.View entering={FadeInDown.delay(600).duration(300)}>
+            <Chip label="Pick up where we left off" icon="repeat" onPress={resume} />
           </Animated.View>
-        ))}
+        ) : null}
+
+        {memoryOffer === 'ask' || memoryOffer === 'saving' ? (
+          <Animated.View entering={FadeInDown.duration(300)} style={[styles.bubble, styles.fromEmber, styles.aside]}>
+            <Text style={styles.asideText}>Want me to remember the gist of this for next time? I’d keep one line on your phone and bring it up only with me.</Text>
+            <View style={[styles.row, styles.retryRow]}>
+              <Button label={memoryOffer === 'saving' ? 'Remembering…' : 'Remember'} icon="heart" size="sm" onPress={rememberChat} disabled={memoryOffer === 'saving'} />
+              <Button label="Not this one" variant="ghost" size="sm" onPress={() => setMemoryOffer(null)} />
+            </View>
+          </Animated.View>
+        ) : null}
+
+        {failure ? (
+          <Animated.View entering={FadeInDown.duration(300)} style={[styles.bubble, styles.fromEmber, styles.aside]}>
+            <Text style={styles.asideText}>{whyOffline(failure)}</Text>
+            <View style={[styles.row, styles.retryRow]}>
+              <Button label="Try again" icon="repeat" size="sm" onPress={() => think(yourTurns)} />
+              <Button label="Use your questions" variant="ghost" size="sm" onPress={useOwnQuestions} />
+            </View>
+          </Animated.View>
+        ) : null}
 
         {thinking ? <Thinking /> : null}
 
         {!finished && lines.length > 0 ? (
           <Animated.View entering={FadeInDown.delay(300).duration(360)} style={styles.reply}>
+            {chips.length ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} keyboardShouldPersistTaps="handled">
+                {chips.map((c) => (
+                  <Chip key={c} label={c} onPress={() => send(c)} />
+                ))}
+              </ScrollView>
+            ) : null}
             <Field
               multiline
               placeholder={yourTurns === 0 ? 'Take your time.' : 'Say more, or tap Done when you’re ready.'}
@@ -235,7 +409,7 @@ export default function CompanionScreen() {
               <Button
                 label="Tell Ember"
                 icon="chat"
-                onPress={send}
+                onPress={() => send()}
                 disabled={thinking || isSaving || !draft.trim()}
                 style={styles.flex}
               />
@@ -244,7 +418,16 @@ export default function CompanionScreen() {
               ) : null}
             </View>
             {mode === 'ai' ? (
-              <Text style={styles.privacy}>Ember’s replies are written by Claude. What you type here is sent to Anthropic to answer.</Text>
+              <>
+                <View style={styles.toggles}>
+                  <Chip label="Just listen" icon="heart" selected={justListen} onPress={() => setJustListen((v) => !v)} />
+                  <Chip label="Keep my Desk private" icon="pin" selected={keepPrivate} onPress={() => setKeepPrivate((v) => !v)} />
+                </View>
+                <Text style={styles.privacy}>
+                  {justListen ? 'Ember will just listen: no advice. ' : ''}Ember’s replies are written by Claude. What you type is sent to Anthropic to answer
+                  {keepPrivate ? ', without your Desk or check-in.' : ', with a short note about your day.'} Phone numbers, emails, and addresses are blanked first.
+                </Text>
+              </>
             ) : null}
             {limited ? <Button label="See Plus for more AI" icon="sparkle" variant="ghost" size="sm" onPress={() => router.push('/plus')} style={styles.plus} /> : null}
             {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
@@ -261,13 +444,24 @@ export default function CompanionScreen() {
   );
 }
 
-// Three embers pulsing while Ember thinks.
+// Three embers pulsing while Ember thinks. Deep thinking can take a while,
+// so after a few seconds it says so.
 function Thinking() {
+  const [long, setLong] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setLong(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
   return (
-    <Animated.View entering={FadeInUp.duration(240)} exiting={FadeOut.duration(160)} style={[styles.bubble, styles.fromEmber, styles.thinking]}>
+    <Animated.View entering={FadeInUp.duration(240)} exiting={FadeOut.duration(160)} style={[styles.bubble, styles.fromEmber, styles.thinking]} accessibilityLabel="Ember is thinking">
       {[0, 1, 2].map((i) => (
         <Dot key={i} i={i} />
       ))}
+      {long ? (
+        <Animated.Text entering={FadeInUp.duration(300)} style={styles.thinkingText}>
+          thinking it through…
+        </Animated.Text>
+      ) : null}
     </Animated.View>
   );
 }
@@ -378,8 +572,56 @@ const styles = StyleSheet.create({
   },
   thinking: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
     paddingVertical: 16,
+  },
+  thinkingText: {
+    marginLeft: 6,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  mark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 6,
+    opacity: 0.8,
+  },
+  markText: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: colors.textFaint,
+  },
+  seen: {
+    marginTop: 8,
+    maxWidth: '100%',
+  },
+  seenTitle: {
+    marginBottom: 4,
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  seenFoot: {
+    marginTop: 6,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
+  },
+  retryRow: {
+    marginTop: 10,
+    flexWrap: 'wrap',
+  },
+  chips: {
+    gap: 8,
+  },
+  toggles: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    justifyContent: 'center',
   },
   dot: {
     width: 8,
