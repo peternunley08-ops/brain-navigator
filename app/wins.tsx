@@ -24,6 +24,16 @@ const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 // Small wins and good things. Brains remember the bad day by default;
 // this is where the other stuff gets kept.
+const PROMPTS = [
+  ['Something that made you smile', 'Someone you’re glad exists', 'Something you did well'],
+  ['A small thing that went right', 'Someone who helped you, even a little', 'Something you’re looking forward to'],
+  ['Something good you ate', 'Someone you laughed with', 'Something your body let you do'],
+  ['Something you noticed outside', 'A message you were glad to get', 'Something you learned'],
+  ['A comfort: a song, a hoodie, a place', 'Someone who’d be proud of you', 'Something hard you got through'],
+  ['Something you’re lucky to have', 'A friend’s best quality', 'A choice you’re glad you made'],
+  ['A quiet moment', 'Someone you could text right now', 'Something you’re getting better at'],
+];
+
 export default function WinsScreen() {
   const wins = useLifeStore((s) => s.wins);
   const addWin = useLifeStore((s) => s.addWin);
@@ -34,6 +44,9 @@ export default function WinsScreen() {
 
   const today = dateKey();
   const three = gratitude[today] ?? ['', '', ''];
+  // A different set of prompts each day, so it doesn't turn into the same three answers.
+  const [py, pm, pd] = today.split('-').map(Number);
+  const prompts = PROMPTS[Math.floor(Date.UTC(py, pm - 1, pd) / 86400000) % PROMPTS.length];
   const [draft, setDraft] = useState<string[]>([...three, '', '', ''].slice(0, 3));
 
   const add = () => {
@@ -69,7 +82,7 @@ export default function WinsScreen() {
 
       <Reveal index={1}>
         <Card>
-          <Field value={text} onChangeText={setText} placeholder="Something that went right — any size" returnKeyType="done" onSubmitEditing={add} />
+          <Field value={text} onChangeText={setText} placeholder="Something that went right, any size" returnKeyType="done" onSubmitEditing={add} />
           <Button label="Drop it in the jar" icon="jar" onPress={add} disabled={!text.trim()} style={styles.gap} />
           <Text style={styles.hint}>Turned something in. Asked for help. Got out of bed on a hard day. All count.</Text>
         </Card>
@@ -84,7 +97,7 @@ export default function WinsScreen() {
                 <Field
                   value={draft[i]}
                   onChangeText={(v) => saveThree(i, v)}
-                  placeholder={['Something that made you smile', 'Someone you’re glad exists', 'Something you did well'][i]}
+                  placeholder={prompts[i]}
                   containerStyle={styles.flex}
                   onBlur={() => {
                     if (i === 2 && draft.every((x) => x.trim())) emberSay('Three good things. That’s a real practice, and you did it.', 'happy');
@@ -109,7 +122,7 @@ export default function WinsScreen() {
                       .filter((x) => x.trim())
                       .map((x, i) => (
                         <Text key={i} style={styles.pastItem}>
-                          · {x}
+                          • {x}
                         </Text>
                       ))}
                   </View>

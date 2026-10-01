@@ -9,6 +9,8 @@ import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
+import { emberSay } from '../components/ember/EmberBuddy';
+import { useHubStore } from '../core/hubStore';
 import { clock, dueLabel, isoDay, useSchoolStore, workloadByDay } from '../core/schoolStore';
 import { alpha, colors, fonts, layout, radii } from '../core/theme';
 
@@ -30,6 +32,7 @@ export default function WeekScreen() {
   const assignments = useSchoolStore((s) => s.assignments);
   const cap = useSchoolStore((s) => s.profile.nightlyCap);
   const [pick, setPick] = useState<string | null>(null);
+  const [blockClass, setBlockClass] = useState<string | null>(null);
   const [, tick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => tick((x) => x + 1), 60_000);
@@ -93,7 +96,7 @@ export default function WeekScreen() {
                       return (
                         <Pressy
                           key={`${c.id}-${d}`}
-                          onPress={() => router.push(`/class/${c.id}`)}
+                          onPress={() => setBlockClass(blockClass === c.id ? null : c.id)}
                           depth={0.94}
                           accessibilityRole="button"
                           accessibilityLabel={`${c.name}, ${DAY_NAMES[d - 1]} ${clock(c.start)} to ${clock(c.end)}`}
@@ -130,6 +133,7 @@ export default function WeekScreen() {
               </View>
             </Card>
           )}
+          {blockClass ? <NextFor classId={blockClass} onClose={() => setBlockClass(null)} /> : null}
         </Section>
       </Reveal>
 
@@ -176,6 +180,17 @@ export default function WeekScreen() {
           </Card>
           {pick ? (
             <View style={styles.list}>
+              <Button
+                label={`Add a study block ${dueLabel(pick) === 'Today' || dueLabel(pick) === 'Tomorrow' ? dueLabel(pick).toLowerCase() : `on ${dueLabel(pick)}`}`}
+                icon="plus"
+                variant="secondary"
+                size="sm"
+                onPress={() => {
+                  // After school, 45 minutes; moves around on Your day.
+                  useHubStore.getState().addBlock({ date: pick, title: 'Study session', start: 16 * 60 + 30, end: 17 * 60 + 15, color: colors.flame });
+                  emberSay(`Study block added for ${dueLabel(pick)} at 4:30 PM.`, 'happy');
+                }}
+              />
               {picked.length ? (
                 picked.map((a, i) => <AssignmentRow key={a.id} a={a} index={i} />)
               ) : (
@@ -189,6 +204,41 @@ export default function WeekScreen() {
   );
 }
 
+// What's next for one class, from a tap on its timetable block.
+function NextFor({ classId, onClose }: { classId: string; onClose: () => void }) {
+  const cls = useSchoolStore((s) => s.classes.find((c) => c.id === classId));
+  const assignments = useSchoolStore((s) => s.assignments);
+  if (!cls) return null;
+  const next = assignments.filter((a) => !a.done && a.classId === classId).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 3);
+  return (
+    <Card tint={cls.color} style={styles.nextFor}>
+      <View style={styles.nextHead}>
+        <Text style={[styles.nextTitle, { color: cls.color }]}>{cls.name}</Text>
+        <Pressy onPress={onClose} hitSlop={10} accessibilityRole="button" accessibilityLabel="Close">
+          <Text style={styles.empty}>Close</Text>
+        </Pressy>
+      </View>
+      <Text style={styles.nextSub}>
+        {cls.days.map((d) => DAY_NAMES[d - 1]).join(', ')}, {clock(cls.start)} to {clock(cls.end)}
+        {cls.room ? `, room ${cls.room}` : ''}
+      </Text>
+      {next.length ? (
+        next.map((a) => (
+          <Pressy key={a.id} onPress={() => router.push(`/assignment/${a.id}`)} style={styles.nextRow} accessibilityRole="button">
+            <Text style={styles.nextItem} numberOfLines={1}>
+              {a.title}
+            </Text>
+            <Text style={styles.nextDue}>{dueLabel(a.due)}</Text>
+          </Pressy>
+        ))
+      ) : (
+        <Text style={styles.nextSub}>Nothing due for this class.</Text>
+      )}
+      <Button label="Open the class" icon="arrow" variant="secondary" size="sm" tint={cls.color} onPress={() => router.push(`/class/${cls.id}`)} style={styles.nextBtn} />
+    </Card>
+  );
+}
+
 function Legend({ color, label }: { color: string; label: string }) {
   return (
     <View style={styles.legendItem}>
@@ -199,6 +249,45 @@ function Legend({ color, label }: { color: string; label: string }) {
 }
 
 const styles = StyleSheet.create({
+  nextFor: {
+    marginTop: 12,
+    gap: 6,
+  },
+  nextHead: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  nextTitle: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 16,
+  },
+  nextSub: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  nextRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 6,
+  },
+  nextItem: {
+    flex: 1,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.text,
+  },
+  nextDue: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  nextBtn: {
+    marginTop: 6,
+    alignSelf: 'flex-start',
+  },
   gridCard: {
     paddingVertical: 12,
     paddingHorizontal: 10,
@@ -293,11 +382,13 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 15,
     color: colors.text,
+    fontVariant: ['tabular-nums'],
   },
   heatMin: {
     fontFamily: fonts.bodyMedium,
     fontSize: 9,
     color: colors.textMuted,
+    fontVariant: ['tabular-nums'],
   },
   legend: {
     flexDirection: 'row',

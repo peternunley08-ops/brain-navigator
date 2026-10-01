@@ -13,15 +13,17 @@ import { Icon } from '../components/ui/Icon';
 import { Screen } from '../components/ui/Screen';
 import { Stepper } from '../components/ui/Stepper';
 import { useSchoolStore } from '../core/schoolStore';
+import { HELPERS } from '../core/helpers';
 import { alpha, colors, fonts } from '../core/theme';
 
 const GRADES = [9, 10, 11, 12];
 const CAPS = [60, 90, 120, 180];
-const STEPS = 3;
+const STEPS = 4;
 
-// First launch. Ember introduces itself and gets three things: what to call
-// you, your classes, and how much a school night should hold. All
-// skippable; all changeable later.
+// First launch (and replayable from Settings). Ember introduces itself and
+// gets three things: what to call you, your classes, and how much a school
+// night should hold, with a quick hello from the helper crew in between.
+// All skippable; all changeable later.
 export default function WelcomeScreen() {
   const profile = useSchoolStore((s) => s.profile);
   const classes = useSchoolStore((s) => s.classes);
@@ -45,7 +47,7 @@ export default function WelcomeScreen() {
 
   const next = () => {
     if (step === 0) setProfile({ name: name.trim(), grade });
-    if (step === 2) setProfile({ sleepGoal, nightlyCap: cap });
+    if (step === 3) setProfile({ sleepGoal, nightlyCap: cap });
     rig.hopUp(10);
     rig.talk(true);
     setTimeout(() => rig.talk(false), 900);
@@ -71,7 +73,9 @@ export default function WelcomeScreen() {
         ? classes.length
           ? `${classes.length} class${classes.length === 1 ? '' : 'es'} on your schedule. Add more any time.`
           : 'Let’s get your classes in, so I always know what’s next.'
-        : 'Last thing: how much should a school night hold?';
+        : step === 2
+          ? 'I brought friends. Each one helps with a different part of studying.'
+          : 'Last thing: how much should a school night hold?';
 
   return (
     <Screen nav={false} back={false} tone="ember" motes right={<Button label="Skip" variant="ghost" size="sm" onPress={skipAll} />}>
@@ -108,7 +112,7 @@ export default function WelcomeScreen() {
               </View>
               <View style={styles.flex}>
                 <Text style={styles.optTitle}>Scan a screenshot</Text>
-                <Text style={styles.optBody}>Screenshot your Google Classroom or Canvas classes. Your phone reads it — nothing is uploaded.</Text>
+                <Text style={styles.optBody}>Screenshot your Google Classroom or Canvas classes, as many as you need. Your phone reads them; nothing is uploaded.</Text>
               </View>
             </Card>
             <Card onPress={() => router.push('/classes')} style={styles.option}>
@@ -120,6 +124,23 @@ export default function WelcomeScreen() {
                 <Text style={styles.optBody}>Name, color, days, and times. About a minute per class.</Text>
               </View>
             </Card>
+          </View>
+        ) : step === 2 ? (
+          <View style={styles.block}>
+            <Card>
+              {HELPERS.map((h, i) => (
+                <View key={h.id} style={[styles.crewRow, i > 0 && styles.crewGap]}>
+                  <View style={[styles.crewDot, { backgroundColor: alpha(h.color, 0.18), borderColor: alpha(h.color, 0.5) }]}>
+                    <Icon name={h.icon} size={16} color={h.color} />
+                  </View>
+                  <View style={styles.flex}>
+                    <Text style={styles.optTitle}>{h.name}</Text>
+                    <Text style={styles.optBody}>{h.tagline}</Text>
+                  </View>
+                </View>
+              ))}
+            </Card>
+            <Text style={styles.crewNote}>Their games and plans are free and work on your phone. AI chat comes with 20 replies a week.</Text>
           </View>
         ) : (
           <View style={styles.block}>
@@ -185,6 +206,30 @@ const styles = StyleSheet.create({
   block: {
     marginTop: 20,
     gap: 4,
+  },
+  crewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  crewGap: {
+    marginTop: 12,
+  },
+  crewDot: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  crewNote: {
+    marginTop: 10,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textFaint,
+    textAlign: 'center',
   },
   label: {
     marginTop: 18,

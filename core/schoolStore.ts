@@ -26,6 +26,8 @@ export interface SchoolClass {
   credits?: number;
   /** Grade category → percent of the grade, e.g. { Tests: 50, Homework: 30 }. Empty = points-based. */
   weights?: Record<string, number>;
+  /** The grade the student is aiming for, in percent. */
+  goal?: number;
 }
 
 export type ClassLevel = 'regular' | 'honors' | 'ap';
@@ -102,6 +104,8 @@ interface SchoolData {
 interface SchoolStore extends SchoolData {
   loaded: boolean;
   load: () => Promise<void>;
+  /** Replace everything with a backup's school section. */
+  restore: (d: Partial<SchoolData>) => void;
 
   saveClass: (c: Omit<SchoolClass, 'id'> & { id?: string }) => void;
   deleteClass: (id: string) => void;
@@ -194,6 +198,16 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
       }
       set({ loaded: true });
     },
+
+    restore: (d) =>
+      commit({
+        classes: d.classes ?? [],
+        assignments: d.assignments ?? [],
+        focus: d.focus ?? [],
+        profile: { ...DEFAULT_PROFILE, ...(d.profile ?? {}), onboarded: true },
+        stressTags: d.stressTags ?? {},
+        grades: d.grades ?? [],
+      }),
 
     saveClass: (c) => {
       const classes = get().classes;

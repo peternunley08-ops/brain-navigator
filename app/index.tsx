@@ -1,23 +1,32 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useEffect } from 'react';
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
+import { Birthday, DayBrief, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
+import { checkAchievements } from '../core/achievements';
+import { QuickCapture } from '../components/desk/QuickCapture';
+import { warmth } from '../core/achievements';
+import { ACCESSORIES, EMBER_THEMES } from '../core/emberLook';
 import { OneThing } from '../components/desk/OneThing';
 import { WhatsNew } from '../components/desk/WhatsNew';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Sparks } from '../components/ember/Sparks';
 import { AssignmentRow } from '../components/school/AssignmentRow';
 import { ProgressBar } from '../components/ui/ProgressBar';
+import { SkeletonCard } from '../components/ui/Skeleton';
+import { syncCanvas } from '../core/canvas';
 import { lineForToday } from '../core/dayLines';
-import { useLifeStore, weekOf } from '../core/lifeStore';
+import { useHubStore } from '../core/hubStore';
+import { useBrainNavigatorStore } from '../core/store';
+import { DESK_ORDER, useLifeStore, weekOf } from '../core/lifeStore';
 import { NowCard } from '../components/school/NowCard';
 import { Button } from '../components/ui/Button';
 import { Candle, candleRemaining, candleSeed } from '../components/ui/Candle';
 import { Card } from '../components/ui/Card';
-import { Icon } from '../components/ui/Icon';
+import { Icon, type IconName } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
@@ -30,22 +39,12 @@ import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
 import { dateKey, daysUntil, focusMinutesOn, tonightsLoad, useSchoolStore } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
-import { alpha, colors, fonts, layout, radii } from '../core/theme';
+import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 
 const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 const MAX_ON_DESK = 9;
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-// The Desk's glow follows the sky: peach at dawn, gold by day, ember at
-// dusk, moonlight blue at night.
-function skyGlow(d = new Date()) {
-  const h = d.getHours();
-  if (h >= 5 && h < 8) return '#F5A36B';
-  if (h >= 8 && h < 17) return '#F5C46A';
-  if (h >= 17 && h < 20) return '#E8795A';
-  return '#8FB4E8';
-}
 
 function momentLabel(d = new Date()) {
   const day = d.toLocaleDateString('en-US', { weekday: 'long' });
@@ -96,6 +95,7 @@ export default function DeskScreen() {
 
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
   const todaysCheckin = useWellnessStore((s) => s.todaysCheckin());
+  const loadingCheckins = useWellnessStore((s) => s.isLoadingCheckins && s.checkins.length === 0);
   const habits = useHabitsStore((s) => s.habits);
   const logs = useHabitsStore((s) => s.logs);
   const assignments = useSchoolStore((s) => s.assignments);
@@ -143,6 +143,13 @@ export default function DeskScreen() {
   const doneToday = assignments.filter((a) => a.doneAt && dateKey(new Date(a.doneAt)) === today).length;
   const allClear = dueToday === 0 && dueTomorrow === 0 && doneToday > 0;
   const reviews = useLifeStore((s) => s.reviews);
+  // Sections the student chose to hide (Settings, "Your Desk").
+  const deskHidden = useLifeStore((s) => s.settings.deskHidden);
+  const show = (key: string) => !deskHidden.includes(key);
+  const deskOrder = useLifeStore((s) => s.settings.deskOrder) ?? DESK_ORDER;
+  const achievementCount = useLifeStore((s) => Object.keys(s.achievements).length);
+  const warmNow = useMemo(() => warmth(), [achievementCount, assignments, focus]); // eslint-disable-line react-hooks/exhaustive-deps
+  const warmNext = [...Object.values(EMBER_THEMES).map((t) => t.warmth), ...ACCESSORIES.map((a) => a.warmth)].filter((x) => x > warmNow).sort((a, b) => a - b)[0];
   const dow = new Date().getDay();
   const reviewDue = (dow === 0 || dow === 6 || (dow === 5 && new Date().getHours() >= 15)) && !reviews.some((r) => r.weekOf === weekOf());
   const earn = useLifeStore((s) => s.earn);
@@ -151,57 +158,10 @@ export default function DeskScreen() {
   }, [allClear, earn]);
   const habitsDone = activeHabits.filter((h) => logs.some((l) => l.habit_id === h.id && l.log_date === today)).length;
 
-  return (
-    <Screen
-      back={false}
-      tone="ember"
-      glowColor={skyGlow()}
-      motes
-      kicker={momentLabel()}
-      title={greetingFor(profile.name)}
-      subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length)}
-      right={
-        <View style={styles.headerBtns}>
-          <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} />
-          <IconButton icon="drawer" label="Open the Drawer" onPress={() => router.push('/drawer')} />
-        </View>
-      }
-    >
-      <Reveal index={0}>
-        <CountdownChips />
-        <WhatsNew />
-        <OneThing />
-        <NowCard />
-      </Reveal>
-
-      {allClear ? (
-        <Reveal index={0}>
-          <Card tint={colors.secured} style={styles.clear}>
-            <Sparks burst={1} reach={60} />
-            <Icon name="sparkle" size={22} color={colors.secured} />
-            <View style={styles.promptText}>
-              <Text style={styles.promptTitle}>All clear.</Text>
-              <Text style={styles.promptBody}>
-                {doneToday} thing{doneToday === 1 ? '' : 's'} done today, nothing due by tomorrow. The rest of the day is yours.
-              </Text>
-            </View>
-          </Card>
-        </Reveal>
-      ) : null}
-
-      {reviewDue ? (
-        <Reveal index={0}>
-          <Card onPress={() => router.push('/review')} style={styles.clear}>
-            <Icon name="star" size={22} color={colors.flame} />
-            <View style={styles.promptText}>
-              <Text style={styles.promptTitle}>Look back at your week</Text>
-              <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
-            </View>
-            <Icon name="chevron" size={18} color={colors.textFaint} />
-          </Card>
-        </Reveal>
-      ) : null}
-
+  // The lower Desk sections, in the order chosen in Settings.
+  const deskSections: Record<string, ReactNode> = {
+    due: (
+show('due') ? (
       <Reveal index={1}>
         <Section
           title="Due soon"
@@ -230,7 +190,11 @@ export default function DeskScreen() {
           )}
         </Section>
       </Reveal>
-
+      ) : null
+    ),
+    mind: (
+      <>
+        {show('mind') ? (
       <Reveal index={2}>
         <Section title="On your mind" note={countLine(openLoops.length)}>
         <View style={styles.desk}>
@@ -274,7 +238,7 @@ export default function DeskScreen() {
         </View>
         </Section>
       </Reveal>
-
+      ) : null}
       <Reveal index={3}>
         <Button label="Set something down" icon="candle" variant="secondary" onPress={() => router.push('/new-entry')} style={styles.primary} />
         <Button
@@ -286,13 +250,18 @@ export default function DeskScreen() {
           style={styles.ghost}
         />
       </Reveal>
-
+      </>
+    ),
+    checkin: (
+show('checkin') ? (
       <Reveal index={4}>
         <Section
           title="How you’re doing"
           action={todaysCheckin ? { label: 'Edit', onPress: () => router.push('/checkin') } : undefined}
         >
-          {todaysCheckin ? (
+          {loadingCheckins ? (
+            <SkeletonCard lines={1} />
+          ) : todaysCheckin ? (
             <Card onPress={() => router.push('/checkin')}>
               <View style={styles.rings}>
                 <Ring
@@ -336,7 +305,10 @@ export default function DeskScreen() {
           )}
         </Section>
       </Reveal>
-
+      ) : null
+    ),
+    tiles: (
+show('tiles') ? (
       <Reveal index={5}>
         <View style={styles.tiles}>
           <Tile
@@ -348,6 +320,14 @@ export default function DeskScreen() {
             onPress={() => router.push('/focus')}
           />
           <Tile
+            icon="flame"
+            color={colors.flame}
+            title="Warmth"
+            value={String(warmNow)}
+            note={warmNext ? `${warmNext - warmNow} to next unlock` : 'Everything unlocked'}
+            onPress={() => router.push('/settings')}
+          />
+          <Tile
             icon="repeat"
             color={colors.secured}
             title="Habits"
@@ -357,10 +337,99 @@ export default function DeskScreen() {
           />
         </View>
       </Reveal>
-
+      ) : null
+    ),
+    line: (
+show('line') ? (
       <Reveal index={6}>
         <Text style={styles.dayLine}>{lineForToday()}</Text>
       </Reveal>
+      ) : null
+    ),
+  };
+
+  return (
+    <Screen
+      back={false}
+      tone="ember"
+      glowColor={skyGlow()}
+      onRefresh={() =>
+        Promise.all([
+          fetchCheckins(),
+          useBrainNavigatorStore.getState().fetchOpenLoops(),
+          useTasksStore.getState().fetchToday(),
+          useHabitsStore.getState().fetchHabits(),
+          useHubStore.getState().canvas.token ? syncCanvas().catch(() => null) : null,
+        ]).then(() => {
+          const earned = checkAchievements();
+          if (earned.length) emberSay(`New badge: ${earned[earned.length - 1].title}.`, 'cheer');
+        })
+      }
+      motes
+      kicker={momentLabel()}
+      title={greetingFor(profile.name)}
+      subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length)}
+      right={
+        <View style={styles.headerBtns}>
+          <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} />
+          <IconButton icon="drawer" label="Open the Drawer" onPress={() => router.push('/drawer')} />
+        </View>
+      }
+    >
+      <Reveal index={0}>
+        {show('countdowns') ? <CountdownChips /> : null}
+        <WhatsNew />
+        {show('onething') ? <OneThing /> : null}
+        <NowCard />
+        {show('capture') ? <QuickCapture /> : null}
+        <Birthday />
+        <WelcomeBack />
+        {show('brief') ? <DayBrief /> : null}
+        {show('nudges') ? (
+          <>
+            <TryThisWeek />
+            <HelperNudge />
+            <PlanTest />
+            <TagTool />
+            <WorryTime />
+            <Resurface />
+            <NextBadge />
+          </>
+        ) : null}
+      </Reveal>
+
+      {allClear ? (
+        <Reveal index={0}>
+          <Card tint={colors.secured} style={styles.clear}>
+            <Sparks burst={1} reach={60} />
+            <Icon name="sparkle" size={22} color={colors.secured} />
+            <View style={styles.promptText}>
+              <Text style={styles.promptTitle}>All clear.</Text>
+              <Text style={styles.promptBody}>
+                {doneToday} thing{doneToday === 1 ? '' : 's'} done today, nothing due by tomorrow. The rest of the day is yours.
+              </Text>
+            </View>
+          </Card>
+        </Reveal>
+      ) : null}
+
+      {reviewDue ? (
+        <Reveal index={0}>
+          <Card onPress={() => router.push('/review')} style={styles.clear}>
+            <Icon name="star" size={22} color={colors.flame} />
+            <View style={styles.promptText}>
+              <Text style={styles.promptTitle}>Look back at your week</Text>
+              <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
+            </View>
+            <Icon name="chevron" size={18} color={colors.textFaint} />
+          </Card>
+        </Reveal>
+      ) : null}
+
+      {deskOrder.map((k) => (
+        <Fragment key={k}>{deskSections[k]}</Fragment>
+      ))}
+
     </Screen>
   );
 }
@@ -373,7 +442,7 @@ function Tile({
   note,
   onPress,
 }: {
-  icon: 'timer' | 'repeat';
+  icon: IconName;
   color: string;
   title: string;
   value: string;

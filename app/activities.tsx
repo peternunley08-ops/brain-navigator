@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -19,6 +19,20 @@ const GRADES = [9, 10, 11, 12];
 // The Common App activities list: ten slots, strict character limits.
 // Drafting it here with live counters beats discovering the limit in the
 // portal at midnight.
+// The list the way the Common App asks for it, ready to copy from the share sheet.
+function asText(list: Activity[]) {
+  return list
+    .map((a, i) => {
+      const when = [
+        a.grades.length ? `Grades ${a.grades.join(', ')}` : null,
+        a.hoursPerWeek ? `${a.hoursPerWeek} hr/wk` : null,
+        a.weeksPerYear ? `${a.weeksPerYear} wk/yr` : null,
+      ].filter(Boolean);
+      return [`${i + 1}. ${[a.role, a.org].filter(Boolean).join(', ')}`, when.join(', '), a.description].filter(Boolean).join('\n');
+    })
+    .join('\n\n');
+}
+
 export default function ActivitiesScreen() {
   const list = useHubStore((s) => s.activities);
   const save = useHubStore((s) => s.saveActivity);
@@ -31,10 +45,15 @@ export default function ActivitiesScreen() {
       glowColor={BLUE}
       title="Activities list"
       subtitle={`${list.length} of 10. Most important first.`}
-      right={list.length < 10 ? <IconButton icon="plus" label="Add an activity" onPress={() => setEditing('new')} /> : undefined}
+      right={
+        <View style={styles.headerBtns}>
+          {list.length ? <IconButton icon="share" label="Share or copy the list as text" onPress={() => Share.share({ message: asText(list) })} /> : null}
+          {list.length < 10 ? <IconButton icon="plus" label="Add an activity" onPress={() => setEditing('new')} /> : null}
+        </View>
+      }
     >
       {editing === 'new' ? <Editor onDone={() => setEditing(null)} /> : null}
-      {list.length === 0 && editing !== 'new' ? <EmptyState title="Nothing listed yet." body="Clubs, sports, jobs, family responsibilities, and things you do on your own all count." /> : null}
+      {list.length === 0 && editing !== 'new' ? <EmptyState gear="cap" title="Nothing listed yet." body="Clubs, sports, jobs, family responsibilities, and things you do on your own all count." /> : null}
       <View style={styles.list}>
         {list.map((a, i) =>
           editing === a.id ? (
@@ -50,15 +69,20 @@ export default function ActivitiesScreen() {
                       <Text style={styles.org}>{a.org}</Text>
                     </View>
                     <View style={styles.moves}>
-                      <IconButton icon="back" label="Move up" size={30} onPress={() => move(a.id, -1)} style={styles.up} />
-                      <IconButton icon="back" label="Move down" size={30} onPress={() => move(a.id, 1)} style={styles.down} />
+                      {/* Rotated from outside: Pressy's press transform would replace a rotate passed as its style. */}
+                      <View style={styles.up}>
+                        <IconButton icon="back" label="Move up" size={30} onPress={() => move(a.id, -1)} />
+                      </View>
+                      <View style={styles.down}>
+                        <IconButton icon="back" label="Move down" size={30} onPress={() => move(a.id, 1)} />
+                      </View>
                     </View>
                   </View>
                   {a.description ? <Text style={styles.desc}>{a.description}</Text> : null}
                   <Text style={styles.meta}>
                     {a.grades.length ? `Grades ${a.grades.join(', ')}` : 'Grades not set'}
-                    {a.hoursPerWeek ? ` · ${a.hoursPerWeek} hr/wk` : ''}
-                    {a.weeksPerYear ? ` · ${a.weeksPerYear} wk/yr` : ''}
+                    {a.hoursPerWeek ? `, ${a.hoursPerWeek} hr/wk` : ''}
+                    {a.weeksPerYear ? `, ${a.weeksPerYear} wk/yr` : ''}
                   </Text>
                   <Button label="Remove" variant="ghost" size="sm" tint={colors.danger} onPress={() => remove(a.id)} style={styles.remove} />
                 </Card>
@@ -136,6 +160,10 @@ function Counted({ label, value, onChange, limit, placeholder, multiline }: { la
 }
 
 const styles = StyleSheet.create({
+  headerBtns: {
+    flexDirection: 'row',
+    gap: 4,
+  },
   flex: {
     flex: 1,
   },

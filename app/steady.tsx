@@ -11,6 +11,7 @@ import { Candle } from '../components/ui/Candle';
 import { Card } from '../components/ui/Card';
 import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
+import { QuickBreath } from '../components/ui/QuickBreath';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { useFlameClock } from '../core/hooks/useFlameClock';
@@ -45,6 +46,9 @@ export default function SteadyScreen() {
             </View>
             <Icon name="chevron" size={18} color="#F07060" />
           </Card>
+        </Reveal>
+        <Reveal index={0}>
+          <QuickBreath color={BLUE} />
         </Reveal>
         <Reveal index={0}>
           <Door

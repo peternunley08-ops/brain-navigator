@@ -16,15 +16,18 @@ interface NavItem {
   label: string;
   path: NavPath;
   icon: IconName;
+  /** Hold the tab for its shortcut. */
+  hold: { href: string; label: string; params?: Record<string, string> };
 }
 
 const LEFT: NavItem[] = [
-  { label: 'Desk', path: '/', icon: 'candle' },
-  { label: 'School', path: '/school', icon: 'book' },
+  { label: 'Desk', path: '/', icon: 'candle', hold: { href: '/search', label: 'Search everything' } },
+  { label: 'School', path: '/school', icon: 'book', hold: { href: '/add-assignment', label: 'Add homework or a test' } },
 ];
 const RIGHT: NavItem[] = [
-  { label: 'Focus', path: '/focus', icon: 'timer' },
-  { label: 'Steady', path: '/steady', icon: 'steady' },
+  { label: 'Focus', path: '/focus', icon: 'timer', hold: { href: '/focus', label: 'Start five minutes', params: { quick: '5' } } },
+  // Holding Steady always reaches real people, from anywhere.
+  { label: 'Steady', path: '/steady', icon: 'steady', hold: { href: '/help', label: 'Need help now' } },
 ];
 
 // Tabs must not stack. A plain push adds a new copy of the screen on every
@@ -107,6 +110,7 @@ const ADD_OPTIONS: { title: string; body: string; icon: IconName; color: string;
 ];
 
 const MORE_OPTIONS: { title: string; icon: IconName; color: string; href: string }[] = [
+  { title: 'A helper', icon: 'people', color: '#B79AF0', href: '/helpers' },
   { title: 'A grade', icon: 'grade', color: '#9FD08A', href: '/grades' },
   { title: 'Flashcards', icon: 'cards', color: '#E89AB8', href: '/flashcards' },
   { title: 'A win', icon: 'jar', color: '#E6C46A', href: '/wins' },
@@ -184,6 +188,13 @@ function NavSegment({
       style={styles.segment}
       depth={0.9}
       onPress={() => (active ? undefined : onGo(item.path))}
+      onLongPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+        router.push({ pathname: item.hold.href as never, params: item.hold.params ?? {} });
+      }}
+      delayLongPress={450}
+      accessibilityActions={[{ name: 'longpress', label: item.hold.label }]}
+      onAccessibilityAction={(e) => e.nativeEvent.actionName === 'longpress' && router.push({ pathname: item.hold.href as never, params: item.hold.params ?? {} })}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={badge ? `${item.label}, ${badge} open` : item.label}
@@ -196,7 +207,9 @@ function NavSegment({
           </View>
         ) : null}
       </View>
-      <Text style={[styles.label, { color: tint }, active && styles.labelActive]}>{item.label}</Text>
+      <Text style={[styles.label, { color: tint }, active && styles.labelActive]} maxFontSizeMultiplier={1.3}>
+        {item.label}
+      </Text>
     </Pressy>
   );
 }

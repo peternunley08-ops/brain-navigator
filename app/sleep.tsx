@@ -80,7 +80,7 @@ export default function SleepScreen() {
                 <Card key={o.hours} style={styles.option} tint={enough ? colors.secured : undefined}>
                   <Text style={[styles.optTime, enough && { color: colors.secured }]}>{clock(o.lightsOut)}</Text>
                   <Text style={styles.sub}>
-                    {o.hours} h · {o.hours / 1.5} cycles
+                    {o.hours} h, {o.hours / 1.5} cycles
                   </Text>
                 </Card>
               );
@@ -97,6 +97,7 @@ export default function SleepScreen() {
           done="windDownDone"
           color={MOON}
           doneLine="Routine done. Phone down, lights low. Good night."
+          countNights
         />
       </Reveal>
 
@@ -118,6 +119,7 @@ function Checklist({
   done,
   color,
   doneLine,
+  countNights,
 }: {
   title: string;
   note: string;
@@ -125,6 +127,8 @@ function Checklist({
   done: 'packDone' | 'windDownDone';
   color: string;
   doneLine: string;
+  /** Show how many of the last two weeks' nights had most of the list done. */
+  countNights?: boolean;
 }) {
   const list = useLifeStore((s) => s[items]);
   const doneMap = useLifeStore((s) => s[done]);
@@ -136,6 +140,10 @@ function Checklist({
   const key = tonightKey();
   const checked = doneMap[key] ?? [];
   const count = list.filter((i) => checked.includes(i.id)).length;
+  // A count, not a streak: a missed night doesn't reset anything.
+  const nights = countNights
+    ? Object.values(doneMap).filter((ids) => list.length && list.filter((i) => ids.includes(i.id)).length >= Math.ceil(list.length / 2)).length
+    : 0;
 
   const tap = (item: ListItem) => {
     const finishing = !checked.includes(item.id);
@@ -155,6 +163,11 @@ function Checklist({
     <Section title={title} note={note} action={{ label: editing ? 'Done' : 'Edit', onPress: () => setEditing((e) => !e) }}>
       <Card>
         <ProgressBar value={list.length ? count / list.length : 0} color={color} height={6} />
+        {nights ? (
+          <Text style={styles.nights}>
+            You wound down {nights} of the last 14 nights{nights >= 10 ? '. That’s a real habit.' : '.'}
+          </Text>
+        ) : null}
         {list.map((item) => {
           const on = checked.includes(item.id);
           return (
@@ -195,6 +208,12 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+  nights: {
+    marginTop: 10,
+    fontFamily: fonts.displaySoft,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
   gap: {
     marginTop: 12,
   },
@@ -213,6 +232,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 38,
     color: colors.text,
+    fontVariant: ['tabular-nums'],
   },
   sub: {
     marginTop: 2,
@@ -235,6 +255,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 19,
     color: colors.text,
+    fontVariant: ['tabular-nums'],
   },
   item: {
     flexDirection: 'row',

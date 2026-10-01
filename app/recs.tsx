@@ -67,7 +67,7 @@ export default function RecsScreen() {
           </Card>
         </Animated.View>
       ) : null}
-      {recs.length === 0 && !adding ? <EmptyState title="No recommenders yet." body="Most colleges want two teachers and your counselor." /> : null}
+      {recs.length === 0 && !adding ? <EmptyState gear="cap" title="No recommenders yet." body="Most colleges want two teachers and your counselor." /> : null}
       <View style={styles.list}>
         {recs.map((r, i) => (
           <Reveal key={r.id} index={i}>
@@ -78,7 +78,7 @@ export default function RecsScreen() {
                     <Text style={styles.name}>{r.teacher}</Text>
                     <Text style={styles.meta}>
                       {r.due ? `Due ${dueLabel(r.due)}` : 'No due date'}
-                      {r.askedOn ? ` · asked ${dueLabel(r.askedOn).toLowerCase()}` : ''}
+                      {r.askedOn ? `, asked ${dueLabel(r.askedOn).toLowerCase()}` : ''}
                     </Text>
                   </View>
                   <IconButton icon="trash" label={`Remove ${r.teacher}`} size={34} color={alpha(colors.danger, 0.7)} onPress={() => remove(r.id)} />

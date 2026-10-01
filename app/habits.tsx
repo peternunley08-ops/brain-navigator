@@ -7,6 +7,7 @@ import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Field } from '../components/ui/Field';
+import { SkeletonCard } from '../components/ui/Skeleton';
 import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
@@ -121,6 +122,11 @@ export default function HabitsScreen() {
               {habits.map((h, i) => (
                 <HabitRow key={h.id} habit={h} index={i} />
               ))}
+            </View>
+          ) : isLoading ? (
+            <View style={styles.skeletons}>
+              <SkeletonCard />
+              <SkeletonCard lines={1} />
             </View>
           ) : !isLoading ? (
             <EmptyState title="No habits yet." body="Start with something small enough to do on a bad day." />
@@ -254,6 +260,9 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
 }
 
 const styles = StyleSheet.create({
+  skeletons: {
+    gap: 10,
+  },
   ideasLabel: {
     marginTop: 0,
   },

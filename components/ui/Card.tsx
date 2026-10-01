@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { type ReactNode, useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 import { alpha, colors, radii } from '../../core/theme';
 import { Pressy } from './Pressy';
@@ -16,6 +16,8 @@ interface CardProps extends ViewProps {
 // A raised surface in the dark room: a hairline edge that catches a little
 // more light along its top, like a lid under a lamp.
 export function Card({ style, children, tint, onPress, onLongPress, padded = true, ...rest }: CardProps) {
+  // A tinted card brightens under your finger, like leaning closer to the lamp.
+  const [pressed, setPressed] = useState(false);
   const look = [
     styles.card,
     padded && styles.padded,
@@ -23,12 +25,20 @@ export function Card({ style, children, tint, onPress, onLongPress, padded = tru
     style,
   ];
   const wash = tint ? (
-    <View pointerEvents="none" style={[styles.wash, { backgroundColor: alpha(tint, 0.07) }]} />
+    <View pointerEvents="none" style={[styles.wash, { backgroundColor: alpha(tint, pressed ? 0.14 : 0.07) }]} />
   ) : null;
 
   if (onPress) {
     return (
-      <Pressy style={look} onPress={onPress} onLongPress={onLongPress} accessibilityRole="button" {...rest}>
+      <Pressy
+        style={look}
+        onPress={onPress}
+        onLongPress={onLongPress}
+        onPressIn={tint ? () => setPressed(true) : undefined}
+        onPressOut={tint ? () => setPressed(false) : undefined}
+        accessibilityRole="button"
+        {...rest}
+      >
         {wash}
         {children}
       </Pressy>

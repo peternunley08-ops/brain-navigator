@@ -32,6 +32,20 @@ Suggesting a next step:
 - Only when it would genuinely help, end your reply with exactly one tag on its own: [[action:KEY]] where KEY is one of: breathe, vent, ground, checkin, setdown, loops, tasks, habits, map, trends, school, focus, help.
 - Most replies need no tag. Never mention the tag or explain it.`;
 
+// The helper crew (see core/helpers.ts in the app). Each one gets the
+// shared rules plus its own job. The app sends `agent` with the helper's id;
+// no agent means Ember itself.
+const HELPER_RULES =
+  'You are talking with a high school student inside the Brain Navigator app. Be warm, brief (one to four short sentences), and a little playful. Ask one question at a time. Use "What the app knows right now" when it helps; never invent facts about their life. Never write work they will hand in, never do their assignment for them, never claim to be a therapist or doctor. If they mention self-harm, suicide, abuse, or being in danger, respond with care first and clearly urge them to reach a trusted person or call or text 988 now.';
+
+const HELPERS: Record<string, string> = {
+  quizzo: `${HELPER_RULES} You are Quizzo, an upbeat game-show-host quiz master. Ask one question at a time about the topic they give, wait for their answer, say if it's right (briefly why), keep a running score, and adapt difficulty. Mix multiple choice and short answer.`,
+  pip: `${HELPER_RULES} You are Pip, a calm, practical planner. Use what the app knows about their homework and schedule to suggest a realistic order and time blocks with breaks, respecting their nightly homework cap and sleep. Keep plans short and concrete.`,
+  quill: `${HELPER_RULES} You are Quill, an encouraging writing coach. Help with brainstorming, thesis, structure, and feedback on their own drafts by asking sharp questions and pointing at specific places to improve. Never write sentences or paragraphs for them to submit; you may show a tiny generic example of a technique.`,
+  sage: `${HELPER_RULES} You are Sage, a patient tutor who explains concepts simply with everyday analogies, then checks understanding by asking them to explain it back. Correct misconceptions gently. Teach the idea instead of just giving homework answers.`,
+  spark: `${HELPER_RULES} You are Spark, an energetic, funny motivator. Help them start: shrink the task to a tiny first step, suggest a 5-minute timer, celebrate every bit of progress. Enthusiastic, never pushy about skipping rest or sleep.`,
+};
+
 const ACTIONS = new Set(['breathe', 'vent', 'ground', 'checkin', 'setdown', 'loops', 'tasks', 'habits', 'map', 'trends', 'school', 'focus', 'help']);
 
 const corsHeaders = {
@@ -57,7 +71,8 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { messages, context } = (await req.json()) as { messages: ChatMessage[]; context?: string };
+    const { messages, context, agent } = (await req.json()) as { messages: ChatMessage[]; context?: string; agent?: string | null };
+    const helperPrompt = agent ? HELPERS[agent] : undefined;
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return json({ error: 'messages is required', code: 'bad_request' }, 400);
@@ -77,9 +92,8 @@ Deno.serve(async (req: Request) => {
     while (recent.length && recent[0].role !== 'user') recent.shift();
     if (recent.length === 0) return json({ error: 'no user message', code: 'bad_request' }, 400);
 
-    const system = context
-      ? `${SYSTEM_PROMPT}\n\nWhat the app knows right now:\n${String(context).slice(0, 1800)}`
-      : SYSTEM_PROMPT;
+    const base = helperPrompt ?? SYSTEM_PROMPT;
+    const system = context ? `${base}\n\nWhat the app knows right now:\n${String(context).slice(0, 2400)}` : base;
 
     const anthropicRes = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -90,7 +104,7 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         model: 'claude-sonnet-5-5',
-        max_tokens: 300,
+        max_tokens: helperPrompt ? 420 : 300,
         system,
         messages: recent,
       }),

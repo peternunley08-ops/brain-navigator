@@ -17,7 +17,8 @@ export function UndoBar() {
   useEffect(() => {
     if (!item) return;
     const id = item.id;
-    const t = setTimeout(() => clear(id), 5000);
+    // Long enough to notice and reach for it.
+    const t = setTimeout(() => clear(id), 6500);
     return () => clearTimeout(t);
   }, [item, clear]);
 
@@ -25,7 +26,7 @@ export function UndoBar() {
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: insets.bottom + 96 }]}>
       <Animated.View key={item.id} entering={FadeInDown.duration(220)} exiting={FadeOutDown.duration(180)} style={styles.bar}>
-        <Icon name="trash" size={16} color={colors.textMuted} />
+        <Icon name={item.icon} size={16} color={colors.textMuted} />
         <Text style={styles.label} numberOfLines={1}>
           {item.label}
         </Text>

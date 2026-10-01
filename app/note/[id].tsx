@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { emberSay } from '../../components/ember/EmberBuddy';
 import { ProgressBar } from '../../components/ui/ProgressBar';
@@ -14,6 +14,7 @@ import { IconButton } from '../../components/ui/IconButton';
 import { Pressy } from '../../components/ui/Pressy';
 import { Screen } from '../../components/ui/Screen';
 import { type BlockType, type NoteBlock, uid, useHubStore } from '../../core/hubStore';
+import { parseCards, useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 
@@ -77,6 +78,9 @@ export default function NoteScreen() {
   const refs = useRef<Record<string, TextInput | null>>({});
   // A block that just changed type and should grab focus the moment its new field mounts.
   const refocus = useRef<string | null>(null);
+  // Flashcards from this page: which new lines are picked, while the preview is open.
+  const [cardPick, setCardPick] = useState<string[] | null>(null);
+  const decks = useLifeStore((s) => s.decks);
 
   if (!note) {
     return (
@@ -139,8 +143,35 @@ export default function NoteScreen() {
     emberSay(`“${a.title}” is on your School list, due tomorrow. Change the date if you need to.`, 'happy');
   };
 
+  // "term — definition" lines (or "term :: definition") become flashcards.
+  const pairs = parseCards(
+    note.blocks
+      .filter((b) => b.type === 'text' || b.type === 'bullet' || b.type === 'numbered')
+      .map((b) => b.text)
+      .join('\n')
+  );
+  const deckName = note.title.trim() || 'From my notes';
+  // The deck this page feeds: linked by id, or an older one with the same name.
+  const linked = decks.find((d) => d.noteId === note.id) ?? decks.find((d) => d.name === deckName);
+  const have = new Set((linked?.cards ?? []).map((c) => c.front.toLowerCase()));
+  const fresh = pairs.filter((p) => !have.has(p.front.toLowerCase()));
+  const makeCards = () => {
+    const life = useLifeStore.getState();
+    const cls = classes.find((c) => c.id === note.classId);
+    const deck = linked ?? life.saveDeck({ name: deckName, classId: note.classId, color: cls?.color ?? note.color });
+    if (deck.noteId !== note.id) life.updateDeck(deck.id, { noteId: note.id });
+    const chosen = fresh.filter((p) => cardPick?.includes(p.front));
+    if (chosen.length) life.addCards(deck.id, chosen);
+    setCardPick(null);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    emberSay(`${chosen.length} flashcard${chosen.length === 1 ? '' : 's'} ${linked ? `added to “${deck.name}”` : 'made from this page'}.`, 'happy');
+    router.push(`/deck/${deck.id}`);
+  };
+
   const words = wordCount(note.blocks);
-  const isEssay = /essay|personal statement|supplement/i.test(note.title) || note.icon === 'feather';
+  const isEssay = /essay|personal statement|supplement|brainstorm/i.test(note.title) || note.icon === 'feather';
+  // An essay's word limit: 650 (the Common App) unless you pick another; none for other pages.
+  const goal = note.wordGoal !== undefined ? note.wordGoal : isEssay ? 650 : null;
   let numbered = 0;
 
   const remove = (index: number) => {
@@ -272,8 +303,9 @@ export default function NoteScreen() {
               }
               placeholderTextColor={colors.hint}
               selectionColor={colors.flame}
-              multiline={blk.type === 'text' || blk.type === 'quote'}
-              blurOnSubmit={false}
+              // Every line wraps; on list lines and headings Return still starts the next line.
+              multiline
+              submitBehavior={blk.type === 'text' || blk.type === 'quote' ? 'newline' : 'submit'}
               returnKeyType={blk.type === 'text' ? 'default' : 'next'}
               onSubmitEditing={() => blk.type !== 'text' && blk.type !== 'quote' && insertAfter(i, blk.type === 'heading' ? 'text' : blk.type)}
               onKeyPress={(e) => {
@@ -293,10 +325,81 @@ export default function NoteScreen() {
       <View style={styles.count}>
         <Text style={styles.countText}>
           {words} word{words === 1 ? '' : 's'}
-          {isEssay ? ` of 650` : ''}
+          {goal ? ` of ${goal}` : ''}
         </Text>
-        {isEssay ? <ProgressBar value={words / 650} color={words > 650 ? colors.danger : note.color} height={4} style={styles.countBar} /> : null}
-        {isEssay && words > 650 ? <Text style={styles.over}>{words - 650} over the Common App limit</Text> : null}
+        {goal ? <ProgressBar value={words / goal} color={words > goal ? colors.danger : note.color} height={4} style={styles.countBar} /> : null}
+        {goal && words > goal ? (
+          <Text style={styles.over}>
+            {words - goal} over the {goal === 650 ? 'Common App' : `${goal}-word`} limit
+          </Text>
+        ) : null}
+        {isEssay || goal ? (
+          <View style={styles.limits}>
+            <Text style={styles.limitLabel}>Word limit</Text>
+            {[150, 250, 350, 500, 650].map((n) => (
+              <Pressy
+                key={n}
+                onPress={() => updateNote(note.id, { wordGoal: goal === n ? null : n })}
+                depth={0.9}
+                accessibilityRole="button"
+                accessibilityState={{ selected: goal === n }}
+                style={[styles.limit, goal === n && { borderColor: note.color, backgroundColor: alpha(note.color, 0.14) }]}
+              >
+                <Text style={[styles.limitText, goal === n && { color: note.color }]}>{n}</Text>
+              </Pressy>
+            ))}
+          </View>
+        ) : null}
+        {pairs.length >= 2 && !cardPick ? (
+          <Pressy
+            onPress={() => (fresh.length ? setCardPick(fresh.map((p) => p.front)) : linked && router.push(`/deck/${linked.id}`))}
+            style={styles.makeCards}
+            accessibilityRole="button"
+          >
+            <Icon name="cards" size={15} color={colors.flame} />
+            <Text style={styles.makeCardsText}>
+              {!linked
+                ? `Make ${fresh.length} flashcards from this page`
+                : fresh.length
+                  ? `Add ${fresh.length} new card${fresh.length === 1 ? '' : 's'} to “${linked.name}”`
+                  : `Cards are up to date. Open “${linked.name}”`}
+            </Text>
+          </Pressy>
+        ) : null}
+        {cardPick ? (
+          <Animated.View entering={FadeIn.duration(180)} style={styles.pick}>
+            {fresh.map((p) => {
+              const on = cardPick.includes(p.front);
+              return (
+                <Pressy
+                  key={p.front}
+                  onPress={() => setCardPick(on ? cardPick.filter((f) => f !== p.front) : [...cardPick, p.front])}
+                  style={styles.pickRow}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: on }}
+                  accessibilityLabel={`${p.front}: ${p.back}`}
+                >
+                  <View style={[styles.box, on && styles.boxOn]}>{on ? <Icon name="check" size={12} color={colors.flameInk} strokeWidth={3} /> : null}</View>
+                  <View style={styles.flexCol}>
+                    <Text style={styles.pickFront}>{p.front}</Text>
+                    <Text style={styles.pickBack}>{p.back}</Text>
+                  </View>
+                </Pressy>
+              );
+            })}
+            <View style={styles.pickBtns}>
+              <Pressy onPress={() => setCardPick(null)} style={styles.pickCancel} accessibilityRole="button">
+                <Text style={styles.pickCancelText}>Cancel</Text>
+              </Pressy>
+              <Pressy onPress={makeCards} disabled={!cardPick.length} style={[styles.makeCards, styles.pickGo, !cardPick.length && styles.dim]} accessibilityRole="button">
+                <Icon name="cards" size={15} color={colors.flame} />
+                <Text style={styles.makeCardsText}>
+                  {linked ? 'Add' : 'Make'} {cardPick.length} card{cardPick.length === 1 ? '' : 's'}
+                </Text>
+              </Pressy>
+            </View>
+          </Animated.View>
+        ) : null}
       </View>
 
       <View style={styles.toolbar}>
@@ -311,6 +414,98 @@ export default function NoteScreen() {
 }
 
 const styles = StyleSheet.create({
+  limits: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  limitLabel: {
+    marginRight: 4,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
+  },
+  limit: {
+    paddingHorizontal: 9,
+    height: 26,
+    borderRadius: 13,
+    borderWidth: 1,
+    borderColor: colors.line,
+    justifyContent: 'center',
+  },
+  limitText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textMuted,
+    fontVariant: ['tabular-nums'],
+  },
+  pick: {
+    marginTop: 12,
+    alignSelf: 'stretch',
+    gap: 8,
+  },
+  pickRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingVertical: 4,
+  },
+  flexCol: {
+    flex: 1,
+  },
+  pickFront: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.text,
+  },
+  pickBack: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  pickBtns: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 10,
+  },
+  pickCancel: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  pickCancelText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  pickGo: {
+    marginTop: 0,
+    alignSelf: 'auto',
+  },
+  dim: {
+    opacity: 0.4,
+  },
+  makeCards: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 14,
+    alignSelf: 'flex-start',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: alpha(colors.flame, 0.4),
+    backgroundColor: alpha(colors.flame, 0.08),
+  },
+  makeCardsText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    color: colors.flame,
+  },
   headerBtns: {
     flexDirection: 'row',
     gap: 8,

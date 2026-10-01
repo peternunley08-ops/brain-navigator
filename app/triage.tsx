@@ -30,7 +30,11 @@ export default function TriageScreen() {
   const remove = useSchoolStore((s) => s.deleteAssignment);
 
   const today = dateKey();
-  const late = assignments.filter((a) => !a.done && a.due < today).sort((a, b) => a.due.localeCompare(b.due));
+  // Quick ones (10 minutes or less) first: a couple of fast wins make the rest lighter.
+  const quick = (a: Assignment) => a.minutes != null && a.minutes <= 10;
+  const late = assignments
+    .filter((a) => !a.done && a.due < today)
+    .sort((a, b) => Number(quick(b)) - Number(quick(a)) || a.due.localeCompare(b.due));
 
   const settle = (msg?: string) => {
     Haptics.selectionAsync().catch(() => {});
@@ -48,7 +52,26 @@ export default function TriageScreen() {
   };
 
   return (
-    <Screen title="Sort out what’s late" subtitle={late.length ? `${late.length} thing${late.length === 1 ? '' : 's'}. One decision each.` : undefined}>
+    <Screen
+      title="Sort out what’s late"
+      subtitle={late.length ? `${late.length} thing${late.length === 1 ? '' : 's'}. One decision each.` : undefined}
+      right={
+        late.length > 1 ? (
+          <Button
+            label="All to tomorrow"
+            size="sm"
+            variant="secondary"
+            onPress={() => {
+              const before = late.map((a) => ({ id: a.id, due: a.due }));
+              const tmr = addDays(today, 1);
+              for (const a of late) update(a.id, { due: tmr });
+              offerUndo(`Moved ${before.length} to tomorrow`, () => before.forEach((b) => useSchoolStore.getState().updateAssignment(b.id, { due: b.due })), 'arrow');
+              emberSay('All moved to tomorrow. Pick the most important one first.', 'happy');
+            }}
+          />
+        ) : undefined
+      }
+    >
       {late.length === 0 ? (
         <EmptyState title="Nothing’s late." body="If something slips later, this is where you sort it out.">
           <Button label="Back to School" variant="secondary" onPress={() => router.back()} />
@@ -73,6 +96,7 @@ export default function TriageScreen() {
                   {KIND_LABEL[a.kind]}
                   {cls ? `, ${cls.name}` : ''}
                 </Text>
+                {quick(a) ? <Text style={styles.quick}>Quick, {a.minutes} min</Text> : null}
                 <Text style={styles.ago}>{ago === 1 ? 'a day late' : `${ago} days late`}</Text>
               </View>
               <Text style={styles.title} onPress={() => router.push(`/assignment/${a.id}`)}>
@@ -135,6 +159,12 @@ export default function TriageScreen() {
 }
 
 const styles = StyleSheet.create({
+  quick: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: colors.secured,
+    marginRight: 8,
+  },
   intro: {
     marginTop: 12,
     marginBottom: 6,

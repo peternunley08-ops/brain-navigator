@@ -22,8 +22,8 @@ export const colors = {
   // Ink, reversed: warm parchment on the dark.
   text: '#F5EBDD',
   textMuted: '#C3B3A0',
-  textFaint: '#8E8173',
-  hint: '#6B6057',
+  textFaint: '#998C7D', // 5.2:1 on surface, 4.7:1 on raised cards (AA)
+  hint: '#7E7266',
 
   // Candlelight — the one accent for actions and focus.
   flame: '#F5B45C',
@@ -105,6 +105,16 @@ export const dimensionColor: Record<string, string> = {
   social: '#E89AB8',
   spiritual: '#AFA2DE',
 };
+
+// The room's glow follows the sky: peach at dawn, gold by day, ember at
+// dusk, moonlight blue at night. Used by the Desk, School, and Focus.
+export function skyGlow(d = new Date()) {
+  const h = d.getHours();
+  if (h >= 5 && h < 8) return '#F5A36B';
+  if (h >= 8 && h < 17) return '#F5C46A';
+  if (h >= 17 && h < 20) return '#E8795A';
+  return '#8FB4E8';
+}
 
 // Hex → rgba, for glows and tints built from a token. A worklet, so
 // animated styles can call it on the UI thread too.

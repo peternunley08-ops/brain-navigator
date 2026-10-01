@@ -11,7 +11,8 @@ import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
-import { useLifeStore } from '../core/lifeStore';
+import { daysUntil } from '../core/dates';
+import { type Person, useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
 
@@ -42,11 +43,17 @@ export default function PeopleScreen() {
     setAdding(false);
   };
 
-  const text = (p: string) => {
-    const digits = p.replace(/[^\d+]/g, '');
+  // Remember when you last reached out, so the app can nudge you about the quiet ones.
+  const reached = (p: Person) => savePerson({ ...p, reachedAt: new Date().toISOString() });
+  const text = (p: Person) => {
+    const digits = p.phone.replace(/[^\d+]/g, '');
+    reached(p);
     Linking.openURL(opener ? `sms:${digits}&body=${encodeURIComponent(opener)}` : `sms:${digits}`).catch(() => {});
   };
-  const call = (p: string) => Linking.openURL(`tel:${p.replace(/[^\d+]/g, '')}`).catch(() => {});
+  const call = (p: Person) => {
+    reached(p);
+    Linking.openURL(`tel:${p.phone.replace(/[^\d+]/g, '')}`).catch(() => {});
+  };
 
   return (
     <Screen
@@ -98,10 +105,11 @@ export default function PeopleScreen() {
                 <View style={styles.flex}>
                   <Text style={styles.name}>{p.name}</Text>
                   <Text style={styles.note}>{p.note || p.phone}</Text>
+                  {p.reachedAt ? <Text style={styles.reached}>{sinceLine(p.reachedAt)}</Text> : null}
                 </View>
               </Pressy>
-              <IconButton icon="message" label={`Text ${p.name}`} tint={PINK} onPress={() => text(p.phone)} />
-              <IconButton icon="phone" label={`Call ${p.name}`} onPress={() => call(p.phone)} />
+              <IconButton icon="message" label={`Text ${p.name}`} tint={PINK} onPress={() => text(p)} />
+              <IconButton icon="phone" label={`Call ${p.name}`} onPress={() => call(p)} />
             </Card>
           </Animated.View>
         ))}
@@ -111,7 +119,20 @@ export default function PeopleScreen() {
   );
 }
 
+function sinceLine(iso: string) {
+  const d = new Date(iso);
+  const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const ago = -daysUntil(key);
+  return ago <= 0 ? 'Reached out today' : ago === 1 ? 'Reached out yesterday' : `Reached out ${ago} days ago`;
+}
+
 const styles = StyleSheet.create({
+  reached: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
+  },
   flex: {
     flex: 1,
   },

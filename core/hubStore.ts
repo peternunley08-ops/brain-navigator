@@ -24,6 +24,8 @@ export interface Note {
   pinned: boolean;
   updatedAt: string;
   createdAt: string;
+  /** Word goal for an essay (650 for the Common App by default). */
+  wordGoal?: number | null;
 }
 
 export type CollegePlan = 'ED' | 'EA' | 'REA' | 'RD' | 'Rolling';
@@ -42,6 +44,11 @@ export interface College {
   /** Campus visit: 1–5 and what stood out. */
   visitRating?: number;
   visitNotes?: string;
+  /** Supplement essays: the prompt, its word limit, and the note it's written in. */
+  supplements?: { id: string; prompt: string; limit: number; noteId?: string }[];
+  /** Application fee in dollars, and whether a fee waiver covers it. */
+  fee?: number | null;
+  waiver?: boolean;
 }
 
 export type CollegeTier = 'reach' | 'target' | 'likely';
@@ -137,6 +144,8 @@ interface HubData {
 interface HubStore extends HubData {
   loaded: boolean;
   load: () => Promise<void>;
+  /** Replace everything with a backup's hub section (connections on this phone stay). */
+  restore: (d: Partial<HubData>) => void;
 
   createNote: (partial?: Partial<Note>) => Note;
   updateNote: (id: string, patch: Partial<Note>) => void;
@@ -211,6 +220,17 @@ export const useHubStore = create<HubStore>((set, get) => {
   return {
     ...EMPTY,
     loaded: false,
+
+    restore: (d) =>
+      commit({
+        notes: d.notes ?? [],
+        colleges: d.colleges ?? [],
+        plan: d.plan ?? [],
+        scholarships: d.scholarships ?? [],
+        recs: d.recs ?? [],
+        activities: d.activities ?? [],
+        aid: d.aid ?? {},
+      }),
 
     load: async () => {
       if (get().loaded) return;

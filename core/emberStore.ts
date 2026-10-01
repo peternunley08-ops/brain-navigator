@@ -1,5 +1,14 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
+import { useLifeStore } from './lifeStore';
+import { nowState, useSchoolStore } from './schoolStore';
+
+/** True while a class is in session and Ember has been asked to stay quiet then. */
+export function inClassQuiet() {
+  if (useLifeStore.getState().settings.quietInClass === false) return false;
+  const now = nowState(useSchoolStore.getState().classes);
+  return now.kind === 'in' && now.cls.kind === 'class';
+}
 
 // Ember's own state: where it's perched, whether it's napping, and the
 // short things it says when something happens elsewhere in the app.
@@ -106,6 +115,9 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
   },
 
   say: (text, mood = 'happy') => {
+    // Quiet mode keeps only the big moments; class time keeps nothing.
+    if (inClassQuiet()) return;
+    if (useLifeStore.getState().settings.emberQuiet && mood !== 'cheer') return;
     toastSeq += 1;
     set({ toast: { id: toastSeq, text, mood } });
   },

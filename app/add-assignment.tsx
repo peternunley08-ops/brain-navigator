@@ -25,19 +25,41 @@ const KINDS: { key: AssignmentKind; icon: IconName }[] = [
 const DURATIONS = [15, 30, 45, 60, 90, 120];
 
 export default function AddAssignmentScreen() {
-  const { id, classId: classParam } = useLocalSearchParams<{ id?: string; classId?: string }>();
+  const { id, classId: classParam, like } = useLocalSearchParams<{ id?: string; classId?: string; like?: string }>();
   const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
   const addAssignment = useSchoolStore((s) => s.addAssignment);
   const updateAssignment = useSchoolStore((s) => s.updateAssignment);
   const existing = assignments.find((a) => a.id === id);
+  // "Another like this": same class, kind, and length; a fresh title and date.
+  const template = like ? assignments.find((a) => a.id === like) : undefined;
+  const focus = useSchoolStore((s) => s.focus);
 
   const today = dateKey();
   const [title, setTitle] = useState(existing?.title ?? '');
-  const [kind, setKind] = useState<AssignmentKind>(existing?.kind ?? 'homework');
-  const [classId, setClassId] = useState<string | null>(existing?.classId ?? classParam ?? null);
-  const [due, setDue] = useState(existing?.due ?? addDays(today, 1));
-  const [minutes, setMinutes] = useState<number | null>(existing?.minutes ?? 30);
+  const [kind, setKind] = useState<AssignmentKind>(existing?.kind ?? template?.kind ?? 'homework');
+  const [classId, setClassId] = useState<string | null>(existing?.classId ?? template?.classId ?? classParam ?? null);
+  const [due, setDue] = useState(existing?.due ?? (template ? addDays(template.due, 7) : addDays(today, 1)));
+  const [minutes, setMinutes] = useState<number | null>(existing?.minutes ?? template?.minutes ?? 30);
+
+  // How long this kind of thing actually takes you, from finished work you
+  // focused on (needs at least two to say anything).
+  const learned = useMemo(() => {
+    const samples = assignments
+      .filter((a) => a.done && a.kind === kind && (!classId || a.classId === classId))
+      .map((a) => focus.filter((f) => f.assignmentId === a.id).reduce((s, f) => s + f.minutes, 0))
+      .filter((m) => m >= 5);
+    if (samples.length < 2) return null;
+    return Math.round(samples.reduce((s, m) => s + m, 0) / samples.length / 5) * 5;
+  }, [assignments, focus, kind, classId]);
+
+  // What else is due each day, so a pile-up is visible before adding to it.
+  const dueCount = useMemo(() => {
+    const m: Record<string, number> = {};
+    for (const a of assignments) if (!a.done && a.id !== existing?.id) m[a.due] = (m[a.due] ?? 0) + 1;
+    return m;
+  }, [assignments, existing?.id]);
+  const pile = dueCount[due] ?? 0;
   const [notes, setNotes] = useState(existing?.notes ?? '');
 
   // Two weeks of days to pick from, starting today.
@@ -136,15 +158,29 @@ export default function AddAssignmentScreen() {
                 >
                   <Text style={[styles.dayTop, on && styles.dayOn]}>{d.top}</Text>
                   <Text style={[styles.dayNum, on && styles.dayOn]}>{d.num}</Text>
+                  <View style={styles.dayDots}>
+                    {Array.from({ length: Math.min(3, dueCount[d.key] ?? 0) }, (_, i) => (
+                      <View key={i} style={[styles.dayDot, { backgroundColor: on ? colors.flameInk : (dueCount[d.key] ?? 0) >= 3 ? colors.unlocked : colors.textFaint }]} />
+                    ))}
+                  </View>
                 </Pressy>
               );
             })}
           </ScrollView>
+          {pile >= 2 ? (
+            <Text style={styles.pile}>
+              {pile} other things are already due {dueLabel(due) === 'Today' || dueLabel(due) === 'Tomorrow' ? dueLabel(due).toLowerCase() : `on ${dueLabel(due)}`}. Could any of it start earlier?
+            </Text>
+          ) : null}
         </Section>
       </Reveal>
 
       <Reveal index={4}>
-        <Section title="How long will it take?" note="A rough guess is fine. It’s how Ember knows when a night is too full.">
+        <Section
+          title="How long will it take?"
+          note={learned ? `Your ${KIND_LABEL[kind].toLowerCase()}s${cls ? ` for ${cls.name}` : ''} usually take about ${learned} min.` : 'A rough guess is fine. It’s how Ember knows when a night is too full.'}
+          action={learned && minutes !== learned ? { label: `Use ${learned} min`, onPress: () => setMinutes(learned) } : undefined}
+        >
           <ChipRow>
             {DURATIONS.map((m) => (
               <Chip key={m} label={m >= 60 ? `${m / 60}${m % 60 ? '.5' : ''} h` : `${m} min`} icon="clock" selected={minutes === m} color={accent} onPress={() => setMinutes(m)} />
@@ -202,6 +238,24 @@ const styles = StyleSheet.create({
   },
   dayOn: {
     color: colors.flameInk,
+  },
+  dayDots: {
+    flexDirection: 'row',
+    gap: 2,
+    height: 5,
+    marginTop: 3,
+  },
+  dayDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  pile: {
+    marginTop: 10,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.unlocked,
   },
   save: {
     marginTop: 24,

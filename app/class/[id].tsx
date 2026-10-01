@@ -12,7 +12,8 @@ import { Section } from '../../components/ui/Section';
 import { Sparkline } from '../../components/ui/Sparkline';
 import { useHubStore } from '../../core/hubStore';
 import { deckStats, dueCards, useLifeStore } from '../../core/lifeStore';
-import { classAverage, clock, letterFor, useSchoolStore } from '../../core/schoolStore';
+import { Pressy } from '../../components/ui/Pressy';
+import { classAverage, CLASS_COLORS, clock, finalNeeded, letterFor, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -46,15 +47,15 @@ export default function ClassScreen() {
   const myDecks = decks.filter((d) => d.classId === cls.id);
   const dayText =
     cls.days.join() === '1,2,3,4,5' ? 'Weekdays' : cls.days.length === 7 ? 'Every day' : cls.days.map((d) => DAY_NAMES[d - 1]).join(', ');
-  const when = cls.days.length ? `${dayText} · ${clock(cls.start)} – ${clock(cls.end)}` : 'No days or times yet';
+  const when = cls.days.length ? `${dayText}, ${clock(cls.start)} – ${clock(cls.end)}` : 'No days or times yet';
 
   let n = 0;
   return (
     <Screen
       glowColor={cls.color}
-      kicker={[LEVEL[cls.level ?? 'regular'], cls.kind === 'activity' ? 'Activity' : ''].filter(Boolean).join(' · ') || undefined}
+      kicker={[LEVEL[cls.level ?? 'regular'], cls.kind === 'activity' ? 'Activity' : ''].filter(Boolean).join(', ') || undefined}
       title={cls.name}
-      subtitle={[cls.teacher, cls.room ? `Room ${cls.room}` : ''].filter(Boolean).join(' · ') || undefined}
+      subtitle={[cls.teacher, cls.room ? `Room ${cls.room}` : ''].filter(Boolean).join(', ') || undefined}
       right={<IconButton icon="edit" label="Edit class" onPress={() => router.push({ pathname: '/class-edit', params: { id: cls.id } })} />}
     >
       <Reveal index={n++}>
@@ -62,6 +63,18 @@ export default function ClassScreen() {
           <Icon name="clock" size={18} color={cls.color} />
           <Text style={styles.whenText}>{when}</Text>
         </Card>
+        <View style={styles.swatches}>
+          {CLASS_COLORS.map((c) => (
+            <Pressy
+              key={c}
+              onPress={() => useSchoolStore.getState().saveClass({ ...cls, color: c })}
+              depth={0.85}
+              style={[styles.swatch, { backgroundColor: c }, cls.color === c && styles.swatchOn]}
+              accessibilityLabel={`Color ${c}`}
+              accessibilityState={{ selected: cls.color === c }}
+            />
+          ))}
+        </View>
       </Reveal>
 
       <Reveal index={n++}>
@@ -106,6 +119,18 @@ export default function ClassScreen() {
                   {trend.length > 1 ? <Sparkline values={trend} color={cls.color} width={96} height={36} /> : null}
                 </View>
               )}
+              {avg != null && cls.goal ? (
+                <Text style={styles.finalLine}>
+                  {(() => {
+                    // What a final worth 20% would need to finish at the goal.
+                    const need = finalNeeded(avg, cls.goal, 0.2);
+                    if (need == null) return '';
+                    if (need <= 0) return `You’re safe for ${cls.goal}% even with a rough final.`;
+                    if (need > 100) return `${cls.goal}% would take more than 100% on a 20% final. Talk to your teacher about extra credit.`;
+                    return `To finish at ${cls.goal}%, you’d need about ${Math.ceil(need)}% on a final worth 20%.`;
+                  })()}
+                </Text>
+              ) : null}
             </Card>
           </Section>
         </Reveal>
@@ -146,7 +171,7 @@ export default function ClassScreen() {
                         {d.name}
                       </Text>
                       <Text style={styles.sub}>
-                        {st.total} cards · {st.mastered} mastered{due ? ` · ${due} to study` : ''}
+                        {st.total} cards, {st.mastered} mastered{due ? `, ${due} to study` : ''}
                       </Text>
                     </View>
                     <Icon name="chevron" size={16} color={colors.textFaint} />
@@ -174,6 +199,13 @@ export default function ClassScreen() {
 }
 
 const styles = StyleSheet.create({
+  finalLine: {
+    marginTop: 10,
+    fontFamily: fonts.displaySoft,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textMuted,
+  },
   flex: {
     flex: 1,
   },
@@ -182,6 +214,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  swatches: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 12,
+  },
+  swatch: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+  },
+  swatchOn: {
+    borderWidth: 3,
+    borderColor: colors.text,
   },
   whenText: {
     flex: 1,
@@ -223,6 +269,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 24,
     color: colors.text,
+    fontVariant: ['tabular-nums'],
   },
   sub: {
     marginTop: 1,

@@ -32,11 +32,15 @@ export default function NotesScreen() {
   const { classId } = useLocalSearchParams<{ classId?: string }>();
   const [q, setQ] = useState('');
   const [cls, setCls] = useState<string | null>(classId ?? null);
+  const [fromHelpers, setFromHelpers] = useState(false);
+  // Replies saved from a helper chat are kept as notes with the sparkle icon.
+  const helperNotes = notes.filter((n) => n.icon === 'sparkle').length;
   const withNotes = classes.filter((c) => notes.some((n) => n.classId === c.id));
 
   const term = q.trim().toLowerCase();
   const sorted = [...notes]
     .filter((n) => !cls || n.classId === cls)
+    .filter((n) => !fromHelpers || n.icon === 'sparkle')
     .filter((n) => !term || n.title.toLowerCase().includes(term) || n.blocks.some((b) => b.text.toLowerCase().includes(term)))
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt));
 
@@ -63,12 +67,20 @@ export default function NotesScreen() {
         </Section>
       </Reveal>
 
-      {notes.length > 3 || withNotes.length ? (
+      {notes.length > 3 || withNotes.length || helperNotes ? (
         <Reveal index={1}>
           <Field value={q} onChangeText={setQ} placeholder="Search your notes" returnKeyType="search" autoCapitalize="none" clearButtonMode="while-editing" containerStyle={styles.search} />
-          {withNotes.length ? (
+          {withNotes.length || helperNotes ? (
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters} style={styles.filterScroll}>
-              <Chip label="All" selected={!cls} onPress={() => setCls(null)} />
+              <Chip
+                label="All"
+                selected={!cls && !fromHelpers}
+                onPress={() => {
+                  setCls(null);
+                  setFromHelpers(false);
+                }}
+              />
+              {helperNotes ? <Chip label="From helpers" icon="sparkle" selected={fromHelpers} onPress={() => setFromHelpers((v) => !v)} /> : null}
               {withNotes.map((c) => (
                 <Chip key={c.id} label={c.name} dot color={c.color} selected={cls === c.id} onPress={() => setCls(cls === c.id ? null : c.id)} />
               ))}
@@ -83,7 +95,7 @@ export default function NotesScreen() {
             notes.length ? (
               <EmptyState title="Nothing matches." body="Try another word or class." />
             ) : (
-              <EmptyState title="A blank notebook." body="Start with a template above — class notes and study guides come with the headings already in." />
+              <EmptyState gear="glasses" title="A blank notebook." body="Start with a template above — class notes and study guides come with the headings already in." />
             )
           ) : (
             <View style={styles.list}>

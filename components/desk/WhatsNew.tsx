@@ -8,17 +8,17 @@ import { Card } from '../ui/Card';
 import { Chip, ChipRow } from '../ui/Chip';
 import { IconButton } from '../ui/IconButton';
 
-export const WHATS_NEW_VERSION = 1;
+export const WHATS_NEW_VERSION = 2;
 
 const NEW: { label: string; href: string }[] = [
+  { label: 'Helpers', href: '/helpers' },
+  { label: 'Scan many screenshots', href: '/scan' },
   { label: 'Grades + GPA', href: '/grades' },
   { label: 'Flashcards', href: '/flashcards' },
   { label: 'Your week', href: '/week' },
   { label: 'Sleep plan', href: '/sleep' },
   { label: 'Wins jar', href: '/wins' },
   { label: 'Toolkit', href: '/toolkit' },
-  { label: 'Scholarships', href: '/scholarships' },
-  { label: 'Hours', href: '/hours' },
   { label: 'Badges', href: '/achievements' },
 ];
 
@@ -34,7 +34,7 @@ export function WhatsNew() {
           <EmberGlyph size={34} />
           <View style={styles.flex}>
             <Text style={styles.title}>New in your app</Text>
-            <Text style={styles.body}>Grades, flashcards, a sleep plan, a wins jar, college tools, and more. All of it lives in the Drawer too.</Text>
+            <Text style={styles.body}>Ember’s crew of helpers, scanning lots of screenshots at once, grades, flashcards, and more. All of it lives in the Drawer too.</Text>
           </View>
           <IconButton icon="close" label="Dismiss" size={32} onPress={() => setSettings({ whatsNewSeen: WHATS_NEW_VERSION })} />
         </View>
@@ -42,6 +42,7 @@ export function WhatsNew() {
           {NEW.map((n) => (
             <Chip key={n.href} label={n.label} onPress={() => router.push(n.href as never)} style={styles.chip} />
           ))}
+          <Chip label="Everything new" icon="arrow" onPress={() => router.push('/whats-new')} style={styles.chip} />
         </ChipRow>
       </Card>
     </Animated.View>

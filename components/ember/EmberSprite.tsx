@@ -284,7 +284,7 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
 });
 
 // A still Ember for places that shouldn't animate (list icons, the nav).
-export function EmberGlyph({ size = 28 }: { size?: number }) {
+export function EmberGlyph({ size = 28, gear }: { size?: number; gear?: 'glasses' | 'cap' }) {
   const chosen = useLifeStore((s) => s.settings.emberTheme);
   const P = EMBER_THEMES[chosen] ?? EMBER_THEMES.gold;
   const INK = P.ink;
@@ -305,6 +305,20 @@ export function EmberGlyph({ size = 28 }: { size?: number }) {
         <Path d={`M${CX - 14},${EYE_Y + 1} Q${CX - 9.5},${EYE_Y - 4} ${CX - 5},${EYE_Y + 1}`} stroke={INK} strokeWidth={3} strokeLinecap="round" fill="none" />
         <Path d={`M${CX + 5},${EYE_Y + 1} Q${CX + 9.5},${EYE_Y - 4} ${CX + 14},${EYE_Y + 1}`} stroke={INK} strokeWidth={3} strokeLinecap="round" fill="none" />
         <Path d={`M${CX - 5},88 Q${CX},93 ${CX + 5},88 Z`} fill={INK} stroke={INK} strokeWidth={1.6} strokeLinejoin="round" />
+        {gear === 'glasses' ? (
+          <>
+            <Circle cx={CX - EYE_DX} cy={EYE_Y} r={7} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={2} />
+            <Circle cx={CX + EYE_DX} cy={EYE_Y} r={7} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={2} />
+            <Path d={`M${CX - 3},${EYE_Y - 1} Q${CX},${EYE_Y - 3} ${CX + 3},${EYE_Y - 1}`} stroke={INK} strokeWidth={2} fill="none" />
+          </>
+        ) : null}
+        {gear === 'cap' ? (
+          <>
+            <Path d={`M${CX - 10},60 L${CX - 10},66 Q${CX},69 ${CX + 10},66 L${CX + 10},60 Z`} fill="#23202E" />
+            <Path d={`M${CX - 19},57 L${CX},51 L${CX + 19},57 L${CX},63 Z`} fill="#2E2A3C" />
+            <Path d={`M${CX},57 L${CX + 15},59 L${CX + 16},69`} stroke="#F5C451" strokeWidth={1.8} fill="none" strokeLinecap="round" />
+          </>
+        ) : null}
       </Svg>
     </View>
   );

@@ -1,4 +1,8 @@
 import * as Haptics from 'expo-haptics';
+import * as ImagePicker from 'expo-image-picker';
+import { recognizeText, textRecognitionAvailable } from '../modules/text-recognition';
+import { type FoundGrade, parseGrades } from '../core/scanParser';
+import { ProgressBar } from '../components/ui/ProgressBar';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -50,7 +54,7 @@ export default function GradesScreen() {
   if (!real.length) {
     return (
       <Screen title="Grades">
-        <EmptyState title="Add your classes first." body="Then log grades as they come back and see where each class stands.">
+        <EmptyState gear="glasses" title="Add your classes first." body="Then log grades as they come back and see where each class stands.">
           <Button label="Your schedule" icon="book" variant="secondary" onPress={() => router.push('/classes')} />
         </EmptyState>
       </Screen>
@@ -108,8 +112,8 @@ function Overview({
                       {c.name}
                     </Text>
                     <Text style={styles.sub}>
-                      {avg == null ? 'No grades yet' : `${avg.toFixed(1)}% · ${mine.length} grade${mine.length === 1 ? '' : 's'}`}
-                      {c.level && c.level !== 'regular' ? ` · ${c.level === 'ap' ? 'AP' : 'Honors'}` : ''}
+                      {avg == null ? 'No grades yet' : `${avg.toFixed(1)}%, ${mine.length} grade${mine.length === 1 ? '' : 's'}`}
+                      {c.level && c.level !== 'regular' ? `, ${c.level === 'ap' ? 'AP' : 'Honors'}` : ''}
                     </Text>
                   </View>
                   {trend.length > 1 ? <Sparkline values={trend} color={c.color} width={64} height={28} /> : null}
@@ -137,6 +141,41 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
   const [editWeights, setEditWeights] = useState(false);
   const [target, setTarget] = useState(90);
   const [finalWeight, setFinalWeight] = useState(20);
+  const [wiScore, setWiScore] = useState('');
+  const [wiOutOf, setWiOutOf] = useState('100');
+  const [wiCat, setWiCat] = useState('Tests');
+  const [scanned, setScanned] = useState<FoundGrade[] | null>(null);
+  const [scanPicked, setScanPicked] = useState<string[]>([]);
+  const [scanning, setScanning] = useState(false);
+
+  // Read grades off a gradebook screenshot; nothing is saved until you pick.
+  const scanGrades = async () => {
+    const res = await ImagePicker.launchImageLibraryAsync({ mediaTypes: 'images', allowsMultipleSelection: true, selectionLimit: 5, quality: 1 });
+    if (res.canceled || !res.assets?.length) return;
+    setScanning(true);
+    const found: FoundGrade[] = [];
+    for (const [i, asset] of res.assets.entries()) {
+      try {
+        const lines = await recognizeText(asset.uri);
+        for (const g of parseGrades(lines.map((l) => ({ text: l.text, x: l.x, y: l.y })))) found.push({ ...g, key: `${i}-${g.key}` });
+      } catch {
+        // Skip a screenshot that can't be read.
+      }
+    }
+    setScanning(false);
+    // Leave out ones already logged.
+    const have = new Set(grades.filter((g) => g.classId === cls.id).map((g) => `${g.title.toLowerCase()}|${g.score}|${g.outOf}`));
+    const fresh = found.filter((g) => !have.has(`${g.title.toLowerCase()}|${g.score}|${g.outOf}`));
+    setScanned(fresh);
+    setScanPicked(fresh.map((g) => g.key));
+    if (!fresh.length) emberSay('I couldn’t find grades like “88/100” in that. Try zooming in on the grade list.', 'concerned');
+  };
+  const importScanned = () => {
+    const picked = (scanned ?? []).filter((g) => scanPicked.includes(g.key));
+    for (const g of picked) addGrade({ classId: cls.id, title: g.title, category: g.category, score: g.score, outOf: g.outOf, date: dateKey() });
+    setScanned(null);
+    emberSay(`${picked.length} grade${picked.length === 1 ? '' : 's'} in. Check the categories look right.`, 'happy');
+  };
 
   const mine = grades.filter((g) => g.classId === cls.id).sort((a, b) => b.date.localeCompare(a.date));
   const avg = classAverage(grades, cls);
@@ -166,6 +205,13 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
   };
 
   const needed = avg != null ? finalNeeded(avg, target, finalWeight / 100) : null;
+  const ws = parseFloat(wiScore);
+  const wo = parseFloat(wiOutOf);
+  const whatIf =
+    !Number.isNaN(ws) && !Number.isNaN(wo) && wo > 0
+      ? classAverage([...grades, { id: 'what-if', classId: cls.id, title: 'What if', category: wiCat, score: ws, outOf: wo, date: dateKey() }], cls)
+      : null;
+  const goal = cls.goal;
 
   return (
     <>
@@ -177,10 +223,28 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
           <View style={styles.flex}>
             <Text style={styles.pct}>{avg == null ? 'No grades yet' : `${avg.toFixed(1)}%`}</Text>
             <Text style={styles.sub}>
-              {weightTotal ? `Weighted by category (${weightTotal}% set)` : 'Total points'} · {mine.length} grade{mine.length === 1 ? '' : 's'}
+              {weightTotal ? `Weighted by category (${weightTotal}% set)` : 'Total points'}, {mine.length} grade{mine.length === 1 ? '' : 's'}
             </Text>
           </View>
         </Card>
+      </Reveal>
+
+      <Reveal index={1}>
+        <Section title="Your goal" note={goal ? undefined : 'Pick what you’re aiming for.'}>
+          <ChipRow>
+            {[93, 90, 85, 80, 70].map((g) => (
+              <Chip key={g} label={`${g}% (${letterFor(g)})`} selected={goal === g} color={cls.color} onPress={() => saveClass({ ...cls, goal: goal === g ? undefined : g })} />
+            ))}
+          </ChipRow>
+          {goal && avg != null ? (
+            <View style={styles.goalBox}>
+              <ProgressBar value={Math.min(1, avg / goal)} color={avg >= goal ? colors.secured : cls.color} />
+              <Text style={styles.goalText}>
+                {avg >= goal ? `At ${avg.toFixed(1)}%, you’re at or above your goal. Keep it steady.` : `${(goal - avg).toFixed(1)} points to go. The what-if below shows what one grade would do.`}
+              </Text>
+            </View>
+          ) : null}
+        </Section>
       </Reveal>
 
       <Reveal index={2}>
@@ -197,8 +261,45 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
               <Text style={styles.outOf}>out of</Text>
               <Field placeholder="100" value={outOf} onChangeText={setOutOf} keyboardType="decimal-pad" containerStyle={styles.flex} accessibilityLabel="Out of" />
             </View>
-            {valid ? <Text style={styles.preview}>{((s / o) * 100).toFixed(1)}% · {letterFor((s / o) * 100)}</Text> : null}
+            {valid ? <Text style={styles.preview}>{((s / o) * 100).toFixed(1)}%, {letterFor((s / o) * 100)}</Text> : null}
             <Button label="Log it" icon="plus" onPress={add} disabled={!valid} style={styles.gap} />
+            {textRecognitionAvailable ? (
+              <Button
+                label={scanning ? 'Reading…' : 'Scan grades from a screenshot'}
+                icon="image"
+                variant="ghost"
+                size="sm"
+                loading={scanning}
+                onPress={scanGrades}
+                style={styles.scanBtn}
+              />
+            ) : null}
+            {scanned && scanned.length ? (
+              <View style={styles.scanned}>
+                <Text style={styles.calcLabel}>Found {scanned.length}. Uncheck any that are wrong.</Text>
+                {scanned.map((g) => {
+                  const on = scanPicked.includes(g.key);
+                  return (
+                    <Pressy
+                      key={g.key}
+                      onPress={() => setScanPicked(on ? scanPicked.filter((k) => k !== g.key) : [...scanPicked, g.key])}
+                      style={styles.scanRow}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: on }}
+                    >
+                      <Icon name={on ? 'check' : 'plus'} size={16} color={on ? colors.secured : colors.textFaint} />
+                      <Text style={styles.scanTitle} numberOfLines={1}>
+                        {g.title}
+                      </Text>
+                      <Text style={styles.scanMeta}>
+                        {g.score}/{g.outOf}, {g.category}
+                      </Text>
+                    </Pressy>
+                  );
+                })}
+                <Button label={`Add ${scanPicked.length} grade${scanPicked.length === 1 ? '' : 's'}`} icon="check" variant="secondary" onPress={importScanned} disabled={!scanPicked.length} style={styles.gap} />
+              </View>
+            ) : null}
           </Card>
         </Section>
       </Reveal>
@@ -262,6 +363,30 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
         </Reveal>
       ) : null}
 
+      {avg != null ? (
+        <Reveal index={4}>
+          <Section title="What if…" note="Try a score without saving it.">
+            <Card>
+              <View style={styles.scoreRow}>
+                <Field placeholder="Score" value={wiScore} onChangeText={setWiScore} keyboardType="decimal-pad" containerStyle={styles.flex} accessibilityLabel="What-if score" />
+                <Text style={styles.outOf}>out of</Text>
+                <Field placeholder="100" value={wiOutOf} onChangeText={setWiOutOf} keyboardType="decimal-pad" containerStyle={styles.flex} accessibilityLabel="What-if out of" />
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow} style={styles.catScroll}>
+                {GRADE_CATEGORIES.map((c) => (
+                  <Chip key={c} label={c} selected={wiCat === c} color={cls.color} onPress={() => setWiCat(c)} />
+                ))}
+              </ScrollView>
+              {whatIf != null ? (
+                <Text style={[styles.whatIf, { color: whatIf >= avg ? colors.secured : colors.unlocked }]}>
+                  You’d be at {whatIf.toFixed(1)}% ({letterFor(whatIf)}), {whatIf >= avg ? 'up' : 'down'} {Math.abs(whatIf - avg).toFixed(1)} from {avg.toFixed(1)}%.
+                </Text>
+              ) : null}
+            </Card>
+          </Section>
+        </Reveal>
+      ) : null}
+
       {mine.length ? (
         <Reveal index={5}>
           <Section title="All grades">
@@ -276,7 +401,7 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                           {g.title}
                         </Text>
                         <Text style={styles.sub}>
-                          {g.category} · {g.score}/{g.outOf}
+                          {g.category}, {g.score}/{g.outOf}
                         </Text>
                       </View>
                       <Text style={[styles.gradePct, { color: gradeColor(pct) }]}>{pct.toFixed(0)}%</Text>
@@ -300,6 +425,50 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
 }
 
 const styles = StyleSheet.create({
+  goalBox: {
+    marginTop: 12,
+    gap: 8,
+  },
+  goalText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textMuted,
+  },
+  scanBtn: {
+    alignSelf: 'center',
+    marginTop: 8,
+  },
+  scanned: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.line,
+  },
+  scanRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 8,
+  },
+  scanTitle: {
+    flex: 1,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.text,
+  },
+  scanMeta: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
+  },
+  whatIf: {
+    marginTop: 12,
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
   flex: {
     flex: 1,
   },
@@ -347,6 +516,7 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     fontFamily: fonts.display,
     fontSize: 22,
+    fontVariant: ['tabular-nums'],
   },
   hero: {
     marginTop: 16,
@@ -370,6 +540,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 26,
     color: colors.text,
+    fontVariant: ['tabular-nums'],
   },
   catScroll: {
     marginTop: 12,
@@ -430,6 +601,7 @@ const styles = StyleSheet.create({
   answerNum: {
     fontFamily: fonts.display,
     fontSize: 34,
+    fontVariant: ['tabular-nums'],
   },
   answerText: {
     marginTop: 4,
@@ -453,5 +625,6 @@ const styles = StyleSheet.create({
   gradePct: {
     fontFamily: fonts.display,
     fontSize: 18,
+    fontVariant: ['tabular-nums'],
   },
 });

@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { AssignmentRow } from '../components/school/AssignmentRow';
+import { Chip } from '../components/ui/Chip';
 import { NowCard } from '../components/school/NowCard';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -14,7 +15,11 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { addDays, type Assignment, dateKey, daysUntil, tonightsLoad, useSchoolStore } from '../core/schoolStore';
-import { alpha, colors, fonts, radii } from '../core/theme';
+import { syncCanvas } from '../core/canvas';
+import { smallestStart } from '../core/helperOffline';
+import { useHubStore } from '../core/hubStore';
+import { alpha, colors, fonts, radii, skyGlow } from '../core/theme';
+import { emberSay } from '../components/ember/EmberBuddy';
 
 function hm(minutes: number) {
   const h = Math.floor(minutes / 60);
@@ -37,6 +42,7 @@ export default function SchoolScreen() {
   const cap = useSchoolStore((s) => s.profile.nightlyCap);
   const [day, setDay] = useState<string | null>(null);
   const [showDone, setShowDone] = useState(false);
+  const [onlyClass, setOnlyClass] = useState<string | null>(null);
 
   const today = dateKey();
   const week = useMemo(
@@ -54,6 +60,7 @@ export default function SchoolScreen() {
   // Soonest first; within a day, starred ones lead.
   const open = assignments
     .filter((a) => !a.done)
+    .filter((a) => !onlyClass || a.classId === onlyClass)
     .sort((a, b) => a.due.localeCompare(b.due) || Number(!!b.starred) - Number(!!a.starred));
   const done = assignments.filter((a) => a.done).sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
   const shown = day ? open.filter((a) => a.due === day) : open;
@@ -71,6 +78,8 @@ export default function SchoolScreen() {
       ].filter((g) => g.items.length > 0);
 
   const load = tonightsLoad(assignments);
+  // The best next thing: overdue or soonest, starred first, shortest breaks ties.
+  const next = smallestStart(assignments);
   const over = load.minutes > cap;
   const fill = useAnimatedStyle(() => ({
     transform: [{ scaleX: withTiming(Math.min(1, load.minutes / Math.max(1, cap)), { duration: 700 }) }],
@@ -81,6 +90,12 @@ export default function SchoolScreen() {
   return (
     <Screen
       back={false}
+      glowColor={skyGlow()}
+      onRefresh={async () => {
+        if (!useHubStore.getState().canvas.token) return;
+        const r = await syncCanvas();
+        emberSay(r.ok ? 'Synced with Canvas.' : r.message, r.ok ? 'happy' : 'concerned');
+      }}
       title="School"
       subtitle={open.length === 0 ? 'Nothing due. Nice.' : `${open.length} thing${open.length === 1 ? '' : 's'} to do.`}
       right={
@@ -93,6 +108,17 @@ export default function SchoolScreen() {
     >
       <Reveal index={n++}>
         <NowCard />
+        {next ? (
+          <Card onPress={() => router.push({ pathname: '/focus', params: { assignment: next.id } })} style={styles.next}>
+            <Icon name="bolt" size={18} color={colors.flame} />
+            <Text style={styles.nextText} numberOfLines={2}>
+              <Text style={styles.nextLabel}>Do this now: </Text>
+              {next.title}
+              {next.minutes ? `, about ${next.minutes} min` : ''}
+            </Text>
+            <Icon name="timer" size={18} color={colors.textFaint} />
+          </Card>
+        ) : null}
       </Reveal>
 
       {load.items.length > 0 ? (
@@ -178,7 +204,19 @@ export default function SchoolScreen() {
           ) : null}
         </EmptyState>
       ) : (
-        groups.map((g) => (
+        <>
+          {classes.filter((c) => c.kind === 'class' && assignments.some((a) => !a.done && a.classId === c.id)).length > 1 ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.classChips} style={styles.classScroll}>
+              <Chip label="All classes" selected={!onlyClass} onPress={() => setOnlyClass(null)} />
+              {classes
+                .filter((c) => c.kind === 'class' && assignments.some((a) => !a.done && a.classId === c.id))
+                .map((c) => (
+                  <Chip key={c.id} label={c.name} dot color={c.color} selected={onlyClass === c.id} onPress={() => setOnlyClass(onlyClass === c.id ? null : c.id)} />
+                ))}
+            </ScrollView>
+          ) : null}
+          {onlyClass && !groups.length ? <Text style={styles.noneFor}>Nothing open for this class.</Text> : null}
+          {groups.map((g) => (
           <Reveal key={g.title} index={n++}>
             <Section
               title={g.title}
@@ -192,7 +230,8 @@ export default function SchoolScreen() {
               </View>
             </Section>
           </Reveal>
-        ))
+        ))}
+        </>
       )}
       {day && shown.length === 0 ? (
         <Animated.Text entering={FadeIn} style={styles.hint}>
@@ -218,6 +257,21 @@ export default function SchoolScreen() {
 }
 
 const styles = StyleSheet.create({
+  classScroll: {
+    marginTop: 14,
+    marginHorizontal: -20,
+  },
+  classChips: {
+    gap: 8,
+    paddingHorizontal: 20,
+  },
+  noneFor: {
+    marginTop: 18,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textFaint,
+    textAlign: 'center',
+  },
   headerBtns: {
     flexDirection: 'row',
     gap: 8,
@@ -310,6 +364,24 @@ const styles = StyleSheet.create({
   },
   add: {
     marginTop: 16,
+  },
+  next: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 14,
+  },
+  nextText: {
+    flex: 1,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    lineHeight: 19,
+    color: colors.text,
+  },
+  nextLabel: {
+    fontFamily: fonts.bodySemi,
+    color: colors.flame,
   },
   tools: {
     flexDirection: 'row',

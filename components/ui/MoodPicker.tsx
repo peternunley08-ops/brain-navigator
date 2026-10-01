@@ -17,7 +17,7 @@ interface MoodPickerProps {
   onChange: (v: number) => void;
 }
 
-// Five small faces from a frown to a grin. The chosen one lifts and glows.
+// Five little Embers, from a low flicker to a bright grin. The chosen one lifts and glows.
 export function MoodPicker({ value, onChange }: MoodPickerProps) {
   return (
     <View style={styles.row} accessibilityRole="radiogroup">
@@ -39,10 +39,10 @@ function Face({
   dimmed: boolean;
   onPress: () => void;
 }) {
-  const curve = (mood.v - 3) / 2; // -1 frown … +1 grin
   const S = 44;
   const lift = useAnimatedStyle(() => ({
-    transform: [{ translateY: withSpring(selected ? -4 : 0, { damping: 12, stiffness: 260 }) }, { scale: withSpring(selected ? 1.12 : 1, { damping: 12, stiffness: 260 }) }],
+    // A lift, not a scale: scaling the glowing face made iOS draw it blurry and blocky.
+    transform: [{ translateY: withSpring(selected ? -5 : 0, { damping: 12, stiffness: 260 }) }],
     opacity: withSpring(dimmed ? 0.45 : 1),
   }));
   return (
@@ -56,19 +56,52 @@ function Face({
         ]}
       >
         <Svg width={S} height={S} viewBox="0 0 44 44">
-          <Circle cx={16} cy={18} r={2.4} fill={selected ? mood.color : colors.textMuted} />
-          <Circle cx={28} cy={18} r={2.4} fill={selected ? mood.color : colors.textMuted} />
-          <Path
-            d={`M14,${28 - curve * 1.5} Q22,${28 + curve * 6} 30,${28 - curve * 1.5}`}
-            stroke={selected ? mood.color : colors.textMuted}
-            strokeWidth={2.4}
-            strokeLinecap="round"
-            fill="none"
-          />
+          <EmberFace v={mood.v} color={mood.color} selected={selected} />
         </Svg>
       </Animated.View>
       <Text style={[styles.label, selected && { color: mood.color, fontFamily: fonts.bodySemi }]}>{mood.label}</Text>
     </Pressy>
+  );
+}
+
+/**
+ * Ember, drawn small: the flame stands taller the better the mood, and the
+ * face goes from droopy eyes and a frown to happy closed eyes and a grin.
+ */
+function EmberFace({ v, color, selected }: { v: number; color: string; selected: boolean }) {
+  const tip = 13 - (v - 3) * 3; // 19 (rough) … 7 (great)
+  const flame = `M22,${tip} C27,${tip + 8} 34,${20 + (v - 3)} 34,29 A12,12 0 0 1 10,29 C10,${20 + (v - 3)} 17,${tip + 8} 22,${tip} Z`;
+  const ink = selected ? colors.flameInk : colors.textMuted;
+  const fill = selected ? color : alpha(color, 0.16);
+  const curve = (v - 3) / 2; // -1 frown … +1 grin
+  return (
+    <>
+      <Path d={flame} fill={fill} stroke={selected ? color : alpha(color, 0.5)} strokeWidth={1.4} />
+      {v >= 5 ? (
+        <>
+          <Path d="M15.5,28 Q17.5,25.5 19.5,28" stroke={ink} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+          <Path d="M24.5,28 Q26.5,25.5 28.5,28" stroke={ink} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+        </>
+      ) : v === 2 ? (
+        <>
+          <Path d="M15.5,27.5 L19.5,27.5" stroke={ink} strokeWidth={1.8} strokeLinecap="round" />
+          <Path d="M24.5,27.5 L28.5,27.5" stroke={ink} strokeWidth={1.8} strokeLinecap="round" />
+        </>
+      ) : (
+        <>
+          <Circle cx={17.5} cy={27.5} r={1.9} fill={ink} />
+          <Circle cx={26.5} cy={27.5} r={1.9} fill={ink} />
+          {v === 1 ? (
+            <>
+              {/* Sad brows: the inner ends lift. */}
+              <Path d="M15,25.4 L19.5,23.9" stroke={ink} strokeWidth={1.4} strokeLinecap="round" />
+              <Path d="M29,25.4 L24.5,23.9" stroke={ink} strokeWidth={1.4} strokeLinecap="round" />
+            </>
+          ) : null}
+        </>
+      )}
+      <Path d={`M18.5,${33 - curve} Q22,${33 + curve * 3.5} 25.5,${33 - curve}`} stroke={ink} strokeWidth={1.8} strokeLinecap="round" fill="none" />
+    </>
   );
 }
 

@@ -1,11 +1,25 @@
-import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import Constants from 'expo-constants';
+import { router, usePathname } from 'expo-router';
+import { Platform, Share, StyleSheet, Text, View } from 'react-native';
 import { colors, fonts } from '../core/theme';
 import { EmberGlyph } from './ember/EmberSprite';
 import { Button } from './ui/Button';
 
 // When a screen crashes: Ember, one honest line, and a way back.
 export function ErrorScreen({ error, retry }: { error: Error; retry: () => Promise<void> }) {
+  const path = usePathname();
+  // What a bug report needs, with nothing personal in it: no notes, no names.
+  const report = () =>
+    Share.share({
+      message: [
+        'Brain Navigator problem report',
+        `When: ${new Date().toISOString()}`,
+        `Screen: ${path}`,
+        `App: ${Constants.expoConfig?.version ?? 'dev'}, ${Platform.OS} ${Platform.Version}`,
+        `Error: ${error.message}`,
+        (error.stack ?? '').split('\n').slice(0, 8).join('\n'),
+      ].join('\n'),
+    });
   return (
     <View style={styles.root}>
       <EmberGlyph size={64} />
@@ -16,6 +30,7 @@ export function ErrorScreen({ error, retry }: { error: Error; retry: () => Promi
       </Text>
       <Button label="Try again" icon="repeat" onPress={() => retry()} style={styles.btn} />
       <Button label="Back to the Desk" variant="ghost" onPress={() => router.replace('/')} />
+      <Button label="Share what happened" icon="share" variant="ghost" size="sm" onPress={report} />
     </View>
   );
 }

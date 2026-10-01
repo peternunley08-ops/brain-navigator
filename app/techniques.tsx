@@ -2,11 +2,16 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
+import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
+import { Chip, ChipRow } from '../components/ui/Chip';
 import { Card } from '../components/ui/Card';
 import { Icon, type IconName } from '../components/ui/Icon';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
+import { dateKey } from '../core/dates';
+import { uid, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts } from '../core/theme';
 
 interface Technique {
@@ -18,6 +23,8 @@ interface Technique {
   steps: string[];
   why: string;
   action?: { label: string; href: string };
+  /** A step small enough to add to tonight's homework. */
+  tonight: string;
 }
 
 // The study methods that actually hold up in research, written the way
@@ -25,6 +32,7 @@ interface Technique {
 const TECHNIQUES: Technique[] = [
   {
     key: 'recall',
+    tonight: 'Close the book, write what you remember',
     name: 'Active recall',
     line: 'Close the book and pull it out of your head.',
     icon: 'bolt',
@@ -35,6 +43,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'spaced',
+    tonight: 'Ten-minute review of yesterday’s material',
     name: 'Spaced repetition',
     line: 'A little, over several days, beats a lot the night before.',
     icon: 'calendar',
@@ -45,6 +54,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'feynman',
+    tonight: 'Explain it out loud like to a 7th grader',
     name: 'The Feynman technique',
     line: 'Explain it like you’re teaching a 7th grader.',
     icon: 'chat',
@@ -55,6 +65,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'blurt',
+    tonight: 'Ten-minute blurt on a blank page',
     name: 'Blurting',
     line: 'Dump everything you know on a blank page.',
     icon: 'pen',
@@ -65,6 +76,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'practice',
+    tonight: 'Timed practice problems, no notes',
     name: 'Practice testing',
     line: 'Do the kind of problems the test will have.',
     icon: 'grade',
@@ -74,6 +86,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'interleave',
+    tonight: 'Mixed set: three problem types, shuffled',
     name: 'Interleaving',
     line: 'Mix problem types instead of doing ten of the same.',
     icon: 'repeat',
@@ -83,6 +96,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'pomodoro',
+    tonight: 'Two 25-minute rounds, phone in another room',
     name: 'Pomodoro',
     line: '25 minutes on, 5 off. Repeat.',
     icon: 'timer',
@@ -93,6 +107,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'elaborate',
+    tonight: 'Ask “why?” for each key fact',
     name: 'Elaboration',
     line: 'Ask “why?” and “how does this connect?”',
     icon: 'map',
@@ -102,6 +117,7 @@ const TECHNIQUES: Technique[] = [
   },
   {
     key: 'sleep',
+    tonight: 'Hard stuff before 9, quick review in the morning',
     name: 'Sleep on it',
     line: 'Sleep is when learning gets saved.',
     icon: 'moon',
@@ -114,6 +130,19 @@ const TECHNIQUES: Technique[] = [
 
 export default function TechniquesScreen() {
   const [open, setOpen] = useState<string | null>('recall');
+  const assignments = useSchoolStore((s) => s.assignments);
+  const classes = useSchoolStore((s) => s.classes);
+  // The next few open things, soonest first: where a technique could go tonight.
+  const upcoming = assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 3);
+  const tryOn = (t: Technique, id: string) => {
+    const a = useSchoolStore.getState().assignments.find((x) => x.id === id);
+    if (!a) return;
+    const text = `${t.tonight} (${t.name.toLowerCase()})`;
+    if (a.subtasks?.some((s) => s.text === text)) return;
+    useSchoolStore.getState().updateAssignment(a.id, { subtasks: [...(a.subtasks ?? []), { id: uid(), text, done: false, on: dateKey() }] });
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+    emberSay(`Added to ${a.title}: ${t.tonight.charAt(0).toLowerCase()}${t.tonight.slice(1)}.`, 'happy');
+  };
   return (
     <Screen title="How to study" subtitle="The methods that actually work, and how to try each one tonight.">
       {TECHNIQUES.map((t, i) => {
@@ -146,6 +175,27 @@ export default function TechniquesScreen() {
                       </View>
                     ))}
                     <Text style={styles.why}>{t.why}</Text>
+                    {upcoming.length ? (
+                      <View style={styles.tonight}>
+                        <Text style={styles.tonightLabel}>Try it tonight on</Text>
+                        <ChipRow>
+                          {upcoming.map((a) => {
+                            const added = a.subtasks?.some((s) => s.text.endsWith(`(${t.name.toLowerCase()})`));
+                            return (
+                              <Chip
+                                key={a.id}
+                                label={a.title}
+                                dot
+                                color={classes.find((c) => c.id === a.classId)?.color ?? t.color}
+                                icon={added ? 'check' : undefined}
+                                selected={added}
+                                onPress={() => tryOn(t, a.id)}
+                              />
+                            );
+                          })}
+                        </ChipRow>
+                      </View>
+                    ) : null}
                     {t.action ? (
                       <Button label={t.action.label} variant="secondary" size="sm" icon="arrow" tint={t.color} onPress={() => router.push(t.action!.href as never)} style={styles.action} />
                     ) : null}
@@ -212,6 +262,15 @@ const styles = StyleSheet.create({
     fontFamily: fonts.displaySoft,
     fontSize: 14,
     lineHeight: 20,
+    color: colors.textMuted,
+  },
+  tonight: {
+    marginTop: 14,
+    gap: 8,
+  },
+  tonightLabel: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
     color: colors.textMuted,
   },
   action: {

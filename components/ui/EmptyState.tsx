@@ -8,15 +8,17 @@ interface EmptyStateProps {
   body?: string;
   /** Replaces the little Ember at the top. */
   art?: ReactNode;
+  /** Ember dresses for the screen: glasses for study, a cap for college. */
+  gear?: 'glasses' | 'cap';
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }
 
 // When a list has nothing in it yet: Ember, one warm line, and what to do.
-export function EmptyState({ title, body, art, children, style }: EmptyStateProps) {
+export function EmptyState({ title, body, art, gear, children, style }: EmptyStateProps) {
   return (
     <View style={[styles.wrap, style]}>
-      <View style={styles.art}>{art ?? <EmberGlyph size={44} />}</View>
+      <View style={styles.art}>{art ?? <EmberGlyph size={44} gear={gear} />}</View>
       <Text style={styles.title}>{title}</Text>
       {body ? <Text style={styles.body}>{body}</Text> : null}
       {children ? <View style={styles.actions}>{children}</View> : null}

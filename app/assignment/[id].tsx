@@ -19,6 +19,9 @@ import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
 import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, planBackward, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
+import { helperById, type HelperId } from '../../core/helpers';
+import { useLifeStore } from '../../core/lifeStore';
+import { celebrate } from '../../core/celebrateStore';
 import { offerUndo } from '../../core/undoStore';
 
 // A polite, specific note to a teacher. The student reads it, edits it,
@@ -44,6 +47,8 @@ export default function AssignmentScreen() {
   const remove = useSchoolStore((s) => s.deleteAssignment);
   const update = useSchoolStore((s) => s.updateAssignment);
   const [step, setStep] = useState('');
+  const lastHelperId = useLifeStore((s) => (id ? s.helperUse[id] : undefined));
+  const lastHelper = helperById(lastHelperId);
 
   if (!a) {
     return (
@@ -76,6 +81,7 @@ export default function AssignmentScreen() {
     Haptics.impactAsync(finishing ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (finishing && next.length > 1 && next.every((t) => t.done)) {
       emberSay('Every step done. The big thing turned out to be a bunch of small things.', 'cheer');
+      if (next.length >= 3) celebrate('Every step, done', `${a.title}: ${next.length} small steps added up to the whole thing.`, undefined, { key: `steps-${a.id}`, win: `Finished every step of ${a.title}` });
     }
   };
   const planIt = () => {
@@ -141,6 +147,20 @@ export default function AssignmentScreen() {
           <Text style={styles.statLabel}>Focused on it</Text>
         </Card>
       </Reveal>
+      {a.minutes && studied && !a.done ? (
+        <Reveal index={1}>
+          <View style={styles.spent}>
+            <ProgressBar value={Math.min(1, studied / a.minutes)} color={studied > a.minutes * 1.25 ? colors.unlocked : colors.secured} height={5} />
+            <Text style={styles.spentText}>
+              {studied >= a.minutes
+                ? studied > a.minutes * 1.25
+                  ? `${studied - a.minutes} minutes past the estimate. Next time, guess higher for this kind.`
+                  : 'Right at your estimate. Nice read on it.'
+                : `${a.minutes - studied} minutes left of your estimate.`}
+            </Text>
+          </View>
+        </Reveal>
+      ) : null}
 
       {a.notes ? (
         <Reveal index={1}>
@@ -221,6 +241,39 @@ export default function AssignmentScreen() {
         </Reveal>
       ) : null}
 
+      {!a.done ? (
+        <Reveal index={3}>
+          <Section
+            title="Get a helper"
+            note={lastHelper ? `Last time: ${lastHelper.name}.` : 'They already know what this is.'}
+          >
+            <View style={styles.helpers}>
+              {(a.kind === 'test' || a.kind === 'quiz'
+                ? (['quizzo', 'sage', 'pip', 'spark'] as HelperId[])
+                : a.kind === 'essay'
+                  ? (['quill', 'spark', 'pip', 'sage'] as HelperId[])
+                  : (['pip', 'spark', 'sage', 'quizzo'] as HelperId[])
+              ).map((hid) => {
+                const h = helperById(hid)!;
+                return (
+                  <Pressy
+                    key={hid}
+                    onPress={() => router.push({ pathname: '/helper/[id]', params: { id: hid, about: a.id } })}
+                    style={[styles.helper, { borderColor: alpha(h.color, 0.4), backgroundColor: alpha(h.color, 0.08) }]}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${h.name}, ${h.role}`}
+                  >
+                    <Icon name={h.icon} size={18} color={h.color} />
+                    <Text style={styles.helperName}>{h.name}</Text>
+                    <Text style={styles.helperRole}>{h.role}</Text>
+                  </Pressy>
+                );
+              })}
+            </View>
+          </Section>
+        </Reveal>
+      ) : null}
+
       {isTest && !a.done ? (
         <Reveal index={4}>
           <Card tint={color} style={styles.notes}>
@@ -261,6 +314,13 @@ export default function AssignmentScreen() {
         />
         <View style={styles.smallRow}>
           <Button
+            label="Another like this"
+            icon="plus"
+            variant="ghost"
+            size="sm"
+            onPress={() => router.push({ pathname: '/add-assignment', params: { like: a.id } })}
+          />
+          <Button
             label="Duplicate"
             icon="layers"
             variant="ghost"
@@ -290,6 +350,15 @@ export default function AssignmentScreen() {
 }
 
 const styles = StyleSheet.create({
+  spent: {
+    marginTop: 10,
+    gap: 6,
+  },
+  spentText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
   head: {
     marginTop: 14,
   },
@@ -367,6 +436,28 @@ const styles = StyleSheet.create({
   actions: {
     marginTop: 24,
     gap: 10,
+  },
+  helpers: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  helper: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 3,
+    paddingVertical: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  helperName: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    color: colors.text,
+  },
+  helperRole: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: colors.textFaint,
   },
   smallRow: {
     flexDirection: 'row',

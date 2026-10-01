@@ -15,6 +15,7 @@ import { PlateMeter } from '../components/ui/PlateMeter';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { ScienceNote } from '../components/ui/ScienceNote';
+import { SkeletonCard } from '../components/ui/Skeleton';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { Stepper } from '../components/ui/Stepper';
@@ -123,6 +124,11 @@ export default function TasksScreen() {
               {filtered.map((t, i) => (
                 <TaskRow key={t.id} task={t} index={i} />
               ))}
+            </View>
+          ) : isLoading ? (
+            <View style={styles.list}>
+              <SkeletonCard lines={1} />
+              <SkeletonCard lines={1} />
             </View>
           ) : !isLoading ? (
             <EmptyState

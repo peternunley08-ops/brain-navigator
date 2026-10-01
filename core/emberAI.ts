@@ -10,6 +10,8 @@
 
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { IconName } from '../components/ui/Icon';
+import { canUseAI, recordAIUse } from './aiQuota';
+import type { Helper } from './helpers';
 import { useHabitsStore } from './habitsStore';
 import { clock, daysUntil, dueLabel, KIND_LABEL, nowState, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
@@ -42,7 +44,10 @@ export const EMBER_ACTIONS: Record<EmberActionKey, { label: string; href: string
 
 export type EmberAIResult =
   | { ok: true; reply: string; action: EmberActionKey | null }
-  | { ok: false; reason: 'no_credit' | 'offline' | 'unavailable' };
+  | { ok: false; reason: AIFailure };
+
+/** Why the AI didn't answer. `limit` = this week's free AI replies are used up. */
+export type AIFailure = 'no_credit' | 'offline' | 'unavailable' | 'limit';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -145,10 +150,29 @@ const PERSONA =
 let emberMissing = false;
 
 export async function askEmber(turns: EmberTurn[], screen: string): Promise<EmberAIResult> {
-  const context = emberContext(screen);
+  if (!canUseAI()) return { ok: false, reason: 'limit' };
+  const res = await askRaw(turns, screen, null);
+  if (res.ok) recordAIUse();
+  return res;
+}
+
+/**
+ * One of the helper crew answers, in its own persona. Counts against the
+ * same AI allowance as Ember. `extra` is anything the helper was spawned
+ * with (an assignment, a deck).
+ */
+export async function askHelper(helper: Helper, turns: EmberTurn[], extra?: string): Promise<EmberAIResult> {
+  if (!canUseAI()) return { ok: false, reason: 'limit' };
+  const res = await askRaw(turns, `Talking with ${helper.name} (${helper.role})`, helper, extra);
+  if (res.ok) recordAIUse(helper.id);
+  return res;
+}
+
+async function askRaw(turns: EmberTurn[], screen: string, helper: Helper | null, extra?: string): Promise<EmberAIResult> {
+  const context = [emberContext(screen), extra].filter(Boolean).join('\n');
 
   if (!emberMissing) {
-    const { data, error } = await supabase.functions.invoke('ember', { body: { messages: turns, context } });
+    const { data, error } = await supabase.functions.invoke('ember', { body: { messages: turns, context, agent: helper?.id ?? null } });
     if (!error && data?.reply) {
       const action = data.action && data.action in EMBER_ACTIONS ? (data.action as EmberActionKey) : null;
       return { ok: true, reply: String(data.reply), action };
@@ -164,7 +188,7 @@ export async function askEmber(turns: EmberTurn[], screen: string): Promise<Embe
   // fixed system prompt.
   const first = turns.findIndex((t) => t.role === 'user');
   const messages = turns.slice(first).map((t, i) =>
-    i === 0 ? { role: t.role, content: `(${PERSONA}\n\nWhat the app knows right now:\n${context})\n\n${t.content}` } : t
+    i === 0 ? { role: t.role, content: `(${helper?.persona ?? PERSONA}\n\nWhat the app knows right now:\n${context})\n\n${t.content}` } : t
   );
   const { data, error } = await supabase.functions.invoke('chat', { body: { messages } });
   if (!error && data?.reply) {
@@ -183,7 +207,8 @@ export async function askEmber(turns: EmberTurn[], screen: string): Promise<Embe
   return { ok: false, reason: reasonFrom(info.body) };
 }
 
-export function whyOffline(reason: 'no_credit' | 'offline' | 'unavailable') {
+export function whyOffline(reason: AIFailure) {
+  if (reason === 'limit') return 'That’s all your free AI replies for this week. Plus gives you way more — or I’ll keep going with my own questions for free.';
   if (reason === 'no_credit') return 'My thinking brain is resting — the Anthropic account behind it is out of credit — so I’ll use my own questions for now.';
   if (reason === 'offline') return 'I can’t reach my thinking brain right now (no connection?), so I’ll use my own questions for now.';
   return 'My thinking brain isn’t answering right now, so I’ll use my own questions for now.';

@@ -8,7 +8,9 @@ import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Field } from '../components/ui/Field';
+import { Icon, type IconName } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
+import { Pressy } from '../components/ui/Pressy';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
@@ -18,6 +20,10 @@ import { parseDue } from '../core/scanParser';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
+
+const ICONS: IconName[] = ['sparkle', 'gift', 'sun', 'star', 'heart', 'trophy', 'cap', 'car', 'flag', 'moon', 'bolt', 'calendar'];
+const countdownIcon = (c: { icon?: IconName; kind: CountdownKind }): IconName =>
+  c.icon ?? (c.kind === 'birthday' ? 'gift' : c.kind === 'finals' ? 'grade' : c.kind === 'break' ? 'sun' : 'sparkle');
 
 const KINDS: { key: CountdownKind; label: string; color: string }[] = [
   { key: 'event', label: 'Something fun', color: '#E89AB8' },
@@ -37,17 +43,21 @@ export default function CountdownsScreen() {
   const [title, setTitle] = useState('');
   const [when, setWhen] = useState('');
   const [kind, setKind] = useState<CountdownKind>('event');
+  const [icon, setIcon] = useState<IconName | null>(null);
 
-  const parsed = parseDue(when);
+  // Something to look forward to is never in the past: a date that's gone means next year's.
+  const raw = parseDue(when);
+  const parsed = raw && daysUntil(raw) < 0 ? dateKey(new Date(Number(raw.slice(0, 4)) + 1, Number(raw.slice(5, 7)) - 1, Number(raw.slice(8)))) : raw;
   const upcoming = [...countdowns].filter((c) => daysUntil(c.date) >= 0).sort((a, b) => a.date.localeCompare(b.date));
   const past = countdowns.filter((c) => daysUntil(c.date) < 0);
 
   const add = () => {
     if (!title.trim() || !parsed) return;
-    save({ title: title.trim(), date: parsed, kind, color: KINDS.find((k) => k.key === kind)!.color });
+    save({ title: title.trim(), date: parsed, kind, color: KINDS.find((k) => k.key === kind)!.color, ...(icon ? { icon } : {}) });
     emberSay(kind === 'finals' ? 'Finals are on the calendar. We’ll plan backward from there.' : 'Something to look forward to. Good.', 'happy');
     setTitle('');
     setWhen('');
+    setIcon(null);
     setAdding(false);
   };
 
@@ -57,12 +67,31 @@ export default function CountdownsScreen() {
         <Animated.View entering={FadeInDown.duration(240)}>
           <Card style={styles.gap}>
             <Field value={title} onChangeText={setTitle} placeholder="Prom, winter break, Maya’s birthday…" />
-            <Field value={when} onChangeText={setWhen} placeholder="When? e.g. Dec 20 or 5/14" containerStyle={styles.gapSm} hint={parsed ? `${dueLabel(parsed)} · ${daysUntil(parsed)} days` : undefined} />
+            <Field value={when} onChangeText={setWhen} placeholder="When? e.g. Dec 20 or 5/14" containerStyle={styles.gapSm} hint={parsed ? `${dueLabel(parsed)}, ${daysUntil(parsed)} days` : undefined} />
             <ChipRow style={styles.gapSm}>
               {KINDS.map((k) => (
                 <Chip key={k.key} label={k.label} dot color={k.color} selected={kind === k.key} onPress={() => setKind(k.key)} />
               ))}
             </ChipRow>
+            <View style={styles.icons}>
+              {ICONS.map((n) => {
+                const on = (icon ?? countdownIcon({ kind })) === n;
+                const color = KINDS.find((k) => k.key === kind)!.color;
+                return (
+                  <Pressy
+                    key={n}
+                    onPress={() => setIcon(n)}
+                    depth={0.9}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Icon: ${n}`}
+                    accessibilityState={{ selected: on }}
+                    style={[styles.iconPick, on && { borderColor: color, backgroundColor: alpha(color, 0.16) }]}
+                  >
+                    <Icon name={n} size={17} color={on ? color : colors.textMuted} />
+                  </Pressy>
+                );
+              })}
+            </View>
             <Button label="Start counting" icon="gift" onPress={add} disabled={!title.trim() || !parsed} style={styles.gap} />
           </Card>
         </Animated.View>
@@ -91,7 +120,10 @@ export default function CountdownsScreen() {
                       <Text style={styles.daysLabel}>{d === 1 ? 'day' : 'days'}</Text>
                     </View>
                     <View style={styles.flex}>
-                      <Text style={styles.title}>{d === 0 ? `${c.title} is today!` : c.title}</Text>
+                      <View style={styles.titleRow}>
+                        <Icon name={countdownIcon(c)} size={16} color={c.color} />
+                        <Text style={[styles.title, styles.flex]}>{d === 0 ? `${c.title} is today!` : c.title}</Text>
+                      </View>
                       <Text style={styles.sub}>{new Date(`${c.date}T12:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
                     </View>
                   </View>
@@ -127,6 +159,26 @@ export default function CountdownsScreen() {
 }
 
 const styles = StyleSheet.create({
+  icons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  iconPick: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    borderColor: colors.line,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   flex: {
     flex: 1,
   },
@@ -157,6 +209,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 28,
     lineHeight: 32,
+    fontVariant: ['tabular-nums'],
   },
   daysLabel: {
     fontFamily: fonts.bodyMedium,

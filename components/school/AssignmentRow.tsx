@@ -1,8 +1,11 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
-import { daysUntil, dueLabel, KIND_LABEL, type Assignment, useSchoolStore } from '../../core/schoolStore';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import Animated, { FadeInDown, FadeOut, interpolate, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
+import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, type Assignment, useSchoolStore } from '../../core/schoolStore';
+import { offerUndo } from '../../core/undoStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
 import { Card } from '../ui/Card';
@@ -34,8 +37,48 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     }
   };
 
+  // Swipe right to finish, left to push it to tomorrow.
+  const tx = useSharedValue(0);
+  const swipeLater = () => {
+    const was = a.due;
+    const tomorrow = addDays(dateKey(), 1);
+    if (was === tomorrow) return;
+    useSchoolStore.getState().updateAssignment(a.id, { due: tomorrow });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    offerUndo(`Moved “${a.title}” to tomorrow`, () => useSchoolStore.getState().updateAssignment(a.id, { due: was }), 'arrow');
+  };
+  const pan = usePanGesture({
+    activeOffsetX: [-14, 14],
+    failOffsetY: [-10, 10],
+    enabled: !a.done,
+    onUpdate: (e) => {
+      'worklet';
+      tx.value = e.translationX;
+    },
+    onFinalize: () => {
+      'worklet';
+      const v = tx.value;
+      if (v > 90) scheduleOnRN(check);
+      else if (v < -90) scheduleOnRN(swipeLater);
+      tx.value = withSpring(0, { damping: 18, stiffness: 220 });
+    },
+  });
+  const slide = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
+  const doneUnder = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [0, 90], [0, 1], 'clamp') }));
+  const laterUnder = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [-90, 0], [1, 0], 'clamp') }));
+
   return (
     <Animated.View entering={FadeInDown.delay(index * 40).duration(340)} exiting={FadeOut.duration(180)} layout={LinearTransition.springify().damping(18)}>
+      <Animated.View pointerEvents="none" style={[styles.under, styles.underDone, doneUnder]}>
+        <Icon name="check" size={20} color={colors.flameInk} strokeWidth={2.6} />
+        <Text style={styles.underText}>Done</Text>
+      </Animated.View>
+      <Animated.View pointerEvents="none" style={[styles.under, styles.underLater, laterUnder]}>
+        <Text style={styles.underText}>Tomorrow</Text>
+        <Icon name="arrow" size={20} color={colors.flameInk} strokeWidth={2.6} />
+      </Animated.View>
+      <GestureDetector gesture={pan}>
+      <Animated.View style={slide}>
       <Card
         onPress={() => router.push(`/assignment/${a.id}`)}
         style={[styles.card, compact && styles.compact]}
@@ -84,15 +127,41 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
             {a.repeat === 'weekly' ? <Icon name="repeat" size={12} color={colors.textFaint} /> : null}
           </View>
         </View>
-        {!compact || soon || late ? (
-          <Text style={[styles.due, late && { color: colors.danger }, soon && !late && { color: colors.flame }]}>{dueLabel(a.due)}</Text>
-        ) : null}
+        {/* Every row says when; soon and late ones stand out. */}
+        <Text style={[styles.due, late && { color: colors.danger }, soon && !late && { color: colors.flame }]}>{dueLabel(a.due)}</Text>
       </Card>
+      </Animated.View>
+      </GestureDetector>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
+  under: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderRadius: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+  },
+  underDone: {
+    backgroundColor: colors.secured,
+    justifyContent: 'flex-start',
+  },
+  underLater: {
+    backgroundColor: colors.flame,
+    justifyContent: 'flex-end',
+  },
+  underText: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 14,
+    color: colors.flameInk,
+  },
   star: {
     color: colors.flame,
   },

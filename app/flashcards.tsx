@@ -14,7 +14,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { ScienceNote } from '../components/ui/ScienceNote';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
-import { deckStats, dueCards, useLifeStore } from '../core/lifeStore';
+import { deckStats, dueCards, parseCards, useLifeStore } from '../core/lifeStore';
 import { CLASS_COLORS, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
 
@@ -30,6 +30,22 @@ export default function FlashcardsScreen() {
   const [making, setMaking] = useState(create === '1' || decks.length === 0);
   const [name, setName] = useState('');
   const [cls, setCls] = useState<string | null>(classId ?? null);
+  // A deck a friend shared as text: the first line is its name, the rest are cards.
+  const [shared, setShared] = useState('');
+  const [pasting, setPasting] = useState(false);
+  const sharedLines = shared.split('\n').map((l) => l.trim()).filter(Boolean);
+  const sharedCards = parseCards(shared);
+  const sharedName = sharedLines[0] && !parseCards(sharedLines[0]).length ? sharedLines[0] : 'Shared deck';
+  const importShared = () => {
+    if (!sharedCards.length) return;
+    const c = real.find((x) => x.id === cls);
+    const deck = saveDeck({ name: sharedName, classId: cls, color: c?.color ?? CLASS_COLORS[decks.length % CLASS_COLORS.length] });
+    useLifeStore.getState().addCards(deck.id, sharedCards);
+    setShared('');
+    setPasting(false);
+    setMaking(false);
+    router.push({ pathname: '/deck/[id]', params: { id: deck.id } });
+  };
 
   const dueTotal = decks.reduce((s, d) => s + dueCards(d).length, 0);
 
@@ -63,12 +79,33 @@ export default function FlashcardsScreen() {
                 </ScrollView>
               ) : null}
               <Button label="Make the deck" icon="cards" onPress={make} disabled={!name.trim()} style={styles.gap} />
+              <Button
+                label={pasting ? 'Never mind' : 'Paste a deck someone shared'}
+                icon={pasting ? 'close' : 'share'}
+                variant="ghost"
+                size="sm"
+                onPress={() => setPasting((v) => !v)}
+                style={styles.gap}
+              />
+              {pasting ? (
+                <>
+                  <Field
+                    multiline
+                    value={shared}
+                    onChangeText={setShared}
+                    placeholder={'Bio unit 4\nmitosis :: cell division\nosmosis :: water across a membrane'}
+                    hint={sharedCards.length ? `“${sharedName}”, ${sharedCards.length} card${sharedCards.length === 1 ? '' : 's'}` : 'Paste the whole message. The first line becomes the name.'}
+                    autoCapitalize="none"
+                  />
+                  <Button label={`Add “${sharedName}”`} icon="plus" variant="secondary" onPress={importShared} disabled={!sharedCards.length} style={styles.gap} />
+                </>
+              ) : null}
             </Card>
           </Section>
         </Animated.View>
       ) : null}
 
-      {decks.length === 0 && !making ? <EmptyState title="No decks yet." body="Make one for whatever’s on the next test." /> : null}
+      {decks.length === 0 && !making ? <EmptyState gear="glasses" title="No decks yet." body="Make one for whatever’s on the next test." /> : null}
 
       {decks.length ? (
         <Section title="Your decks">
@@ -89,7 +126,7 @@ export default function FlashcardsScreen() {
                           {d.name}
                         </Text>
                         <Text style={styles.sub}>
-                          {c ? `${c.name} · ` : ''}
+                          {c ? `${c.name}, ` : ''}
                           {st.total} card{st.total === 1 ? '' : 's'}
                         </Text>
                       </View>
@@ -104,7 +141,7 @@ export default function FlashcardsScreen() {
                     {st.total ? <ProgressBar value={st.mastered / st.total} color={colors.secured} height={5} style={styles.bar} /> : null}
                     {st.total ? (
                       <Text style={styles.stats}>
-                        {st.mastered} mastered · {st.learning} learning · {st.fresh} new
+                        {st.mastered} mastered, {st.learning} learning, {st.fresh} new
                       </Text>
                     ) : null}
                   </Card>

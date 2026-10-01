@@ -8,6 +8,7 @@ import Animated, {
   FadeIn,
   FadeOut,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withRepeat,
@@ -18,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
-import { type EmberMood, useEmberStore } from '../../core/emberStore';
+import { type EmberMood, inClassQuiet, useEmberStore } from '../../core/emberStore';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
@@ -65,6 +66,7 @@ export function EmberBuddy() {
   const { width: W, height: H } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const rig = useEmberRig();
+  const reducedMotion = useReducedMotion();
 
   const loaded = useEmberStore((s) => s.loaded);
   const side = useEmberStore((s) => s.side);
@@ -103,7 +105,8 @@ export function EmberBuddy() {
     };
   }, []);
 
-  const hidden = HIDDEN.has(pathname) || keyboardUp;
+  // Helpers and the Plus screen have their own flames on stage.
+  const hidden = HIDDEN.has(pathname) || pathname.startsWith('/helper/') || pathname === '/plus' || keyboardUp;
 
   // ---- Geometry ----------------------------------------------------------
 
@@ -150,7 +153,8 @@ export function EmberBuddy() {
     [pathname, openCount, checkins, tasks, logs, bubbleOpen, assignments, grades, decks]
   );
   const top = advice.tips[0];
-  const hasNudge = !!top && top.priority >= 2 && !seen.includes(top.id) && !napping;
+  const quiet = useLifeStore((s) => !!s.settings.emberQuiet);
+  const hasNudge = !!top && top.priority >= (quiet ? 3 : 2) && !seen.includes(top.id) && !napping && !inClassQuiet();
   const tip = advice.tips[tipIndex % advice.tips.length];
 
   // A new screen: glance toward it, and start the tips from the top.
@@ -315,8 +319,10 @@ export function EmberBuddy() {
   }, [toast, rig]);
 
   // Every so often, when nothing else is going on, Ember does something
-  // small on its own — stretches, looks around, a little hop.
+  // small on its own — stretches, looks around, a little hop. Not under
+  // Reduce Motion: unprompted movement is exactly what that setting is for.
   useEffect(() => {
+    if (reducedMotion) return;
     let alive = true;
     let t: ReturnType<typeof setTimeout>;
     const next = () => {
@@ -337,7 +343,7 @@ export function EmberBuddy() {
       alive = false;
       clearTimeout(t);
     };
-  }, [rig]);
+  }, [rig, reducedMotion]);
 
   // ---- Gesture ---------------------------------------------------------------
 
@@ -558,10 +564,12 @@ export function EmberBuddy() {
 
 // Every tip ends with a way to just talk to Ember (the AI conversation).
 const TALK: EmberAction = { label: 'Talk to me', href: '/companion', icon: 'chat' };
+const CREW: EmberAction = { label: 'Call a helper', href: '/helpers', icon: 'people' };
+
 function withTalk(actions?: EmberAction[]) {
   const list = actions ?? [];
   if (list.some((a) => a.href === TALK.href)) return list;
-  return [...list.slice(0, 2), TALK];
+  return [...list.slice(0, 2), TALK, ...(list.length < 2 ? [CREW] : [])];
 }
 
 // A small glowing dot by Ember's head: "I've got something for you."

@@ -35,6 +35,9 @@ interface Facts {
   showedUp: number;
   countdowns: number;
   plannedBackward: number;
+  quizzes: number;
+  quizBest: number;
+  helperChats: number;
 }
 
 const LIST: (Achievement & { test: (f: Facts) => boolean })[] = [
@@ -60,6 +63,9 @@ const LIST: (Achievement & { test: (f: Facts) => boolean })[] = [
   { key: 'showed_7', title: 'Seven days', body: 'Showed up on seven different days.', icon: 'sun', color: '#F5B45C', test: (f) => f.showedUp >= 7 },
   { key: 'showed_30', title: 'Thirty days', body: 'Showed up on thirty different days.', icon: 'sparkle', color: '#F5B45C', test: (f) => f.showedUp >= 30 },
   { key: 'countdown', title: 'Something to look forward to', body: 'Set a countdown.', icon: 'gift', color: '#E89AB8', test: (f) => f.countdowns >= 1 },
+  { key: 'game_on', title: 'Game on', body: 'Played a round with Quizzo.', icon: 'bolt', color: '#B79AF0', test: (f) => f.quizzes >= 1 },
+  { key: 'quiz_whiz', title: 'Quiz whiz', body: 'Scored 100 in one Quizzo game.', icon: 'trophy', color: '#B79AF0', test: (f) => f.quizBest >= 100 },
+  { key: 'crew', title: 'Called the crew', body: 'Worked something out with a helper.', icon: 'people', color: '#7CC4F2', test: (f) => f.helperChats >= 1 },
 ];
 
 // Earned by doing a thing once, not by what's stored.
@@ -106,7 +112,57 @@ function facts(): Facts {
     showedUp: daysShowedUp(),
     countdowns: life.countdowns.length,
     plannedBackward: school.assignments.filter((a) => a.subtasks?.some((t) => t.on)).length,
+    quizzes: life.quiz.played,
+    quizBest: life.quiz.best,
+    // AI chats, or anything done in a helper's free mode.
+    helperChats: Object.values(life.helperChats).filter((t) => t.some((x) => x.role === 'user')).length + Object.keys(life.helperLast ?? {}).length,
   };
+}
+
+// How far along a count badge is: which fact it counts, the target, and the word for it.
+const PROGRESS: Record<string, [keyof Facts, number, string]> = {
+  done_10: ['done', 10, 'finished'],
+  done_50: ['done', 50, 'finished'],
+  focus_10: ['sessions', 10, 'sessions'],
+  focus_600: ['focusMinutes', 600, 'minutes'],
+  cards_100: ['cardReviews', 100, 'reviews'],
+  wins_10: ['wins', 10, 'wins'],
+  grateful_7: ['gratitudeDays', 7, 'days'],
+  service_10: ['serviceHours', 10, 'hours'],
+  driving_10: ['drivingHours', 10, 'hours'],
+  showed_7: ['showedUp', 7, 'days'],
+  showed_30: ['showedUp', 30, 'days'],
+  quiz_whiz: ['quizBest', 100, 'points best'],
+};
+
+/** Progress toward a badge that counts something, or null for one-time badges. */
+export function badgeProgress(key: string): { have: number; need: number; unit: string } | null {
+  const p = PROGRESS[key];
+  if (!p) return null;
+  const f = facts();
+  return { have: Math.min(p[1], Math.floor(f[p[0]] as number)), need: p[1], unit: p[2] };
+}
+
+/** The unearned count badge you're closest to, once you've started on it. */
+export function nextBadge(): { badge: Achievement; have: number; need: number; unit: string } | null {
+  const got = useLifeStore.getState().achievements;
+  const f = facts();
+  let best: { badge: Achievement; have: number; need: number; unit: string } | null = null;
+  for (const a of LIST) {
+    const p = PROGRESS[a.key];
+    if (!p || got[a.key]) continue;
+    const have = Math.min(p[1], Math.floor(f[p[0]] as number));
+    if (have <= 0 || have >= p[1]) continue;
+    if (!best || have / p[1] > best.have / best.need) best = { badge: a, have, need: p[1], unit: p[2] };
+  }
+  return best;
+}
+
+export type BadgeGroup = 'school' | 'study' | 'you';
+const STUDY = new Set(['first_focus', 'focus_10', 'focus_600', 'first_deck', 'cards_100', 'game_on', 'quiz_whiz', 'crew', 'first_review']);
+const SCHOOL = new Set(['first_add', 'first_done', 'done_10', 'done_50', 'plan_back', 'first_grade', 'first_scan', 'all_clear', 'first_college']);
+export function badgeGroup(key: string): BadgeGroup {
+  return SCHOOL.has(key) ? 'school' : STUDY.has(key) ? 'study' : 'you';
 }
 
 /** Awards anything newly true; returns what was just earned. */

@@ -16,9 +16,10 @@ import { Screen } from '../components/ui/Screen';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts } from '../core/theme';
 
-type Tool = 'test' | 'pmr' | 'kind' | 'reframe';
+type Tool = 'reset' | 'test' | 'pmr' | 'kind' | 'reframe';
 
 const TOOLS: { key: Tool; title: string; body: string; icon: IconName; color: string }[] = [
+  { key: 'reset', title: 'Five-minute reset', body: 'Water, move, breathe, look far, pick one thing.', icon: 'timer', color: '#9FD08A' },
   { key: 'test', title: 'Before a test', body: 'Nerves into fuel, in two minutes.', icon: 'flag', color: '#F0845A' },
   { key: 'pmr', title: 'Tense and release', body: 'Let your body unclench, muscle by muscle.', icon: 'wind', color: '#8FB4E8' },
   { key: 'kind', title: 'Be kind to yourself', body: 'Three steps for when you’re being hard on you.', icon: 'heart', color: '#E89AB8' },
@@ -49,6 +50,7 @@ export default function ToolkitScreen() {
                 </Pressy>
                 {isOpen ? (
                   <Animated.View entering={FadeInDown.duration(240)} style={styles.inner}>
+                    {t.key === 'reset' ? <Reset color={t.color} /> : null}
                     {t.key === 'test' ? <TestNerves color={t.color} /> : null}
                     {t.key === 'pmr' ? <Pmr color={t.color} /> : null}
                     {t.key === 'kind' ? <Kindness color={t.color} /> : null}
@@ -157,6 +159,63 @@ function Pmr({ color }: { color: string }) {
       <Text style={[styles.phase, { color: phase === 'tense' ? colors.unlocked : colors.secured }]}>{phase === 'tense' ? 'Tense' : 'Let go'}</Text>
       <Text style={styles.muscle}>{phase === 'tense' ? MUSCLES[i] : 'Release. Feel the difference.'}</Text>
       <Text style={styles.count}>{left}</Text>
+    </Animated.View>
+  );
+}
+
+// Five one-minute steps that reset a body that's been sitting and stressing.
+const RESET = [
+  { title: 'Water', line: 'Get a glass of water and drink it slowly.' },
+  { title: 'Move', line: 'Stand up. Roll your shoulders, reach your arms overhead, shake out your hands.' },
+  { title: 'Breathe', line: 'Slow breaths: in for four, out for six. Let the out-breath be the long one.' },
+  { title: 'Look far', line: 'Find something far away, out a window or across the room. Let your eyes rest on it.' },
+  { title: 'One thing', line: 'Pick the one next thing. Just one. Say it out loud.' },
+];
+
+function Reset({ color }: { color: string }) {
+  const [st, setSt] = useState<{ i: number; left: number }>({ i: -1, left: 60 });
+  const { i, left } = st;
+
+  useEffect(() => {
+    if (i < 0 || i >= RESET.length) return;
+    const t = setTimeout(() => setSt((s) => (s.left > 1 ? { ...s, left: s.left - 1 } : { i: s.i + 1, left: 60 })), 1000);
+    return () => clearTimeout(t);
+  }, [st, i]);
+
+  useEffect(() => {
+    if (i < 0) return;
+    if (i === RESET.length) emberSay('Five minutes, and you’re back. Now the one thing.', 'cheer');
+    else Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+  }, [i]);
+
+  const begin = () => setSt({ i: 0, left: 60 });
+  const skip = () => setSt((s) => ({ i: s.i + 1, left: 60 }));
+
+  if (i < 0) {
+    return (
+      <>
+        <Text style={styles.small}>Five steps, a minute each. For when you’ve been sitting too long and your head is full. Skip any step you want.</Text>
+        <Button label="Start" icon="play" variant="secondary" size="sm" tint={color} onPress={begin} style={styles.inline} />
+      </>
+    );
+  }
+  if (i >= RESET.length) {
+    return (
+      <Animated.View entering={FadeIn}>
+        <Text style={styles.step}>Reset. Go do the one thing.</Text>
+        <Button label="Again" icon="repeat" variant="ghost" size="sm" onPress={begin} />
+      </Animated.View>
+    );
+  }
+  return (
+    <Animated.View key={i} entering={FadeIn.duration(260)}>
+      <ProgressBar value={(i + (60 - left) / 60) / RESET.length} color={color} height={5} />
+      <Text style={[styles.phase, { color }]}>
+        {i + 1} of {RESET.length}: {RESET[i].title}
+      </Text>
+      <Text style={styles.muscle}>{RESET[i].line}</Text>
+      <Text style={styles.count}>{left}</Text>
+      <Button label={i + 1 < RESET.length ? 'Next step' : 'Finish'} icon="arrow" variant="ghost" size="sm" onPress={skip} />
     </Animated.View>
   );
 }

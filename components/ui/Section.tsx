@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, fonts } from '../../core/theme';
+import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
 
 interface SectionProps {
@@ -8,18 +9,24 @@ interface SectionProps {
   /** A short muted line under the heading. */
   note?: string;
   action?: { label: string; onPress: () => void };
+  /** A small glyph before the heading. */
+  icon?: IconName;
+  iconColor?: string;
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }
 
 // A serif heading in sentence case, then its content. Never an uppercase
 // eyebrow (see "Design system" in CLAUDE.md).
-export function Section({ title, note, action, children, style }: SectionProps) {
+export function Section({ title, note, action, icon, iconColor = colors.flame, children, style }: SectionProps) {
   return (
     <View style={[styles.wrap, style]}>
       <View style={styles.head}>
         <View style={styles.headText}>
-          <Text style={styles.title}>{title}</Text>
+          <View style={styles.titleRow}>
+            {icon ? <Icon name={icon} size={17} color={iconColor} /> : null}
+            <Text style={styles.title}>{title}</Text>
+          </View>
           {note ? <Text style={styles.note}>{note}</Text> : null}
         </View>
         {action ? (
@@ -46,6 +53,11 @@ const styles = StyleSheet.create({
   },
   headText: {
     flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontFamily: fonts.display,

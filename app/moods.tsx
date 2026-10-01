@@ -10,7 +10,8 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { addDays, dateKey } from '../core/dates';
-import { useSchoolStore } from '../core/schoolStore';
+import { useLifeStore } from '../core/lifeStore';
+import { focusMinutesOn, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts, radii } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 
@@ -28,6 +29,9 @@ export default function MoodsScreen() {
   const sleepGoal = useSchoolStore((s) => s.profile.sleepGoal);
   const [offset, setOffset] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
+  const focus = useSchoolStore((s) => s.focus);
+  const assignments = useSchoolStore((s) => s.assignments);
+  const wins = useLifeStore((s) => s.wins);
 
   useEffect(() => {
     fetchCheckins();
@@ -65,6 +69,20 @@ export default function MoodsScreen() {
       : 'After a few more check-ins with sleep, this will show how sleep and mood move together for you.';
 
   const p = picked ? byDate[picked] : null;
+  // What else that day held, to set the mood beside.
+  const dayLine = (() => {
+    if (!picked) return '';
+    const onDay = (iso: string | null) => !!iso && dateKey(new Date(iso)) === picked;
+    const mins = focusMinutesOn(focus, picked);
+    const done = assignments.filter((a) => onDay(a.doneAt)).length;
+    const won = wins.filter((w) => onDay(w.at)).length;
+    const bits = [
+      mins ? `${mins} minutes of focus` : null,
+      done ? `${done} thing${done === 1 ? '' : 's'} finished` : null,
+      won ? `${won} win${won === 1 ? '' : 's'} in the jar` : null,
+    ].filter(Boolean);
+    return bits.length ? `That day: ${bits.join(', ')}.` : '';
+  })();
 
   return (
     <Screen title="Mood map" subtitle="Patterns show up when you can see a whole month.">
@@ -132,13 +150,17 @@ export default function MoodsScreen() {
                   p.stress_level != null ? `stress ${p.stress_level}/10` : null,
                 ]
                   .filter(Boolean)
-                  .join(' · ')}
+                  .join(', ')}
               </Text>
               {picked && stressTags[picked]?.length ? <Text style={styles.sub}>Weighing on you: {stressTags[picked].join(', ')}</Text> : null}
               {p.notes ? <Text style={styles.note}>“{p.notes}”</Text> : null}
+              {dayLine ? <Text style={styles.sub}>{dayLine}</Text> : null}
             </View>
           ) : picked ? (
-            <Text style={[styles.sub, styles.detail]}>No check-in that day.</Text>
+            <View style={styles.detail}>
+              <Text style={styles.sub}>No check-in that day.</Text>
+              {dayLine ? <Text style={styles.sub}>{dayLine}</Text> : null}
+            </View>
           ) : null}
         </Card>
       </Reveal>

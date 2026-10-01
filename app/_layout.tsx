@@ -21,6 +21,7 @@ import { EmberBuddy } from '../components/ember/EmberBuddy';
 import { EntryThreshold } from '../components/EntryThreshold';
 import { ErrorScreen } from '../components/ErrorScreen';
 import { UndoBar } from '../components/UndoBar';
+import { Celebration } from '../components/Celebration';
 import { useHubStore } from '../core/hubStore';
 import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
@@ -77,11 +78,18 @@ export default function RootLayout() {
                 headerShown: false,
                 contentStyle: { backgroundColor: colors.night },
               }}
-            />
+            >
+              {/* Adding and editing slide up as sheets, so it's clear they're
+                  a quick detour from the screen underneath. */}
+              <Stack.Screen name="add-assignment" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="class-edit" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="new-entry" options={{ presentation: 'modal' }} />
+            </Stack>
             <UndoBar />
             {/* Ember floats above every screen. */}
             <EmberBuddy />
             <AchievementWatcher />
+            <Celebration />
           </>
         ) : (
           <EntryThreshold onEnter={() => setEntered(true)} />

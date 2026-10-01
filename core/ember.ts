@@ -7,6 +7,7 @@ import type { IconName } from '../components/ui/Icon';
 import type { EmberMood } from './emberStore';
 import { useHabitsStore } from './habitsStore';
 import { useHubStore } from './hubStore';
+import { aiStatus } from './aiQuota';
 import { dueCards, hoursTotal, useLifeStore, weekOf } from './lifeStore';
 import { classAverage, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
@@ -236,6 +237,12 @@ const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction
   '/hours': { title: 'Hours', line: 'Service hours toward your requirement, driving practice toward your license, and work shifts.' },
   '/countdowns': { title: 'Countdowns', line: 'Breaks, events, birthdays, finals. A break shows how much of the wait is behind you; finals shows what to plan.' },
   '/review': { title: 'Weekly review', line: 'Five minutes on Sunday: what went well, what was hard, one thing for next week.' },
+  '/helpers': { title: 'Helpers', line: 'My crew. Quizzo quizzes, Pip plans, Quill coaches writing, Sage explains, Spark gets you started. Each has a free on-phone mode and an AI chat.' },
+  '/helper': { title: 'A helper', line: 'The first tab works on your phone, free, as much as you like. The AI chat tab uses your AI allowance — one per reply.' },
+  '/ai': { title: 'How AI works here', line: 'What’s free, what gets sent when you chat with AI, and what it costs. No small print.' },
+  '/privacy': { title: 'Where your stuff lives', line: 'What stays on this phone, what’s online, and what gets sent anywhere. Including the parts that aren’t locked yet.' },
+  '/whats-new': { title: 'What’s new', line: 'Every update, newest first. Tap a chip to go try it.' },
+  '/plus': { title: 'Plus', line: 'More AI replies for me and the crew. Everything that keeps you safe and organized stays free either way.' },
 };
 
 export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
@@ -247,6 +254,8 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
         ? '/note'
         : pathname.startsWith('/class/')
           ? '/class'
+          : pathname.startsWith('/helper/')
+            ? '/helper'
           : pathname.startsWith('/deck/')
             ? '/deck'
             : pathname;
@@ -355,6 +364,35 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
       id: `cards-${todayKey(now)}`,
       line: `${dueCardCount} flashcards are ready in ${dueDecks.length === 1 ? `“${dueDecks[0].name}”` : `${dueDecks.length} decks`}. Ten minutes of quizzing beats an hour of rereading.`,
       actions: [dueDecks.length === 1 ? { label: 'Study', href: `/deck/${dueDecks[0].id}`, icon: 'cards' } : A.cards],
+      priority: 1,
+      mood: 'curious',
+    });
+  }
+
+  // Once a week (Sunday or Wednesday), someone in Your people you haven't reached out to lately.
+  const dow = now.getDay();
+  if ((dow === 0 || dow === 3) && hour >= 12 && hour < 21 && life.people.length) {
+    const quiet = life.people
+      .filter((p) => !p.reachedAt || now.getTime() - new Date(p.reachedAt).getTime() > 7 * DAY)
+      .sort((a, b) => (a.reachedAt ?? '').localeCompare(b.reachedAt ?? ''))[0];
+    if (quiet) {
+      tips.push({
+        id: `friend-${todayKey(now)}`,
+        line: `When did you last check on ${quiet.name}? A quick “thinking of you” text takes ten seconds and lands for days.`,
+        actions: [{ label: 'Your people', href: '/people', icon: 'heart' }],
+        priority: 1,
+        mood: 'curious',
+      });
+    }
+  }
+
+  // Running low on AI replies: say so before it runs out, and point at the free modes.
+  const ai = aiStatus();
+  if (ai.used > 0 && ai.left > 0 && ai.left <= 3) {
+    tips.push({
+      id: `ai-low-${ai.left}-${ai.resets}`,
+      line: `${ai.left} AI repl${ai.left === 1 ? 'y' : 'ies'} left until ${ai.resets}. The helpers’ on-phone modes are free and never run out.`,
+      actions: [{ label: 'Helpers', href: '/helpers', icon: 'people' }, { label: 'See Plus', href: '/plus', icon: 'sparkle' }],
       priority: 1,
       mood: 'curious',
     });

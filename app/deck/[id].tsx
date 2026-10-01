@@ -1,7 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -28,7 +28,8 @@ import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
 import { Segmented } from '../../components/ui/Segmented';
 import { StatTile } from '../../components/ui/StatTile';
-import { deckStats, dueCards, type Flashcard, parseCards, useLifeStore } from '../../core/lifeStore';
+import { Chip, ChipRow } from '../../components/ui/Chip';
+import { checkAnswer, deckStats, dueCards, type Flashcard, parseCards, useLifeStore } from '../../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { offerUndo } from '../../core/undoStore';
 
@@ -38,6 +39,12 @@ export default function DeckScreen() {
   const { id, add } = useLocalSearchParams<{ id: string; add?: string }>();
   const deck = useLifeStore((s) => s.decks.find((d) => d.id === id));
   const [mode, setMode] = useState<Mode>('cards');
+  // How you study this deck is remembered with it.
+  const typeIt = !!deck?.study?.type;
+  const reverse = !!deck?.study?.reverse;
+  const hardest = !!deck?.study?.hardest;
+  const setStudy = (patch: { type?: boolean; reverse?: boolean; hardest?: boolean }) =>
+    deck && useLifeStore.getState().updateDeck(deck.id, { study: { ...deck.study, ...patch } });
 
   if (!deck) {
     return (
@@ -54,20 +61,32 @@ export default function DeckScreen() {
     <Screen
       glowColor={deck.color}
       title={deck.name}
-      subtitle={`${st.total} cards · ${st.mastered} mastered${due ? ` · ${due} to study` : ''}`}
+      subtitle={`${st.total} cards, ${st.mastered} mastered${due ? `, ${due} to study` : ''}`}
       nav={mode !== 'study'}
       right={
-        <IconButton
-          icon="trash"
-          label="Delete deck"
-          color={alpha(colors.danger, 0.8)}
-          onPress={() => {
-            const snap = deck;
-            useLifeStore.getState().deleteDeck(deck.id);
-            offerUndo(`Deleted “${snap.name}”`, () => useLifeStore.getState().restoreDeck(snap));
-            router.back();
-          }}
-        />
+        <View style={styles.headerBtns}>
+          {deck.cards.length ? (
+            <IconButton
+              icon="share"
+              label="Share deck as text"
+              onPress={() =>
+                // The same "front :: back" lines "Paste a list" reads, so a friend can import it.
+                Share.share({ message: `${deck.name}\n${deck.cards.map((c) => `${c.front} :: ${c.back}`).join('\n')}` })
+              }
+            />
+          ) : null}
+          <IconButton
+            icon="trash"
+            label="Delete deck"
+            color={alpha(colors.danger, 0.8)}
+            onPress={() => {
+              const snap = deck;
+              useLifeStore.getState().deleteDeck(deck.id);
+              offerUndo(`Deleted “${snap.name}”`, () => useLifeStore.getState().restoreDeck(snap));
+              router.back();
+            }}
+          />
+        </View>
       }
     >
       <Reveal index={0}>
@@ -81,7 +100,19 @@ export default function DeckScreen() {
           style={styles.seg}
         />
       </Reveal>
-      {mode === 'cards' ? <CardsView deckId={deck.id} startAdding={add === '1'} onStudy={() => setMode('study')} /> : <StudyView deckId={deck.id} onDone={() => setMode('cards')} />}
+      {mode === 'study' && deck.cards.length ? (
+        <ChipRow style={styles.gapSm}>
+          <Chip label="Type the answer" icon="pen" selected={typeIt} onPress={() => setStudy({ type: !typeIt })} />
+          <Chip label="Back to front" icon="repeat" selected={reverse} onPress={() => setStudy({ reverse: !reverse })} />
+          <Chip label="Hardest first" icon="bolt" selected={hardest} onPress={() => setStudy({ hardest: !hardest })} />
+        </ChipRow>
+      ) : null}
+      {mode === 'cards' ? (
+        <CardsView deckId={deck.id} startAdding={add === '1'} onStudy={() => setMode('study')} />
+      ) : (
+        // Changing the order starts a fresh session in that order.
+        <StudyView key={hardest ? 'hard' : 'mix'} deckId={deck.id} typeIt={typeIt} reverse={reverse} hardest={hardest} onDone={() => setMode('cards')} />
+      )}
     </Screen>
   );
 }
@@ -90,10 +121,15 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
   const deck = useLifeStore((s) => s.decks.find((d) => d.id === deckId))!;
   const addCards = useLifeStore((s) => s.addCards);
   const deleteCard = useLifeStore((s) => s.deleteCard);
+  const updateCard = useLifeStore((s) => s.updateCard);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [find, setFind] = useState('');
   const [front, setFront] = useState('');
   const [back, setBack] = useState('');
   const [bulk, setBulk] = useState('');
   const [bulkOpen, setBulkOpen] = useState(false);
+  // Big decks render in pages so the screen stays quick.
+  const [shown, setShown] = useState(40);
   const parsed = useMemo(() => parseCards(bulk), [bulk]);
   const st = deckStats(deck);
   const due = dueCards(deck).length;
@@ -144,8 +180,8 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
               </>
             ) : (
               <>
-                <Field placeholder="Front — the question or term" value={front} onChangeText={setFront} autoFocus={startAdding} />
-                <Field placeholder="Back — the answer" value={back} onChangeText={setBack} containerStyle={styles.gapSm} returnKeyType="done" onSubmitEditing={addOne} />
+                <Field placeholder="Front: the question or term" value={front} onChangeText={setFront} autoFocus={startAdding} />
+                <Field placeholder="Back: the answer" value={back} onChangeText={setBack} containerStyle={styles.gapSm} returnKeyType="done" onSubmitEditing={addOne} />
                 <Button label="Add card" icon="plus" variant="secondary" onPress={addOne} disabled={!front.trim() || !back.trim()} style={styles.gap} />
               </>
             )}
@@ -157,9 +193,23 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
         <Reveal index={3}>
           <Section title="All cards" note={`${deck.cards.length}`}>
             <View style={styles.list}>
-              {[...deck.cards].reverse().map((c) => (
+              {deck.cards.length > 10 ? (
+                <Field value={find} onChangeText={setFind} placeholder="Find a card" autoCorrect={false} autoCapitalize="none" clearButtonMode="while-editing" />
+              ) : null}
+              {[...deck.cards]
+                .reverse()
+                .filter((c) => !find.trim() || `${c.front} ${c.back}`.toLowerCase().includes(find.trim().toLowerCase()))
+                .slice(0, shown)
+                .map((c) => (
                 <Animated.View key={c.id} entering={FadeInDown.duration(200)} exiting={FadeOut.duration(150)} layout={LinearTransition}>
-                  <Card style={styles.cardRow}>
+                  {editing === c.id ? (
+                    <Card style={styles.editCard}>
+                      <Field defaultValue={c.front} onChangeText={(t) => t.trim() && updateCard(deck.id, c.id, { front: t.trim() })} placeholder="Front" autoFocus />
+                      <Field defaultValue={c.back} onChangeText={(t) => t.trim() && updateCard(deck.id, c.id, { back: t.trim() })} placeholder="Back" containerStyle={styles.gapSm} />
+                      <Button label="Done" icon="check" variant="secondary" size="sm" onPress={() => setEditing(null)} style={styles.gapSm} />
+                    </Card>
+                  ) : (
+                  <Card style={styles.cardRow} onPress={() => setEditing(c.id)} accessibilityHint="Tap to edit">
                     <View style={styles.flex}>
                       <Text style={styles.front}>{c.front}</Text>
                       <Text style={styles.back}>{c.back}</Text>
@@ -171,8 +221,12 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
                       <Icon name="close" size={15} color={colors.textFaint} />
                     </Pressy>
                   </Card>
+                  )}
                 </Animated.View>
               ))}
+              {deck.cards.length > shown ? (
+                <Button label={`Show ${Math.min(40, deck.cards.length - shown)} more`} variant="ghost" size="sm" onPress={() => setShown((n) => n + 40)} />
+              ) : null}
             </View>
           </Section>
         </Reveal>
@@ -181,7 +235,7 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
   );
 }
 
-function StudyView({ deckId, onDone }: { deckId: string; onDone: () => void }) {
+function StudyView({ deckId, typeIt, reverse, hardest, onDone }: { deckId: string; typeIt: boolean; reverse: boolean; hardest: boolean; onDone: () => void }) {
   const deck = useLifeStore((s) => s.decks.find((d) => d.id === deckId))!;
   const gradeCard = useLifeStore((s) => s.gradeCard);
   const reduced = useReducedMotion();
@@ -191,15 +245,22 @@ function StudyView({ deckId, onDone }: { deckId: string; onDone: () => void }) {
   const [queue, setQueue] = useState<string[]>(() => {
     const due = dueCards(deck);
     const pool = due.length ? due : deck.cards;
-    return [...pool].sort(() => Math.random() - 0.5).map((c) => c.id);
+    const mixed = [...pool].sort(() => Math.random() - 0.5);
+    // Hardest first: lowest box first, and among those the most-reviewed (the ones that keep slipping).
+    return (hardest ? mixed.sort((a, b) => a.box - b.box || b.seen - a.seen) : mixed).map((c) => c.id);
   });
   const [total] = useState(queue.length);
   const [right, setRight] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const [burst, setBurst] = useState(0);
+  const [typed, setTyped] = useState('');
   const flip = useSharedValue(0);
 
   const card: Flashcard | undefined = deck.cards.find((c) => c.id === queue[0]);
+  // Back to front: show the definition, recall the term.
+  const ask = card ? (reverse ? card.back : card.front) : '';
+  const reply = card ? (reverse ? card.front : card.back) : '';
+  const verdict = typeIt && flipped && card ? checkAnswer(typed, reply) : null;
 
   const turn = () => {
     const to = flipped ? 0 : 1;
@@ -213,6 +274,7 @@ function StudyView({ deckId, onDone }: { deckId: string; onDone: () => void }) {
     gradeCard(deck.id, card.id, ok);
     Haptics.impactAsync(ok ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
     if (ok) setRight((r) => r + 1);
+    setTyped('');
     setFlipped(false);
     flip.value = 0;
     setQueue((q) => (ok ? q.slice(1) : [...q.slice(1), q[0]]));
@@ -258,24 +320,52 @@ function StudyView({ deckId, onDone }: { deckId: string; onDone: () => void }) {
           {total - queue.length}/{total}
         </Text>
       </View>
-      <Pressy onPress={turn} depth={0.98} accessibilityRole="button" accessibilityLabel={flipped ? `Answer: ${card.back}. Tap to flip back.` : `${card.front}. Tap to see the answer.`} style={styles.flipWrap}>
+      <Pressy
+        onPress={turn}
+        disabled={typeIt && !flipped}
+        depth={0.98}
+        accessibilityRole="button"
+        accessibilityLabel={flipped ? `Answer: ${reply}. Tap to flip back.` : `${ask}. Tap to see the answer.`}
+        style={[styles.flipWrap, typeIt && styles.flipShort]}
+      >
         <Animated.View style={[styles.face, { borderColor: alpha(deck.color, 0.45) }, frontStyle]}>
-          <Text style={styles.faceLabel}>Front</Text>
-          <Text style={styles.faceText}>{card.front}</Text>
-          <Text style={styles.tapHint}>Say it in your head, then tap</Text>
+          <Text style={styles.faceLabel}>{reverse ? 'Back' : 'Front'}</Text>
+          <Text style={styles.faceText}>{ask}</Text>
+          {typeIt ? null : <Text style={styles.tapHint}>Say it in your head, then tap</Text>}
         </Animated.View>
         <Animated.View style={[styles.face, styles.faceBack, { borderColor: alpha(deck.color, 0.7), backgroundColor: alpha(deck.color, 0.1) }, backStyle]}>
-          <Text style={[styles.faceLabel, { color: deck.color }]}>Back</Text>
-          <Text style={styles.faceText}>{card.back}</Text>
+          <Text style={[styles.faceLabel, { color: deck.color }]}>{reverse ? 'Front' : 'Back'}</Text>
+          <Text style={styles.faceText}>{reply}</Text>
+          {verdict ? (
+            <Text style={[styles.verdict, { color: verdict === 'match' ? colors.secured : verdict === 'close' ? colors.flame : colors.unlocked }]}>
+              {verdict === 'match' ? 'You had it' : verdict === 'close' ? `Close: you wrote “${typed.trim()}”` : typed.trim() ? `You wrote “${typed.trim()}”` : 'No answer typed'}
+            </Text>
+          ) : null}
         </Animated.View>
       </Pressy>
+      {typeIt ? (
+        <Field
+          // Uncontrolled: a fresh field per card, and fast typing never loses letters.
+          key={card.id}
+          defaultValue=""
+          onChangeText={(t) => !flipped && setTyped(t)}
+          placeholder="Type what’s on the other side"
+          autoFocus
+          autoCorrect={false}
+          // Return checks; after a match, Return again moves on. The keyboard stays up between cards.
+          returnKeyType={flipped ? 'next' : 'done'}
+          submitBehavior="submit"
+          onSubmitEditing={() => (flipped ? verdict === 'match' && answer(true) : turn())}
+          containerStyle={styles.gap}
+        />
+      ) : null}
       {flipped ? (
         <Animated.View entering={FadeInDown.duration(200)} style={styles.answers}>
           <Button label="Again" icon="repeat" variant="secondary" tint={colors.unlocked} onPress={() => answer(false)} style={styles.flex} />
-          <Button label="Got it" icon="check" onPress={() => answer(true)} style={styles.flex} />
+          <Button label={verdict === 'close' ? 'Count it' : 'Got it'} icon="check" onPress={() => answer(true)} style={styles.flex} />
         </Animated.View>
       ) : (
-        <Button label="Show the answer" variant="secondary" onPress={turn} style={styles.gap} />
+        <Button label={typeIt ? 'Check' : 'Show the answer'} variant="secondary" onPress={turn} style={styles.gap} />
       )}
       <Text style={styles.score}>{right} right so far</Text>
     </View>
@@ -288,6 +378,22 @@ const styles = StyleSheet.create({
   },
   seg: {
     marginTop: 14,
+  },
+  headerBtns: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  flipShort: {
+    height: 200,
+  },
+  verdict: {
+    position: 'absolute',
+    bottom: 18,
+    left: 20,
+    right: 20,
+    textAlign: 'center',
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
   },
   gap: {
     marginTop: 14,
@@ -302,6 +408,9 @@ const styles = StyleSheet.create({
   },
   list: {
     gap: 8,
+  },
+  editCard: {
+    paddingVertical: 12,
   },
   cardRow: {
     flexDirection: 'row',
@@ -342,6 +451,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemi,
     fontSize: 13,
     color: colors.textMuted,
+    fontVariant: ['tabular-nums'],
   },
   flipWrap: {
     marginTop: 18,

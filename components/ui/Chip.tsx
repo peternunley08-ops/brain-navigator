@@ -29,7 +29,9 @@ export function Chip({ label, selected, onPress, color = colors.flame, dot, icon
     >
       {dot ? <View style={[styles.dot, { backgroundColor: color }]} /> : null}
       {icon ? <Icon name={icon} size={15} color={selected ? color : colors.textMuted} strokeWidth={2} /> : null}
-      <Text style={[styles.text, selected && { color, fontFamily: fonts.bodySemi }]}>{label}</Text>
+      <Text style={[styles.text, selected && { color, fontFamily: fonts.bodySemi }]} maxFontSizeMultiplier={1.5}>
+        {label}
+      </Text>
     </Pressy>
   );
 }

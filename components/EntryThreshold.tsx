@@ -13,7 +13,7 @@ import Animated, {
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { dayPhaseFor } from '../core/adaptiveLight';
-import { randomQuote } from '../core/quotes';
+import { lineForToday } from '../core/dayLines';
 import { colors, fonts } from '../core/theme';
 import { EmberSprite } from './ember/EmberSprite';
 import { Sparks } from './ember/Sparks';
@@ -37,7 +37,8 @@ const HELLO = {
 // warms up — the flame grows under your thumb — until it wakes, says hello,
 // and lets you in.
 export function EntryThreshold({ onEnter }: EntryThresholdProps) {
-  const quote = useMemo(() => randomQuote(), []);
+  // The same student line the Desk shows today, instead of an adult quote.
+  const quote = useMemo(() => ({ text: lineForToday(), author: 'Ember' }), []);
   const rig = useEmberRig({ glance: false });
   const [awake, setAwake] = useState(false);
   const [burst, setBurst] = useState(0);

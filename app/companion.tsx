@@ -66,6 +66,7 @@ export default function CompanionScreen() {
   const [thinking, setThinking] = useState(false);
   const [finished, setFinished] = useState(false);
   const [burst, setBurst] = useState(0);
+  const [limited, setLimited] = useState(false);
 
   const isSaving = useVentStore((s) => s.isSaving);
   const error = useVentStore((s) => s.error);
@@ -146,6 +147,7 @@ export default function CompanionScreen() {
     }
 
     // No AI right now — say why, once, and carry on with the built-in flow.
+    if (res.reason === 'limit') setLimited(true);
     setMode('scripted');
     rig.setMood('concerned');
     say(whyOffline(res.reason), { aside: true });
@@ -244,6 +246,7 @@ export default function CompanionScreen() {
             {mode === 'ai' ? (
               <Text style={styles.privacy}>Ember’s replies are written by Claude. What you type here is sent to Anthropic to answer.</Text>
             ) : null}
+            {limited ? <Button label="See Plus for more AI" icon="sparkle" variant="ghost" size="sm" onPress={() => router.push('/plus')} style={styles.plus} /> : null}
             {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
           </Animated.View>
         ) : null}
@@ -282,6 +285,10 @@ function Dot({ i }: { i: number }) {
 }
 
 const styles = StyleSheet.create({
+  plus: {
+    alignSelf: 'center',
+    marginTop: 4,
+  },
   frame: {
     paddingBottom: 12,
   },

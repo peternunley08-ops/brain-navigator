@@ -1,4 +1,5 @@
 import { File, Paths } from 'expo-file-system';
+import type { IconName } from '../components/ui/Icon';
 import { create } from 'zustand';
 import { addDays, dateKey } from './dates';
 
@@ -22,6 +23,8 @@ export interface HoursEntry {
   note: string;
   /** Driving only: after dark. */
   night?: boolean;
+  /** Minutes after midnight it started, when known. */
+  at?: number;
 }
 
 export type CountdownKind = 'event' | 'break' | 'finals' | 'birthday';
@@ -34,6 +37,8 @@ export interface Countdown {
   color: string;
   /** When it was set, so a break can show how much of the wait is behind you. */
   createdAt?: string;
+  /** Picked by the student; falls back to one for the kind. */
+  icon?: IconName;
 }
 
 export interface Person {
@@ -41,6 +46,8 @@ export interface Person {
   name: string;
   phone: string;
   note: string;
+  /** Last time you tapped text or call for them (ISO). */
+  reachedAt?: string;
 }
 
 export interface ListItem {
@@ -73,6 +80,10 @@ export interface Deck {
   color: string;
   cards: Flashcard[];
   createdAt: string;
+  /** The note it was made from, so it can pick up new lines later. */
+  noteId?: string;
+  /** How you last studied it. */
+  study?: { type?: boolean; reverse?: boolean; hardest?: boolean };
 }
 
 export interface Review {
@@ -110,6 +121,52 @@ export interface LifeSettings {
   emberAccessory: EmberAccessory;
   /** Last "what's new" the student dismissed. */
   whatsNewSeen: number;
+  /** Brain Navigator Plus — more AI. Set by a store purchase (not wired yet). */
+  plus: boolean;
+  plusPlan: 'monthly' | 'yearly' | null;
+  /** Desk sections the student turned off. */
+  deskHidden: string[];
+  /** Hourly pay at a job, for the earnings estimate. */
+  wage?: number | null;
+  /** Quiet: Ember only speaks up for big moments and important tips. */
+  emberQuiet?: boolean;
+  /** Ember stays silent while a class is in session (default on). */
+  quietInClass?: boolean;
+  /** The last few things searched for, newest first. */
+  recentSearches?: string[];
+  /** Big moments show as an Ember line instead of a whole-screen celebration. */
+  quietCelebrations?: boolean;
+  /** Milestones already celebrated, so each one happens once. */
+  celebrated?: string[];
+  /** Minutes of focus to aim for today (null for no daily goal). */
+  dailyFocusGoal?: number | null;
+  /** The last few quick-capture lines, for one-tap repeats. */
+  recentCaptures?: string[];
+  /** The last day the Desk was opened (YYYY-MM-DD). */
+  lastSeen?: string;
+  /** Order of the lower Desk sections. */
+  deskOrder?: string[];
+  /** Where today's study session (Pip, Quizzo, Spark) got to. */
+  combo?: { day: string; step: number } | null;
+  /** Sage's explanation level. */
+  sageLevel?: string;
+  /** A class name as it appears in screenshots (lowercase) → your class's id. */
+  classAliases?: Record<string, string>;
+}
+
+export interface HelperTurn {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/** AI replies used, counted per week (free) and per month (Plus). */
+export interface AIUsage {
+  week: string;
+  weekUsed: number;
+  month: string;
+  monthUsed: number;
+  /** Who each recent reply went to ('ember' or a helper id), newest last. */
+  log?: { at: string; who: string }[];
 }
 
 interface LifeData {
@@ -132,6 +189,17 @@ interface LifeData {
   /** Achievement key → ISO time earned. */
   achievements: Record<string, string>;
   settings: LifeSettings;
+  ai: AIUsage;
+  /** Each helper's conversation, most recent last. */
+  helperChats: Record<string, HelperTurn[]>;
+  /** Quiz games: rounds played and the best score. */
+  quiz: { played: number; best: number; correct: number; lightningBest?: number };
+  /** Assignment id → the helper last called about it. */
+  helperUse: Record<string, string>;
+  /** Helper id → what you did together last time. */
+  helperLast: Record<string, { at: string; line: string }>;
+  /** Helper id → when its chat last changed (chats over 30 days old are cleared). */
+  helperChatAt: Record<string, string>;
 }
 
 interface LifeStore extends LifeData {
@@ -179,10 +247,18 @@ interface LifeStore extends LifeData {
   /** Returns true the first time a key is earned. */
   earn: (key: string) => boolean;
   setSettings: (patch: Partial<LifeSettings>) => void;
+  setAI: (ai: AIUsage) => void;
+  setHelperChat: (id: string, turns: HelperTurn[]) => void;
+  recordQuiz: (score: number, correct: number, lightning?: boolean) => void;
+  updateDeck: (id: string, patch: Partial<Omit<Deck, 'id' | 'cards'>>) => void;
+  noteHelperUse: (assignmentId: string, helperId: string) => void;
+  noteHelperLast: (helperId: string, line: string) => void;
 
   /** Everything, for export. */
   snapshot: () => LifeData;
   reset: () => void;
+  /** Replace everything with a backup's life section. */
+  restore: (d: Partial<LifeData>) => void;
 }
 
 export const DEFAULT_PACK: ListItem[] = [
@@ -218,6 +294,9 @@ const DEFAULT_SETTINGS: LifeSettings = {
   emberTheme: 'gold',
   emberAccessory: 'auto',
   whatsNewSeen: 0,
+  plus: false,
+  plusPlan: null,
+  deskHidden: [],
 };
 
 const EMPTY: LifeData = {
@@ -238,6 +317,12 @@ const EMPTY: LifeData = {
   oneThingDone: {},
   achievements: {},
   settings: DEFAULT_SETTINGS,
+  ai: { week: '', weekUsed: 0, month: '', monthUsed: 0 },
+  helperChats: {},
+  quiz: { played: 0, best: 0, correct: 0 },
+  helperUse: {},
+  helperLast: {},
+  helperChatAt: {},
 };
 
 const FILE = 'life.json';
@@ -271,6 +356,11 @@ function trimDays(map: Record<string, string[]>) {
   return Object.fromEntries(Object.entries(map).filter(([k]) => k >= cutoff));
 }
 
+function keepSince<T>(map: Record<string, T>, days: number) {
+  const cutoff = addDays(dateKey(), -days);
+  return Object.fromEntries(Object.entries(map).filter(([k]) => k >= cutoff));
+}
+
 export const useLifeStore = create<LifeStore>((set, get) => {
   const data = (): LifeData => {
     const s = get();
@@ -292,6 +382,12 @@ export const useLifeStore = create<LifeStore>((set, get) => {
       oneThingDone: s.oneThingDone,
       achievements: s.achievements,
       settings: s.settings,
+      ai: s.ai,
+      helperChats: s.helperChats,
+      quiz: s.quiz,
+      helperUse: s.helperUse,
+      helperLast: s.helperLast,
+      helperChatAt: s.helperChatAt,
     };
   };
   const commit = (patch: Partial<LifeData>) => {
@@ -310,12 +406,22 @@ export const useLifeStore = create<LifeStore>((set, get) => {
         const f = new File(Paths.document, FILE);
         if (f.exists) {
           const d = JSON.parse(await f.text()) as Partial<LifeData>;
+          // Helper chats nobody has touched in 30 days are let go.
+          const cutoff = new Date(Date.now() - 30 * 86400000).toISOString();
+          const chatAt = d.helperChatAt ?? {};
+          const chats = Object.fromEntries(Object.entries(d.helperChats ?? {}).filter(([id]) => !chatAt[id] || chatAt[id] >= cutoff));
           set({
             ...EMPTY,
             ...d,
             pack: d.pack?.length ? d.pack : DEFAULT_PACK,
             windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
             settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
+            helperChats: chats,
+            // Day-by-day lists only need recent days; a few months of "one thing" is plenty.
+            packDone: trimDays(d.packDone ?? {}),
+            windDownDone: trimDays(d.windDownDone ?? {}),
+            oneThing: keepSince(d.oneThing ?? {}, 90),
+            oneThingDone: keepSince(d.oneThingDone ?? {}, 90),
           });
         }
       } catch {
@@ -421,9 +527,35 @@ export const useLifeStore = create<LifeStore>((set, get) => {
     },
 
     setSettings: (patch) => commit({ settings: { ...get().settings, ...patch } }),
+    setAI: (ai) => commit({ ai }),
+    // Only the last 40 turns are kept per helper.
+    setHelperChat: (id, turns) =>
+      commit({ helperChats: { ...get().helperChats, [id]: turns.slice(-40) }, helperChatAt: { ...get().helperChatAt, [id]: new Date().toISOString() } }),
+    noteHelperLast: (id, line) => commit({ helperLast: { ...get().helperLast, [id]: { at: new Date().toISOString(), line } } }),
+    noteHelperUse: (assignmentId, helperId) => commit({ helperUse: { ...get().helperUse, [assignmentId]: helperId } }),
+    recordQuiz: (score, correct, lightning) => {
+      const q = get().quiz;
+      commit({
+        quiz: {
+          played: q.played + 1,
+          best: Math.max(q.best, score),
+          correct: q.correct + correct,
+          lightningBest: lightning ? Math.max(q.lightningBest ?? 0, score) : q.lightningBest,
+        },
+      });
+    },
+    updateDeck: (id, patch) => mapDeck(id, (d) => ({ ...d, ...patch })),
 
     snapshot: data,
     reset: () => commit({ ...EMPTY }),
+    restore: (d) =>
+      commit({
+        ...EMPTY,
+        ...d,
+        pack: d.pack?.length ? d.pack : DEFAULT_PACK,
+        windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
+        settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
+      }),
   };
 });
 
@@ -442,6 +574,9 @@ export function deckStats(deck: Deck) {
 }
 
 /** "front :: back" or "front - back" or "front\tback", one per line. */
+/** The lower Desk sections, top to bottom, unless the student reorders them. */
+export const DESK_ORDER = ['due', 'mind', 'checkin', 'tiles', 'line'];
+
 export function parseCards(text: string) {
   return text
     .split('\n')
@@ -450,6 +585,47 @@ export function parseCards(text: string) {
       return m ? { front: m[1].trim(), back: m[2].trim() } : null;
     })
     .filter((x): x is { front: string; back: string } => !!x);
+}
+
+function plain(s: string) {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\b(the|a|an)\b/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function editDistance(a: string, b: string) {
+  const row = Array.from({ length: b.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= a.length; i++) {
+    let prev = row[0];
+    row[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      const tmp = row[j];
+      row[j] = Math.min(row[j] + 1, row[j - 1] + 1, prev + (a[i - 1] === b[j - 1] ? 0 : 1));
+      prev = tmp;
+    }
+  }
+  return row[b.length];
+}
+
+/** How a typed answer compares with the card: a match, close (a typo or part of it), or a miss. */
+export function checkAnswer(typed: string, answer: string): 'match' | 'close' | 'miss' {
+  const t = plain(typed);
+  const a = plain(answer);
+  if (!t) return 'miss';
+  if (t === a) return 'match';
+  // Typos are fine in words, not in numbers or dates ("1775" isn't "1776").
+  const sameNumbers = t.replace(/\D/g, '') === a.replace(/\D/g, '');
+  const d = editDistance(t, a);
+  if (sameNumbers && a.length >= 5 && d <= Math.max(1, Math.floor(a.length * 0.15))) return 'match';
+  if (d <= Math.floor(a.length * 0.35)) return 'close';
+  // The key words are there ("powerhouse" for "powerhouse of the cell").
+  const words = a.split(' ').filter((w) => w.length > 3);
+  const hit = words.filter((w) => t.includes(w)).length;
+  if (words.length && hit / words.length >= 0.5) return 'close';
+  return 'miss';
 }
 
 export function hoursTotal(hours: HoursEntry[], kind: HoursEntry['kind'], nightOnly = false) {

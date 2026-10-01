@@ -98,6 +98,19 @@ most verified live). What that added:
   weekly-review prompt, tonight's load bar, a line for the day, a glow
   that follows the time of day, search in the header, one-time What's New.
 
+**Round 2 (2026-09-30, `docs/masterpiece-2.md`):** the helper crew
+(`core/helpers.ts`, `core/helperOffline.ts`, `app/helpers.tsx`,
+`app/helper/[id].tsx`, `components/helpers/*`), the AI allowance and Plus
+(`core/aiQuota.ts`, `app/plus.tsx` — 20 AI replies/week free, 400/month
+Plus; `purchasePlus()` returns `not_configured` until StoreKit is set up;
+`askEmber`/`askHelper` check `canUseAI()` and only count successful
+replies), multi-screenshot scan (`mergeScans` in `core/scanParser.ts`),
+quick capture (`core/quickParse.ts`), Desk cards (`components/desk/*`),
+`Skeleton`, `Screen onRefresh`, swipe rows in `AssignmentRow`, and
+`add-assignment`/`class-edit`/`new-entry` presented as modal sheets in
+`app/_layout.tsx`. The Edge Function `ember` takes an `agent` id for the
+helpers' personas (still not deployed).
+
 Gotchas found while verifying:
 
 - **`alpha()` in `core/theme.ts` is a worklet** (`'worklet'` directive)

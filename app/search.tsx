@@ -1,7 +1,9 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Chip, ChipRow } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Field } from '../components/ui/Field';
 import { Icon, type IconName } from '../components/ui/Icon';
@@ -12,6 +14,8 @@ import { useHubStore } from '../core/hubStore';
 import { useLifeStore } from '../core/lifeStore';
 import { dueLabel, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
+
+const NONE: string[] = [];
 
 interface Hit {
   key: string;
@@ -26,6 +30,15 @@ interface Hit {
 // colleges, wins.
 export default function SearchScreen() {
   const [q, setQ] = useState('');
+  const [open, setOpen] = useState<string[]>([]);
+  // Select the stored array itself; a fallback inside the selector would be a new array every render.
+  const recent = useLifeStore((s) => s.settings.recentSearches) ?? NONE;
+  // Remember what found something, so it's one tap next time.
+  const remember = () => {
+    const t = q.trim();
+    if (t.length < 2) return;
+    useLifeStore.getState().setSettings({ recentSearches: [t, ...recent.filter((r) => r.toLowerCase() !== t.toLowerCase())].slice(0, 6) });
+  };
   const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
   const notes = useHubStore((s) => s.notes);
@@ -47,7 +60,7 @@ export default function SearchScreen() {
           .map((a) => ({
             key: a.id,
             title: a.title,
-            sub: `${KIND_LABEL[a.kind]}${className(a.classId) ? `, ${className(a.classId)}` : ''} · ${a.done ? 'done' : `due ${dueLabel(a.due).toLowerCase()}`}`,
+            sub: `${KIND_LABEL[a.kind]}${className(a.classId) ? `, ${className(a.classId)}` : ''}, ${a.done ? 'done' : `due ${dueLabel(a.due).toLowerCase()}`}`,
             icon: a.done ? 'check' : 'book',
             color: classes.find((c) => c.id === a.classId)?.color ?? colors.flame,
             href: `/assignment/${a.id}`,
@@ -57,7 +70,7 @@ export default function SearchScreen() {
         title: 'Classes',
         hits: classes
           .filter((c) => has(c.name, c.teacher, c.room))
-          .map((c) => ({ key: c.id, title: c.name, sub: [c.teacher, c.room && `Room ${c.room}`].filter(Boolean).join(' · ') || 'Class', icon: 'book', color: c.color, href: `/class/${c.id}` })),
+          .map((c) => ({ key: c.id, title: c.name, sub: [c.teacher, c.room && `Room ${c.room}`].filter(Boolean).join(', ') || 'Class', icon: 'book', color: c.color, href: `/class/${c.id}` })),
       },
       {
         title: 'Notes',
@@ -78,7 +91,7 @@ export default function SearchScreen() {
         title: 'Colleges',
         hits: colleges
           .filter((c) => has(c.name, c.notes, c.visitNotes))
-          .map((c) => ({ key: c.id, title: c.name, sub: `${c.plan}${c.deadline ? ` · ${dueLabel(c.deadline)}` : ''}`, icon: 'cap', color: '#8FB4E8', href: '/college' })),
+          .map((c) => ({ key: c.id, title: c.name, sub: `${c.plan}${c.deadline ? `, ${dueLabel(c.deadline)}` : ''}`, icon: 'cap', color: '#8FB4E8', href: '/college' })),
       },
       {
         title: 'Wins',
@@ -95,15 +108,33 @@ export default function SearchScreen() {
   return (
     <Screen title="Search">
       <Reveal index={0}>
-        <Field autoFocus value={q} onChangeText={setQ} placeholder="Homework, notes, classes, cards…" returnKeyType="search" clearButtonMode="while-editing" autoCapitalize="none" autoCorrect={false} containerStyle={styles.field} />
+        <Field autoFocus value={q} onChangeText={setQ} placeholder="Homework, notes, classes, cards…" returnKeyType="search" onSubmitEditing={remember} clearButtonMode="while-editing" autoCapitalize="none" autoCorrect={false} containerStyle={styles.field} />
       </Reveal>
+      {q.trim().length < 2 && recent.length ? (
+        <Reveal index={1}>
+          <Section title="Recent" action={{ label: 'Clear', onPress: () => useLifeStore.getState().setSettings({ recentSearches: [] }) }}>
+            <ChipRow>
+              {recent.map((r) => (
+                <Chip key={r} label={r} icon="search" onPress={() => setQ(r)} />
+              ))}
+            </ChipRow>
+          </Section>
+        </Reveal>
+      ) : null}
       {q.trim().length >= 2 && total === 0 ? <EmptyState title="Nothing matches." body="Try a shorter word, or a class name." /> : null}
       {groups.map((g, gi) => (
         <Reveal key={g.title} index={gi + 1}>
           <Section title={g.title} note={`${g.hits.length}`}>
             <View style={styles.list}>
-              {g.hits.slice(0, 12).map((h) => (
-                <Card key={h.key} onPress={() => router.push(h.href as never)} style={styles.row}>
+              {g.hits.slice(0, open.includes(g.title) ? g.hits.length : 12).map((h) => (
+                <Card
+                  key={h.key}
+                  onPress={() => {
+                    remember();
+                    router.push(h.href as never);
+                  }}
+                  style={styles.row}
+                >
                   <Icon name={h.icon} size={18} color={h.color} />
                   <View style={styles.flex}>
                     <Text style={styles.title} numberOfLines={1}>
@@ -116,6 +147,9 @@ export default function SearchScreen() {
                   <Icon name="chevron" size={16} color={colors.textFaint} />
                 </Card>
               ))}
+              {g.hits.length > 12 && !open.includes(g.title) ? (
+                <Button label={`Show all ${g.hits.length}`} variant="ghost" size="sm" onPress={() => setOpen((o) => [...o, g.title])} />
+              ) : null}
             </View>
           </Section>
         </Reveal>

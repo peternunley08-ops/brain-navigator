@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import type { ReactNode, RefObject } from 'react';
-import { ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { type ReactNode, type RefObject, useState } from 'react';
+import { RefreshControl, ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { Easing, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { colors, fonts, layout } from '../../core/theme';
@@ -30,6 +30,8 @@ interface ScreenProps {
   scrollRef?: RefObject<ScrollView | null>;
   /** Center the title block (detail screens with a hero above). */
   centered?: boolean;
+  /** Pull down to refresh. */
+  onRefresh?: () => Promise<unknown> | void;
 }
 
 // The frame every screen in the app is built in: the night room, a round
@@ -52,8 +54,19 @@ export function Screen({
   overlay,
   scrollRef,
   centered,
+  onRefresh,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const [refreshing, setRefreshing] = useState(false);
+  const refresh = async () => {
+    if (!onRefresh) return;
+    setRefreshing(true);
+    try {
+      await onRefresh();
+    } finally {
+      setRefreshing(false);
+    }
+  };
   const onBack = typeof back === 'function' ? back : () => router.back();
 
   const header = (
@@ -77,7 +90,7 @@ export function Screen({
           style={[styles.titleBlock, centered && styles.centered]}
         >
           {kicker ? <Text style={[styles.kicker, centered && styles.textCenter]}>{kicker}</Text> : null}
-          <Text style={[styles.title, centered && styles.textCenter]} accessibilityRole="header">
+          <Text style={[styles.title, centered && styles.textCenter]} accessibilityRole="header" numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7}>
             {title}
           </Text>
           {subtitle ? <Text style={[styles.subtitle, centered && styles.textCenter]}>{subtitle}</Text> : null}
@@ -103,6 +116,7 @@ export function Screen({
           keyboardDismissMode="interactive"
           automaticallyAdjustKeyboardInsets
           showsVerticalScrollIndicator={false}
+          refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.flame} /> : undefined}
         >
           {header}
           {children}

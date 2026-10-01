@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
-import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
@@ -14,6 +13,7 @@ import { StatTile } from '../components/ui/StatTile';
 import { daysUntil, dueLabel } from '../core/dates';
 import { type Scholarship, useHubStore } from '../core/hubStore';
 import { parseDue } from '../core/scanParser';
+import { celebrate } from '../core/celebrateStore';
 import { alpha, colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
 
@@ -41,7 +41,10 @@ export default function ScholarshipsScreen() {
 
   const won = list.filter((x) => x.status === 'won').reduce((s, x) => s + (x.amount ?? 0), 0);
   const pending = list.filter((x) => x.status === 'applied').reduce((s, x) => s + (x.amount ?? 0), 0);
-  const sorted = [...list].sort((a, b) => (a.deadline ?? '9999').localeCompare(b.deadline ?? '9999'));
+  // Most urgent first: open ones by deadline, then ones whose date passed, then applied, won, and not this time.
+  const rank = (x: Scholarship) =>
+    x.status === 'todo' ? (x.deadline && daysUntil(x.deadline) < 0 ? 1 : 0) : x.status === 'applied' ? 2 : x.status === 'won' ? 3 : 4;
+  const sorted = [...list].sort((a, b) => rank(a) - rank(b) || (a.deadline ?? '9999').localeCompare(b.deadline ?? '9999'));
 
   const add = () => {
     if (!name.trim()) return;
@@ -78,21 +81,27 @@ export default function ScholarshipsScreen() {
           </Card>
         </Animated.View>
       ) : null}
-      {list.length === 0 && !adding ? <EmptyState title="None yet." body="Ask your counselor for the local list. It’s usually the best one." /> : null}
+      {list.length === 0 && !adding ? <EmptyState gear="cap" title="None yet." body="Ask your counselor for the local list. It’s usually the best one." /> : null}
       <View style={styles.list}>
         {sorted.map((x) => {
           const d = x.deadline ? daysUntil(x.deadline) : null;
+          // Red inside three days, gold inside a week, while it's still open.
+          const urgent = x.status === 'todo' && d != null && d >= 0 && d <= 7 ? (d <= 3 ? colors.unlocked : colors.flame) : undefined;
           return (
             <Animated.View key={x.id} entering={FadeInDown.duration(220)} exiting={FadeOut.duration(150)} layout={LinearTransition}>
-              <Card tint={x.status === 'won' ? colors.secured : undefined}>
+              <Card tint={x.status === 'won' ? colors.secured : urgent} style={x.status === 'no' ? styles.faded : undefined}>
                 <View style={styles.head}>
                   <View style={styles.flex}>
                     <Text style={styles.name}>{x.name}</Text>
                     <Text style={styles.meta}>
                       {x.amount ? money(x.amount) : 'Amount unknown'}
-                      {x.deadline ? ` · due ${dueLabel(x.deadline)}` : ''}
-                      {d != null && d >= 0 && d <= 14 && x.status === 'todo' ? ` (${d} days)` : ''}
+                      {x.deadline ? `, due ${dueLabel(x.deadline)}` : ''}
                     </Text>
+                    {x.status === 'todo' && d != null && d <= 14 ? (
+                      <Text style={[styles.when, { color: urgent ?? (d < 0 ? colors.textFaint : colors.textMuted) }]}>
+                        {d < 0 ? 'Deadline passed. Check if it’s still open.' : d === 0 ? 'Due today' : d === 1 ? 'Due tomorrow' : `${d} days left`}
+                      </Text>
+                    ) : null}
                   </View>
                   <IconButton
                     icon="trash"
@@ -114,7 +123,11 @@ export default function ScholarshipsScreen() {
                       color={STATUS[k].color}
                       onPress={() => {
                         save({ ...x, status: k });
-                        if (k === 'won') emberSay(`You won ${x.amount ? money(x.amount) : 'it'}! That’s real money for school.`, 'cheer');
+                        if (k === 'won')
+                          celebrate(`You won ${x.amount ? money(x.amount) : x.name}`, 'Real money for school, because you applied.', colors.secured, {
+                            key: `scholarship-${x.id}`,
+                            win: `Won the ${x.name}`,
+                          });
                       }}
                     />
                   ))}
@@ -137,6 +150,14 @@ const styles = StyleSheet.create({
   },
   gapSm: {
     marginTop: 10,
+  },
+  faded: {
+    opacity: 0.6,
+  },
+  when: {
+    marginTop: 3,
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
   },
   stats: {
     flexDirection: 'row',

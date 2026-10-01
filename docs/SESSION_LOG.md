@@ -1533,3 +1533,27 @@ flashcard back face; a Zustand selector that would have looped forever in
 `AppContextLost` crash after hot reloads is documented in CLAUDE.md.
 
 Not yet on the phone; not committed.
+
+## 2026-09-30 (later) — Round 2: helpers, multi-scan, Plus, 100 improvements
+
+Committed round 1 as da32a82 on the user's "commit". Then built what the
+user asked for:
+- **Helper crew** (Quizzo, Pip, Quill, Sage, Spark): spawnable flame
+  characters, each with a free on-phone mode (flashcard quiz game, tonight's
+  plan → Your day, brainstorm → Notebook, explain-it-back, hype + 5-minute
+  start) and an AI chat that counts against the allowance. Verified live.
+- **Multi-screenshot scan**: up to 10 per pick, parsed separately and merged,
+  thumbnails with progress, "Add more screenshots". Verified with two mock
+  Classroom screenshots; fixed the parser for the title/class/due layout.
+- **AI allowance + Plus paywall**: 20 AI replies/week free; Plus 400/month at
+  $2.99/mo or $19.99/yr. Purchases are not wired (needs the paid Apple
+  Developer Program, an App Store Connect subscription, and a StoreKit
+  library) — the button says so honestly; a __DEV__ toggle simulates Plus.
+  Crisis and wellness tools are always free. Failed AI calls don't count.
+
+Then the user asked for 100 more ideas and UI-wide improvements —
+`docs/masterpiece-2.md` is the plan and tracker. Done so far: UI polish
+(dot joins removed per the design rules, tabular numbers, contrast fix,
+sheets, swipe rows, tab long-press, pull to refresh, skeletons, …) and the
+Desk group (quick capture with natural-language parsing, morning/evening
+briefs, helper nudge, customization, …), several verified live.

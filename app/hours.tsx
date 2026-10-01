@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -17,6 +17,7 @@ import { Segmented } from '../components/ui/Segmented';
 import { Stepper } from '../components/ui/Stepper';
 import { addDays, dateKey, dueLabel } from '../core/dates';
 import { type HoursEntry, hoursTotal, useLifeStore } from '../core/lifeStore';
+import { clock, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
 
@@ -31,6 +32,13 @@ function h(n: number) {
   return Math.round(n * 10) / 10;
 }
 
+/** Rough sunset (minutes after midnight) for the month, mid-US latitudes with daylight time. */
+const SUNSET = [17 * 60 + 15, 17 * 60 + 50, 19 * 60 + 15, 19 * 60 + 45, 20 * 60 + 15, 20 * 60 + 35, 20 * 60 + 30, 20 * 60, 19 * 60 + 15, 18 * 60 + 30, 17 * 60, 16 * 60 + 50];
+const isAfterDark = (at: number, day: string) => {
+  const month = Number(day.slice(5, 7)) - 1;
+  return at >= SUNSET[month] || at < 6 * 60;
+};
+
 // Hours that count: community service toward a requirement, supervised
 // driving toward a license, and shifts at a job.
 export default function HoursScreen() {
@@ -43,6 +51,25 @@ export default function HoursScreen() {
   const [note, setNote] = useState('');
   const [night, setNight] = useState(false);
   const [day, setDay] = useState(dateKey());
+  const nowMin = Math.min(23 * 60 + 45, Math.round((new Date().getHours() * 60 + new Date().getMinutes()) / 15) * 15);
+  const [at, setAt] = useState(nowMin);
+  const name = useSchoolStore((s) => s.profile.name);
+  const monthStart = `${dateKey().slice(0, 7)}-01`;
+  const workMonth = hours.filter((x) => x.kind === 'work' && x.date >= monthStart).reduce((s, x) => s + x.minutes, 0) / 60;
+  // A log someone else can check and sign: dates, hours, and what it was.
+  const shareLog = () => {
+    const title = kind === 'service' ? 'Community service hours' : kind === 'driving' ? 'Supervised driving log' : 'Work hours';
+    const lines = [...list]
+      .reverse()
+      .map((x) => `${x.date}: ${h(x.minutes / 60)} h${x.at != null ? ` from ${clock(x.at)}` : ''}${x.night ? ', night' : ''}${x.note ? `, ${x.note}` : ''}`);
+    Share.share({
+      message: [`${title}${name ? `, ${name}` : ''}`, '', ...lines, '', `Total: ${h(total)} hours`, '', 'Verified by: ____________________   Date: ________'].join('\n'),
+    });
+  };
+  const pickAt = (m: number) => {
+    setAt(m);
+    if (kind === 'driving') setNight(isAfterDark(m, day));
+  };
 
   const m = META[kind];
   const total = hoursTotal(hours, kind);
@@ -54,7 +81,7 @@ export default function HoursScreen() {
 
   const log = () => {
     const before = total;
-    saveHours({ kind, date: day, minutes, note: note.trim(), ...(kind === 'driving' ? { night } : {}) });
+    saveHours({ kind, date: day, minutes, note: note.trim(), at, ...(kind === 'driving' ? { night } : {}) });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const after = before + minutes / 60;
     if (goal && before < goal && after >= goal) emberSay(`${goal} hours of ${m.noun}. Goal reached!`, 'cheer');
@@ -92,7 +119,29 @@ export default function HoursScreen() {
               <ProgressBar value={nightTotal / settings.drivingNightGoal} color="#AFA2DE" height={6} />
             </>
           ) : null}
-          {kind === 'work' ? <Text style={styles.sub}>{h(workWeek)} hours in the last 7 days. Keep school nights sane.</Text> : null}
+          {kind === 'work' ? (
+            <>
+              <Text style={styles.sub}>{h(workWeek)} hours in the last 7 days. Keep school nights sane.</Text>
+              <View style={styles.row}>
+                <Text style={styles.label}>Pay per hour</Text>
+                <Field
+                  value={settings.wage != null ? String(settings.wage) : ''}
+                  onChangeText={(t) => {
+                    const v = parseFloat(t.replace(/[^\d.]/g, ''));
+                    useLifeStore.getState().setSettings({ wage: Number.isFinite(v) ? v : null });
+                  }}
+                  placeholder="$"
+                  keyboardType="decimal-pad"
+                  containerStyle={styles.wage}
+                />
+              </View>
+              {settings.wage ? (
+                <Text style={styles.sub}>
+                  This month: {h(workMonth)} hours, about ${Math.round(workMonth * settings.wage)} before taxes.
+                </Text>
+              ) : null}
+            </>
+          ) : null}
         </Card>
       </Reveal>
 
@@ -108,6 +157,11 @@ export default function HoursScreen() {
               <Chip label="Yesterday" selected={day === addDays(dateKey(), -1)} onPress={() => setDay(addDays(dateKey(), -1))} />
               <Chip label="2 days ago" selected={day === addDays(dateKey(), -2)} onPress={() => setDay(addDays(dateKey(), -2))} />
             </ChipRow>
+            <ChipRow style={styles.gapSm}>
+              {[...new Set([nowMin, 7 * 60, 12 * 60, 16 * 60, 19 * 60, 21 * 60])].sort((a, b) => a - b).map((m) => (
+                <Chip key={m} label={m === nowMin && day === dateKey() ? `Now, ${clock(m)}` : clock(m)} selected={at === m} color={META[kind].color} onPress={() => pickAt(m)} />
+              ))}
+            </ChipRow>
             {kind === 'driving' ? (
               <Pressy onPress={() => setNight((v) => !v)} style={styles.night} accessibilityRole="checkbox" accessibilityState={{ checked: night }}>
                 <Icon name={night ? 'check' : 'moon'} size={17} color={night ? colors.secured : colors.textMuted} />
@@ -122,18 +176,19 @@ export default function HoursScreen() {
 
       {list.length ? (
         <Reveal index={3}>
-          <Section title="Logged">
+          <Section title="Logged" action={{ label: 'Share log', onPress: shareLog }}>
             <View style={styles.list}>
               {list.map((x) => (
                 <Animated.View key={x.id} entering={FadeInDown.duration(200)} exiting={FadeOut.duration(150)} layout={LinearTransition}>
                   <Card style={styles.entry}>
                     <View style={styles.flex}>
                       <Text style={styles.entryTitle}>
-                        {h(x.minutes / 60)} h{x.night ? ' · night' : ''}
+                        {h(x.minutes / 60)} h{x.at != null ? ` from ${clock(x.at)}` : ''}
+                        {x.night ? ', night' : ''}
                       </Text>
                       <Text style={styles.sub}>
                         {dueLabel(x.date)}
-                        {x.note ? ` · ${x.note}` : ''}
+                        {x.note ? `, ${x.note}` : ''}
                       </Text>
                     </View>
                     <Pressy
@@ -170,6 +225,9 @@ const styles = StyleSheet.create({
   gapSm: {
     marginTop: 10,
   },
+  wage: {
+    width: 110,
+  },
   top: {
     marginTop: 14,
     gap: 10,
@@ -178,6 +236,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 34,
     color: colors.text,
+    fontVariant: ['tabular-nums'],
   },
   unit: {
     fontFamily: fonts.body,

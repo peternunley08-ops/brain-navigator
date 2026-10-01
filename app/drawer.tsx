@@ -34,6 +34,7 @@ const GROUPS: { name: string; tools: Tool[] }[] = [
   {
     name: 'Study',
     tools: [
+      { title: 'Helpers', body: 'Ember’s crew, on call', path: '/helpers', icon: 'people', color: '#B79AF0' },
       { title: 'Flashcards', body: 'Spaced repetition decks', path: '/flashcards', icon: 'cards', color: '#E89AB8' },
       { title: 'How to study', body: 'Methods that work', path: '/techniques', icon: 'flask', color: '#AFA2DE' },
       { title: 'Notebook', body: 'Notes and study guides', path: '/notes', icon: 'pen', color: '#E6C46A' },
@@ -96,6 +97,7 @@ const GROUPS: { name: string; tools: Tool[] }[] = [
     tools: [
       { title: 'Badges', body: 'Quiet ones, never lost', path: '/achievements', icon: 'trophy', color: '#F5B45C' },
       { title: 'Your year', body: 'Everything, added up', path: '/year', icon: 'star', color: '#F5B45C' },
+      { title: 'Plus', body: 'More AI for the crew', path: '/plus', icon: 'sparkle', color: '#F5B45C' },
       { title: 'Settings', body: 'You, Ember, your data', path: '/settings', icon: 'settings', color: '#C3B3A0' },
       { title: 'Need help now', body: 'Real people, any time', path: '/help', icon: 'phone', color: '#F07060' },
     ],
