@@ -228,7 +228,7 @@
         "tests/ (new)",
         "any file not owned by another agent this wave"
       ],
-      "model": "Haiku 4.5"
+      "model": "qwen2.5-coder:7b (local Ollama)"
     },
     {
       "id": "scout",
@@ -245,14 +245,14 @@
       "owns": [
         "read-only (writes ideas to the hub)"
       ],
-      "model": "Haiku 4.5"
+      "model": "qwen2.5-coder:7b (local Ollama)"
     },
     {
       "id": "scribe",
       "name": "Scribe",
       "role": "Docs and copy",
       "color": "#E8D6B0",
-      "model": "Haiku 4.5",
+      "model": "qwen2.5-coder:7b (local Ollama)",
       "mission": "Writes the words around the work: What's New entries, docs/about-the-app.md, the session log draft, and idea-bank housekeeping, from facts Atlas hands it.",
       "workflow": [
         "Claim",
