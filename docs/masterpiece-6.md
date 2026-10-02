@@ -227,11 +227,34 @@ Decisions:
 
 ## RESUME HERE (for a fresh session after compaction)
 
-Round 6 started 2026-10-02. Done so far: #1, #2 (audit fixes), plus two
-dev fixes (form-sheet warning; a library warning hidden). Next: #3–#20 in
-order, then show mode (#36–40).
+Round 6 wave 2 is merged, live-checked and pushed (2026-10-02). The hub's
+home is now the solar-system work map (tools/hub/map.html, port 4410).
+Shield (security) joined the team: run `node tools/hub/security.mjs` any
+time; rules in tools/hub/SECURITY.md. Next: the next agent wave from the
+queue (about 50 ideas) once the weekly limit resets; Night Desk leftovers
+(goodnight, ?night=21:30 chip, 00:30 Ember tip, gentler night subtitle).
 
 ## Progress log
 
 - 2026-10-02: Round 5 finished and pushed (669e469). Photographed all 61
   pages and wrote this plan from what they showed.
+- 2026-10-02: Wave 2 (lean mode, five agents). Spark: Desk candles grow
+  with the day, Candle of the week shelf in Your year. Guide: welcome ends
+  with This-or-that (step 5), docs/WHAT-THIS-IS.md. Glide: rows glide on
+  School, springy chips, numbers count from old to new, bar title rises in.
+  Lumen: Settings reads You, Your Desk, Ember, AI and Plus, Show, Your data;
+  JumpChips on Settings, Your year, Toolkit; tabular figures; headings
+  announced as headers. Sentinel: removed core/quotes.ts, memo timeline
+  rows, hitSlop on small kit controls. Live-checked: candle shelf, jump
+  chips, Settings, welcome step 5, School tick and untick.
+- 2026-10-02: Shield. A free scanner (tools/hub/security.mjs) plus a gate
+  rule that blocks real keys. First scan found the Notion key shipped in
+  the app (EXPO_PUBLIC_). Decision: Notion calls now go through a new
+  Supabase function `notion` (create, update, archive only; inputs checked;
+  nothing logged). Peter set NOTION_API_KEY, rotated the token and removed
+  it from .env; Atlas deployed the function and confirmed Notion accepts
+  the key without writing anything. Saved links in Connections open only
+  as https, tel, sms or mailto. Open: node-forge (in Expo's build tools)
+  waits on an Expo SDK 57 patch; never `npm audit fix --force`.
+- Noticed, not fixed: ticking the last row of a group makes the page jump
+  as the group disappears (scroll position is clamped). Worth a Glide idea.

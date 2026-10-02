@@ -1650,3 +1650,11 @@ big titles were half-faded at rest on Focus and Steady; nav labels clipped
 at large text sizes; Focus redrew 4× a second. Simulator data was reset to
 a clean state afterwards. Next: `docs/masterpiece-6.md`.
 
+
+## Round 6, wave 2 and Shield (2026-10-02)
+Five lean agents (Sonnet builders, Haiku Sentinel) shipped 17 ideas, merged
+and pushed; details in docs/masterpiece-6.md. The hub home became a
+zoomable solar-system map. Shield, a security agent with a free scanner,
+found the Notion key baked into the app; Notion sync now runs through the
+`notion` Supabase function and the old token is rotated. Next: the next
+wave after the weekly reset, and the Night Desk leftovers.

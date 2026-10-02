@@ -22,4 +22,5 @@ For deep history, session logs, and past changelogs, see `docs/SESSION_LOG.md` a
 - **Reanimated & Gestures**: Use Gesture Handler 3.3 hook API (`usePanGesture`). Helpers called inside animated styles (like `alpha()`) must have the `'worklet'` directive.
 - **Stores**: State is persisted locally in `.json` files. Add only optional fields with defaults. Every deletion must support Undo (`putBack`).
 - **Token Efficiency**: Inspect code using targeted line ranges or `grep`. Do not ingest `docs/SESSION_LOG.md` or `package-lock.json` unless specifically requested.
+- **Security**: Never put a secret in `EXPO_PUBLIC_*` (it ships inside the app); server secrets live in Supabase function secrets and the app calls a function (`ember`, `notion`). Run `node tools/hub/security.mjs` before pushing; rules in `tools/hub/SECURITY.md`.
 - **Command output**: pipe builds and installs through `tail -n 25` or `grep -E "error|warning"`; never dump raw `xcodebuild`/`npm` output. Compact after each finished task.
