@@ -182,6 +182,8 @@ export default function DeskScreen() {
   const load = tonightsLoad(assignments);
   const cap = profile.nightlyCap;
   const doneToday = assignments.filter((a) => a.doneAt && dateKey(new Date(a.doneAt)) === today).length;
+  // The Desk candles burn brighter as the day's done count rises against what was due.
+  const dayLift = doneToday / Math.max(1, doneToday + dueToday + lateCount);
   const allClear = dueToday === 0 && lateCount === 0 && dueTomorrow === 0 && doneToday > 0;
   const reviews = useLifeStore((s) => s.reviews);
   // Sections the student chose to hide (Settings, "Your Desk").
@@ -249,12 +251,12 @@ show('due') ? (
           <View style={styles.candles}>
             {onDesk.length === 0 ? (
               <View style={styles.emptyCandle}>
-                <Candle width={112} time={time} intensity={0.4} remaining={0.55} seed={1.7} state="unlit" reducedMotion={reducedMotion} />
+                <Candle width={112} time={time} intensity={0.35 + 0.25 * dayLift} remaining={0.55} seed={1.7} state="unlit" reducedMotion={reducedMotion} />
               </View>
             ) : (
               <View style={styles.grid}>
                 {onDesk.map((entry, i) => (
-                  <DeskCandle key={entry.id} entry={entry} index={i} width={candleW} time={time} reducedMotion={reducedMotion} />
+                  <DeskCandle key={entry.id} entry={entry} index={i} dayLift={dayLift} width={candleW} time={time} reducedMotion={reducedMotion} />
                 ))}
               </View>
             )}
@@ -527,17 +529,19 @@ function Tile({
 function DeskCandle({
   entry,
   index,
+  dayLift,
   width,
   time,
   reducedMotion,
 }: {
   entry: CognitiveStateEntry;
   index: number;
+  dayLift: number;
   width: number;
   time: ReturnType<typeof useFlameClock>;
   reducedMotion: boolean;
 }) {
-  const intensity = (entry.intensity ?? 5) / 10;
+  const intensity = Math.min(1, ((entry.intensity ?? 5) / 10) * (0.8 + 0.35 * dayLift));
 
   return (
     <Animated.View layout={LinearTransition.springify().damping(18)} exiting={FadeOut.duration(260)} style={{ width }}>
