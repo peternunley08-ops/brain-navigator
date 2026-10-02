@@ -1,0 +1,255 @@
+{
+  "round": "Round 6",
+  "wave": "Wave 1",
+  "started": "2026-10-02T14:20:00.000Z",
+  "pipeline": [
+    {
+      "key": "backlog",
+      "label": "Idea bank",
+      "hint": "Every idea, waiting for a wave"
+    },
+    {
+      "key": "queued",
+      "label": "Queued",
+      "hint": "Assigned to an agent this wave"
+    },
+    {
+      "key": "building",
+      "label": "Building",
+      "hint": "An agent is reading or writing code for it"
+    },
+    {
+      "key": "checked",
+      "label": "Gate passed",
+      "hint": "House rules + type-check passed in the agent's worktree"
+    },
+    {
+      "key": "review",
+      "label": "Handed off",
+      "hint": "Committed on the agent's branch, waiting for Atlas"
+    },
+    {
+      "key": "integrated",
+      "label": "Merged",
+      "hint": "Atlas merged it into main"
+    },
+    {
+      "key": "verified",
+      "label": "Verified live",
+      "hint": "Atlas tapped through it in the Simulator"
+    },
+    {
+      "key": "shipped",
+      "label": "Shipped",
+      "hint": "Committed and pushed to GitHub"
+    }
+  ],
+  "agents": [
+    {
+      "id": "atlas",
+      "name": "Atlas",
+      "role": "Mastermind",
+      "color": "#F5B45C",
+      "mission": "Writes the plan and the idea bank, assigns the waves, merges every branch, verifies every piece live in the Simulator with real taps, and ships (commit + push).",
+      "workflow": [
+        "Plan",
+        "Assign",
+        "Merge",
+        "Verify live",
+        "Ship"
+      ],
+      "owns": [
+        "main branch",
+        "the Simulator",
+        "Metro",
+        "docs/",
+        "CLAUDE.md",
+        "integration wiring"
+      ]
+    },
+    {
+      "id": "nocturne",
+      "name": "Nocturne",
+      "role": "Night designer",
+      "color": "#AFA2DE",
+      "mission": "Makes night the app's best hour: the Night Desk, Put the day down, a room that dims by the hour, stars, a night owl's later night, Sunday night.",
+      "workflow": [
+        "Claim",
+        "Read",
+        "Build",
+        "Gate",
+        "Commit",
+        "Hand off"
+      ],
+      "owns": [
+        "app/index.tsx",
+        "components/desk/NightDesk.tsx",
+        "app/goodnight.tsx",
+        "core/night.ts",
+        "components/ui/Backdrop.tsx",
+        "app/vent.tsx",
+        "core/ember.ts"
+      ]
+    },
+    {
+      "id": "lumen",
+      "name": "Lumen",
+      "role": "Polish and presentable",
+      "color": "#8CC0A8",
+      "mission": "Makes every page agree: empty states with Ember art, one card and spacing scale, numbers that line up, Settings that reads like a story, What's New, jump chips, the new dot.",
+      "workflow": [
+        "Claim",
+        "Read",
+        "Build",
+        "Gate",
+        "Commit",
+        "Hand off"
+      ],
+      "owns": [
+        "components/ui/EmptyState.tsx",
+        "components/ui/Card.tsx",
+        "components/ui/Section.tsx",
+        "components/ui/StatTile.tsx",
+        "app/settings.tsx",
+        "app/drawer.tsx",
+        "app/whats-new.tsx",
+        "components/desk/WhatsNew.tsx",
+        "app/toolkit.tsx",
+        "core/theme.ts (add only)"
+      ]
+    },
+    {
+      "id": "spark",
+      "name": "Spark",
+      "role": "Surprise and delight",
+      "color": "#F0845A",
+      "mission": "Builds the things that make it feel like nothing else: the candle shelf of weeks, Ember remembering firsts, the streak of light, sealed notes, the tiny wins radar, a study buddy.",
+      "workflow": [
+        "Claim",
+        "Read",
+        "Build",
+        "Gate",
+        "Commit",
+        "Hand off"
+      ],
+      "owns": [
+        "app/year.tsx",
+        "components/year/",
+        "core/firsts.ts",
+        "core/radar.ts",
+        "components/desk/StreakOfLight.tsx",
+        "app/wins.tsx",
+        "app/focus.tsx",
+        "components/ember/EmberSprite.tsx",
+        "app/about.tsx",
+        "core/emberLook.ts"
+      ]
+    },
+    {
+      "id": "glide",
+      "name": "Glide",
+      "role": "Motion and smoothness",
+      "color": "#7FB8F0",
+      "mission": "Makes everything glide: numbers that move when they change, rows that travel between groups, a liquid tab pill, springy chips, lazy long lists, haptic ticks, one queue for toasts, hold-the-flame calm.",
+      "workflow": [
+        "Claim",
+        "Read",
+        "Build",
+        "Gate",
+        "Commit",
+        "Hand off"
+      ],
+      "owns": [
+        "components/BottomNav.tsx",
+        "components/ui/Chip.tsx",
+        "components/ui/TrackSlider.tsx",
+        "components/UndoBar.tsx",
+        "components/Celebration.tsx",
+        "components/ember/EmberBuddy.tsx",
+        "app/school.tsx",
+        "app/steady.tsx",
+        "app/today.tsx",
+        "app/notes.tsx",
+        "app/search.tsx",
+        "app/achievements.tsx",
+        "core/hooks/useCountUp.ts",
+        "core/motion.ts",
+        "app/_layout.tsx",
+        "components/ui/Screen.tsx",
+        "core/chrome.ts"
+      ]
+    },
+    {
+      "id": "guide",
+      "name": "Guide",
+      "role": "First impressions",
+      "color": "#F28BA8",
+      "mission": "Makes the app show well: a guided tour in show mode, the wake screen, a welcome that ends with This-or-that, a screenshot script, and a one-page story of the app.",
+      "workflow": [
+        "Claim",
+        "Read",
+        "Build",
+        "Gate",
+        "Commit",
+        "Hand off"
+      ],
+      "owns": [
+        "components/ShowBanner.tsx",
+        "components/ShowTour.tsx",
+        "core/show.ts",
+        "core/sampleData.ts",
+        "components/EntryThreshold.tsx",
+        "app/welcome.tsx",
+        "scripts/screens.sh",
+        "docs/about-the-app.md"
+      ]
+    },
+    {
+      "id": "sentinel",
+      "name": "Sentinel",
+      "role": "Quality guard",
+      "color": "#B9D98A",
+      "mission": "Sweeps the whole codebase for crash risks, unstable selectors, missing labels, Reduce Motion gaps, and house-rule breaks; fixes the safe ones in files nobody else owns and files the rest as ideas.",
+      "workflow": [
+        "Sweep",
+        "Triage",
+        "Fix safe",
+        "Gate",
+        "Commit",
+        "Report"
+      ],
+      "owns": [
+        "tests/ (new)",
+        "any file not owned by another agent this wave"
+      ]
+    },
+    {
+      "id": "scout",
+      "name": "Scout",
+      "role": "Idea researcher",
+      "color": "#D9B98A",
+      "mission": "Reads every screen and the stores behind them, and adds grounded ideas to the bank: each one names the page, what's missing, and why it would help a high schooler.",
+      "workflow": [
+        "Read pages",
+        "Imagine",
+        "Ground in code",
+        "File ideas"
+      ],
+      "owns": [
+        "read-only (writes ideas to the hub)"
+      ]
+    }
+  ],
+  "rules": [
+    "Build with Screen and the kit in components/ui; every tap goes through Pressy.",
+    "Candlelight only: night palette, gold is the one action color, Fraunces for voice, Figtree for the rest.",
+    "No uppercase eyebrows, no middle-dot joins, sentence case, calm words, counts through plural().",
+    "goBack() not router.back(); haptics through core/haptics; selectors return stable references.",
+    "Reanimated: worklets on the UI thread, no dependency arrays, every motion has a Reduce Motion path.",
+    "Stores: only add optional fields; never save before loaded; nothing saves while showing Riley.",
+    "Privacy: nothing new goes to the AI unless opted in, with a line saying what is sent; crisis words always show help lines.",
+    "AI proposes, the student taps, and it can be undone. Every delete has Undo.",
+    "No native rebuilds and no new packages in a wave; note them as ideas instead.",
+    "Every decision gets its reason written down. Never claim something was checked live unless it was."
+  ]
+}

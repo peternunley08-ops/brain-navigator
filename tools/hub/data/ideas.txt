@@ -1,0 +1,330 @@
+#! The idea bank. "## Label | key | color" starts an area.
+#! Each idea: ID | size S/M/L | impact 1-3 | owner (or -) | title | detail | tags
+#! Tags: R6#n (from docs/masterpiece-6.md), native (needs a rebuild), ai (sends to AI, opt-in),
+#! data (adds a stored field), =verified / =dropped (status known before the hub started).
+
+## Night and sleep | night | #AFA2DE
+R6-21 | L | 3 | nocturne | Night Desk | After wind-down the Desk becomes one quiet stack: tomorrow's first class, what's due tomorrow, the pack list, and lights out by. | R6#21
+R6-22 | S | 2 | nocturne | Fold the rest at night | Everything else on the Desk folds away at night; one tap shows the whole Desk. | R6#22
+R6-23 | S | 2 | nocturne | The room dims by the hour | A soft veil deepens a little each hour after wind-down, capped so text stays readable. | R6#23
+R6-24 | S | 1 | nocturne | Ember holds a candle at night | Ember carries a tiny candle at night and speaks in shorter lines. | R6#24
+R6-25 | M | 3 | nocturne | Put the day down | One tap at night: what got done, set down what's left for tomorrow, say goodnight. | R6#25
+R6-26 | S | 3 | nocturne | A goodnight that names the day | Ember's goodnight names one real thing from today (a finished homework, a check-in, minutes focused). | R6#26
+R6-27 | S | 2 | nocturne | Keep it for tomorrow | Late-night writing in Let it out offers the worry box instead of solving it now. | R6#27
+R6-28 | S | 2 | nocturne | After midnight, sleep first | After midnight Ember's first line is about sleep, never homework. | R6#28
+R6-29 | M | 2 | nocturne | First light | The first open after wake time shows today's first class, one thing, and the weather, then fades to the Desk. | R6#29
+R6-30 | M | 1 | nocturne | Real sunset | The room's sky follows the real sunset time from the weather location. | R6#30
+R6-31 | M | 2 | nocturne | Stars in the night room | A few stars appear in the night backdrop, slower than the motes. | R6#31
+R6-32 | S | 2 | nocturne | Still stars under Reduce Motion | Night visuals hold still when Reduce Motion is on. | R6#32
+R6-33 | S | 1 | nocturne | Night respects folds | The night stack keeps the Desk's fold choices. | R6#33
+R6-34 | S | 2 | nocturne | Night owls get a later night | If they're a night owl, the night layout starts later. | R6#34
+R6-35 | S | 2 | nocturne | Sunday night leads with the week | On Sunday night the week sentence card leads the night stack. | R6#35
+X001 | S | 2 | nocturne | Lights-out chip | An hour before lights out, a quiet chip on the Desk counts down to it. |
+X002 | M | 3 | nocturne | Late homework guard | After lights out, School offers "Tomorrow-you can finish this" with one tap to plan 20 minutes in the morning. |
+X003 | M | 2 | nocturne | Brain dump before bed | A quick list at night that becomes tomorrow morning's first things on the Desk. | data
+X004 | S | 2 | - | Can't sleep door | At night Steady leads with a can't-sleep door: slow breath, body scan, worry box. |
+X005 | M | 2 | - | Sleep debt, gently | From Health sleep vs the goal over the week, one calm line, never a score. |
+X006 | S | 1 | - | Last night, plainly | Morning line: slept 7.2 hours, lights out was 11:40 (Health, when connected). |
+X007 | M | 2 | - | Past lights out | Opening the app well past lights out offers a two-minute breath and bed first. |
+X008 | S | 1 | - | Tomorrow's sky | The night card shows tomorrow's weather in a word (needs a daily forecast). |
+X009 | M | 2 | - | Week ahead on Sunday night | A calm strip of the coming week's tests and due dates on Sunday night. |
+X010 | S | 1 | - | Dark keyboard everywhere | Every field uses the dark keyboard so night typing never flashes white. |
+
+## Desk and home | desk | #F5B45C
+X011 | M | 3 | - | The Desk follows the school day | Before school, in class, after school, evening, night: the top of the Desk changes with the day. |
+X012 | S | 2 | - | Next-up pill | A live countdown pill to the next class or event. |
+X013 | S | 2 | - | Snooze a card | Swipe a Desk card to snooze it to tonight or tomorrow. | data
+X014 | M | 2 | - | Arrange the Desk in place | Hold a Desk section to drag it into a new order (deskOrder already exists in Settings). |
+X015 | S | 2 | - | Weekend Desk | Saturday and Sunday hide school sections unless something is due Monday. |
+X016 | S | 1 | - | Day off | No classes on the calendar today: the Desk becomes a day-off layout. |
+X017 | S | 2 | - | Last thing you finished | A small slot shows the last thing you finished, with a tiny flame. |
+X018 | S | 1 | - | Weather glyph in the header | Temperature and a tiny sky glyph next to the greeting. |
+X019 | M | 3 | - | One-tap mood | Five faces on the Desk; one tap logs a check-in, a hold opens the full check-in. |
+X020 | S | 1 | - | Clear the deck | When everything due today is done, the cards fade out and Ember says so once. |
+X021 | M | 2 | - | Desk density | A Calm or Full Desk setting (Calm shows three cards). | data
+X022 | S | 1 | - | Greeting settles in | The greeting's letters settle in once a day. |
+X023 | S | 2 | - | Pull further to add | Pulling the Desk past the glow opens quick add. |
+X024 | M | 2 | - | Tap a candle to open it | Each open-loop candle on the Desk opens its entry with the candle growing into the page. |
+
+## School and homework | school | #E8A25C
+X025 | M | 3 | - | Start from the row | A Start button on a homework row opens Focus with that homework. |
+X026 | M | 3 | - | Learned estimates | Compare focus minutes to estimates per class: "Bio usually takes you 40 minutes". |
+X027 | M | 3 | - | Late work triage | For each late item: do tonight, move it, or ask the teacher (a ready email line). |
+X028 | S | 2 | - | Teacher contact | A teacher email per class and a "draft an email" template that opens Mail. | data
+X029 | S | 2 | - | Workload heat strip | The School header shows the week's load as a heat strip (workloadByDay exists). |
+X030 | M | 2 | - | Drag to reschedule | Drag a homework row onto a day in the week strip to move it. |
+X031 | S | 2 | - | Test rings | A countdown ring on each upcoming test. |
+X032 | S | 2 | - | What-if grades | A what-if calculator on the class page (finalNeeded exists). |
+X033 | M | 2 | - | Syllabus scan | Photograph a syllabus and pull its dates through the scanner. |
+X034 | M | 2 | - | A/B day schedules | Rotating block schedules: classes on A days, B days. | data
+X035 | S | 1 | - | Minimum days | Mark a date as late start or minimum day; the times shift. | data
+X036 | S | 2 | - | Period ends in | During school, "Period 3 ends in 12 minutes" on the Desk. |
+X037 | S | 2 | - | Links on homework | Save the Classroom or Canvas link on a homework item and open it from the row. | data
+X038 | S | 2 | - | Turned in | A second check for "turned in" so done and submitted aren't confused. | data
+X039 | S | 2 | - | Late pattern, kindly | "3 late in History this month" once, with a plan, never a red badge. |
+X040 | S | 2 | - | Steps progress on the row | A thin bar on rows with steps shows how many are done. |
+X041 | M | 1 | - | Group projects | A group project kind with people from Your people. | data
+X042 | S | 1 | - | Class color everywhere | One color per class on rows, Today, Grades, and the week strip. |
+
+## Focus and study | focus | #6FB7FF
+R6-64 | M | 2 | spark | Study buddy | During Focus, Ember studies too with a tiny book and peeks up at half time. | R6#64
+X043 | S | 2 | - | Parking lot | Jot a distracting thought mid-session without leaving the candle. |
+X044 | M | 2 | - | Session chains | Four sessions with a long break, drawn as a row of candles. |
+X045 | S | 2 | - | Focus ring for the day | The daily focus goal as a ring on Focus (dailyFocusGoal exists). |
+X046 | M | 2 | - | Candle calendar | A month of focus as small candles, brighter for longer days. |
+X047 | S | 3 | - | Smart start | Focus suggests the homework due soonest that fits your usual length. |
+X048 | S | 1 | - | Break cards | Stretch, water, look 20 feet away: one card per break. |
+X049 | S | 2 | - | Lock in | During Focus the nav and Ember step back; Ember dozes beside the candle. |
+X050 | M | 2 | - | Focus receipt | A calm card at week's end: what you studied and for how long. |
+X051 | S | 2 | - | Technique by kind | A test suggests active recall, an essay an outline, linked to How to study. |
+X052 | M | 1 | - | Fire crackle (opt-in) | Soft fire sound during Focus, off by default, with a real mute. |
+
+## Steady and calm | steady | #8CC0A8
+X053 | M | 2 | - | Body map | Tap where you feel it; Steady suggests what fits (shoulders: release, chest: breathe). |
+X054 | S | 2 | - | Grounding variations | 3-3-3 and a color hunt alongside 5-4-3-2-1. |
+X055 | S | 2 | - | Haptic breath | Breathe with soft taps you can feel with your eyes closed. |
+X056 | M | 3 | - | Kinder thought cards | Write the thought, pick a kinder way to say it (offline templates). |
+X057 | S | 2 | - | Calm kit | Your three best calmers pinned at the top of Steady. |
+X058 | S | 1 | - | Your calm playlist | Save a playlist link; Steady opens it. | data
+X059 | S | 2 | - | Self-compassion break | A three-line script, one line at a time. |
+X060 | S | 3 | - | Can you talk? | Pick someone from Your people and send a ready "Can you talk?" text. |
+X061 | M | 2 | - | Muscle relaxation | A guided tense-and-release walk through the body with a timer. |
+X062 | S | 2 | - | What helped before | A list from Did that help answers, best first. |
+X063 | M | 3 | - | Safety plan | A private safety plan page (warning signs, coping, people, places, help lines), on the phone only. | data
+
+## Ember | ember | #F0845A
+R6-62 | M | 3 | glide | Hold the flame | Holding Ember for a long breath starts a three-breath calm right there. | R6#62
+R6-88 | S | 2 | glide | Ember has weight | Ember's drag follows the finger with a slight lag. | R6#88
+X064 | S | 2 | - | Ember leans on a fling | Ember leans back when the page is flung fast. |
+X065 | S | 3 | spark | Halloween Ember | On October 31 Ember wears a tiny pumpkin hat and the candles glow orange. |
+X066 | S | 2 | - | Idle doze | After two quiet minutes Ember dozes with small z's. |
+X067 | S | 1 | - | Ember watches your finger | While you hold anywhere, Ember's eyes follow the touch. |
+X068 | S | 2 | - | All-clear dance | Ember does a small dance when everything due today is done. |
+X069 | S | 1 | - | Ember peeks on empty pages | Ember peeks from behind the empty-state card. |
+X070 | S | 2 | - | Rename Ember | Give Ember another name; every line uses it. | data
+X071 | S | 2 | - | Ember's voice | Gentle, funny, or direct, tied to the cheer style. |
+X072 | M | 2 | - | Ember's notebook | A page of what Ember noticed this month, with "Not right" on each. |
+X073 | S | 2 | - | Morning stretch | Ember stretches at the first open of the day. |
+X074 | S | 1 | - | Welcome back | After 3+ days away, Ember blinks and says welcome back, no guilt. |
+X075 | S | 1 | - | High five | Swipe up on Ember after finishing something for a high five. |
+
+## About you | about | #F28BA8
+R6-72 | M | 2 | spark | Your constellation | About you drawn as stars, each pick a star, joined as more is known. | R6#72
+X076 | M | 2 | - | Then and now | What you said in September next to what you say now. |
+X077 | M | 2 | - | What matters most | Values cards: pick five that matter; the app uses them in cheers. | data
+X078 | M | 2 | - | Strengths | A short offline strengths finder; results show on About you. | data
+X079 | S | 2 | - | Energy curve | When you say you feel best vs when you actually focus. |
+X080 | M | 2 | - | About me for a counselor | Export a short About me as text to share with a counselor (you choose what's in it). |
+X081 | S | 2 | - | Goals with tiny steps | Each goal gets one tiny next step that can sit on the Desk. | data
+
+## Check-ins and journal | journal | #C9A0DC
+X082 | M | 2 | - | Year in pixels | Moods as a year of small squares, one per day. |
+X083 | S | 3 | - | Three-tap check-in | Mood, sleep, stress in three taps; details optional. |
+X084 | S | 2 | - | Gratitude jar shake | Shake the jar to pull out a past gratitude. |
+X085 | S | 2 | - | On this day | A line from a month ago today, if there is one. |
+X086 | S | 2 | - | Seasonal prompts | Journal prompts that know finals week, breaks, and the first week back. |
+X087 | M | 1 | - | Words of the month | The month's words in a quiet cloud, made on the phone. |
+X088 | S | 2 | - | Wins jar fills | The wins jar visibly fills with sparks. |
+X089 | M | 2 | - | Weather and mood | After 5+ days, whether rainy days line up with lower moods. |
+
+## College and future | future | #D4B483
+X090 | M | 3 | - | Essay tracker | Each essay with prompt, word count, drafts, and a due date. | data
+X091 | M | 2 | - | Application timeline | Everything due for applications, month by month. |
+X092 | S | 2 | - | Scholarship countdown | The next scholarship deadline as a Desk countdown chip. |
+X093 | S | 2 | - | Activities export | Activities as Common App-ready text to copy. |
+X094 | S | 1 | - | Why this college | A why-this-school note per college. | data
+X095 | S | 2 | - | Thank your recommenders | After a letter is in, a reminder to thank them with a ready line. |
+X096 | M | 2 | - | Test date plan | SAT/ACT date countdown with a study plan spread backward. |
+X097 | M | 1 | - | Cost side by side | Aid offers compared in one table. |
+
+## Notes and cards | notes | #57D3E0
+X098 | M | 3 | - | Cards from notes | Lines written "term :: meaning" in a note become a deck in one tap. |
+X099 | S | 2 | - | Cards due on the Desk | "12 cards due" on the Desk when reviews are waiting. |
+X100 | S | 2 | - | Class templates | A default note template per class. | data
+X101 | M | 2 | - | Linked notes | Type [[ to link another note. |
+X102 | S | 2 | - | Search inside notes | Search finds words inside note blocks. |
+X103 | M | 2 | - | Type the answer | A flashcard mode where you type the answer. |
+X104 | S | 1 | - | Notes on the class page | Pinned notes show on their class page. |
+X105 | S | 1 | - | Share as text | Share a note as plain text or Markdown. |
+
+## Motion and smoothness | motion | #7FB8F0
+R6-76 | S | 2 | glide | Numbers move when they change | Count-ups play on change, not only on first open. | R6#76
+R6-77 | M | 3 | glide | Rows glide between groups | Today to Done glides instead of jumping. | R6#77
+R6-78 | S | 2 | glide | Liquid tab pill | The tab pill stretches slightly as it slides. | R6#78
+R6-79 | L | 2 | glide | Grow from the card | Pages pushed from a card grow from that card where supported. | R6#79
+R6-80 | S | 2 | glide | Title slides into the bar | The compact bar's title slides up from where the big title was. | R6#80
+R6-81 | S | 2 | glide | Springy chips | Chips press with a springy sink like cards. | R6#81
+R6-82 | S | 2 | glide | Pull to refresh everywhere | School and Steady get pull-to-refresh with Ember's hop. | R6#82
+R6-83 | M | 2 | glide | Keyboard and page move together | Fields slide with the keyboard, never jump. | R6#83
+R6-84 | S | 2 | glide | Short sheets | Sheets snap to their content's height when it's short. | R6#84
+R6-85 | M | 2 | glide | Lazy long lists | Notebook, Search, and Badges render lazily so they open instantly. | R6#85
+R6-86 | S | 2 | glide | Slider ticks | A haptic tick per step on sliders. | R6#86
+R6-87 | M | 2 | glide | Swipe between days | Swipe left and right in Your day. | R6#87
+R6-89 | S | 2 | glide | One queue for toasts | Toasts and the Undo bar never overlap. | R6#89
+R6-90 | M | 2 | glide | Nothing on the JS thread per frame | Audit scroll and drag for per-frame JavaScript. | R6#90
+X106 | S | 1 | - | Bottom glow | Pulling past the end of a list glows at the bottom too. |
+X107 | S | 2 | - | Peek previews | Hold a row for a preview with actions. |
+X108 | S | 1 | - | Time-of-day glide | The room's glow eases between times of day instead of switching. |
+X109 | S | 1 | - | Odometer digits | Timer digits roll like an odometer. |
+X110 | S | 2 | - | Bubble from Ember | Ember's bubble grows out of Ember's position. |
+
+## Visual polish | polish | #F5EBDD
+R6-43 | M | 3 | lumen | Empty pages with Ember art | Every empty page gets an Ember drawing and one clear next step. | R6#43
+R6-44 | S | 2 | lumen | One shadow, one radius scale | Cards share one shadow and corner radius scale. | R6#44
+R6-45 | S | 2 | lumen | Headings breathe the same | Section heading spacing is the same everywhere. | R6#45
+R6-46 | S | 2 | lumen | Tabular figures | Every number uses tabular figures so columns line up. | R6#46
+R6-47 | S | 2 | lumen | Drawer icons glow | Drawer icons get a soft inner glow in their color. | R6#47
+R6-48 | S | 1 | lumen | Quick-add illustrations | The + sheet's options get small illustrations. | R6#48
+R6-49 | S | 2 | lumen | What's New for Rounds 5 and 6 | A What's New entry with the best changes. | R6#49
+R6-50 | M | 2 | lumen | Settings reads like a story | You, Your Desk, Ember, AI, Your data. | R6#50
+R6-51 | S | 2 | lumen | Jump chips on long pages | Settings, Your year, Steady's toolkit. | R6#51
+R6-52 | S | 2 | lumen | The new dot | A small gold dot for new things that clears when seen. | R6#52
+X111 | S | 2 | - | Icon audit | Every icon drawn in the same line weight; missing ones drawn. |
+X112 | S | 2 | - | Gold contrast | flameInk on gold checked at every size. |
+X113 | S | 1 | - | Inner light on press | Cards brighten from inside when pressed. |
+X114 | S | 2 | - | Type scale | Fraunces sizes on a fixed scale (34/28/22/18). |
+X115 | S | 1 | - | Hairlines | Dividers all the same hairline. |
+X116 | S | 2 | - | Skeletons, not spinners | Every loading state is a skeleton. |
+X117 | M | 2 | - | Badges as wax seals | Achievements drawn as wax seals in their color. |
+X118 | S | 2 | - | Charts share a style | One axis, label, and grid style for every chart. |
+X119 | S | 1 | - | Live subtitles | Page subtitles carry one live fact ("3 due this week"). |
+X120 | M | 1 | - | Launch matches wake | The launch screen matches the wake screen so there's no flash. | native
+
+## Accessibility | a11y | #B9D98A
+R6-92 | M | 3 | atlas | Largest text check | Every new piece checked at the largest text size. | R6#92
+R6-93 | M | 3 | sentinel | VoiceOver labels | Every new piece has VoiceOver labels. | R6#93
+R6-94 | S | 3 | atlas | Reduce Motion check | Every new piece with Reduce Motion. | R6#94
+X121 | S | 2 | sentinel | Headings for the rotor | Section titles are accessibility headers. |
+X122 | M | 3 | sentinel | Label every icon button | Audit every IconButton for a label. |
+X123 | M | 2 | - | Accessibility sizes | No clipped layouts at accessibility text sizes on all pages. |
+X124 | S | 2 | - | Reduce Transparency | The glass bar turns solid when Reduce Transparency is on. |
+X125 | S | 2 | - | Increase Contrast | Muted text gets stronger with Increase Contrast. |
+X126 | S | 2 | sentinel | 44-point targets | Every tap target at least 44 points. |
+X127 | S | 2 | - | Not color alone | States that use color also use a shape or word. |
+X128 | S | 2 | - | Candles speak | VoiceOver reads a candle as "Open, heavy, 3 days". |
+X129 | S | 1 | - | Bold Text | Respect the Bold Text setting. |
+
+## Presentable | show | #F28BA8
+R6-36 | M | 3 | atlas | Show someone the app | Riley's sample data in every store, nothing saves. | R6#36 =verified
+R6-37 | M | 3 | atlas | Sample data covers every page | Every page looks lived-in as Riley. | R6#37 =verified
+R6-38 | S | 3 | atlas | AI off while showing | No cost, nothing sent while showing. | R6#38 =verified
+R6-39 | S | 3 | atlas | Nothing real appears | The database is an in-memory stand-in while showing. | R6#39 =verified
+R6-95 | S | 3 | atlas | Can't save over real data | Checked with file fingerprints before and after. | R6#95 =verified
+R6-40 | M | 3 | guide | Guided tour | In show mode, Ember walks through five pages with one line each. | R6#40
+R6-41 | S | 2 | guide | The wake screen | Ember yawns, stretches, and the quote fades in, one breath long. | R6#41
+R6-42 | M | 3 | guide | Welcome ends with This-or-that | The first run ends with the five cards so the app knows you from minute one. | R6#42
+R6-53 | M | 2 | guide | Screenshots script | Captures the hero pages for sharing into docs/screens. | R6#53
+R6-54 | S | 2 | guide | What this app is | A one-page story in the repo with the screenshots. | R6#54
+R6-55 | L | 3 | atlas | Fresh build on the phone | A Release build with everything (free signing renews). | R6#55 native
+X130 | S | 2 | guide | Demo path | A list of deep links that walks the best moments, for a screen recording. |
+X131 | S | 1 | - | Framed screenshots | Screenshots in a device frame for sharing. |
+
+## Privacy and safety | privacy | #9FD8CB
+X132 | M | 3 | - | App switcher veil | The app blurs itself in the app switcher (an overlay when inactive). |
+X133 | S | 2 | - | Hide previews | An option to hide journal and worry previews on the Desk. | data
+X134 | S | 2 | - | Quick hide | Double-tap with two fingers to veil the screen. |
+X135 | M | 3 | - | Face ID lock | Optional Face ID to open the app. | native
+X136 | M | 2 | - | Delete old entries | Opt-in: let-it-out entries older than a chosen age are deleted. |
+X137 | M | 3 | - | Export everything | One file with everything, through the share sheet. |
+X138 | S | 3 | - | Trusted adult | One person to text in a hard moment, on Steady's first card. | data
+X139 | S | 3 | sentinel | Crisis words everywhere | Every text box that can reach the AI checks crisis words first. |
+
+## AI, opt-in | ai | #B7A6FF
+X140 | M | 2 | - | Weekly reflection | Opt-in: Ember reflects on your week; shows exactly what's sent first. | ai
+X141 | S | 2 | - | Explain like I'm 15 | On a note, ask for a simpler explanation. | ai
+X142 | M | 2 | - | Essay checklist | AI checks an essay against its rubric and never rewrites it. | ai
+X143 | S | 2 | - | Monthly cost line | Settings → AI shows this month's cost in cents. |
+X144 | M | 2 | - | Offline twin for every AI job | Every AI feature has a no-AI version that still helps. |
+
+## Speed and reliability | perf | #FFC879
+R6-96 | M | 2 | atlas | Desk in under a second | Measure the open-to-Desk time on the phone. | R6#96
+X145 | M | 2 | sentinel | Memo the heavy lists | Memo row components and selectors on the long pages. |
+X146 | S | 1 | - | Bundle diet | Remove unused packages and dead components. |
+X147 | S | 2 | - | Gentle ticker | Timers re-render once a second at most, only the digits. |
+X148 | M | 2 | - | Crash notes | A crash writes a local note (no network) shown in Settings → Your data. |
+X149 | S | 1 | sentinel | Dead code | Find and remove unused files and exports. |
+
+## Your data | data | #A0B4C8
+X150 | M | 3 | - | Backups on the phone | Seven days of automatic backups in Documents/backups. |
+X151 | M | 3 | - | Restore from a file | Pick an export file and restore it, with a preview first. |
+X152 | S | 2 | - | Data health | Settings shows each file's size and when it last saved. |
+X153 | M | 2 | - | Store versions | Each local file carries a version so future changes migrate cleanly. |
+X154 | S | 2 | - | Realtime phase 26 | Run phase 26 in the SQL editor so changes from another device appear live (user step). |
+
+## Connections | connect | #8EC5FF
+X155 | M | 2 | - | Focus blocks to Calendar | Planned focus blocks can go to Google Calendar. |
+X156 | M | 2 | - | Apple Calendar | Read the phone's own calendar too. | native
+X157 | S | 2 | - | Tomorrow's forecast | A daily forecast from the weather source for the night card. |
+X158 | M | 1 | - | Notes to Notion | Send a note to Notion. |
+X159 | M | 2 | - | Canvas, for real | Test Canvas with a real account (user's step to connect). |
+
+## iPhone features | platform | #CFCFCF
+X160 | L | 3 | - | Home Screen widget | Today's due and the next class. | native
+X161 | M | 2 | - | Lock Screen widget | Lights out by, or the focus timer. | native
+X162 | L | 3 | - | Focus Live Activity | The candle timer on the Lock Screen and Dynamic Island. | native
+X163 | M | 2 | - | Add homework with Siri | An App Intent for adding homework. | native
+X164 | L | 2 | - | Watch breathe | Breathe on Apple Watch (plan in docs). | native
+X165 | M | 2 | - | Lights-out reminder | An opt-in notification at lights out. | native
+X166 | S | 1 | - | Alternate icons | App icons in Ember's themes. | native
+X167 | L | 1 | - | iPad layout | Two columns on iPad. | native
+
+## Surprise | delight | #FFB36B
+R6-56 | L | 3 | spark | Candle of the week | Every Sunday the week becomes one candle on a shelf in Your year. | R6#56
+R6-57 | M | 2 | spark | Touch the shelf | Tap a week's candle for its sentence and best moment. | R6#57
+R6-58 | M | 3 | spark | Ember remembers firsts | First focus hour, first A, first full week of check-ins, each a quiet moment. | R6#58
+R6-59 | M | 2 | spark | Sparks carry over | Checking things off sends sparks to the Desk's candle. | R6#59
+R6-60 | S | 2 | spark | The Desk candle grows with the day | The Desk's candle burns brighter with done vs due. | R6#60
+R6-61 | M | 2 | nocturne | Weather in the window | Rain, snow, or clear shows faintly in the room. | R6#61
+R6-63 | M | 1 | - | Pocket worry | Shake the phone to drop a worry in the box. | R6#63 native
+R6-65 | S | 2 | spark | Streak of light | The days you showed up glow as a thin line under the Desk title. | R6#65
+R6-66 | S | 2 | - | One kind thing | Once a week, a ready kind text to someone from Your people. | R6#66
+R6-67 | L | 3 | - | Exam season | With 3+ tests in a week, the Desk becomes a study plan with a ring per test. | R6#67
+R6-68 | S | 2 | spark | Birthday morning | Confetti sparks and a party hat, once. | R6#68
+R6-69 | M | 2 | nocturne | Seasons | Leaves, frost, or blossoms drift as the motes, by date. | R6#69
+R6-70 | M | 1 | - | Soundscape | Soft fire crackle during Focus, opt-in, real mute. | R6#70
+R6-71 | M | 2 | spark | The good mail | A note to yourself in Wins sealed until a date. | R6#71
+R6-73 | S | 2 | spark | Ember's journal | One line a week about your week, made on the phone. | R6#73
+R6-74 | M | 3 | spark | Tiny wins radar | Ember notices a small good thing in the data and says it. | R6#74
+R6-75 | M | 2 | - | Pick up where you left off | A half-done check-in or note offers to continue on the Desk. | R6#75
+X168 | S | 2 | - | Shooting star | Tap the moon five times at night for a shooting star. |
+X169 | S | 2 | - | Milestone candles | 10, 50, 100 focus hours each light a special candle. |
+X170 | M | 2 | - | Time capsule | Write to yourself for graduation; it stays sealed until then. | data
+X171 | S | 1 | - | Brain fact | One small brain fact a day on The science page. |
+X172 | S | 1 | - | Empty-state easter eggs | A rare different drawing on empty pages. |
+X173 | M | 2 | - | Semester thank-you | At semester's end, Ember writes a thank-you with the semester's numbers. |
+
+## Craft and tooling | craft | #B0B8A0
+R6-20 | M | 3 | atlas | Last full pass | Open every page once more after the round and read every word. | R6#20
+R6-91 | M | 3 | atlas | Checked live | Every new piece checked live in the Simulator, with screenshots. | R6#91
+R6-97 | S | 2 | atlas | CLAUDE.md | Night Desk, show mode, the shelf, and their rules. | R6#97
+R6-98 | S | 2 | atlas | Session log | SESSION_LOG and the round's progress log. | R6#98
+R6-99 | S | 3 | atlas | Secret scan, commit, push | Ship the round. | R6#99
+R6-100 | S | 2 | atlas | Round 7 plan | Written from what's left and what the user says. | R6#100
+X174 | M | 3 | sentinel | Tests for the core helpers | dueLabel, plural, classAverage, planBackward, tonightKey with node's test runner. |
+X175 | M | 2 | - | Screenshot regression | A script that photographs all pages and compares them to last time. |
+X176 | S | 3 | atlas | The quality gate | tools/hub/check.mjs: house rules plus type-check before every hand-off. | =verified
+X177 | M | 2 | - | Kit page | A dev-only page that shows every kit component. |
+X178 | S | 2 | - | Typed routes | Turn on Expo Router typed routes. |
+X179 | S | 2 | - | Type-check on push | A GitHub Action that runs the type-check. |
+X180 | S | 2 | atlas | The work hub | A live dashboard of the team, the ideas, and the flow of work. | =verified
+
+## In tune (Round 6, done) | tune | #E8D6B0
+R6-1 | S | 3 | atlas | Ember never covers a title | The frame leaves room on Ember's side. | R6#1 =verified
+R6-2 | S | 2 | atlas | Honest check-in greeting | "Still up?" before 4 AM; dates itself when it opens. | R6#2 =verified
+R6-3 | S | 1 | atlas | Links close sheets | Decided against: links only arrive from outside; holding Back clears it. | R6#3 =dropped
+R6-4 | S | 3 | atlas | One due truth | Desk, School, Ember, and the badge agree on due and late. | R6#4 =verified
+R6-5 | S | 2 | atlas | Tips in your cheer style | Ember's tips use the nickname and cheer style. | R6#5 =verified
+R6-6 | S | 2 | atlas | Dismissed stays dismissed | Desk dismissals kept for the day. | R6#6 =verified
+R6-7 | S | 3 | atlas | Undo on every delete | Five deletes gained Undo. | R6#7 =verified
+R6-8 | S | 3 | atlas | Help within two taps | Checked from every tab. | R6#8 =verified
+R6-9 | S | 2 | atlas | New things glow where they land | New homework glows on the page it lands on. | R6#9 =verified
+R6-10 | S | 2 | atlas | Map placeholder | A quiet placeholder instead of a blank sky. | R6#10 =verified
+R6-11 | S | 2 | atlas | Food without "Loading…" | The subtitle no longer says Loading. | R6#11 =verified
+R6-12 | S | 2 | atlas | One About-you card a day | Cards never stack. | R6#12 =verified
+R6-13 | S | 1 | atlas | Helpers know your hardest subject | Decided against: helper chips already do it. | R6#13 =dropped
+R6-14 | S | 2 | atlas | Homework name on the candle | Already: "Working on" under the timer. | R6#14 =verified
+R6-15 | S | 2 | atlas | Minutes on the row | Rows show focused minutes in gold. | R6#15 =verified
+R6-16 | S | 2 | atlas | One average | Every average comes from classAverage(). | R6#16 =verified
+R6-17 | S | 2 | atlas | Counting is the same | plural() everywhere. | R6#17 =verified
+R6-18 | S | 2 | atlas | Time words are the same | dueLabel() everywhere. | R6#18 =verified
+R6-19 | S | 2 | atlas | Bar titles match | By design. | R6#19 =verified

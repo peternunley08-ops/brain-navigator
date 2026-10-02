@@ -1,0 +1,698 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Work Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --night: #120F14; --nightHigh: #1B1520; --surface: #211A25; --surfaceHigh: #2B2230; --sunk: #17121A;
+  --line: rgba(255,228,190,.09); --lineStrong: rgba(255,228,190,.18);
+  --text: #F5EBDD; --muted: #C3B3A0; --faint: #998C7D; --hint: #7E7266;
+  --flame: #F5B45C; --flameHot: #FFDCA6; --flameDeep: #DE8238; --ink: #2A1606;
+  --ok: #8CC0A8; --bad: #F07060; --lav: #AFA2DE; --ember: #F0845A;
+  --r: 18px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--night); color: var(--text); }
+body {
+  font-family: Figtree, system-ui, sans-serif; font-size: 14px; line-height: 1.45;
+  background:
+    radial-gradient(1200px 600px at 12% -10%, rgba(245,180,92,.13), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, rgba(175,162,222,.08), transparent 60%),
+    linear-gradient(180deg, #1a1419 0%, var(--night) 40%, #0e0b10 100%);
+  min-height: 100vh;
+}
+h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+h2 { font-size: 20px; }
+h3 { font-size: 15px; font-weight: 600; }
+.wrap { max-width: 1480px; margin: 0 auto; padding: 22px 22px 80px; }
+.num { font-variant-numeric: tabular-nums; }
+.card { background: linear-gradient(180deg, rgba(43,34,48,.82), rgba(33,26,37,.82)); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 18px 16px; box-shadow: 0 18px 40px rgba(0,0,0,.28); backdrop-filter: blur(6px); }
+.card > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+.sub { color: var(--faint); font-size: 12.5px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; border: 1px solid var(--lineStrong); color: var(--muted); white-space: nowrap; }
+
+/* top bar */
+.top { display: flex; align-items: center; gap: 18px; margin-bottom: 18px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 14px; flex: 1; min-width: 260px; }
+.brand h1 { font-size: 30px; }
+.brand p { margin: 2px 0 0; color: var(--muted); }
+.brand svg { filter: drop-shadow(0 0 14px rgba(245,180,92,.55)); }
+.live { display: flex; align-items: center; gap: 8px; color: var(--muted); font-weight: 600; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); box-shadow: 0 0 0 0 rgba(140,192,168,.6); }
+.dot.on { background: var(--ok); animation: pulse 2s infinite; }
+.dot.off { background: var(--bad); }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(140,192,168,.55); } 70% { box-shadow: 0 0 0 10px rgba(140,192,168,0); } 100% { box-shadow: 0 0 0 0 rgba(140,192,168,0); } }
+.clock { font-family: Fraunces, serif; font-size: 22px; color: var(--flameHot); }
+
+/* KPIs */
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+.kpi { background: rgba(33,26,37,.75); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; position: relative; overflow: hidden; }
+.kpi b { display: block; font-family: Fraunces, serif; font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--faint); font-size: 12px; }
+.kpi i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--c, var(--flame)); opacity: .8; transition: width .6s ease; }
+.kpi.bump b { animation: bump .7s ease; }
+@keyframes bump { 0% { color: var(--flameHot); transform: translateY(-2px); } 100% { color: inherit; transform: none; } }
+
+/* flow */
+.flow { margin-bottom: 16px; }
+#flow { width: 100%; height: 190px; display: block; }
+.flowlegend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--faint); font-size: 12px; margin-top: 6px; }
+
+/* agents */
+.agents { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.agent { position: relative; overflow: hidden; }
+.agent::before { content: ''; position: absolute; inset: -40% -20% auto auto; width: 220px; height: 220px; background: radial-gradient(closest-side, var(--c), transparent); opacity: .10; pointer-events: none; }
+.agent.active::before { opacity: .22; animation: breathe 3.2s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .12; } }
+.ahead { display: flex; align-items: center; gap: 12px; }
+.ahead .who { flex: 1; min-width: 0; }
+.ahead h3 { font-size: 18px; }
+.ahead .role { color: var(--faint); font-size: 12.5px; }
+.flameav { width: 38px; height: 46px; flex: none; }
+.agent.active .flameav path.f { animation: flick 1.4s ease-in-out infinite; transform-origin: 50% 90%; }
+@keyframes flick { 0%,100% { transform: scale(1,1); } 30% { transform: scale(.94,1.06) rotate(-2deg); } 60% { transform: scale(1.05,.96) rotate(2deg); } }
+.state { font-size: 11.5px; }
+.state.active { color: var(--ink); background: var(--c); border-color: transparent; }
+.now { margin: 12px 0 8px; padding: 10px 12px; border-radius: 12px; background: rgba(23,18,26,.7); border: 1px solid var(--line); min-height: 64px; }
+.now .t { font-weight: 600; }
+.now .m { color: var(--muted); font-size: 12.5px; margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bar { height: 5px; border-radius: 4px; background: rgba(255,228,190,.08); overflow: hidden; margin-top: 8px; }
+.bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--c), #fff3); border-radius: 4px; transition: width .8s ease; }
+.steps { display: flex; gap: 4px; flex-wrap: wrap; margin: 8px 0; }
+.steps span { font-size: 11px; padding: 2px 8px; border-radius: 999px; color: var(--hint); border: 1px solid var(--line); }
+.steps span.done { color: var(--muted); border-color: var(--lineStrong); }
+.steps span.cur { color: var(--ink); background: var(--c); border-color: transparent; font-weight: 700; }
+.astats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 6px; }
+.astats div { background: rgba(23,18,26,.55); border-radius: 10px; padding: 6px 8px; }
+.astats b { font-family: Fraunces, serif; font-size: 17px; display: block; font-variant-numeric: tabular-nums; }
+.astats span { font-size: 11px; color: var(--faint); }
+.spark { width: 100%; height: 28px; display: block; margin-top: 8px; }
+.tree { margin-top: 8px; font-size: 12px; color: var(--faint); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.tree code { color: var(--muted); font-size: 11.5px; }
+.plus { color: var(--ok); } .minus { color: var(--bad); }
+.queue { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+.queue a { color: var(--muted); font-size: 12px; text-decoration: none; display: flex; gap: 6px; align-items: center; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.queue a:hover { color: var(--text); }
+.sdot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+/* split */
+.split { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 980px) { .split { grid-template-columns: 1fr; } }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { cursor: pointer; user-select: none; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-size: 12px; background: transparent; font-family: inherit; display: inline-flex; gap: 6px; align-items: center; }
+.chip.on { background: rgba(245,180,92,.16); border-color: rgba(245,180,92,.5); color: var(--flameHot); }
+#feed { list-style: none; margin: 0; padding: 0; max-height: 520px; overflow: auto; scrollbar-width: thin; }
+#feed li { display: grid; grid-template-columns: 62px 22px 1fr; gap: 8px; padding: 8px 4px; border-bottom: 1px solid var(--line); align-items: start; }
+#feed li.new { animation: arrive .9s ease; }
+@keyframes arrive { from { background: rgba(245,180,92,.18); transform: translateX(-6px); } to { background: transparent; transform: none; } }
+#feed time { color: var(--hint); font-size: 11.5px; font-variant-numeric: tabular-nums; padding-top: 2px; }
+#feed .ic { width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-size: 11px; font-weight: 800; color: var(--ink); }
+#feed .who { font-weight: 700; }
+#feed .ty { color: var(--faint); font-size: 11.5px; margin-left: 6px; }
+#feed .msg { color: var(--muted); }
+#feed .ids { display: inline-flex; gap: 4px; margin-left: 6px; }
+#feed .ids a { font-size: 11px; color: var(--flame); cursor: pointer; }
+.simwrap { display: flex; gap: 14px; align-items: flex-start; }
+.phone { width: 210px; flex: none; border-radius: 34px; padding: 8px; background: linear-gradient(160deg, #3a3036, #1a1519); border: 1px solid var(--lineStrong); box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.04); }
+.phone img { width: 100%; display: block; border-radius: 27px; min-height: 380px; background: #000; cursor: zoom-in; }
+.simside { flex: 1; min-width: 0; }
+#shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; margin-top: 8px; }
+#shots figure { margin: 0; cursor: zoom-in; }
+#shots img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+#shots figcaption { font-size: 10.5px; color: var(--faint); margin-top: 3px; line-height: 1.25; }
+
+/* timeline */
+.timeline { margin-bottom: 16px; }
+#lanes { width: 100%; display: block; }
+
+/* bank */
+.bank { margin-bottom: 16px; }
+.areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-bottom: 12px; }
+.area { cursor: pointer; padding: 9px 11px; border-radius: 12px; border: 1px solid var(--line); background: rgba(23,18,26,.5); }
+.area.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
+.area .n { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 600; }
+.area .n span { color: var(--faint); font-weight: 500; font-variant-numeric: tabular-nums; }
+.area .stack { display: flex; height: 6px; border-radius: 4px; overflow: hidden; margin-top: 6px; background: rgba(255,228,190,.06); }
+.controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.controls input, .controls select { background: var(--sunk); color: var(--text); border: 1px solid var(--lineStrong); border-radius: 10px; padding: 7px 10px; font: inherit; }
+.controls input { flex: 1; min-width: 200px; }
+.ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.idea { cursor: pointer; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: rgba(23,18,26,.55); position: relative; transition: transform .15s ease, border-color .15s; }
+.idea:hover { transform: translateY(-1px); border-color: var(--lineStrong); }
+.idea .row1 { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--faint); }
+.idea .id { font-variant-numeric: tabular-nums; color: var(--hint); }
+.idea .tt { font-weight: 600; margin: 4px 0 2px; }
+.idea .dd { color: var(--muted); font-size: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.idea .row2 { display: flex; gap: 6px; align-items: center; margin-top: 7px; flex-wrap: wrap; }
+.st { font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
+.tag { font-size: 10.5px; color: var(--faint); border: 1px dashed var(--lineStrong); border-radius: 6px; padding: 0 5px; }
+.av { width: 18px; height: 18px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 10px; font-weight: 800; color: var(--ink); }
+.imp { color: var(--flame); letter-spacing: 1px; font-size: 10px; }
+.more { margin-top: 10px; text-align: center; }
+
+/* ways */
+.ways { margin-bottom: 16px; }
+.waygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.wf { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 14px; }
+.wf span { padding: 5px 10px; border-radius: 10px; background: rgba(23,18,26,.6); border: 1px solid var(--line); font-size: 12.5px; }
+.wf em { color: var(--hint); font-style: normal; }
+.rules { margin: 6px 0 0; padding-left: 18px; color: var(--muted); }
+.rules li { margin: 4px 0; }
+.own { display: grid; gap: 8px; }
+.own div { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.own code { font-size: 11px; color: var(--muted); background: rgba(23,18,26,.6); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; }
+
+/* git */
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+th { text-align: left; color: var(--faint); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--lineStrong); }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td code { color: var(--muted); }
+
+/* drawer */
+#drawer { position: fixed; top: 0; right: 0; height: 100vh; width: min(460px, 100vw); background: linear-gradient(180deg, #2b2230, #1b1520); border-left: 1px solid var(--lineStrong); box-shadow: -30px 0 60px rgba(0,0,0,.45); transform: translateX(105%); transition: transform .35s cubic-bezier(.2,.8,.2,1); z-index: 20; padding: 22px; overflow: auto; }
+#drawer.open { transform: none; }
+#drawer .x { position: absolute; top: 14px; right: 14px; }
+#drawer h2 { font-size: 24px; margin: 8px 30px 8px 0; }
+#drawer ol { list-style: none; padding: 0; margin: 12px 0 0; border-left: 2px solid var(--lineStrong); }
+#drawer ol li { padding: 4px 0 10px 14px; position: relative; color: var(--muted); font-size: 13px; }
+#drawer ol li::before { content: ''; position: absolute; left: -6px; top: 9px; width: 10px; height: 10px; border-radius: 50%; background: var(--c, var(--flame)); }
+#lightbox { position: fixed; inset: 0; background: rgba(8,6,10,.86); display: none; place-items: center; z-index: 30; cursor: zoom-out; }
+#lightbox.open { display: grid; }
+#lightbox img { max-height: 92vh; max-width: 92vw; border-radius: 26px; }
+@media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="brand">
+      <svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><defs><radialGradient id="bf" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#FFDCA6"/><stop offset=".55" stop-color="#F5B45C"/><stop offset="1" stop-color="#DE8238"/></radialGradient></defs><path d="M17 2C21 11 31 17 31 28a14 14 0 0 1-28 0C3 20 9 15 12 8c1 5 3 8 6 9-1-5-1-10-1-15z" fill="url(#bf)"/></svg>
+      <div><h1>The Work Hub</h1><p id="subtitle">Brain Navigator</p></div>
+    </div>
+    <div class="live"><span class="dot" id="dot"></span><span id="liveText">Connecting…</span></div>
+    <div class="clock num" id="clock"></div>
+  </div>
+
+  <section class="kpis" id="kpis"></section>
+
+  <section class="card flow">
+    <header><h2>The flow of work</h2><span class="sub">Each spark is an idea moving a stage. Tap a stage to see its ideas.</span></header>
+    <svg id="flow" role="img" aria-label="Pipeline of ideas through each stage"></svg>
+  </section>
+
+  <section class="agents" id="agents"></section>
+
+  <div class="split">
+    <section class="card">
+      <header><h2>Live feed</h2><div class="filters" id="feedFilters"></div></header>
+      <ol id="feed"></ol>
+    </section>
+    <section class="card">
+      <header><h2>Live Simulator</h2><span class="sub" id="simAt">iPhone 17 Pro</span></header>
+      <div class="simwrap">
+        <div class="phone"><img id="sim" alt="The Simulator right now"></div>
+        <div class="simside">
+          <h3>Proof gallery</h3>
+          <div class="sub">Screenshots taken while verifying.</div>
+          <div id="shots"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="card timeline">
+    <header><h2>Timeline</h2><span class="sub" id="tlSpan"></span></header>
+    <svg id="lanes"></svg>
+  </section>
+
+  <section class="card bank">
+    <header><h2>The idea bank</h2><span class="sub" id="bankSub"></span></header>
+    <div class="areas" id="areas"></div>
+    <div class="controls">
+      <input id="q" placeholder="Search ideas, ids, tags…" autocomplete="off">
+      <select id="fStatus"></select>
+      <select id="fOwner"></select>
+      <select id="fSize"><option value="">Any size</option><option>S</option><option>M</option><option>L</option></select>
+      <select id="fSort"><option value="flow">Sort by stage</option><option value="impact">Sort by impact</option><option value="id">Sort by id</option></select>
+    </div>
+    <div class="ideas" id="ideas"></div>
+    <div class="more" id="more"></div>
+  </section>
+
+  <section class="card ways">
+    <header><h2>How the team works</h2><span class="sub">The process every idea goes through</span></header>
+    <div class="waygrid" id="ways"></div>
+  </section>
+
+  <section class="card">
+    <header><h2>Branches and worktrees</h2><span class="sub" id="gitSub"></span></header>
+    <div id="git"></div>
+  </section>
+</div>
+
+<aside id="drawer" aria-hidden="true"><button class="chip x" id="closeDrawer">Close</button><div id="drawerBody"></div></aside>
+<div id="lightbox"><img alt=""></div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const STAGES = ['backlog', 'queued', 'building', 'checked', 'review', 'integrated', 'verified', 'shipped'];
+const STAGE_COLOR = { backlog: '#7E7266', queued: '#C3B3A0', building: '#F5B45C', checked: '#B9D98A', review: '#AFA2DE', integrated: '#7FB8F0', verified: '#8CC0A8', shipped: '#FFDCA6', blocked: '#F07060', dropped: '#5d5249' };
+const STAGE_LABEL = { backlog: 'Idea bank', queued: 'Queued', building: 'Building', checked: 'Gate passed', review: 'Handed off', integrated: 'Merged', verified: 'Verified live', shipped: 'Shipped', blocked: 'Blocked', dropped: 'Decided against' };
+const TYPE_ICON = { hello: '→', claim: '✦', step: '•', file: '✎', check: '✓', commit: '◆', done: '★', blocked: '!', dropped: '×', note: '…', idea: '+', queue: '⇢', integrated: '⇄', verified: '◉', shipped: '▲', shot: '▣', bye: '☾', state: '~' };
+const view = { feedAgent: '', area: '', status: '', owner: '', size: '', q: '', sort: 'flow', limit: 120 };
+let lastSig = '';
+let S = null, D = null, prevStatus = new Map(), seenEvents = 0, firstLoad = true;
+
+function ago(t, now = Date.now()) {
+  const s = Math.max(0, Math.round((now - new Date(t).getTime()) / 1000));
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  return `${Math.floor(s / 3600)}h ${Math.floor((s % 3600) / 60)}m ago`;
+}
+const hhmm = (t) => new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' });
+
+// ---------- fold events into state ----------
+function derive(s) {
+  const agents = new Map(s.team.agents.map((a) => [a.id, { ...a, events: [], files: new Set(), claimed: new Set(), handed: new Set(), checksOk: 0, checksFail: 0, last: null, cur: null, pct: 0, step: -1, filed: 0 }]));
+  const ideas = new Map();
+  for (const i of s.ideas) {
+    const status = i.status === 'verified' ? 'verified' : i.status === 'dropped' ? 'dropped' : i.status === 'shipped' ? 'shipped' : i.owner && i.owner !== 'atlas' ? 'queued' : i.owner === 'atlas' ? 'queued' : 'backlog';
+    ideas.set(i.id, { ...i, status, history: [], pct: 0, by: null });
+  }
+  let n = 0;
+  for (const e of s.events) {
+    const a = agents.get(e.agent);
+    if (e.type === 'idea' && e.title) {
+      n++;
+      let id = e.id || `S${String(n).padStart(3, '0')}`;
+      while (ideas.has(id)) id += "'";
+      ideas.set(id, { id, area: e.area || 'craft', size: e.size || 'M', impact: e.impact || 2, owner: null, title: e.title, detail: e.msg, tags: (e.tags || '').split(/\s+/).filter(Boolean), status: 'backlog', history: [e], pct: 0, by: e.agent, fresh: e.t });
+      if (a) a.filed++;
+    }
+    if (a) {
+      a.events.push(e);
+      a.last = e;
+      (e.files || []).forEach((f) => a.files.add(f));
+      if (e.type === 'check') e.ok ? a.checksOk++ : a.checksFail++;
+      if (e.branch || e.path) a.tree = { branch: e.branch || a.tree?.branch, path: e.path || a.tree?.path };
+      const st = stepOf(a, e);
+      if (st >= 0) a.step = st;
+    }
+    const ids = e.ideas || [];
+    if (e.type === 'check' && e.ok && !ids.length && a) ids.push(...[...a.claimed].filter((id) => ideas.get(id)?.status === 'building'));
+    for (const id of ids) {
+      const it = ideas.get(id);
+      if (!it) continue;
+      it.history.push(e);
+      const to = { queue: 'queued', claim: 'building', commit: 'review', done: 'review', integrated: 'integrated', verified: 'verified', shipped: 'shipped', blocked: 'blocked', dropped: 'dropped' }[e.type];
+      if (e.type === 'queue') it.owner = e.to || it.owner;
+      if (e.type === 'claim') { it.owner = e.agent; a?.claimed.add(id); if (a) a.cur = id; }
+      if (e.type === 'step') { if (['backlog', 'queued'].includes(it.status)) it.status = 'building'; if (e.pct != null) it.pct = e.pct; if (a) { a.cur = id; a.claimed.add(id); } }
+      if (e.type === 'check' && e.ok && ['building', 'queued', 'backlog'].includes(it.status)) it.status = 'checked';
+      if (to) it.status = to;
+      if (e.type === 'done' || e.type === 'commit') { it.pct = 100; a?.handed.add(id); if (a && a.cur === id) a.cur = null; }
+      if (e.pct != null && a && a.cur === id) a.pct = e.pct;
+    }
+  }
+  for (const a of agents.values()) {
+    if (a.cur) a.pct = ideas.get(a.cur)?.pct ?? a.pct;
+  }
+  return { agents, ideas };
+}
+
+function stepOf(a, e) {
+  const wf = a.workflow.map((w) => w.toLowerCase());
+  const find = (...names) => { for (const n of names) { const i = wf.indexOf(n); if (i >= 0) return i; } return -1; };
+  const byState = { reading: find('read', 'read pages', 'sweep', 'plan'), building: find('build', 'fix safe', 'ground in code', 'merge'), checking: find('gate', 'verify live') };
+  if (e.state && byState[e.state] >= 0) return byState[e.state];
+  const byType = {
+    hello: find('read', 'read pages', 'sweep', 'plan'), claim: find('claim', 'fix safe'), step: find('build', 'fix safe', 'ground in code'), file: find('build', 'fix safe', 'ground in code'),
+    check: find('gate'), commit: find('commit'), done: find('hand off', 'report', 'file ideas'), bye: find('hand off', 'report', 'file ideas', 'ship'),
+    note: find('imagine', 'triage', 'plan'), idea: find('file ideas', 'triage'), queue: find('assign'), integrated: find('merge'), verified: find('verify live'), shot: find('verify live'), shipped: find('ship'),
+  };
+  return byType[e.type] ?? -1;
+}
+
+function agentState(a, now) {
+  const e = a.last;
+  if (!e) return { label: 'Waiting to start', active: false };
+  const age = (now - new Date(e.t).getTime()) / 1000;
+  if (e.type === 'bye') return { label: 'Done for the wave', active: false };
+  if (e.type === 'blocked') return { label: 'Blocked', active: true };
+  const word = e.state ? { reading: 'Reading', building: 'Building', checking: 'Checking', waiting: 'Waiting', done: 'Done', idle: 'Idle' }[e.state] || e.state
+    : { hello: 'Starting', claim: 'Building', step: 'Building', file: 'Writing', check: 'Checking', commit: 'Committing', done: 'Handed off', note: 'Thinking', idea: 'Filing ideas', queue: 'Assigning', integrated: 'Merging', verified: 'Verifying', shot: 'Verifying', shipped: 'Shipping' }[e.type] || e.type;
+  return { label: age > 600 ? `${word} (quiet ${Math.floor(age / 60)}m)` : word, active: age < 240 };
+}
+
+// ---------- render ----------
+function render() {
+  const now = Date.now();
+  D = derive(S);
+  const ideas = [...D.ideas.values()];
+  const count = (st) => ideas.filter((i) => i.status === st).length;
+  const started = new Date(S.team.started).getTime();
+  $('#subtitle').textContent = `Brain Navigator, ${S.team.round}, ${S.team.wave}`;
+
+  // KPIs
+  const trees = (S.git.trees || []).filter((t) => !t.main);
+  const plus = trees.reduce((n, t) => n + (t.plus || 0), 0), minus = trees.reduce((n, t) => n + (t.minus || 0), 0);
+  const checks = S.events.filter((e) => e.type === 'check');
+  const okRate = checks.length ? Math.round((100 * checks.filter((e) => e.ok).length) / checks.length) : 0;
+  const scoutN = ideas.filter((i) => i.by).length;
+  const elapsed = Math.max(0, now - started);
+  const kpis = [
+    ['Ideas in the bank', ideas.length, '#F5B45C', 1],
+    ['New from the team', scoutN, '#D9B98A', scoutN / Math.max(1, ideas.length)],
+    ['Queued', count('queued'), STAGE_COLOR.queued, count('queued') / ideas.length],
+    ['Building now', count('building'), STAGE_COLOR.building, count('building') / Math.max(1, count('queued') + count('building'))],
+    ['Handed off', count('review') + count('checked'), STAGE_COLOR.review, (count('review') + count('checked')) / ideas.length],
+    ['Verified live', count('verified'), STAGE_COLOR.verified, count('verified') / ideas.length],
+    ['Shipped', count('shipped'), STAGE_COLOR.shipped, count('shipped') / ideas.length],
+    ['Gate pass rate', checks.length ? okRate + '%' : '–', '#B9D98A', okRate / 100],
+    ['Lines in flight', `+${plus} −${minus}`, '#7FB8F0', Math.min(1, (plus + minus) / 4000)],
+    ['Elapsed', elapsed >= 3600000 ? `${Math.floor(elapsed / 3600000)}h ${String(Math.floor((elapsed % 3600000) / 60000)).padStart(2, '0')}m` : `${Math.floor(elapsed / 60000)}m`, '#AFA2DE', Math.min(1, elapsed / (8 * 3600000))],
+  ];
+  const kp = $('#kpis');
+  if (kp.children.length !== kpis.length) kp.innerHTML = kpis.map(() => '<div class="kpi"><b></b><span></span><i></i></div>').join('');
+  kpis.forEach(([label, val, c, frac], i) => {
+    const el = kp.children[i];
+    const b = el.querySelector('b');
+    if (b.textContent !== String(val)) { if (!firstLoad) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } b.textContent = val; }
+    el.querySelector('span').textContent = label;
+    el.style.setProperty('--c', c);
+    el.querySelector('i').style.width = `${Math.round(Math.max(0, Math.min(1, frac || 0)) * 100)}%`;
+  });
+
+  renderFlow(ideas);
+  renderAgents(now);
+  renderFeed(now);
+  renderShots();
+  renderTimeline(now, started);
+  renderBank(ideas);
+  renderWays();
+  renderGit();
+
+  // comets for ideas that moved forward
+  if (!firstLoad) {
+    for (const i of ideas) {
+      const was = prevStatus.get(i.id);
+      if (was && was !== i.status) comet(was, i.status, i);
+    }
+  }
+  prevStatus = new Map(ideas.map((i) => [i.id, i.status]));
+  firstLoad = false;
+}
+
+// ---------- the flow (SVG + particles) ----------
+let flowGeom = null, particles = [];
+function renderFlow(ideas) {
+  const svg = $('#flow');
+  const W = svg.clientWidth || 1200, H = 190;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  const n = STAGES.length, pad = 60, gap = (W - pad * 2) / (n - 1), cy = 92;
+  const counts = Object.fromEntries(STAGES.map((s) => [s, ideas.filter((i) => i.status === s).length]));
+  const side = { blocked: ideas.filter((i) => i.status === 'blocked').length, dropped: ideas.filter((i) => i.status === 'dropped').length };
+  const xs = STAGES.map((_, i) => pad + i * gap);
+  flowGeom = { xs, cy, gap };
+  let html = `<defs><filter id="glow"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
+  for (let i = 0; i < n - 1; i++) {
+    const x1 = xs[i] + 30, x2 = xs[i + 1] - 30;
+    html += `<path id="edge${i}" d="M${x1},${cy} C${x1 + gap * 0.25},${cy - 26} ${x2 - gap * 0.25},${cy + 26} ${x2},${cy}" fill="none" stroke="rgba(255,228,190,.14)" stroke-width="2" stroke-dasharray="3 5"/>`;
+  }
+  const max = Math.max(1, ...Object.values(counts));
+  STAGES.forEach((s, i) => {
+    const r = 18 + Math.sqrt(counts[s] / max) * 12;
+    const c = STAGE_COLOR[s];
+    html += `<g class="stage" data-stage="${s}" style="cursor:pointer">
+      <circle cx="${xs[i]}" cy="${cy}" r="${r + 8}" fill="${c}" opacity=".08"/>
+      <circle cx="${xs[i]}" cy="${cy}" r="${r}" fill="#17121A" stroke="${c}" stroke-width="2" ${counts[s] && (s === 'building' || s === 'review') ? 'filter="url(#glow)"' : ''}/>
+      <text x="${xs[i]}" y="${cy + 6}" text-anchor="middle" fill="${c}" font-family="Fraunces" font-size="18" font-weight="600">${counts[s]}</text>
+      <text x="${xs[i]}" y="${cy + r + 24}" text-anchor="middle" fill="#C3B3A0" font-size="12" font-family="Figtree" font-weight="600">${STAGE_LABEL[s]}</text>
+      <title>${esc(S.team.pipeline.find((p) => p.key === s)?.hint || '')}</title></g>`;
+  });
+  html += `<text x="${W - pad}" y="22" text-anchor="end" fill="#998C7D" font-size="12" font-family="Figtree">${side.blocked ? `<tspan fill="#F07060">${side.blocked} blocked</tspan>  ` : ''}${side.dropped} decided against</text>`;
+  html += `<g id="parts"></g>`;
+  svg.innerHTML = html;
+  svg.querySelectorAll('.stage').forEach((g) => g.addEventListener('click', () => { view.status = g.dataset.stage; $('#fStatus').value = view.status; renderBank([...D.ideas.values()]); $('.bank').scrollIntoView({ behavior: 'smooth' }); }));
+  // ambient particles: in proportion to the work in flight downstream of each edge
+  particles = particles.filter((p) => p.comet);
+  for (let i = 0; i < n - 1; i++) {
+    const flowing = i === 0 ? Math.min(2, counts.queued ? 1 : 0) : Math.min(5, Math.ceil(counts[STAGES[i]] / 2));
+    for (let k = 0; k < flowing; k++) particles.push({ edge: i, t: Math.random(), speed: 0.0018 + Math.random() * 0.0016, color: STAGE_COLOR[STAGES[i + 1]], r: 2.2 });
+  }
+}
+function comet(from, to, idea) {
+  const a = STAGES.indexOf(from), b = STAGES.indexOf(to);
+  if (a < 0 || b <= a) return;
+  for (let e = a; e < b; e++) particles.push({ edge: e, t: (e - a) * -1, speed: 0.012, color: STAGE_COLOR[to], r: 4.5, comet: true, last: b - 1, label: idea.id });
+}
+function tick() {
+  const g = document.getElementById('parts');
+  if (g && flowGeom) {
+    let html = '';
+    for (const p of particles) {
+      p.t += p.speed;
+      if (p.t > 1) { if (p.comet) { p.dead = true; continue; } p.t = 0; }
+      if (p.t < 0) continue;
+      const path = document.getElementById(`edge${p.edge}`);
+      if (!path) continue;
+      const len = path.getTotalLength();
+      const pt = path.getPointAtLength(len * p.t);
+      html += `<circle cx="${pt.x.toFixed(1)}" cy="${pt.y.toFixed(1)}" r="${p.r}" fill="${p.color}" opacity="${p.comet ? 1 : 0.75}" ${p.comet ? 'filter="url(#glow)"' : ''}/>`;
+      if (p.comet && p.label && p.edge === p.last) html += `<text x="${pt.x.toFixed(1)}" y="${(pt.y - 10).toFixed(1)}" text-anchor="middle" fill="${p.color}" font-size="10" font-family="Figtree" font-weight="700">${p.label}</text>`;
+    }
+    particles = particles.filter((p) => !p.dead);
+    g.innerHTML = html;
+  }
+  if (!reduce) requestAnimationFrame(tick);
+}
+
+// ---------- agents ----------
+function flameSvg(c) {
+  return `<svg class="flameav" viewBox="0 0 38 46" aria-hidden="true"><ellipse cx="19" cy="42" rx="11" ry="2.5" fill="${c}" opacity=".18"/><path class="f" d="M19 3C23 12 33 18 33 29a14 14 0 0 1-28 0C5 21 11 16 14 9c1 5 3 8 6 9-1-5-1-10-1-15z" fill="${c}"/><path d="M19 20c2 4 6 6 6 11a6 6 0 0 1-12 0c0-3 2-5 3-7 0 2 1 3 2 3 0-2 0-4 1-7z" fill="#FFF3DE" opacity=".55"/><circle cx="15.5" cy="31" r="1.3" fill="#2A1606"/><circle cx="22.5" cy="31" r="1.3" fill="#2A1606"/></svg>`;
+}
+function renderAgents(now) {
+  const box = $('#agents');
+  const trees = S.git.trees || [];
+  box.innerHTML = [...D.agents.values()].map((a) => {
+    const st = agentState(a, now);
+    const cur = a.cur ? D.ideas.get(a.cur) : null;
+    const last = a.last;
+    const queued = [...D.ideas.values()].filter((i) => i.owner === a.id && ['queued', 'building', 'checked'].includes(i.status));
+    const done = [...D.ideas.values()].filter((i) => i.owner === a.id && ['review', 'integrated', 'verified', 'shipped'].includes(i.status)).length;
+    const tree = a.tree?.path ? trees.find((t) => t.path === a.tree.path) : trees.find((t) => t.branch && a.tree?.branch && t.branch === a.tree.branch);
+    // activity sparkline: events per 3-minute bucket over the last hour
+    const buckets = new Array(20).fill(0);
+    for (const e of a.events) { const k = Math.floor((now - new Date(e.t).getTime()) / 180000); if (k >= 0 && k < 20) buckets[19 - k]++; }
+    const bmax = Math.max(1, ...buckets);
+    const pts = buckets.map((v, i) => `${(i / 19) * 300},${26 - (v / bmax) * 22}`).join(' ');
+    return `<article class="card agent ${st.active ? 'active' : ''}" style="--c:${a.color}">
+      <div class="ahead">${flameSvg(a.color)}<div class="who"><h3>${esc(a.name)}</h3><div class="role">${esc(a.role)}</div></div><span class="pill state ${st.active ? 'active' : ''}">${esc(st.label)}</span></div>
+      <div class="now">${cur ? `<div class="t">${esc(cur.id)}: ${esc(cur.title)}</div>` : `<div class="t">${a.id === 'atlas' ? 'Orchestrating' : last ? 'Between ideas' : 'Not started yet'}</div>`}
+        <div class="m">${last ? `${esc(last.msg || last.type)} <span class="sub">${ago(last.t, now)}</span>` : esc(a.mission)}</div>
+        ${cur ? `<div class="bar"><i style="width:${Math.max(4, a.pct || cur.pct || 8)}%"></i></div>` : ''}</div>
+      <div class="steps">${a.workflow.map((w, i) => `<span class="${i < a.step ? 'done' : i === a.step ? 'cur' : ''}">${esc(w)}</span>`).join('')}</div>
+      <div class="astats"><div><b>${queued.length}</b><span>on the list</span></div><div><b>${done}</b><span>handed off</span></div><div><b>${a.checksOk}<span class="sub">/${a.checksOk + a.checksFail}</span></b><span>gates passed</span></div><div><b>${a.id === 'scout' || a.id === 'sentinel' ? a.filed : a.files.size}</b><span>${a.id === 'scout' || a.id === 'sentinel' ? 'ideas filed' : 'files touched'}</span></div></div>
+      <svg class="spark" viewBox="0 0 300 28" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${a.color}" stroke-width="1.6" opacity=".9"/><polyline points="0,28 ${pts} 300,28" fill="${a.color}" opacity=".08"/></svg>
+      ${tree ? `<div class="tree"><code>${esc(tree.branch || '')}</code><span class="plus">+${tree.plus || 0}</span><span class="minus">−${tree.minus || 0}</span><span>${tree.files || 0} files</span><span>${(tree.commits || []).length} commits</span></div>` : a.tree?.branch ? `<div class="tree"><code>${esc(a.tree.branch)}</code></div>` : ''}
+      ${queued.length ? `<div class="queue">${queued.slice(0, 6).map((i) => `<a data-idea="${esc(i.id)}"><span class="sdot" style="background:${STAGE_COLOR[i.status]}"></span>${esc(i.id)} ${esc(i.title)}</a>`).join('')}${queued.length > 6 ? `<span class="sub">and ${queued.length - 6} more</span>` : ''}</div>` : ''}
+    </article>`;
+  }).join('');
+  box.querySelectorAll('[data-idea]').forEach((el) => el.addEventListener('click', () => openIdea(el.dataset.idea)));
+}
+
+// ---------- feed ----------
+function renderFeed(now) {
+  const f = $('#feedFilters');
+  const ids = ['', ...S.team.agents.map((a) => a.id)];
+  f.innerHTML = ids.map((id) => { const a = S.team.agents.find((x) => x.id === id); return `<button class="chip ${view.feedAgent === id ? 'on' : ''}" data-a="${id}">${a ? `<span class="sdot" style="background:${a.color}"></span>${esc(a.name)}` : 'Everyone'}</button>`; }).join('');
+  f.querySelectorAll('button').forEach((b) => b.addEventListener('click', () => { view.feedAgent = b.dataset.a; seenEvents = 0; renderFeed(Date.now()); }));
+  const evs = S.events.filter((e) => !view.feedAgent || e.agent === view.feedAgent).slice(-250).reverse();
+  const fresh = S.events.length - seenEvents;
+  $('#feed').innerHTML = evs.map((e, i) => {
+    const a = S.team.agents.find((x) => x.id === e.agent);
+    const c = a?.color || '#C3B3A0';
+    const bad = e.ok === false || e.type === 'blocked';
+    return `<li class="${!firstLoad && i < fresh && seenEvents ? 'new' : ''}"><time title="${esc(e.t)}">${hhmm(e.t)}</time><span class="ic" style="background:${bad ? '#F07060' : c}">${TYPE_ICON[e.type] || '•'}</span><div><span class="who" style="color:${c}">${esc(a?.name || e.agent)}</span><span class="ty">${esc(e.type)}</span>${(e.ideas || []).length ? `<span class="ids">${e.ideas.slice(0, 6).map((id) => `<a data-idea="${esc(id)}">${esc(id)}</a>`).join('')}${e.ideas.length > 6 ? `<span class="sub">+${e.ideas.length - 6}</span>` : ''}</span>` : ''}<div class="msg">${esc(e.type === 'idea' ? `${e.title}: ${e.msg}` : e.msg)}</div></div></li>`;
+  }).join('');
+  seenEvents = S.events.length;
+  $('#feed').querySelectorAll('[data-idea]').forEach((el) => el.addEventListener('click', () => openIdea(el.dataset.idea)));
+}
+
+function renderShots() {
+  const shots = S.events.filter((e) => e.shot).slice(-24).reverse();
+  $('#shots').innerHTML = shots.length ? shots.map((e) => `<figure data-src="/live/shots/${encodeURIComponent(e.shot)}"><img loading="lazy" src="/live/shots/${encodeURIComponent(e.shot)}" alt=""><figcaption>${esc((e.ideas || []).join(', '))} ${esc(e.msg).slice(0, 60)}</figcaption></figure>`).join('') : '<p class="sub">Nothing verified yet this wave.</p>';
+  $('#shots').querySelectorAll('figure').forEach((f) => f.addEventListener('click', () => lightbox(f.dataset.src)));
+}
+
+// ---------- timeline ----------
+function renderTimeline(now, started) {
+  const svg = $('#lanes');
+  const W = svg.clientWidth || 1200;
+  const agents = S.team.agents;
+  const rowH = 30, top = 22, left = 100, right = 16;
+  const H = top + agents.length * rowH + 10;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+  svg.setAttribute('height', H);
+  const first = Math.min(started, ...S.events.map((e) => new Date(e.t).getTime()));
+  const span = Math.max(15 * 60000, now - first);
+  const x = (t) => left + ((new Date(t).getTime() - first) / span) * (W - left - right);
+  $('#tlSpan').textContent = `${Math.round(span / 60000)} minutes, ${S.events.length} events`;
+  let html = '';
+  const ticks = 6;
+  for (let k = 0; k <= ticks; k++) {
+    const t = first + (span * k) / ticks;
+    const xx = left + ((W - left - right) * k) / ticks;
+    html += `<line x1="${xx}" x2="${xx}" y1="${top - 6}" y2="${H - 6}" stroke="rgba(255,228,190,.06)"/><text x="${xx}" y="12" fill="#7E7266" font-size="10.5" text-anchor="middle" font-family="Figtree">${new Date(t).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</text>`;
+  }
+  agents.forEach((a, r) => {
+    const y = top + r * rowH + rowH / 2;
+    html += `<text x="0" y="${y + 4}" fill="${a.color}" font-size="12" font-weight="700" font-family="Figtree">${esc(a.name)}</text><line x1="${left}" x2="${W - right}" y1="${y}" y2="${y}" stroke="rgba(255,228,190,.07)"/>`;
+    const evs = S.events.filter((e) => e.agent === a.id);
+    // working spans between claim and done
+    const open = {};
+    for (const e of evs) {
+      for (const id of e.ideas || []) {
+        if (e.type === 'claim') open[id] = e.t;
+        if ((e.type === 'done' || e.type === 'commit') && open[id]) { html += `<rect x="${x(open[id])}" y="${y - 5}" width="${Math.max(2, x(e.t) - x(open[id]))}" height="10" rx="5" fill="${a.color}" opacity=".22"><title>${esc(id)}</title></rect>`; delete open[id]; }
+      }
+    }
+    for (const id in open) html += `<rect x="${x(open[id])}" y="${y - 5}" width="${Math.max(2, x(now) - x(open[id]))}" height="10" rx="5" fill="${a.color}" opacity=".3"><title>${esc(id)} (working)</title></rect>`;
+    for (const e of evs) {
+      const c = e.ok === false || e.type === 'blocked' ? '#F07060' : e.type === 'check' ? '#B9D98A' : e.type === 'idea' ? '#F28BA8' : e.type === 'done' || e.type === 'commit' ? '#AFA2DE' : e.type === 'verified' || e.type === 'shipped' ? '#FFDCA6' : a.color;
+      const big = ['claim', 'done', 'commit', 'check', 'verified', 'shipped', 'blocked'].includes(e.type);
+      html += `<circle cx="${x(e.t).toFixed(1)}" cy="${y}" r="${big ? 4 : 2.4}" fill="${c}" opacity="${big ? 1 : 0.7}"><title>${hhmm(e.t)} ${esc(e.type)} ${esc((e.ideas || []).join(','))} ${esc(e.msg)}</title></circle>`;
+    }
+  });
+  const nx = x(now);
+  html += `<line x1="${nx}" x2="${nx}" y1="${top - 8}" y2="${H - 4}" stroke="#F5B45C" stroke-width="1.5" opacity=".7"/><text x="${nx - 4}" y="${H - 6}" fill="#F5B45C" font-size="10" text-anchor="end" font-family="Figtree">now</text>`;
+  svg.innerHTML = html;
+}
+
+// ---------- idea bank ----------
+function renderBank(ideas) {
+  const areas = S.areas;
+  $('#bankSub').textContent = `${ideas.length} ideas in ${areas.length} areas, ${ideas.filter((i) => i.by).length} filed by the team this wave`;
+  $('#areas').innerHTML = areas.map((ar) => {
+    const list = ideas.filter((i) => i.area === ar.key);
+    const seg = STAGES.concat(['blocked', 'dropped']).map((s) => { const n = list.filter((i) => i.status === s).length; return n ? `<i style="width:${(n / list.length) * 100}%;background:${STAGE_COLOR[s]}"></i>` : ''; }).join('');
+    return `<div class="area ${view.area === ar.key ? 'on' : ''}" data-area="${ar.key}" style="--c:${ar.color}"><div class="n"><b style="color:${ar.color}">${esc(ar.label)}</b><span>${list.length}</span></div><div class="stack">${seg}</div></div>`;
+  }).join('');
+  $('#areas').querySelectorAll('.area').forEach((el) => el.addEventListener('click', () => { view.area = view.area === el.dataset.area ? '' : el.dataset.area; renderBank([...D.ideas.values()]); }));
+  const fs = $('#fStatus');
+  if (!fs.options.length) {
+    fs.innerHTML = `<option value="">Every stage</option>` + STAGES.concat(['blocked', 'dropped']).map((s) => `<option value="${s}">${STAGE_LABEL[s]}</option>`).join('');
+    $('#fOwner').innerHTML = `<option value="">Anyone</option><option value="-">Nobody yet</option>` + S.team.agents.map((a) => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+  }
+  const q = view.q.toLowerCase();
+  let list = ideas.filter((i) => (!view.area || i.area === view.area) && (!view.status || i.status === view.status) && (!view.size || i.size === view.size) && (!view.owner || (view.owner === '-' ? !i.owner : i.owner === view.owner)) && (!q || `${i.id} ${i.title} ${i.detail} ${i.tags.join(' ')}`.toLowerCase().includes(q)));
+  const order = (s) => ({ building: 0, checked: 1, review: 2, integrated: 3, queued: 4, verified: 5, shipped: 6, backlog: 7, blocked: 8, dropped: 9 }[s] ?? 9);
+  if (view.sort === 'flow') list.sort((a, b) => order(a.status) - order(b.status) || b.impact - a.impact);
+  if (view.sort === 'impact') list.sort((a, b) => b.impact - a.impact || order(a.status) - order(b.status));
+  if (view.sort === 'id') list.sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+  const shown = list.slice(0, view.limit);
+  const areaOf = Object.fromEntries(areas.map((a) => [a.key, a]));
+  $('#ideas').innerHTML = shown.map((i) => {
+    const ar = areaOf[i.area] || { color: '#999', label: i.area };
+    const ow = S.team.agents.find((a) => a.id === i.owner);
+    const c = STAGE_COLOR[i.status];
+    return `<div class="idea" data-idea="${esc(i.id)}"><div class="row1"><span class="sdot" style="background:${ar.color}"></span><span>${esc(ar.label)}</span><span class="id" style="margin-left:auto">${esc(i.id)}</span></div>
+      <div class="tt">${esc(i.title)}</div><div class="dd">${esc(i.detail)}</div>
+      <div class="row2"><span class="st" style="background:${c}22;color:${c};border:1px solid ${c}55">${STAGE_LABEL[i.status]}</span>${ow ? `<span class="av" style="background:${ow.color}" title="${esc(ow.name)}">${esc(ow.name[0])}</span>` : ''}<span class="tag">${esc(i.size)}</span><span class="imp" title="impact">${'●'.repeat(i.impact)}${'○'.repeat(3 - i.impact)}</span>${i.tags.filter((t) => !t.startsWith('R6#')).map((t) => `<span class="tag">${esc(t)}</span>`).join('')}${i.by ? `<span class="tag" style="border-color:#D9B98A;color:#D9B98A">new</span>` : ''}${i.status === 'building' && i.pct ? `<span class="sub">${i.pct}%</span>` : ''}</div></div>`;
+  }).join('');
+  $('#ideas').querySelectorAll('.idea').forEach((el) => el.addEventListener('click', () => openIdea(el.dataset.idea)));
+  $('#more').innerHTML = list.length > view.limit ? `<button class="chip" id="moreBtn">Show ${Math.min(120, list.length - view.limit)} more of ${list.length - view.limit}</button>` : `<span class="sub">${list.length} shown</span>`;
+  $('#moreBtn')?.addEventListener('click', () => { view.limit += 120; renderBank([...D.ideas.values()]); });
+}
+
+function openIdea(id) {
+  const i = D.ideas.get(id);
+  if (!i) return;
+  const ar = S.areas.find((a) => a.key === i.area) || {};
+  const ow = S.team.agents.find((a) => a.id === i.owner);
+  const c = STAGE_COLOR[i.status];
+  $('#drawerBody').innerHTML = `<div class="sub">${esc(i.id)} in <b style="color:${ar.color}">${esc(ar.label)}</b></div><h2>${esc(i.title)}</h2>
+    <p style="color:var(--muted)">${esc(i.detail)}</p>
+    <p><span class="st" style="background:${c}22;color:${c};border:1px solid ${c}55">${STAGE_LABEL[i.status]}</span> ${ow ? `<span class="pill" style="border-color:${ow.color};color:${ow.color}">${esc(ow.name)}</span>` : '<span class="pill">Not assigned</span>'} <span class="pill">Size ${esc(i.size)}</span> <span class="pill">Impact ${i.impact}/3</span> ${i.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join(' ')}</p>
+    ${i.by ? `<p class="sub">Filed by ${esc(S.team.agents.find((a) => a.id === i.by)?.name || i.by)}</p>` : ''}
+    <h3 style="margin-top:16px">History</h3>
+    ${i.history.length ? `<ol>${i.history.map((e) => { const a = S.team.agents.find((x) => x.id === e.agent); return `<li style="--c:${e.ok === false ? '#F07060' : a?.color}"><b style="color:${a?.color}">${esc(a?.name || e.agent)}</b> ${esc(e.type)} <span class="sub">${hhmm(e.t)}</span><br>${esc(e.msg)}${e.shot ? `<br><img src="/live/shots/${encodeURIComponent(e.shot)}" style="width:140px;border-radius:12px;margin-top:6px">` : ''}</li>`; }).join('')}</ol>` : '<p class="sub">No events yet.</p>'}`;
+  $('#drawer').classList.add('open');
+}
+$('#closeDrawer').addEventListener('click', () => $('#drawer').classList.remove('open'));
+addEventListener('keydown', (e) => { if (e.key === 'Escape') { $('#drawer').classList.remove('open'); $('#lightbox').classList.remove('open'); } });
+function lightbox(src) { $('#lightbox img').src = src; $('#lightbox').classList.add('open'); }
+$('#lightbox').addEventListener('click', () => $('#lightbox').classList.remove('open'));
+$('#sim').addEventListener('click', () => lightbox($('#sim').src));
+
+// ---------- ways ----------
+let waysDone = false;
+function renderWays() {
+  if (waysDone) return;
+  waysDone = true;
+  const t = S.team;
+  const builder = t.agents.find((a) => a.id === 'nocturne');
+  $('#ways').innerHTML = `
+    <div><h3>The pipeline</h3><div class="wf">${t.pipeline.map((p, i) => `<span title="${esc(p.hint)}" style="border-color:${STAGE_COLOR[p.key]}55;color:${STAGE_COLOR[p.key]}">${esc(p.label)}</span>${i < t.pipeline.length - 1 ? '<em>→</em>' : ''}`).join('')}</div>
+      <p class="sub">Builders work in their own git worktree, so no one steps on anyone. Nothing reaches main until Atlas merges it, and nothing counts as done until Atlas has tapped through it in the Simulator.</p>
+      <h3 style="margin-top:12px">A builder's loop</h3><div class="wf">${builder.workflow.map((w, i) => `<span>${esc(w)}</span>${i < builder.workflow.length - 1 ? '<em>→</em>' : ''}`).join('')}</div>
+      <p class="sub">Claim an idea, read the code around it, build it, pass the gate (house rules and the type-check), commit on the branch, hand off with a how-to-check-it script.</p>
+      <h3 style="margin-top:12px">Atlas's loop</h3><div class="wf">${t.agents[0].workflow.map((w, i) => `<span>${esc(w)}</span>${i < t.agents[0].workflow.length - 1 ? '<em>→</em>' : ''}`).join('')}</div></div>
+    <div><h3>House rules (the gate checks these)</h3><ol class="rules">${t.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ol></div>
+    <div><h3>Who owns what this wave</h3><div class="own">${t.agents.map((a) => `<div><span class="pill" style="border-color:${a.color};color:${a.color}">${esc(a.name)}</span>${a.owns.map((o) => `<code>${esc(o)}</code>`).join('')}</div>`).join('')}</div></div>`;
+}
+
+// ---------- git ----------
+function renderGit() {
+  const g = S.git;
+  const trees = g.trees || [];
+  $('#gitSub').textContent = `${trees.length - 1} agent worktree${trees.length === 2 ? '' : 's'}`;
+  const who = (t) => [...D.agents.values()].find((a) => a.tree && ((a.tree.path && a.tree.path === t.path) || (a.tree.branch && a.tree.branch === t.branch)));
+  $('#git').innerHTML = `<table><tr><th>Where</th><th>Branch</th><th>Agent</th><th>Ahead of main</th><th>Change</th><th>Files</th></tr>
+    ${trees.map((t) => { const a = who(t); return `<tr><td><code>${esc(t.main ? 'main checkout' : t.path.split('/').slice(-2).join('/'))}</code></td><td><code>${esc(t.branch || t.head)}</code></td><td>${a ? `<span style="color:${a.color};font-weight:700">${esc(a.name)}</span>` : t.main ? '<span style="color:#F5B45C;font-weight:700">Atlas</span>' : ''}</td><td>${t.main ? '' : `${(t.commits || []).length} commits${(t.commits || []).slice(0, 3).map((c) => `<br><span class="sub">${esc(c.hash)} ${esc(c.subject)}</span>`).join('')}`}</td><td>${t.main ? `${t.dirty.length} uncommitted` : `<span class="plus">+${t.plus}</span> <span class="minus">−${t.minus}</span>`}</td><td class="sub">${esc((t.main ? t.dirty : t.changed || []).slice(0, 8).join(', '))}${(t.main ? t.dirty : t.changed || []).length > 8 ? '…' : ''}</td></tr>`; }).join('')}</table>
+    <h3 style="margin-top:14px">Main, most recent</h3><table>${(g.commits || []).map((c) => `<tr><td style="width:80px"><code>${esc(c.hash)}</code></td><td>${esc(c.subject)}</td><td class="sub" style="width:120px">${esc(c.when)}</td></tr>`).join('')}</table>`;
+}
+
+// ---------- polling ----------
+async function poll() {
+  try {
+    const r = await fetch('/api/state', { cache: 'no-store' });
+    const next = await r.json();
+    $('#dot').className = 'dot on';
+    $('#liveText').textContent = `Live, ${next.events.length} events, updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
+    const sig = `${next.events.length}|${next.ideas.length}|${JSON.stringify((next.git.trees || []).map((t) => [t.path, t.plus, t.minus, (t.commits || []).length, (t.dirty || []).length]))}|${(next.git.commits || [])[0]?.hash}`;
+    S = next;
+    if (sig !== lastSig || firstLoad) { lastSig = sig; render(); }
+    else if (D) { renderAgents(Date.now()); }
+  } catch {
+    $('#dot').className = 'dot off';
+    $('#liveText').textContent = 'Hub offline, retrying';
+  }
+}
+function refreshSim() {
+  if (document.hidden) return;
+  const img = new Image();
+  img.onload = () => { $('#sim').src = img.src; $('#simAt').textContent = `iPhone 17 Pro, ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`; };
+  img.src = `/api/sim.png?t=${Date.now()}`;
+}
+$('#q').addEventListener('input', (e) => { view.q = e.target.value; renderBank([...D.ideas.values()]); });
+$('#fStatus').addEventListener('change', (e) => { view.status = e.target.value; renderBank([...D.ideas.values()]); });
+$('#fOwner').addEventListener('change', (e) => { view.owner = e.target.value; renderBank([...D.ideas.values()]); });
+$('#fSize').addEventListener('change', (e) => { view.size = e.target.value; renderBank([...D.ideas.values()]); });
+$('#fSort').addEventListener('change', (e) => { view.sort = e.target.value; renderBank([...D.ideas.values()]); });
+setInterval(() => { $('#clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }, 1000);
+$('#clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+poll(); setInterval(poll, 2500);
+refreshSim(); setInterval(refreshSim, 6000);
+if (!reduce) requestAnimationFrame(tick);
+addEventListener('resize', () => S && render());
+</script>
+</body>
+</html>
