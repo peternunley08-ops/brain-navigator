@@ -1,6 +1,6 @@
 {
   "round": "Round 6",
-  "wave": "Wave 1",
+  "wave": "Wave 1 (lean mode)",
   "started": "2026-10-02T14:20:00.000Z",
   "pipeline": [
     {
@@ -65,7 +65,8 @@
         "docs/",
         "CLAUDE.md",
         "integration wiring"
-      ]
+      ],
+      "model": "Opus 5.5"
     },
     {
       "id": "nocturne",
@@ -89,7 +90,8 @@
         "components/ui/Backdrop.tsx",
         "app/vent.tsx",
         "core/ember.ts"
-      ]
+      ],
+      "model": "Sonnet 5.5"
     },
     {
       "id": "lumen",
@@ -116,7 +118,8 @@
         "components/desk/WhatsNew.tsx",
         "app/toolkit.tsx",
         "core/theme.ts (add only)"
-      ]
+      ],
+      "model": "Sonnet 5.5"
     },
     {
       "id": "spark",
@@ -143,7 +146,8 @@
         "components/ember/EmberSprite.tsx",
         "app/about.tsx",
         "core/emberLook.ts"
-      ]
+      ],
+      "model": "Sonnet 5.5"
     },
     {
       "id": "glide",
@@ -177,7 +181,8 @@
         "app/_layout.tsx",
         "components/ui/Screen.tsx",
         "core/chrome.ts"
-      ]
+      ],
+      "model": "Sonnet 5.5"
     },
     {
       "id": "guide",
@@ -202,7 +207,8 @@
         "app/welcome.tsx",
         "scripts/screens.sh",
         "docs/about-the-app.md"
-      ]
+      ],
+      "model": "Sonnet 5.5"
     },
     {
       "id": "sentinel",
@@ -221,7 +227,8 @@
       "owns": [
         "tests/ (new)",
         "any file not owned by another agent this wave"
-      ]
+      ],
+      "model": "Haiku 4.5"
     },
     {
       "id": "scout",
@@ -237,6 +244,26 @@
       ],
       "owns": [
         "read-only (writes ideas to the hub)"
+      ],
+      "model": "Haiku 4.5"
+    },
+    {
+      "id": "scribe",
+      "name": "Scribe",
+      "role": "Docs and copy",
+      "color": "#E8D6B0",
+      "model": "Haiku 4.5",
+      "mission": "Writes the words around the work: What's New entries, docs/about-the-app.md, the session log draft, and idea-bank housekeeping, from facts Atlas hands it.",
+      "workflow": [
+        "Claim",
+        "Read",
+        "Write",
+        "Gate",
+        "Commit",
+        "Hand off"
+      ],
+      "owns": [
+        "docs drafts Atlas assigns"
       ]
     }
   ],
@@ -251,5 +278,42 @@
     "AI proposes, the student taps, and it can be undone. Every delete has Undo.",
     "No native rebuilds and no new packages in a wave; note them as ideas instead.",
     "Every decision gets its reason written down. Never claim something was checked live unless it was."
-  ]
+  ],
+  "policy": {
+    "concurrency": "At most 2 agents at a time, so streams never stall and usage stays smooth",
+    "models": [
+      {
+        "job": "Orchestrate, design each task packet, merge, verify live, ship",
+        "model": "Opus 5.5",
+        "who": "Atlas"
+      },
+      {
+        "job": "Build features from a packet",
+        "model": "Sonnet 5.5",
+        "who": "Nocturne, Lumen, Spark, Glide, Guide"
+      },
+      {
+        "job": "Mechanical sweeps: labels, plurals, small fixes, tests",
+        "model": "Haiku 4.5",
+        "who": "Sentinel"
+      },
+      {
+        "job": "Ideas from reading pages",
+        "model": "Haiku 4.5",
+        "who": "Scout"
+      },
+      {
+        "job": "Docs and copy",
+        "model": "Haiku 4.5",
+        "who": "Scribe"
+      }
+    ],
+    "rules": [
+      "Atlas does the design thinking once and hands a short packet; agents don't explore.",
+      "Agents read tools/hub/CONTEXT.md (90 lines) instead of CLAUDE.md and the plan docs (900 lines).",
+      "Big files are read by grep and line ranges, never whole, never twice.",
+      "Hub events only at claim, milestone, done; reports stay under 30 lines.",
+      "Atlas checks usage before each launch and stops at 90% of the 5-hour or 95% of the weekly limit."
+    ]
+  }
 }

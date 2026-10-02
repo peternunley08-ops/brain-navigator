@@ -76,6 +76,7 @@ h3 { font-size: 15px; font-weight: 600; }
 .ahead .who { flex: 1; min-width: 0; }
 .ahead h3 { font-size: 18px; }
 .ahead .role { color: var(--faint); font-size: 12.5px; }
+.model { font-size: 10.5px; font-weight: 700; padding: 1px 7px; border-radius: 999px; border: 1px solid var(--c); color: var(--c); margin-left: 4px; white-space: nowrap; }
 .flameav { width: 38px; height: 46px; flex: none; }
 .agent.active .flameav path.f { animation: flick 1.4s ease-in-out infinite; transform-origin: 50% 90%; }
 @keyframes flick { 0%,100% { transform: scale(1,1); } 30% { transform: scale(.94,1.06) rotate(-2deg); } 60% { transform: scale(1.05,.96) rotate(2deg); } }
@@ -372,6 +373,7 @@ function render() {
   const okRate = checks.length ? Math.round((100 * checks.filter((e) => e.ok).length) / checks.length) : 0;
   const scoutN = ideas.filter((i) => i.by).length;
   const elapsed = Math.max(0, now - started);
+  const budget = [...S.events].reverse().find((e) => e.type === 'budget');
   const kpis = [
     ['Ideas in the bank', ideas.length, '#F5B45C', 1],
     ['New from the team', scoutN, '#D9B98A', scoutN / Math.max(1, ideas.length)],
@@ -382,6 +384,8 @@ function render() {
     ['Shipped', count('shipped'), STAGE_COLOR.shipped, count('shipped') / ideas.length],
     ['Gate pass rate', checks.length ? okRate + '%' : '–', '#B9D98A', okRate / 100],
     ['Lines in flight', `+${plus} −${minus}`, '#7FB8F0', Math.min(1, (plus + minus) / 4000)],
+    ['5-hour usage', budget ? budget.five + '%' : '–', budget && +budget.five >= 85 ? '#F07060' : '#8CC0A8', budget ? +budget.five / 100 : 0],
+    ['Weekly usage', budget ? budget.week + '%' : '–', budget && +budget.week >= 85 ? '#F07060' : '#8CC0A8', budget ? +budget.week / 100 : 0],
     ['Elapsed', elapsed >= 3600000 ? `${Math.floor(elapsed / 3600000)}h ${String(Math.floor((elapsed % 3600000) / 60000)).padStart(2, '0')}m` : `${Math.floor(elapsed / 60000)}m`, '#AFA2DE', Math.min(1, elapsed / (8 * 3600000))],
   ];
   const kp = $('#kpis');
@@ -499,7 +503,7 @@ function renderAgents(now) {
     const bmax = Math.max(1, ...buckets);
     const pts = buckets.map((v, i) => `${(i / 19) * 300},${26 - (v / bmax) * 22}`).join(' ');
     return `<article class="card agent ${st.active ? 'active' : ''}" style="--c:${a.color}">
-      <div class="ahead">${flameSvg(a.color)}<div class="who"><h3>${esc(a.name)}</h3><div class="role">${esc(a.role)}</div></div><span class="pill state ${st.active ? 'active' : ''}">${esc(st.label)}</span></div>
+      <div class="ahead">${flameSvg(a.color)}<div class="who"><h3>${esc(a.name)}</h3><div class="role">${esc(a.role)}${a.model ? ` <span class="model">${esc(a.model)}</span>` : ''}</div></div><span class="pill state ${st.active ? 'active' : ''}">${esc(st.label)}</span></div>
       <div class="now">${cur ? `<div class="t">${esc(cur.id)}: ${esc(cur.title)}</div>` : `<div class="t">${a.id === 'atlas' ? 'Orchestrating' : last ? 'Between ideas' : 'Not started yet'}</div>`}
         <div class="m">${last ? `${esc(last.msg || last.type)} <span class="sub">${ago(last.t, now)}</span>` : esc(a.mission)}</div>
         ${cur ? `<div class="bar"><i style="width:${Math.max(4, a.pct || cur.pct || 8)}%"></i></div>` : ''}</div>
@@ -650,6 +654,7 @@ function renderWays() {
       <h3 style="margin-top:12px">A builder's loop</h3><div class="wf">${builder.workflow.map((w, i) => `<span>${esc(w)}</span>${i < builder.workflow.length - 1 ? '<em>→</em>' : ''}`).join('')}</div>
       <p class="sub">Claim an idea, read the code around it, build it, pass the gate (house rules and the type-check), commit on the branch, hand off with a how-to-check-it script.</p>
       <h3 style="margin-top:12px">Atlas's loop</h3><div class="wf">${t.agents[0].workflow.map((w, i) => `<span>${esc(w)}</span>${i < t.agents[0].workflow.length - 1 ? '<em>→</em>' : ''}`).join('')}</div></div>
+    ${t.policy ? `<div><h3>The right model for each job</h3><table>${t.policy.models.map((m) => `<tr><td><b>${esc(m.model)}</b></td><td>${esc(m.job)}<br><span class="sub">${esc(m.who)}</span></td></tr>`).join('')}</table><p class="sub">${esc(t.policy.concurrency)}.</p><ol class="rules">${t.policy.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ol></div>` : ''}
     <div><h3>House rules (the gate checks these)</h3><ol class="rules">${t.rules.map((r) => `<li>${esc(r)}</li>`).join('')}</ol></div>
     <div><h3>Who owns what this wave</h3><div class="own">${t.agents.map((a) => `<div><span class="pill" style="border-color:${a.color};color:${a.color}">${esc(a.name)}</span>${a.owns.map((o) => `<code>${esc(o)}</code>`).join('')}</div>`).join('')}</div></div>`;
 }
