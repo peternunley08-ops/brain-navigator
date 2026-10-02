@@ -19,6 +19,7 @@ export function Chip({ label, selected, onPress, color = colors.flame, dot, icon
     <Pressy
       onPress={onPress}
       depth={0.94}
+      hitSlop={6}
       accessibilityRole="button"
       accessibilityState={{ selected: !!selected }}
       style={[

@@ -56,6 +56,7 @@ export function Button({
       {...rest}
       disabled={disabled || loading}
       haptic={v === 'primary' ? 'light' : 'selection'}
+      hitSlop={6}
       accessibilityRole="button"
       accessibilityState={{ disabled: !!(disabled || loading) }}
       style={[
