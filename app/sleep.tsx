@@ -15,23 +15,12 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { MORNING_HOURS, TimeField } from '../components/ui/TimeField';
 import { cheerLine } from '../core/about';
-import { addDays, dateKey } from '../core/dates';
 import { type ListItem, useLifeStore } from '../core/lifeStore';
+import { FALL_ASLEEP, lightsOutMinutes, tonightKey, wrap } from '../core/night';
 import { clock, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
 
-const FALL_ASLEEP = 15;
 const MOON = '#8FB4E8';
-
-/** "Tonight" rolls over at 5 AM, so 1 AM still counts as last night. */
-function tonightKey() {
-  const d = new Date();
-  return d.getHours() < 5 ? addDays(dateKey(d), -1) : dateKey(d);
-}
-
-function wrap(m: number) {
-  return ((m % 1440) + 1440) % 1440;
-}
 
 // Tonight: when to be asleep, a short routine to get there, and tomorrow's
 // bag packed so the morning isn't a scramble.
@@ -51,7 +40,7 @@ export default function SleepScreen() {
     const minutes = Math.round(cycles * 90);
     return { hours: minutes / 60, lightsOut: wrap(wake - minutes - FALL_ASLEEP) };
   });
-  const goalLightsOut = wrap(wake - goal * 60 - FALL_ASLEEP);
+  const goalLightsOut = lightsOutMinutes(wake, goal);
 
   return (
     <Screen tone="dusk" glowColor={MOON} kicker="Tonight" title="Sleep" subtitle="Teens need 8–10 hours. Here’s how to get there.">
