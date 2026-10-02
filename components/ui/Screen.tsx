@@ -204,6 +204,13 @@ export function Screen({
       transform: [{ translateY: interpolate(y.value, [from, to], [6, 0], 'clamp') }],
     };
   });
+  // The bar's title rises into place as the big one passes under the bar,
+  // so it reads as the same words arriving, not a new label appearing.
+  const barSlide = useAnimatedStyle(() => {
+    const to = hasTitle ? Math.max(titleEnd.value - cut + 4, 50) : 50;
+    const from = hasTitle ? Math.max(10, to - 40) : 10;
+    return { transform: [{ translateY: reduced ? 0 : interpolate(y.value, [from, to], [16, 0], 'clamp') }] };
+  });
   const barFill = useAnimatedStyle(() => {
     const to = hasTitle ? Math.max(titleEnd.value - cut + 4, 50) : 50;
     const from = hasTitle ? Math.max(10, to - 40) : 10;
@@ -335,9 +342,11 @@ export function Screen({
               {back ? <IconButton icon={backIcon} label={backIcon === 'close' ? 'Close' : 'Back'} onPress={onBack} onLongPress={goHome} accessibilityHint="Hold to go to the Desk" size={36} /> : <View style={styles.barSide} />}
               <Pressable onPress={toTop} style={styles.barTitleWrap} accessibilityRole="button" accessibilityLabel={label ? `${label}, back to top` : 'Back to top'}>
                 {label ? (
-                  <Text style={styles.barTitle} numberOfLines={1}>
-                    {label}
-                  </Text>
+                  <Animated.View style={barSlide}>
+                    <Text style={styles.barTitle} numberOfLines={1}>
+                      {label}
+                    </Text>
+                  </Animated.View>
                 ) : null}
               </Pressable>
               <View style={styles.barSide} />
