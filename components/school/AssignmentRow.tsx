@@ -3,10 +3,11 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
-import Animated, { FadeInDown, FadeOut, interpolate, LinearTransition, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, interpolate, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { cheerLine } from '../../core/about';
 import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, type Assignment, useSchoolStore } from '../../core/schoolStore';
+import { glide } from '../../core/motion';
 import { offerUndo } from '../../core/undoStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
@@ -93,7 +94,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
   const laterUnder = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [-90, 0], [1, 0], 'clamp') }));
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 40).duration(340)} exiting={FadeOut.duration(180)} layout={LinearTransition.springify().damping(18)}>
+    <Animated.View entering={FadeInDown.delay(index * 40).duration(340)} exiting={FadeOut.duration(180)} layout={glide}>
       <Animated.View pointerEvents="none" style={[styles.under, styles.underDone, doneUnder]}>
         <Icon name="check" size={20} color={colors.flameInk} strokeWidth={2.6} />
         <Text style={styles.underText}>Done</Text>

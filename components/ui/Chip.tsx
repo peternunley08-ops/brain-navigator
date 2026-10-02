@@ -1,4 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
+import { springs } from '../../core/motion';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
@@ -15,6 +18,17 @@ interface ChipProps {
 }
 
 export function Chip({ label, selected, onPress, color = colors.flame, dot, icon, style }: ChipProps) {
+  // Choosing a chip gives its contents a small springy swell, a beat after the sink.
+  const swell = useSharedValue(1);
+  const reduced = useReducedMotion();
+  const was = useRef(selected);
+  useEffect(() => {
+    if (was.current === selected) return;
+    was.current = selected;
+    if (selected && !reduced) swell.value = withSequence(withSpring(1.08, springs.press), withSpring(1, springs.release));
+  }, [selected, reduced, swell]);
+  const swellStyle = useAnimatedStyle(() => ({ transform: [{ scale: swell.value }] }));
+
   return (
     <Pressy
       onPress={onPress}
@@ -27,11 +41,13 @@ export function Chip({ label, selected, onPress, color = colors.flame, dot, icon
         style,
       ]}
     >
+      <Animated.View style={[styles.inner, swellStyle]}>
       {dot ? <View style={[styles.dot, { backgroundColor: color }]} /> : null}
       {icon ? <Icon name={icon} size={15} color={selected ? color : colors.textMuted} strokeWidth={2} /> : null}
       <Text style={[styles.text, selected && { color, fontFamily: fonts.bodySemi }]} maxFontSizeMultiplier={1.5}>
         {label}
       </Text>
+      </Animated.View>
     </Pressy>
   );
 }
@@ -42,10 +58,14 @@ export function ChipRow({ children, style }: { children: React.ReactNode; style?
 }
 
 const styles = StyleSheet.create({
-  chip: {
+  inner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     minHeight: 36,
     paddingHorizontal: 14,
     borderRadius: radii.pill,
