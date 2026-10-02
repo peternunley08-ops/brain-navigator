@@ -16,6 +16,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { addDays, type Assignment, dateKey, daysUntil, tonightsLoad, useSchoolStore } from '../core/schoolStore';
+import { glide } from '../core/motion';
 import { plural } from '../core/words';
 import { syncCanvas } from '../core/canvas';
 import { smallestStart } from '../core/helperOffline';
@@ -220,19 +221,21 @@ export default function SchoolScreen() {
           ) : null}
           {onlyClass && !groups.length ? <Text style={styles.noneFor}>Nothing open for this class.</Text> : null}
           {groups.map((g) => (
-          <Reveal key={g.title} index={n++}>
+          <Animated.View key={g.title} layout={glide}>
+          <Reveal index={n++}>
             <Section
               title={g.title}
               note={g.tint ? 'Finish it, or move the date.' : undefined}
               action={g.tint ? { label: 'Sort these out', onPress: () => router.push('/triage') } : undefined}
             >
-              <View style={styles.list}>
+              <Animated.View layout={glide} style={styles.list}>
                 {g.items.map((a, i) => (
                   <AssignmentRow key={a.id} a={a} index={i} />
                 ))}
-              </View>
+              </Animated.View>
             </Section>
           </Reveal>
+          </Animated.View>
         ))}
         </>
       )}
@@ -243,17 +246,19 @@ export default function SchoolScreen() {
       ) : null}
 
       {done.length > 0 ? (
+        <Animated.View layout={glide}>
         <Reveal index={n++}>
           <Section title="Done" note={`${doneThisWeek} this week, ${done.length} in all`} action={{ label: showDone ? 'Hide' : 'Show', onPress: () => setShowDone((v) => !v) }}>
             {showDone ? (
-              <View style={styles.list}>
+              <Animated.View layout={glide} style={styles.list}>
                 {done.slice(0, 20).map((a) => (
                   <AssignmentRow key={a.id} a={a} compact />
                 ))}
-              </View>
+              </Animated.View>
             ) : null}
           </Section>
         </Reveal>
+        </Animated.View>
       ) : null}
     </Screen>
   );
