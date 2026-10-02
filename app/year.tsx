@@ -5,6 +5,7 @@ import { Card } from '../components/ui/Card';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
+import { type Jump, JumpChips, useJumps } from '../components/ui/JumpChips';
 import { Section } from '../components/ui/Section';
 import { Segmented } from '../components/ui/Segmented';
 import { StatTile } from '../components/ui/StatTile';
@@ -81,8 +82,16 @@ export default function YearScreen() {
       : `You showed up on ${plural(showed, 'day')}. That’s the whole secret.`;
 
   let n = 0;
+  const jumps = useJumps();
+  const parts: Jump[] = [
+    { key: 'school', label: 'School' },
+    { key: 'months', label: 'Month by month' },
+    { key: 'you', label: 'You' },
+    ...(life.wins.length ? [{ key: 'wins', label: 'Latest wins' }] : []),
+  ];
   return (
-    <Screen title="Your year" subtitle="Everything you’ve done, added up.">
+    <Screen title="Your year" subtitle="Everything you’ve done, added up." scrollRef={jumps.scrollRef}>
+      <JumpChips items={parts} onJump={jumps.jump} />
       <Reveal index={n++}>
         <Card tint={colors.flame} style={styles.hero}>
           <EmberGlyph size={44} />
@@ -90,6 +99,7 @@ export default function YearScreen() {
         </Card>
       </Reveal>
 
+      <View onLayout={jumps.mark('school')} />
       <Reveal index={n++}>
         <Section title="School">
           <View style={styles.row}>
@@ -105,6 +115,7 @@ export default function YearScreen() {
         </Section>
       </Reveal>
 
+      <View onLayout={jumps.mark('months')} />
       <Reveal index={n++}>
         <Section title="Month by month" note={best ? `Your biggest month: ${best.name}, ${peak} ${MEASURE[measure].unit}.` : 'Fills in as the months go by.'}>
           <Segmented<Measure>
@@ -142,6 +153,7 @@ export default function YearScreen() {
         </Section>
       </Reveal>
 
+      <View onLayout={jumps.mark('you')} />
       <Reveal index={n++}>
         <Section title="You">
           <View style={styles.row}>
@@ -158,6 +170,8 @@ export default function YearScreen() {
       </Reveal>
 
       {life.wins.length ? (
+        <>
+        <View onLayout={jumps.mark('wins')} />
         <Reveal index={n++}>
           <Section title="Latest wins">
             <Card>
@@ -169,6 +183,7 @@ export default function YearScreen() {
             </Card>
           </Section>
         </Reveal>
+        </>
       ) : null}
     </Screen>
   );
