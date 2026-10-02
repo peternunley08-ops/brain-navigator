@@ -165,7 +165,18 @@ export default function ScanScreen() {
       className: it.className || null,
     }));
     setTidy({ busy: false, line: `Claude found ${assignments.length} thing${assignments.length === 1 ? '' : 's'} to do. Check them below.` });
-    const next = [{ assignments, classes: result?.classes ?? [] }];
+    // Claude's class names replace the phone's guesses ("AP Bio P3 Ms Rivera.
+    // Posted Sep 28" → "AP Bio"). A guess Claude also named keeps its teacher
+    // and times; a guess with times came from a schedule and stays; the rest go.
+    const near = (a: string, b: string) => a.toLowerCase().includes(b.toLowerCase()) || b.toLowerCase().includes(a.toLowerCase());
+    const named = [...new Set(assignments.map((a) => a.className).filter((n): n is string => !!n))];
+    const guessed = result?.classes ?? [];
+    const kept = guessed.filter((g) => g.start != null && !named.some((n) => near(g.name, n)));
+    const fromAI: FoundClass[] = named.map((n, i) => {
+      const g = guessed.find((c) => near(c.name, n));
+      return g ? { ...g, name: mapClass(n)?.name ?? n } : { key: `ai-c${i}-${n.toLowerCase()}`, name: mapClass(n)?.name ?? n, teacher: '', likely: true };
+    });
+    const next = [{ assignments, classes: [...kept, ...fromAI] }];
     setParts(next);
     review(next, true);
   };

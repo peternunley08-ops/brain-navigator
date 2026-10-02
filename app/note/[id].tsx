@@ -81,6 +81,7 @@ export default function NoteScreen() {
   // Flashcards from this page: which new lines are picked, while the preview is open.
   const [cardPick, setCardPick] = useState<string[] | null>(null);
   const decks = useLifeStore((s) => s.decks);
+  const aiOff = useLifeStore((s) => !!s.settings.aiOff);
   // Which AI study help is picked under the page.
   const [aiMode, setAiMode] = useState<'cards' | 'points' | 'practice'>('cards');
 
@@ -419,6 +420,25 @@ export default function NoteScreen() {
               </Pressy>
             ))}
           </View>
+        ) : null}
+        {(isEssay || /outline/i.test(note.title)) && pageHasText && !aiOff ? (
+          <Pressy
+            onPress={() =>
+              router.push({
+                pathname: '/helper/[id]',
+                params: {
+                  id: 'quill',
+                  ask: `Here's my ${/outline/i.test(note.title) ? 'outline' : 'draft'}. Check the structure: is the main point clear, does each part support it, and what's missing? Ask me questions, and don't rewrite it.\n\n${pageText.slice(0, 2500)}`,
+                },
+              })
+            }
+            style={styles.makeCards}
+            accessibilityRole="button"
+            accessibilityHint="Opens Quill with this page ready to send. Nothing goes until you send it."
+          >
+            <Icon name="feather" size={15} color={colors.flame} />
+            <Text style={styles.makeCardsText}>Ask Quill about the structure</Text>
+          </Pressy>
         ) : null}
         {pairs.length >= 2 && !cardPick ? (
           <Pressy

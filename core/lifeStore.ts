@@ -183,6 +183,20 @@ export interface EmberMemory {
 }
 
 /** The last Ember conversation, so it can be picked back up. */
+/** A thumbs up or down on an AI reply. Kept on this phone; never sent anywhere. */
+export interface ReplyFeedback {
+  id: string;
+  at: string;
+  verdict: 'good' | 'off';
+  /** ember, or a helper's id. */
+  who: string;
+  reply: string;
+  /** For "this reply was off": the chat up to that reply, to look over later. */
+  lines?: { from: 'ember' | 'you'; text: string }[];
+  /** The prompt version that wrote it. */
+  v: string;
+}
+
 export interface EmberChat {
   at: string;
   lines: { from: 'ember' | 'you'; text: string }[];
@@ -237,6 +251,9 @@ interface LifeData {
   /** What Ember remembers, newest last. */
   emberMemory: EmberMemory[];
   lastEmberChat: EmberChat | null;
+  /** Titles for saved Ember chats, by entryKey of the chat's text (the journal row has no title). */
+  chatTitles: Record<string, string>;
+  replyFeedback: ReplyFeedback[];
 }
 
 interface LifeStore extends LifeData {
@@ -291,6 +308,10 @@ interface LifeStore extends LifeData {
   forget: (id: string) => void;
   forgetAll: () => void;
   setLastEmberChat: (chat: EmberChat | null) => void;
+  nameChat: (key: string, title: string) => void;
+  rateReply: (f: Omit<ReplyFeedback, 'id' | 'at'>) => ReplyFeedback;
+  unrateReply: (id: string) => void;
+  clearFeedback: () => void;
   recordQuiz: (score: number, correct: number, lightning?: boolean) => void;
   updateDeck: (id: string, patch: Partial<Omit<Deck, 'id' | 'cards'>>) => void;
   noteHelperUse: (assignmentId: string, helperId: string) => void;
@@ -367,6 +388,8 @@ const EMPTY: LifeData = {
   helperChatAt: {},
   emberMemory: [],
   lastEmberChat: null,
+  chatTitles: {},
+  replyFeedback: [],
 };
 
 const FILE = 'life.json';
@@ -434,6 +457,8 @@ export const useLifeStore = create<LifeStore>((set, get) => {
       helperChatAt: s.helperChatAt,
       emberMemory: s.emberMemory,
       lastEmberChat: s.lastEmberChat,
+      chatTitles: s.chatTitles,
+      replyFeedback: s.replyFeedback,
     };
   };
   const commit = (patch: Partial<LifeData>) => {
@@ -602,6 +627,16 @@ export const useLifeStore = create<LifeStore>((set, get) => {
     forget: (id) => commit({ emberMemory: get().emberMemory.filter((m) => m.id !== id) }),
     forgetAll: () => commit({ emberMemory: [], lastEmberChat: null }),
     setLastEmberChat: (chat) => commit({ lastEmberChat: chat }),
+    // The newest 100 titles; the journal only shows the last 30 entries.
+    rateReply: (f) => {
+      const r: ReplyFeedback = { id: uid(), at: new Date().toISOString(), ...f };
+      // The newest 50; this is a review list, not an archive.
+      commit({ replyFeedback: [...get().replyFeedback, r].slice(-50) });
+      return r;
+    },
+    unrateReply: (id) => commit({ replyFeedback: get().replyFeedback.filter((r) => r.id !== id) }),
+    clearFeedback: () => commit({ replyFeedback: [] }),
+    nameChat: (key, title) => commit({ chatTitles: Object.fromEntries([...Object.entries(get().chatTitles).filter(([k]) => k !== key), [key, title]].slice(-100)) }),
     noteHelperLast: (id, line) => commit({ helperLast: { ...get().helperLast, [id]: { at: new Date().toISOString(), line } } }),
     noteHelperUse: (assignmentId, helperId) => commit({ helperUse: { ...get().helperUse, [assignmentId]: helperId } }),
     recordQuiz: (score, correct, lightning) => {

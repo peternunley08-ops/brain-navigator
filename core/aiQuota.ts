@@ -1,5 +1,6 @@
 import { addDays, daysUntil } from './dates';
 import { useLifeStore, weekOf } from './lifeStore';
+import { HELPERS } from './helpers';
 
 // How much AI a student gets. Everything that runs on the phone — planning,
 // flashcard quizzes, check-ins, every wellness tool, crisis lines — is free
@@ -7,14 +8,19 @@ import { useLifeStore, weekOf } from './lifeStore';
 // the helpers' AI modes) are counted, because each one costs real money.
 //
 //   Free — 20 AI replies a week, resets Monday.
-//   Plus — 400 AI replies a month, $2.99/month or $19.99/year.
+//   Plus — 250 AI replies a month, $2.99/month or $19.99/year.
+//
+// Why 250 (decided 2026-10-01 from measured costs): a reply averages about
+// 0.5–0.7¢ and the heaviest (Pip's plans) about 1.1¢, so a student who uses
+// every Plus reply costs roughly $1.50–$2.75 a month. $2.99 is about $2.54
+// after Apple's 15% (small business), so 400 could cost more than it earns.
 //
 // The count lives on the phone. Payments aren't connected yet (that needs a
 // paid Apple Developer account, an App Store Connect subscription product,
 // and a StoreKit library) — see `purchasePlus` below and CLAUDE.md.
 
 export const FREE_PER_WEEK = 20;
-export const PLUS_PER_MONTH = 400;
+export const PLUS_PER_MONTH = 250;
 
 export const PLANS = {
   monthly: { price: '$2.99', per: 'month', note: 'Cancel anytime' },
@@ -111,19 +117,34 @@ export function aiSpend(days = 7) {
   return { cents, replies, perReply: replies ? cents / replies : 0, typicalMs };
 }
 
-/** This week's (or, on Plus, this month's) replies, grouped by who they went to. */
-export function aiBreakdown(): { who: string; count: number }[] {
+// What each one-shot job is called where replies are counted. Chats are
+// named by the helper (or Ember) they went to.
+const JOB_LABEL: Record<string, string> = {
+  steps: 'Study steps',
+  plan: 'Pip’s plans',
+  scan: 'Reading scans',
+  cards: 'Flashcards',
+  practice: 'Practice questions',
+  points: 'Key points',
+  pick: 'What to do first',
+  reflect: 'Hear from Ember',
+  memory: 'Ember’s memory',
+  test: 'Brain tests',
+};
+
+/** This week's (or, on Plus, this month's) replies, grouped by what they were for. */
+export function aiBreakdown(): { who: string; label: string; count: number }[] {
   const { plus } = useLifeStore.getState().settings;
   const since = plus ? `${monthKey()}-01` : weekOf();
-  const counts: Record<string, number> = {};
+  const rows: Record<string, { who: string; label: string; count: number }> = {};
   for (const e of useLifeStore.getState().ai.log ?? []) {
     const d = new Date(e.at);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    if (key >= since && !e.free) counts[e.who] = (counts[e.who] ?? 0) + 1;
+    if (key < since || e.free) continue;
+    const label = HELPERS.find((h) => h.id === e.who)?.name ?? JOB_LABEL[e.who] ?? 'Ember';
+    rows[label] = { who: e.who, label, count: (rows[label]?.count ?? 0) + 1 };
   }
-  return Object.entries(counts)
-    .map(([who, count]) => ({ who, count }))
-    .sort((a, b) => b.count - a.count);
+  return Object.values(rows).sort((a, b) => b.count - a.count);
 }
 
 export type PurchaseResult = { ok: true } | { ok: false; reason: 'not_configured' | 'cancelled' | 'failed' };

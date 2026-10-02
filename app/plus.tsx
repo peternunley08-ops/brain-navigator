@@ -88,9 +88,9 @@ export default function PlusScreen() {
               {used.map((u) => {
                 const h = HELPERS.find((x) => x.id === u.who);
                 return (
-                  <View key={u.who} style={styles.logRow}>
+                  <View key={u.label} style={styles.logRow}>
                     <View style={[styles.logDot, { backgroundColor: h?.color ?? colors.flame }]} />
-                    <Text style={styles.logName}>{h ? h.name : 'Ember'}</Text>
+                    <Text style={styles.logName}>{u.label}</Text>
                     <Text style={styles.logCount}>
                       {u.count} repl{u.count === 1 ? 'y' : 'ies'}
                     </Text>

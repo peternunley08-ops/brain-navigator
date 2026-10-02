@@ -59,3 +59,22 @@ export const useVentStore = create<VentStore>((set, get) => ({
     return true;
   },
 }));
+
+/** A short, stable key for an entry's text (the row has no title column, so titles are kept on the phone by this). */
+export function entryKey(content: string) {
+  const t = content.trim();
+  let h = 5381;
+  for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+  return `${(h >>> 0).toString(36)}-${t.length}`;
+}
+
+/** A chat with Ember, named from the first thing you said: "Stressed about the chem test…". */
+export function chatTitleFrom(content: string) {
+  const lines = content.split('\n');
+  // Chats saved before the AI brain were "Ember's question\nyour answer", with no names.
+  const first = (/^(Ember|You): /m.test(content) ? lines.find((l) => l.startsWith('You: '))?.slice(5) : lines[1])?.trim();
+  if (!first) return 'A chat with Ember';
+  const words = first.replace(/\s+/g, ' ').split(' ');
+  const short = words.slice(0, 6).join(' ').replace(/[.,!?;:]+$/, '');
+  return `${short.charAt(0).toUpperCase()}${short.slice(1)}${words.length > 6 ? '…' : ''}`;
+}

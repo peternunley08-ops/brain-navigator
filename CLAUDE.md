@@ -101,7 +101,7 @@ most verified live). What that added:
 **Round 2 (2026-09-30, `docs/masterpiece-2.md`):** the helper crew
 (`core/helpers.ts`, `core/helperOffline.ts`, `app/helpers.tsx`,
 `app/helper/[id].tsx`, `components/helpers/*`), the AI allowance and Plus
-(`core/aiQuota.ts`, `app/plus.tsx` — 20 AI replies/week free, 400/month
+(`core/aiQuota.ts`, `app/plus.tsx` — 20 AI replies/week free, 250/month
 Plus; `purchasePlus()` returns `not_configured` until StoreKit is set up;
 `askEmber`/`askHelper` check `canUseAI()` and only count successful
 replies), multi-screenshot scan (`mergeScans` in `core/scanParser.ts`),
@@ -346,7 +346,7 @@ only after the save succeeds.
 ### Ember's AI brain (built 2026-09-29, live since 2026-10-01)
 
 **Round 4 (2026-10-01, `docs/masterpiece-4.md`): the AI design.** The
-`ember` function is now a job router (prompt v4.1): `kind` = talk, helper,
+`ember` function is now a job router (prompt v4.1, now v4.4): `kind` = talk, helper,
 summary, title, steps, plan, scan, cards, points, practice, pick, reflect,
 ping. Sonnet 5.5 (adaptive thinking, effort per job) for most, Haiku 4.5
 for summary/title. The system prompt is cached; the app note rides on the
@@ -365,6 +365,19 @@ things off. Redeploys: open the function's Code tab in the dashboard
 The user asked to "work within Xcode": run the app from Xcode
 (`ios/brainnavigator.xcworkspace`, scheme brainnavigator, iPhone 17 Pro)
 and verify in its Simulator.
+Live prompt is v4.4 (2026-10-01): `summary` also returns a chat `title`,
+`steps` turns a test or quiz into study sessions without day labels (the
+app spreads them with `spreadSteps` in schoolStore), and `pick` gives one
+short reason. Things kept only on the phone: chat titles (`chatTitles`,
+keyed by `entryKey()` of the journal text, since `vent_entries` has no
+title column), reply ratings (`replyFeedback`, "Good reply" / "This reply
+was off" from holding an Ember reply, reviewed under Settings → AI).
+Chat boxes clear through `core/hooks/useClearOnSend` (iOS autocorrect
+otherwise puts a sent message back). Testing past the 20 free replies:
+the developer-only "pretend I bought Plus" button at the bottom of /plus
+(turn it off after). The Simulator can't do on-device speech
+recognition, so the mic in Ember's chat and "Let it out" need a real
+phone; the Simulator also can't go offline on its own.
 
 The user asked for the mascot to run on AI. There is **no AI key in
 `.env`** (only Supabase, Google, Notion). The only AI key is the Anthropic

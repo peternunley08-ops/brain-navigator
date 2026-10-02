@@ -49,7 +49,9 @@ function whenAgo(iso: string) {
 // One helper, called over. It pops out in a burst of sparks, then offers
 // two ways to help: its on-phone mode (free, always works) and an AI chat.
 export default function HelperScreen() {
-  const { id, about, combo } = useLocalSearchParams<{ id: string; about?: string; combo?: string }>();
+  // `ask`: a first message written for them (from a note, the final-grade math,
+  // or the college list). It waits in the box; nothing goes until they send it.
+  const { id, about, combo, ask } = useLocalSearchParams<{ id: string; about?: string; combo?: string; ask?: string }>();
   const step = combo != null ? COMBO.findIndex((c) => c.id === id) : -1;
   // Remember the step, so the Helpers screen can offer to pick the session back up.
   useEffect(() => {
@@ -116,6 +118,11 @@ export default function HelperScreen() {
     setStarter(text);
     setMode('ai');
   };
+  useEffect(() => {
+    if (ask) askAI(ask);
+    // Only when the screen opens with a message.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ask]);
 
   return (
     <Screen glowColor={helper.color} right={<QuotaPill />}>

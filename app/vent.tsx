@@ -26,7 +26,8 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { alpha, colors, fonts, radii } from '../core/theme';
-import { useVentStore } from '../core/ventStore';
+import { useLifeStore } from '../core/lifeStore';
+import { chatTitleFrom, entryKey, useVentStore } from '../core/ventStore';
 
 type Mode = 'voice' | 'type';
 
@@ -43,6 +44,9 @@ export default function VentScreen() {
   // What was just let out, so Ember can answer it if they ask.
   const [lastVent, setLastVent] = useState<string | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  // One entry at a time opens to its full text.
+  const [openEntry, setOpenEntry] = useState<string | null>(null);
+  const chatTitles = useLifeStore((s) => s.chatTitles);
   const reduced = useReducedMotion();
 
   const history = useVentStore((s) => s.history);
@@ -177,24 +181,35 @@ export default function VentScreen() {
           >
             {historyOpen ? (
               <Animated.View entering={FadeInDown.duration(260)} style={styles.history}>
-                {history.map((entry) => (
-                  <Card key={entry.id} style={styles.historyCard}>
-                    <View style={styles.historyHead}>
-                      <Icon
-                        name={entry.input_mode === 'companion' ? 'chat' : entry.input_mode === 'voice' ? 'mic' : 'pen'}
-                        size={14}
-                        color={colors.textFaint}
-                      />
-                      <Text style={styles.historyDate}>
-                        {new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        {entry.input_mode === 'companion' ? ', with Ember' : ''}
-                      </Text>
-                    </View>
-                    <Text style={styles.historyContent} numberOfLines={3}>
-                      {entry.content}
-                    </Text>
-                  </Card>
-                ))}
+                {history.map((entry) => {
+                  const chat = entry.input_mode === 'companion';
+                  const open = openEntry === entry.id;
+                  return (
+                    <Pressy
+                      key={entry.id}
+                      depth={0.99}
+                      haptic="none"
+                      onPress={() => setOpenEntry(open ? null : entry.id)}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: open }}
+                      accessibilityHint={open ? 'Shows less' : 'Shows all of it'}
+                    >
+                      <Card style={styles.historyCard}>
+                        {chat ? <Text style={styles.historyTitle}>{chatTitles[entryKey(entry.content)] ?? chatTitleFrom(entry.content)}</Text> : null}
+                        <View style={styles.historyHead}>
+                          <Icon name={chat ? 'chat' : entry.input_mode === 'voice' ? 'mic' : 'pen'} size={14} color={colors.textFaint} />
+                          <Text style={styles.historyDate}>
+                            {new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                            {chat ? ', with Ember' : ''}
+                          </Text>
+                        </View>
+                        <Text style={styles.historyContent} numberOfLines={open ? undefined : 3}>
+                          {entry.content}
+                        </Text>
+                      </Card>
+                    </Pressy>
+                  );
+                })}
               </Animated.View>
             ) : null}
           </Section>
@@ -383,6 +398,12 @@ const styles = StyleSheet.create({
   },
   historyCard: {
     paddingVertical: 14,
+  },
+  historyTitle: {
+    marginBottom: 4,
+    fontFamily: fonts.displaySoft,
+    fontSize: 17,
+    color: colors.text,
   },
   historyHead: {
     flexDirection: 'row',

@@ -8,7 +8,7 @@
 // Jobs:
 //   talk     Ember's conversation (Sonnet, deep thinking)
 //   helper   one of the helper crew (Sonnet, effort per helper)
-//   summary  one line about a finished conversation, for Ember's memory (Haiku)
+//   summary  one line about a finished conversation, for Ember's memory, and its title (Haiku)
 //   title    a few words naming a conversation (Haiku)
 //   steps    an assignment broken into steps (JSON)
 //   plan     tonight's plan as time blocks, from a Pip chat (JSON)
@@ -26,7 +26,7 @@
 // API to write the reply. Message text is never logged here: only timing,
 // token counts, and how the reply ended.
 
-const PROMPT_VERSION = '4.3';
+const PROMPT_VERSION = '4.5';
 
 const SONNET = 'claude-sonnet-5-5';
 const HAIKU = 'claude-haiku-4-5';
@@ -47,7 +47,7 @@ Brain Navigator is a wellness and school-organization app for a high school stud
 const SAFETY = `<safety>
 These rules always win.
 - You are not a therapist, counselor, or doctor. Never claim to be one, never diagnose, never give medical or medication advice.
-- If they mention self-harm, suicide, wanting to disappear, abuse, or being in danger: respond with warmth first, then clearly urge them to reach a real person now: a trusted adult, or in the US call or text 988 (Suicide & Crisis Lifeline), or text HOME to 741741. Add [[action:help]]. Take it seriously every time, even if it sounds like a joke.
+- If they mention self-harm, suicide, wanting to disappear, abuse, or being in danger: respond with warmth first, then clearly urge them to reach a real person now: an adult they trust (a parent, relative, teacher, or school counselor), or in the US call or text 988 (Suicide & Crisis Lifeline), or text HOME to 741741. Add [[action:help]]. Take it seriously every time, even if it sounds like a joke.
 - Never write work they will hand in (essays, paragraphs, answers to graded questions, lab reports). Help them think, plan, and learn instead, and say so kindly if they ask.
 - Never encourage skipping sleep, meals, or rest for schoolwork.
 - Keep everything right for a high schooler.
@@ -201,8 +201,8 @@ function jobFor(kind: string, agent: string | null): Job | null {
         maxTokens: 300,
         maxInput: 6000,
         turns: 1,
-        system: `${ONE_SHOT_BASE}\n\nYou'll get a conversation between the student and Ember. Write a memory for Ember: one short line, in the third person, about what was on their mind and anything that helped, like "Stressed about Friday's chem test; listing topics helped." Leave out names of other people and anything about self-harm or health. If there's a specific upcoming event worth asking about later, give it as followUp with the date (YYYY-MM-DD) it happens, using the dates in the app note; otherwise leave both empty.`,
-        schema: obj({ summary: str, followUp: str, followUpDate: str }),
+        system: `${ONE_SHOT_BASE}\n\nYou'll get a conversation between the student and Ember. Write a memory for Ember: one short line, in the third person, about what was on their mind and anything that helped, like "Stressed about Friday's chem test; listing topics helped." Leave out names of other people and anything about self-harm or health. If there's a specific upcoming event worth asking about later, give it as followUp in two to five words naming the event, like "the chem test" (not an instruction), with the date (YYYY-MM-DD) it happens, using the dates in the app note; otherwise leave both empty. Also give the conversation a title of two to five plain words, like a diary entry heading ("Chem test nerves"), with no quotes and no ending period.`,
+        schema: obj({ summary: str, followUp: str, followUpDate: str, title: str }),
       };
     case 'title':
       return {
@@ -220,7 +220,7 @@ function jobFor(kind: string, agent: string | null): Job | null {
         maxTokens: 8000,
         maxInput: 3000,
         turns: 1,
-        system: `${ONE_SHOT_BASE}\n\nBreak the assignment into three to seven small steps the student does themselves, in order, each with a realistic number of minutes. Steps are actions ("Pick three sources", not "Research"). For a test or quiz, the steps are study sessions that can go on different days ("Make flashcards for unit 2", "Do 10 practice problems"), each 15 to 40 minutes, ending with a short review. Never do the work for them.`,
+        system: `${ONE_SHOT_BASE}\n\nBreak the assignment into three to seven small steps the student does themselves, in order, each with a realistic number of minutes. Steps are actions ("Pick three sources", not "Research"). For a test or quiz, the steps are study sessions that can go on different days ("Make flashcards for unit 2", "Do 10 practice problems"), each 15 to 40 minutes, ending with a short review. Don't put days or dates in step titles; the app picks the days. Never do the work for them.`,
         schema: obj({ steps: list({ title: str, minutes: int }) }),
       };
     case 'plan':

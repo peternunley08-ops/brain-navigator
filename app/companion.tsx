@@ -1,8 +1,9 @@
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, AppState, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
+  FadeIn,
   FadeInDown,
   FadeInUp,
   FadeOut,
@@ -20,20 +21,23 @@ import { ReplyExtras } from '../components/ember/ReplyExtras';
 import { RichText } from '../components/ember/RichText';
 import { Sparks } from '../components/ember/Sparks';
 import { useEmberRig } from '../components/ember/useEmberRig';
+import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent } from 'expo-speech-recognition';
 import { Button } from '../components/ui/Button';
 import { Chip } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
+import { IconButton } from '../components/ui/IconButton';
 import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
 import { Screen } from '../components/ui/Screen';
 import { CLOSING_LINES, FOLLOW_UP_PROMPTS, OPENING_PROMPTS, randomFrom } from '../core/companionPrompts';
-import { type AIFailure, askEmber, askJob, dueFollowUp, type EmberReply, type EmberTurn, soundsLikeCrisis, whyOffline } from '../core/emberAI';
+import { type AIFailure, askEmber, askJob, dueFollowUp, followUpTopic, type EmberReply, type EmberTurn, soundsLikeCrisis, whyOffline } from '../core/emberAI';
 import { uid, useHubStore } from '../core/hubStore';
 import { useLifeStore } from '../core/lifeStore';
 import { offerUndo } from '../core/undoStore';
 import { useWellnessStore } from '../core/wellnessStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
-import { useVentStore } from '../core/ventStore';
+import { entryKey, useVentStore } from '../core/ventStore';
+import { useClearOnSend } from '../core/hooks/useClearOnSend';
 
 interface Line {
   from: 'ember' | 'you';
@@ -59,7 +63,7 @@ const MAX_TURNS = 20;
 export default function CompanionScreen() {
   // If they mentioned something coming up last time and it's happened, Ember asks about it.
   const follow = useRef(dueFollowUp()).current;
-  const opening = useRef(follow ? `Last time you mentioned ${follow.followUp}. How did it go?` : randomFrom(OPENING_PROMPTS)).current;
+  const opening = useRef(follow ? `Last time you mentioned ${followUpTopic(follow.followUp!)}. How did it go?` : randomFrom(OPENING_PROMPTS)).current;
   // The last conversation, if it was in the last three days, can be picked back up.
   const previous = useRef(useLifeStore.getState().lastEmberChat).current;
   const canResume = !!previous?.lines.length && Date.now() - new Date(previous.at).getTime() < 3 * 86400000 && !useLifeStore.getState().settings.memoryOff;
@@ -75,11 +79,54 @@ export default function CompanionScreen() {
   // The conversation as of right now — state lags a render behind, and
   // finishing straight after an answer must include that answer.
   const linesRef = useRef<Line[]>([]);
+  // The journal key of the saved chat, so a title can be added to it later.
+  const savedKey = useRef<string | null>(null);
   const push = (add: Line) => {
     linesRef.current = [...linesRef.current, add];
     setLines(linesRef.current);
   };
   const [draft, setDraft] = useState('');
+  const box = useClearOnSend(setDraft);
+
+  // Talk instead of type. Speech becomes text on the phone (nothing goes to
+  // Apple), and it's added to the box; it goes to Claude only when you tap
+  // Tell Ember, like anything typed. Events are ignored unless this screen
+  // started listening ("Let it out" uses the same recognizer).
+  const [listening, setListening] = useState(false);
+  const [micNote, setMicNote] = useState<string | null>(null);
+  const mic = useRef<{ on: boolean; base: string }>({ on: false, base: '' });
+  useSpeechRecognitionEvent('end', () => {
+    if (!mic.current.on) return;
+    mic.current.on = false;
+    setListening(false);
+  });
+  useSpeechRecognitionEvent('result', (event) => {
+    const heard = event.results[0]?.transcript;
+    if (!mic.current.on || heard === undefined) return;
+    const base = mic.current.base;
+    setDraft(`${base}${base && heard ? ' ' : ''}${heard}`);
+  });
+  useSpeechRecognitionEvent('error', (event) => {
+    if (!mic.current.on) return;
+    mic.current.on = false;
+    setListening(false);
+    setMicNote(event.error === 'not-allowed' ? 'The microphone is off for this app. You can turn it on in Settings.' : 'Couldn’t catch that. Try again, or type it.');
+  });
+  const toggleMic = async () => {
+    setMicNote(null);
+    if (mic.current.on) return ExpoSpeechRecognitionModule.stop();
+    const perm = await ExpoSpeechRecognitionModule.requestMicrophonePermissionsAsync();
+    if (!perm.granted) return setMicNote('The microphone is off for this app. You can turn it on in Settings.');
+    mic.current = { on: true, base: draft.trim() };
+    setListening(true);
+    ExpoSpeechRecognitionModule.start({ lang: 'en-US', interimResults: true, continuous: true, requiresOnDeviceRecognition: true });
+  };
+  const stopMic = () => {
+    if (mic.current.on) ExpoSpeechRecognitionModule.stop();
+  };
+  useEffect(() => () => {
+    if (mic.current.on) ExpoSpeechRecognitionModule.abort();
+  }, []);
   const [mode, setMode] = useState<'ai' | 'scripted'>('ai');
   const [thinking, setThinking] = useState(false);
   const [finished, setFinished] = useState(false);
@@ -141,11 +188,12 @@ export default function CompanionScreen() {
   const send = async (chip?: string) => {
     const text = (chip ?? draft).trim();
     if (!text || thinking) return;
+    stopMic();
     if (soundsLikeCrisis(text)) setCrisis(true);
     if (startedAt.current == null) startedAt.current = Date.now();
     push({ from: 'you', text });
     const next = linesRef.current;
-    if (!chip) setDraft('');
+    if (!chip) box.clear(text);
     const answers = next.filter((l) => l.from === 'you').length;
 
     if (mode === 'scripted') {
@@ -221,7 +269,10 @@ export default function CompanionScreen() {
       .filter((l) => !l.aside)
       .map((l) => `${l.from === 'ember' ? 'Ember' : 'Student'}: ${l.text}`)
       .join('\n');
-    const res = await askJob<{ summary: string; followUp: string; followUpDate: string }>('summary', transcript, { screen: 'Ember’s memory', who: 'memory' });
+    const res = await askJob<{ summary: string; followUp: string; followUpDate: string; title?: string }>('summary', transcript, { screen: 'Ember’s memory', who: 'memory' });
+    // The same reply names the chat in your journal (older servers send no title).
+    const title = res.ok ? res.data.title?.trim().replace(/^["“]|["”.]$/g, '') : '';
+    if (title && savedKey.current) useLifeStore.getState().nameChat(savedKey.current, title.slice(0, 60));
     if (!res.ok || !res.data.summary) {
       setMemoryOffer(null);
       say('I couldn’t save that memory just now. That’s okay.', { aside: true });
@@ -260,11 +311,21 @@ export default function CompanionScreen() {
     }
   };
 
-  // Hold an Ember reply: keep it, share it, or see what the app sent along with it.
+  // Rate a reply. Kept on this phone only; "off" keeps the chat up to it so
+  // it can be looked over later (Settings → AI → Replies you rated).
+  const rate = (i: number, verdict: 'good' | 'off') => {
+    const l = linesRef.current[i];
+    if (!l?.ai) return;
+    const lines = verdict === 'off' ? linesRef.current.slice(0, i + 1).filter((x) => !x.aside).slice(-12).map((x) => ({ from: x.from, text: x.text })) : undefined;
+    const r = useLifeStore.getState().rateReply({ verdict, who: 'ember', reply: l.text, lines, v: l.ai.v });
+    offerUndo(verdict === 'good' ? 'Marked as a good reply' : 'Kept on this phone to look over', () => useLifeStore.getState().unrateReply(r.id), verdict === 'good' ? 'heart' : 'flag');
+  };
+
+  // Hold an Ember reply: keep it, share it, rate it, or see what the app sent along with it.
   const holdReply = (i: number) => {
     const l = linesRef.current[i];
     if (!l || l.from !== 'ember' || l.aside) return;
-    Alert.alert('This reply', undefined, [
+    Alert.alert('This reply', l.ai ? 'Ratings stay on your phone.' : undefined, [
       {
         text: 'Save to Notebook',
         onPress: () => {
@@ -274,7 +335,59 @@ export default function CompanionScreen() {
         },
       },
       { text: 'Copy or share', onPress: () => Share.share({ message: l.text }).catch(() => {}) },
-      ...(l.ai ? [{ text: 'What did Ember see?', onPress: () => setSeeing(i) }] : []),
+      ...(l.ai
+        ? [
+            { text: 'Good reply', onPress: () => rate(i, 'good') },
+            { text: 'This reply was off', onPress: () => rate(i, 'off') },
+            { text: 'What did Ember see?', onPress: () => setSeeing(i) },
+          ]
+        : []),
+      { text: 'Cancel', style: 'cancel' as const },
+    ]);
+  };
+
+  // No connection: the message waits in the chat and goes on its own once
+  // the phone is back online (tried every 15 seconds while this is open, and
+  // when the app comes back to the front), for up to ten minutes.
+  const offlineTries = useRef(0);
+  useEffect(() => {
+    if (failure !== 'offline' || finished) {
+      if (!failure) offlineTries.current = 0;
+      return;
+    }
+    const retry = () => {
+      if (offlineTries.current >= 40) return;
+      offlineTries.current += 1;
+      think(yourTurns);
+    };
+    const timer = setInterval(retry, 15_000);
+    const sub = AppState.addEventListener('change', (state) => state === 'active' && retry());
+    return () => {
+      clearInterval(timer);
+      sub.remove();
+    };
+    // think and yourTurns are read fresh each time a failure is set.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [failure, finished]);
+
+  // Hold your last message to fix it: it goes back in the box, and Ember's
+  // answer to it is taken back too, so sending again gets a fresh reply.
+  const holdYours = (i: number) => {
+    const l = linesRef.current[i];
+    if (!l || l.from !== 'you') return;
+    Alert.alert('Your message', undefined, [
+      {
+        text: 'Edit and resend',
+        onPress: () => {
+          if (thinking) return;
+          linesRef.current = linesRef.current.slice(0, i);
+          setLines(linesRef.current);
+          setSeeing(null);
+          setFailure(null);
+          setDraft(l.text);
+        },
+      },
+      { text: 'Copy or share', onPress: () => Share.share({ message: l.text }).catch(() => {}) },
       { text: 'Cancel', style: 'cancel' as const },
     ]);
   };
@@ -282,6 +395,7 @@ export default function CompanionScreen() {
   // Save the conversation, then close it warmly. Only once the save works —
   // a failed save must not say "thank you for telling me".
   const finish = async () => {
+    stopMic();
     const said = linesRef.current.filter((l) => !l.aside);
     if (!said.some((l) => l.from === 'you')) {
       router.back();
@@ -290,6 +404,7 @@ export default function CompanionScreen() {
     const content = said.map((l) => `${l.from === 'ember' ? 'Ember' : 'You'}: ${l.text}`).join('\n\n');
     const saved = await saveEntry(content, 'companion');
     if (!saved) return;
+    savedKey.current = entryKey(content);
     setFinished(true);
     const memoryOff = !!useLifeStore.getState().settings.memoryOff;
     if (!memoryOff) useLifeStore.getState().setLastEmberChat({ at: new Date().toISOString(), lines: said.slice(-24).map((l) => ({ from: l.from, text: l.text })) });
@@ -304,6 +419,7 @@ export default function CompanionScreen() {
   };
 
   const lastAI = [...lines].reverse().find((l) => l.from === 'ember' && !l.aside);
+  const lastYou = lines.map((l) => l.from).lastIndexOf('you');
   const chips = !finished && !thinking && lastAI?.ai ? lastAI.ai.chips : [];
 
   return (
@@ -325,13 +441,14 @@ export default function CompanionScreen() {
       >
         {lines.map((l, i) => {
           const isLast = i === lines.length - 1;
+          const editable = l.from === 'you' && i === lastYou && !finished && !thinking;
           return (
             <Animated.View key={i} entering={(l.from === 'ember' ? FadeInUp : FadeInDown).duration(360)}>
               <Pressy
-                onLongPress={l.ai ? () => holdReply(i) : undefined}
-                disabled={!l.ai}
+                onLongPress={l.ai ? () => holdReply(i) : editable ? () => holdYours(i) : undefined}
+                disabled={!l.ai && !editable}
                 depth={0.98}
-                accessibilityHint={l.ai ? 'Hold to save, share, or see what Ember saw' : undefined}
+                accessibilityHint={l.ai ? 'Hold to save, share, rate, or see what Ember saw' : editable ? 'Hold to edit and resend' : undefined}
                 style={[styles.bubble, l.from === 'ember' ? styles.fromEmber : styles.fromYou, l.aside && styles.aside]}
               >
                 {l.from === 'ember' && !l.aside ? (
@@ -378,7 +495,9 @@ export default function CompanionScreen() {
 
         {failure ? (
           <Animated.View entering={FadeInDown.duration(300)} style={[styles.bubble, styles.fromEmber, styles.aside]}>
-            <Text style={styles.asideText}>{whyOffline(failure)}</Text>
+            <Text style={styles.asideText}>
+              {failure === 'offline' && offlineTries.current < 40 ? 'No connection right now. Your message is safe here and will send by itself when you’re back online.' : whyOffline(failure)}
+            </Text>
             <View style={[styles.row, styles.retryRow]}>
               <Button label="Try again" icon="repeat" size="sm" onPress={() => think(yourTurns)} />
               <Button label="Use your questions" variant="ghost" size="sm" onPress={useOwnQuestions} />
@@ -402,13 +521,23 @@ export default function CompanionScreen() {
             <Field
               multiline
               placeholder={yourTurns === 0 ? 'Take your time.' : 'Say more, or tap Done when you’re ready.'}
+              ref={box.input}
               value={draft}
-              onChangeText={setDraft}
+              onChangeText={box.onChangeText}
               onFocus={() => rig.setMood('listening')}
               onBlur={() => rig.setMood('idle')}
               style={styles.input}
             />
             <View style={styles.row}>
+              <IconButton
+                icon={listening ? 'pause' : 'mic'}
+                label={listening ? 'Stop listening' : 'Talk instead of typing'}
+                tint={listening ? colors.flame : undefined}
+                color={listening ? colors.flameInk : undefined}
+                onPress={toggleMic}
+                disabled={thinking || isSaving}
+                size={50}
+              />
               <Button
                 label="Tell Ember"
                 icon="chat"
@@ -420,6 +549,11 @@ export default function CompanionScreen() {
                 <Button label={mode === 'scripted' && yourTurns === 1 ? 'Leave it here' : 'Done'} variant="secondary" loading={isSaving} onPress={finish} disabled={thinking || isSaving} />
               ) : null}
             </View>
+            {listening || micNote ? (
+              <Animated.Text entering={FadeIn.duration(200)} style={styles.micNote}>
+                {micNote ?? 'Listening. Your words stay on your phone until you tap Tell Ember.'}
+              </Animated.Text>
+            ) : null}
             {mode === 'ai' ? (
               <>
                 <View style={styles.toggles}>
@@ -617,6 +751,14 @@ const styles = StyleSheet.create({
   retryRow: {
     marginTop: 10,
     flexWrap: 'wrap',
+  },
+  micNote: {
+    marginTop: 8,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+    color: colors.textFaint,
   },
   chips: {
     gap: 8,

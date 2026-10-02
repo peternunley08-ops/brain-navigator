@@ -28,6 +28,7 @@ import {
   uid,
   useHubStore,
 } from '../core/hubStore';
+import { useLifeStore } from '../core/lifeStore';
 import { type IconName } from '../components/ui/Icon';
 import { celebrate } from '../core/celebrateStore';
 import { essayWords } from '../core/words';
@@ -71,6 +72,7 @@ const TOOLS: { label: string; icon: IconName; path: string }[] = [
 
 export default function CollegeScreen() {
   const colleges = useHubStore((s) => s.colleges);
+  const aiOff = useLifeStore((s) => !!s.settings.aiOff);
   const notes = useHubStore((s) => s.notes);
   const saveCollege = useHubStore((s) => s.saveCollege);
   const createNote = useHubStore((s) => s.createNote);
@@ -218,6 +220,26 @@ export default function CollegeScreen() {
           style={styles.flex}
         />
       </Reveal>
+      {!aiOff ? (
+        <Reveal index={1}>
+          <Button
+            label="Find an essay topic with Quill"
+            icon="sparkle"
+            variant="ghost"
+            size="sm"
+            onPress={() =>
+              router.push({
+                pathname: '/helper/[id]',
+                params: {
+                  id: 'quill',
+                  ask: `Help me find a college essay topic${active.length ? ` (I'm applying to ${active.slice(0, 6).map((c) => c.name).join(', ')})` : ''}. Ask me questions about my life one at a time, and help me notice which story only I could tell. Don't write any of it for me.`,
+                },
+              })
+            }
+            style={styles.quill}
+          />
+        </Reveal>
+      ) : null}
 
       <Reveal index={2}>
         <Section title="Your list" action={{ label: adding ? 'Cancel' : 'Add', onPress: () => setAdding((v) => !v) }}>
@@ -496,6 +518,10 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
 }
 
 const styles = StyleSheet.create({
+  quill: {
+    alignSelf: 'center',
+    marginTop: 4,
+  },
   supDone: {
     opacity: 0.55,
   },

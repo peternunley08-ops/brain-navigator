@@ -1,10 +1,12 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Share, StyleSheet, Switch, Text, View } from 'react-native';
 import { InfoList } from '../components/InfoList';
 import { useAIStatus } from '../components/helpers/Quota';
 import { Button } from '../components/ui/Button';
+import { Icon } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
+import { Pressy } from '../components/ui/Pressy';
 import { Card } from '../components/ui/Card';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
@@ -34,6 +36,8 @@ export default function AIScreen() {
   const aiOff = useLifeStore((s) => !!s.settings.aiOff);
   const memoryOff = useLifeStore((s) => !!s.settings.memoryOff);
   const memory = useLifeStore((s) => s.emberMemory);
+  const rated = useLifeStore((s) => s.replyFeedback);
+  const [openRating, setOpenRating] = useState<string | null>(null);
   useLifeStore((s) => s.ai);
   const spend = aiSpend(30);
   const [test, setTest] = useState<{ busy: boolean; line: string | null }>({ busy: false, line: null });
@@ -46,6 +50,20 @@ export default function AIScreen() {
       busy: false,
       line: res.ok ? `“${(res.data as { reply: string }).reply}” — ${/haiku/.test(res.model) ? 'Claude Haiku' : 'Claude Sonnet'}, ${(res.ms / 1000).toFixed(1)} seconds.` : whyOffline(res.reason),
     });
+  };
+
+  // Ratings never leave the phone on their own; Share is the student's choice.
+  const shareRatings = () => {
+    const text = [...rated]
+      .reverse()
+      .map((r) =>
+        [
+          `${r.verdict === 'good' ? 'Good reply' : 'Reply was off'} · ${new Date(r.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${r.v ? ` · prompt v${r.v}` : ''}`,
+          ...(r.lines ?? [{ from: 'ember' as const, text: r.reply }]).map((l) => `${l.from === 'ember' ? 'Ember' : 'Me'}: ${l.text}`),
+        ].join('\n'),
+      )
+      .join('\n\n---\n\n');
+    Share.share({ message: text }).catch(() => {});
   };
 
   const clearChats = () =>
@@ -146,6 +164,56 @@ export default function AIScreen() {
           </Card>
         </Section>
       </Reveal>
+      {rated.length ? (
+        <Reveal index={n++}>
+          <Section title="Replies you rated" note={`${rated.filter((r) => r.verdict === 'good').length} good, ${rated.filter((r) => r.verdict === 'off').length} off`}>
+            <Card>
+              <Text style={styles.body}>Hold any Ember reply to rate it. Ratings stay on your phone. Share them only if you want someone to look them over.</Text>
+              <View style={styles.memList}>
+                {[...rated].reverse().map((r) => {
+                  const open = openRating === r.id;
+                  return (
+                    <Pressy
+                      key={r.id}
+                      depth={0.99}
+                      haptic="none"
+                      onPress={() => setOpenRating(open ? null : r.id)}
+                      accessibilityRole="button"
+                      accessibilityState={{ expanded: open }}
+                      accessibilityLabel={`${r.verdict === 'good' ? 'Good reply' : 'Reply was off'}: ${r.reply}`}
+                      style={styles.memRow}
+                    >
+                      <Icon name={r.verdict === 'good' ? 'heart' : 'flag'} size={15} color={r.verdict === 'good' ? colors.flame : colors.textMuted} />
+                      <View style={styles.flex}>
+                        {open && r.lines ? (
+                          r.lines.map((l, k) => (
+                            <Text key={k} style={[styles.memText, l.from === 'you' && styles.rateYou]}>
+                              {l.from === 'ember' ? 'Ember' : 'You'}: {l.text}
+                            </Text>
+                          ))
+                        ) : (
+                          <Text style={styles.memText} numberOfLines={open ? undefined : 2}>
+                            {r.reply}
+                          </Text>
+                        )}
+                        <Text style={styles.memMeta}>
+                          {new Date(r.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                          {r.verdict === 'off' && !open ? ' · tap to see the chat' : ''}
+                        </Text>
+                      </View>
+                      <IconButton icon="close" label="Remove this rating" size={30} onPress={() => useLifeStore.getState().unrateReply(r.id)} />
+                    </Pressy>
+                  );
+                })}
+              </View>
+              <View style={styles.btnRow}>
+                <Button label="Share" icon="share" variant="secondary" size="sm" onPress={shareRatings} />
+                <Button label="Clear" variant="ghost" size="sm" tint={colors.danger} onPress={() => useLifeStore.getState().clearFeedback()} />
+              </View>
+            </Card>
+          </Section>
+        </Reveal>
+      ) : null}
       <Reveal index={n++}>
         <Section title="Under the hood">
           <Card>
@@ -204,6 +272,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  rateYou: {
+    color: colors.textMuted,
   },
   memText: {
     fontFamily: fonts.body,

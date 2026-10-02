@@ -1,6 +1,6 @@
 import * as Haptics from '../core/haptics';
 import { EmberReflect } from '../components/ember/EmberReflect';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutUp, LinearTransition } from 'react-native-reanimated';
@@ -19,6 +19,16 @@ import { useLifeStore } from '../core/lifeStore';
 import { colors, fonts } from '../core/theme';
 
 const LAVENDER = '#AFA2DE';
+
+const COMMON = new Set('about after again also because been being could does doing done even ever every from going have just know like make maybe more much never only really should some still than that their them then there they thing things think this what when where which will with would your'.split(' '));
+const words = (t: string) => new Set(t.toLowerCase().match(/[a-z']{4,}/g)?.filter((w) => !COMMON.has(w)) ?? []);
+
+/** How many other worries from the last month share at least two key words with this one. */
+function timesBack(text: string, others: { text: string; createdAt: string }[]) {
+  const mine = words(text);
+  const since = Date.now() - 30 * 86400000;
+  return others.filter((o) => o.text !== text && new Date(o.createdAt).getTime() >= since && [...words(o.text)].filter((w) => mine.has(w)).length >= 2).length;
+}
 
 // Worry postponement: write the worry down and give it an appointment
 // instead of letting it follow you around all day. At worry time, open the
@@ -50,6 +60,10 @@ export default function WorryScreen() {
   const leftMs = endsAt ? Math.max(0, endsAt - Date.now()) : 0;
 
   const open = worries.filter((w) => !w.resolved);
+  // The newest open worry that's been written down three or more times.
+  const repeating = open
+    .map((w) => ({ text: w.text, n: timesBack(w.text, worries) }))
+    .find((w) => w.n >= 2);
   const handled = worries.filter((w) => w.resolved);
   const hour = new Date().getHours();
   const worryTime = hour >= 16 && hour < 19;
@@ -90,6 +104,16 @@ export default function WorryScreen() {
             ) : (
               <Button label="Start 15 minutes of worry time" icon="timer" variant="secondary" tint={LAVENDER} onPress={() => setEndsAt(Date.now() + 15 * 60_000)} />
             )}
+          </Card>
+        </Reveal>
+      ) : null}
+
+      {repeating ? (
+        <Reveal index={1}>
+          <Card tint={LAVENDER} style={styles.gap}>
+            <Text style={styles.backTitle}>This one keeps coming back.</Text>
+            <Text style={styles.hint}>“{repeating.text}” has been in the box {repeating.n + 1} times this month. Worries that return are often lighter once someone you trust knows about them. Who could you tell?</Text>
+            <Button label="Your people" icon="people" variant="secondary" size="sm" tint={LAVENDER} onPress={() => router.push('/people')} style={styles.gap} />
           </Card>
         </Reveal>
       ) : null}
@@ -170,6 +194,12 @@ const styles = StyleSheet.create({
   },
   gap: {
     marginTop: 12,
+  },
+  backTitle: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    marginBottom: 6,
   },
   hint: {
     marginTop: 10,

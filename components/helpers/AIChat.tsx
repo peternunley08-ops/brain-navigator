@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { type AIFailure, askHelper, askJob, type EmberReply, soundsLikeCrisis, whyOffline } from '../../core/emberAI';
+import { useClearOnSend } from '../../core/hooks/useClearOnSend';
 import { useTasksStore } from '../../core/tasksStore';
 import type { Helper } from '../../core/helpers';
 import { type NoteBlock, uid, useHubStore } from '../../core/hubStore';
@@ -48,6 +49,7 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
   const setChat = useLifeStore((s) => s.setHelperChat);
   const [turns, setTurns] = useState<HelperTurn[]>(saved?.length ? saved : [{ role: 'assistant', content: helper.hello }]);
   const [draft, setDraft] = useState(starter ?? '');
+  const box = useClearOnSend(setDraft);
   const [thinking, setThinking] = useState(false);
   const [failure, setFailure] = useState<AIFailure | null>(null);
   // The newest reply's buttons and chips (not saved with the chat).
@@ -94,7 +96,8 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
     if (soundsLikeCrisis(text)) setCrisis(true);
     const next: HelperTurn[] = [...turnsRef.current, { role: 'user', content: text }];
     setTurns(next);
-    setDraft('');
+    if (!raw) box.clear(text);
+    else setDraft('');
     await answer(next);
   };
 
@@ -262,7 +265,7 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
         ))}
       </ScrollView>
       <View style={styles.inputRow}>
-        <Field value={draft} onChangeText={setDraft} placeholder={`Message ${helper.name}`} multiline containerStyle={styles.flex} style={styles.input} />
+        <Field ref={box.input} value={draft} onChangeText={box.onChangeText} placeholder={`Message ${helper.name}`} multiline containerStyle={styles.flex} style={styles.input} />
         <IconButton icon="arrow" label="Send" tint={helper.color} onPress={() => send()} />
       </View>
       {turns.some((t, i) => t.role === 'assistant' && i > 0) ? <Text style={styles.hint}>Hold a reply to save it to your Notebook.</Text> : null}

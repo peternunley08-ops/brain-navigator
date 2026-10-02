@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { addDays, dateKey, daysUntil } from '../../core/dates';
 import { nextBadge } from '../../core/achievements';
+import { dueFollowUp, followUpTopic } from '../../core/emberAI';
 import { helperById } from '../../core/helpers';
 import { useLifeStore, weekOf } from '../../core/lifeStore';
 import { clock, isoDay, useSchoolStore } from '../../core/schoolStore';
@@ -276,6 +277,26 @@ export function Resurface() {
       title={`On ${new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, you were grateful for`}
       body={`“${item}”`}
       onPress={() => router.push('/wins')}
+    />
+  );
+}
+
+// Something the student told Ember about is done now: ask how it went.
+// Only from memories they agreed to keep; hiding it counts as answered.
+export function FollowUp() {
+  useLifeStore((s) => s.emberMemory);
+  const aiOff = useLifeStore((s) => !!s.settings.aiOff);
+  const due = dueFollowUp();
+  if (!due?.followUp || aiOff) return null;
+  const topic = followUpTopic(due.followUp);
+  return (
+    <Row
+      icon="chat"
+      color={colors.flame}
+      title={`How did ${topic} go?`}
+      body="You mentioned it to Ember. Tell it how it went, good or bad."
+      onPress={() => router.push('/companion')}
+      onClose={() => useLifeStore.getState().updateMemory(due.id, { followedUp: true })}
     />
   );
 }

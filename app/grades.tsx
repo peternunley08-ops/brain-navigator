@@ -32,6 +32,7 @@ import {
   type SchoolClass,
   useSchoolStore,
 } from '../core/schoolStore';
+import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts, gaugeColor } from '../core/theme';
 
 // B or better reads sage, C gold, below that ember.
@@ -133,6 +134,7 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
   const addGrade = useSchoolStore((s) => s.addGrade);
   const deleteGrade = useSchoolStore((s) => s.deleteGrade);
   const saveClass = useSchoolStore((s) => s.saveClass);
+  const aiOff = useLifeStore((s) => !!s.settings.aiOff);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('Tests');
@@ -358,6 +360,24 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                   </Text>
                 </View>
               ) : null}
+              {needed != null && needed > 0 && needed <= 100 && !aiOff ? (
+                <Button
+                  label="Plan for it with Sage"
+                  icon="sparkle"
+                  variant="ghost"
+                  size="sm"
+                  onPress={() =>
+                    router.push({
+                      pathname: '/helper/[id]',
+                      params: {
+                        id: 'sage',
+                        ask: `I need about ${Math.ceil(needed)}% on my ${cls.name} final (it's worth ${finalWeight}%) to end with ${target}%. Help me plan how to study for it. Ask me what the final covers first.`,
+                      },
+                    })
+                  }
+                  style={styles.sageBtn}
+                />
+              ) : null}
             </Card>
           </Section>
         </Reveal>
@@ -425,6 +445,10 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
 }
 
 const styles = StyleSheet.create({
+  sageBtn: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
   goalBox: {
     marginTop: 12,
     gap: 8,

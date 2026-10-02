@@ -75,6 +75,8 @@ export interface EmberReply {
   ms: number;
   /** Exactly what was sent along about the app, for "What did Ember see?" */
   note: string;
+  /** The server's prompt version, kept with any rating of this reply. */
+  v: string;
 }
 
 export type EmberAIResult = EmberReply | { ok: false; reason: AIFailure };
@@ -239,6 +241,17 @@ export function dueFollowUp(today = todayKey()) {
   return [...emberMemory].reverse().find((m) => m.followUp && m.followUpDate && !m.followedUp && m.followUpDate <= today && m.followUpDate >= threeAgo) ?? null;
 }
 
+/** The event a follow-up is about, as a few words: "Check in about how the chem test went" → "the chem test". */
+export function followUpTopic(followUp: string) {
+  const t = followUp
+    .trim()
+    .replace(/[.!?]+$/, '')
+    .replace(/^(?:check in|ask|follow up|see)(?:\s+(?:about|on|with them about))?\s+/i, '')
+    .replace(/^(?:how|whether)\s+/i, '')
+    .replace(/\s+(?:went|goes|is going|turned out)$/i, '');
+  return t || followUp;
+}
+
 /** The note as text (older callers). */
 export function emberContext(screen: string, now = new Date()) {
   return buildNote(screen, {}, now).text;
@@ -317,6 +330,7 @@ function toReply(data: Record<string, any>, refs: Record<string, NoteRef>, note:
     cents: centsFor(data.usage),
     ms: Number(data.ms) || 0,
     note,
+    v: typeof data.v === 'string' ? data.v : '',
   };
 }
 

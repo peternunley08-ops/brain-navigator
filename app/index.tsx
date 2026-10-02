@@ -6,7 +6,7 @@ import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-nat
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
-import { Birthday, DayBrief, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
+import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
 import { warmth } from '../core/achievements';
@@ -386,6 +386,7 @@ show('line') ? (
         {show('pinned') ? <PinnedNotes /> : null}
         <Birthday />
         <WelcomeBack />
+        <FollowUp />
         {show('brief') ? <DayBrief /> : null}
         {show('nudges') ? (
           <>
