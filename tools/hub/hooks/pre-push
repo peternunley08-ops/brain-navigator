@@ -1,0 +1,7 @@
+#!/bin/sh
+# Pre-push hook: run security scanner before push
+# Stops push if high-severity flags are found
+# Skip once with: git push --no-verify
+
+node "$(git rev-parse --show-toplevel)/tools/hub/security.mjs" --quiet --agent shield
+exit $?
