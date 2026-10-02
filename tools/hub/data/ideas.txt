@@ -332,3 +332,6 @@ SEC-1 | L | 3 | shield | Notion key out of the app | The Notion secret is read t
 SEC-2 | S | 2 | shield | Check links before opening | Links saved in Connections open only if they are https. Crisis tel: and sms: lines keep working. |
 SEC-3 | M | 2 | shield | Vulnerable packages | npm audit shows high flags in expo, @expo/cli, node-forge and google-signin. Bump within SDK 57 where a fix exists. |
 SEC-4 | S | 2 | shield | Keys can never be committed | The gate now blocks real keys in code, and the scanner checks every tracked file. |
+R6-89 | S | 2 | glide | No jump when a group empties | Ticking the last row of a group keeps the page steady instead of jumping. |
+N-20 | S | 2 | nocturne | Gentler night subtitle | At night the Desk subtitle reads softly instead of "1 due today, 2 late". |
+SEC-5 | S | 2 | shield | Scan before every push | A git pre-push hook runs the free scanner and stops a push with a serious flag. |
