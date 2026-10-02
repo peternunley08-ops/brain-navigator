@@ -40,3 +40,8 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# agent worktrees and the work hub's live data
+.claude/worktrees/
+tools/hub/live/
+node_modules

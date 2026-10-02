@@ -14,6 +14,7 @@ import { Section } from '../components/ui/Section';
 import { useHubStore } from '../core/hubStore';
 import { useLifeStore } from '../core/lifeStore';
 import { dueLabel, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
+import { plural } from '../core/words';
 import { colors, fonts } from '../core/theme';
 
 const NONE: string[] = [];
@@ -86,7 +87,7 @@ export default function SearchScreen() {
         title: 'Flashcards',
         hits: decks
           .filter((d) => has(d.name, ...d.cards.flatMap((c) => [c.front, c.back])))
-          .map((d) => ({ key: d.id, title: d.name, sub: `${d.cards.length} cards`, icon: 'cards', color: d.color, href: `/deck/${d.id}` })),
+          .map((d) => ({ key: d.id, title: d.name, sub: plural(d.cards.length, 'card'), icon: 'cards', color: d.color, href: `/deck/${d.id}` })),
       },
       {
         title: 'Colleges',

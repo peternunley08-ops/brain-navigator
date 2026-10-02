@@ -8,6 +8,7 @@ import type { EmberMood } from './emberStore';
 import { useHabitsStore } from './habitsStore';
 import { useHubStore } from './hubStore';
 import { aiStatus } from './aiQuota';
+import { callName, cheerLine } from './about';
 import { usualCheckinHour } from './learned';
 import { dueCards, hoursTotal, useLifeStore, weekOf } from './lifeStore';
 import { classAverage, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
@@ -526,7 +527,7 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
 
   const ns = nowState(school.classes, now);
   if (route === '/' && ns.kind === 'next' && ns.minsUntil <= 10) {
-    tips.push({ id: `next-${ns.cls.id}-${todayKey(now)}`, line: `${ns.cls.name} starts in ${ns.minsUntil} minutes${ns.cls.room ? `, room ${ns.cls.room}` : ''}.`, priority: 1 });
+    tips.push({ id: `next-${ns.cls.id}-${todayKey(now)}`, line: `${ns.cls.name} starts in ${ns.minsUntil === 1 ? 'a minute' : `${ns.minsUntil} minutes`}${ns.cls.room ? `, room ${ns.cls.room}` : ''}.`, priority: 1 });
   }
 
   // ---- This screen -------------------------------------------------------
@@ -615,7 +616,13 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
   }
 
   tips.sort((a, b) => b.priority - a.priority);
-  return { tips, about: ABOUT[route] ?? ABOUT['/'] };
+  // Cheering tips speak in the student's chosen style (About you), and the
+  // hello uses what Ember calls them.
+  const name = callName();
+  const styled = tips.map((t) =>
+    t.mood === 'cheer' ? { ...t, line: cheerLine(t.line, t.id) } : t.id === 'hello' && name ? { ...t, line: t.line.replace(/^(Morning|Afternoon|Evening)\./, `$1, ${name}.`) } : t
+  );
+  return { tips: styled, about: ABOUT[route] ?? ABOUT['/'] };
 }
 
 export function greeting(now = new Date()) {

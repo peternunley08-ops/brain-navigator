@@ -2,6 +2,8 @@
 // throws into the caller — Supabase stays the source of truth, Notion is a
 // one-way archive/dashboard.
 
+import { isShowing } from './showMode';
+
 const NOTION_VERSION = '2022-06-28';
 const NOTION_API = 'https://api.notion.com/v1';
 
@@ -23,7 +25,7 @@ export async function createNotionPage(
   databaseId: string | undefined,
   properties: Record<string, unknown>
 ): Promise<string | null> {
-  if (!process.env.EXPO_PUBLIC_NOTION_API_KEY || !databaseId) return null;
+  if (isShowing() || !process.env.EXPO_PUBLIC_NOTION_API_KEY || !databaseId) return null;
 
   try {
     const res = await fetch(`${NOTION_API}/pages`, {
@@ -43,7 +45,7 @@ export async function updateNotionPage(
   pageId: string | null | undefined,
   properties: Record<string, unknown>
 ): Promise<boolean> {
-  if (!process.env.EXPO_PUBLIC_NOTION_API_KEY || !pageId) return false;
+  if (isShowing() || !process.env.EXPO_PUBLIC_NOTION_API_KEY || !pageId) return false;
 
   try {
     const res = await fetch(`${NOTION_API}/pages/${pageId}`, {
@@ -58,7 +60,7 @@ export async function updateNotionPage(
 }
 
 export async function archiveNotionPage(pageId: string | null | undefined): Promise<boolean> {
-  if (!process.env.EXPO_PUBLIC_NOTION_API_KEY || !pageId) return false;
+  if (isShowing() || !process.env.EXPO_PUBLIC_NOTION_API_KEY || !pageId) return false;
 
   try {
     const res = await fetch(`${NOTION_API}/pages/${pageId}`, {

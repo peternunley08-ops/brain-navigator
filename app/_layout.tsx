@@ -13,7 +13,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
-import { StyleSheet } from 'react-native';
+import { LogBox, StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AchievementWatcher } from '../components/AchievementWatcher';
@@ -22,6 +22,7 @@ import { EmberBuddy } from '../components/ember/EmberBuddy';
 import { EntryThreshold } from '../components/EntryThreshold';
 import { ErrorScreen } from '../components/ErrorScreen';
 import { OpenWatcher } from '../components/OpenWatcher';
+import { ShowBanner } from '../components/ShowBanner';
 import { UndoBar } from '../components/UndoBar';
 import { Celebration } from '../components/Celebration';
 import { useHubStore } from '../core/hubStore';
@@ -33,6 +34,11 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // A crash in any screen lands here instead of a white screen.
 export { ErrorScreen as ErrorBoundary };
+
+// A development-only warning from inside a library's native animations (not
+// this app's code, and absent from release builds); hiding it keeps the
+// dev toast for warnings that matter.
+LogBox.ignoreLogs(['Sending `onAnimatedValueUpdate` with no listeners registered']);
 
 // Quick-add pages: a full-height iOS sheet with a grabber to pull it down.
 const SHEET = {
@@ -105,6 +111,7 @@ export default function RootLayout() {
             <AchievementWatcher />
             <OpenWatcher />
             <Celebration />
+            <ShowBanner />
           </>
         ) : (
           <EntryThreshold onEnter={() => setEntered(true)} />

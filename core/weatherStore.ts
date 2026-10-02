@@ -1,5 +1,6 @@
 import * as Location from 'expo-location';
 import { create } from 'zustand';
+import { isShowing } from './showMode';
 
 interface WeatherStore {
   isAuthorized: boolean;
@@ -44,6 +45,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   swellPeriodS: null,
 
   connect: async () => {
+    if (isShowing()) return; // showing someone the app: sample data only
     set({ isLoading: true, error: null });
 
     const { status } = await Location.requestForegroundPermissionsAsync();
@@ -57,6 +59,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
   },
 
   refresh: async () => {
+    if (isShowing()) return; // showing someone the app: sample data only
     set({ isLoading: true, error: null });
 
     try {

@@ -26,6 +26,7 @@ import { bestFocusHour, usualFocusLength } from '../core/learned';
 import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
 import { addDays, clock, dateKey, daysUntil, focusMinutesOn, useSchoolStore } from '../core/schoolStore';
+import { plural } from '../core/words';
 import { alpha, colors, fonts, layout, skyGlow } from '../core/theme';
 
 type Phase = 'setup' | 'running' | 'paused' | 'done' | 'break';
@@ -328,7 +329,7 @@ export default function FocusScreen() {
           </Animated.View>
         ) : phase === 'done' ? (
           <Animated.View entering={FadeInDown.duration(360)} style={styles.center}>
-            <Text style={styles.doneTitle}>{workedMin >= length ? 'Candle’s out. Well done.' : `${workedMin} minutes in.`}</Text>
+            <Text style={styles.doneTitle}>{workedMin >= length ? 'Candle’s out. Well done.' : `${plural(workedMin, 'minute')} in.`}</Text>
             <Text style={styles.label}>
               {workedMin} minute{workedMin === 1 ? '' : 's'} of real focus{t ? ` on ${t.title}` : ''}.
             </Text>
@@ -556,7 +557,7 @@ export default function FocusScreen() {
 
       {phase === 'setup' || phase === 'done' ? (
         <Reveal index={3}>
-          <Section title="This week" note={`${todayMin ? `${todayMin} minutes today` : 'Nothing yet today'}, ${allTimeH}h all time`}>
+          <Section title="This week" note={`${todayMin ? `${plural(todayMin, 'minute')} today` : 'Nothing yet today'}, ${allTimeH}h all time`}>
             <Card style={styles.goalCard}>
               <Ring progress={Math.min(1, weekTotal / Math.max(1, focusGoal))} value={String(Math.round((weekTotal / 60) * 10) / 10)} unit="h" label="This week" color={colors.flame} />
               <View style={styles.flex}>

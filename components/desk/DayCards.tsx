@@ -31,6 +31,20 @@ function Row({ icon, color, title, body, onPress, onClose }: { icon: IconName; c
   );
 }
 
+// A card closed with × stays closed for the rest of the day, even after the
+// app restarts (kept in settings; it comes back tomorrow).
+function useClosedToday(id: string): [boolean, () => void] {
+  const today = dateKey();
+  const closed = useLifeStore((st) => st.settings.deskClosed);
+  const hidden = closed?.day === today && closed.ids.includes(id);
+  const close = () => {
+    const cur = useLifeStore.getState().settings.deskClosed;
+    const ids = cur?.day === today ? cur.ids : [];
+    useLifeStore.getState().setSettings({ deskClosed: { day: today, ids: [...ids.filter((x) => x !== id), id] } });
+  };
+  return [hidden, close];
+}
+
 function firstClassOn(day: number, classes: ReturnType<typeof useSchoolStore.getState>['classes']) {
   return classes.filter((c) => c.kind === 'class' && c.days.includes(day)).sort((a, b) => a.start - b.start);
 }
@@ -106,7 +120,7 @@ export function DayBrief() {
 // A test or quiz within two days: offer the right helper.
 export function HelperNudge() {
   const assignments = useSchoolStore((s) => s.assignments);
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useClosedToday('HelperNudge');
   const soon = assignments
     .filter((a) => !a.done && (a.kind === 'test' || a.kind === 'quiz') && daysUntil(a.due) >= 0 && daysUntil(a.due) <= 2)
     .sort((a, b) => a.due.localeCompare(b.due))[0];
@@ -123,7 +137,7 @@ export function HelperNudge() {
       title={soon ? `${target.title} is ${when}` : `${target.title} is due ${when}`}
       body={soon ? `Warm up with ${helper.name}: a quick game from your flashcards.` : `${helper.name} can help you find what to say. You write it.`}
       onPress={() => router.push({ pathname: '/helper/[id]', params: { id: helper.id, about: target.id } })}
-      onClose={() => setHidden(true)}
+      onClose={setHidden}
     />
   );
 }
@@ -146,11 +160,14 @@ export const TAG_TOOLS: Record<string, { title: string; body: string; icon: Icon
 export function TagTool() {
   const tags = useSchoolStore((s) => s.stressTags[dateKey()]);
   // Closing one shows the next thing you tagged, if there was more than one.
-  const [skip, setSkip] = useState(0);
-  const tools = (tags ?? []).map((t) => TAG_TOOLS[t]).filter(Boolean);
-  const tool = tools[skip];
+  const closed = useLifeStore((st) => st.settings.deskClosed);
+  const today = dateKey();
+  const gone = closed?.day === today ? closed.ids : [];
+  const tools = (tags ?? []).map((t) => TAG_TOOLS[t]).filter(Boolean).filter((t) => !gone.includes(`tag-${t.title}`));
+  const tool = tools[0];
   if (!tool) return null;
-  return <Row key={tool.title} icon={tool.icon} color={tool.color} title={tool.title} body={tool.body} onPress={() => router.push(tool.href as never)} onClose={() => setSkip(skip + 1)} />;
+  const close = () => useLifeStore.getState().setSettings({ deskClosed: { day: today, ids: [...gone, `tag-${tool.title}`] } });
+  return <Row key={tool.title} icon={tool.icon} color={tool.color} title={tool.title} body={tool.body} onPress={() => router.push(tool.href as never)} onClose={close} />;
 }
 
 // After two or more days away: a plain hello and what's coming, no guilt.
@@ -160,7 +177,7 @@ export function WelcomeBack() {
     const last = useLifeStore.getState().settings.lastSeen;
     return last ? -daysUntil(last) : 0;
   });
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useClosedToday('WelcomeBack');
   useEffect(() => {
     const today = dateKey();
     if (useLifeStore.getState().settings.lastSeen !== today) useLifeStore.getState().setSettings({ lastSeen: today });
@@ -175,7 +192,7 @@ export function WelcomeBack() {
       title={`Welcome back. It’s been ${away} days.`}
       body={[week ? `${week} thing${week === 1 ? '' : 's'} due this week.` : 'Nothing due this week.', late ? `${late} slipped past; triage helps.` : null].filter(Boolean).join(' ')}
       onPress={() => router.push(late ? '/triage' : '/school')}
-      onClose={() => setHidden(true)}
+      onClose={setHidden}
     />
   );
 }
@@ -196,7 +213,7 @@ export function Birthday() {
 // A test or project within three days with no steps yet: offer to plan it backward.
 export function PlanTest() {
   const assignments = useSchoolStore((s) => s.assignments);
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useClosedToday('PlanTest');
   const t = assignments
     .filter((a) => !a.done && (a.kind === 'test' || a.kind === 'project') && !a.subtasks?.length && daysUntil(a.due) >= 1 && daysUntil(a.due) <= 3)
     .sort((a, b) => a.due.localeCompare(b.due))[0];
@@ -209,7 +226,7 @@ export function PlanTest() {
       title={`${t.title} is ${d === 1 ? 'tomorrow' : `in ${d} days`}, no plan yet`}
       body="Spread the studying over the days you have. Tap to plan it backward."
       onPress={() => router.push(`/assignment/${t.id}`)}
-      onClose={() => setHidden(true)}
+      onClose={setHidden}
     />
   );
 }
@@ -217,7 +234,7 @@ export function PlanTest() {
 // Monday and Tuesday before 2 PM: what last week's review said to try.
 export function TryThisWeek() {
   const reviews = useLifeStore((s) => s.reviews);
-  const [hidden, setHidden] = useState(false);
+  const [hidden, setHidden] = useClosedToday('TryThisWeek');
   const now = new Date();
   const dow = now.getDay();
   if (hidden || (dow !== 1 && dow !== 2) || now.getHours() >= 14) return null;
@@ -230,7 +247,7 @@ export function TryThisWeek() {
       title="This week you said you’d try"
       body={`“${last.next.trim()}”`}
       onPress={() => router.push('/review')}
-      onClose={() => setHidden(true)}
+      onClose={setHidden}
     />
   );
 }

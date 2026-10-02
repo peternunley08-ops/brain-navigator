@@ -10,6 +10,7 @@ import {
   saveCategorySample,
 } from '@kingstinct/react-native-healthkit';
 import { create } from 'zustand';
+import { isShowing } from './showMode';
 
 const READ_TYPES = [
   'HKQuantityTypeIdentifierStepCount',
@@ -79,6 +80,7 @@ export const useHealthStore = create<HealthStore>((set, get) => ({
   error: null,
 
   connect: async () => {
+    if (isShowing()) return; // showing someone the app: sample data only
     set({ error: null });
 
     try {
@@ -98,6 +100,7 @@ export const useHealthStore = create<HealthStore>((set, get) => ({
   },
 
   fetchToday: async () => {
+    if (isShowing()) return; // showing someone the app: sample data only
     set({ isLoading: true, error: null });
 
     try {
@@ -155,6 +158,7 @@ export const useHealthStore = create<HealthStore>((set, get) => ({
   },
 
   logMindfulMinutes: async (minutes) => {
+    if (isShowing()) return false; // showing someone the app: sample data only
     set({ isSaving: true, error: null });
 
     try {

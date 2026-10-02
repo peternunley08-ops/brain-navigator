@@ -12,6 +12,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { goBack } from '../core/chrome';
 import { addDays, type AssignmentKind, dateKey, daysUntil, dueLabel, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
+import { plural } from '../core/words';
 import { alpha, colors, fonts, radii } from '../core/theme';
 
 const KINDS: { key: AssignmentKind; icon: IconName }[] = [
@@ -145,7 +146,7 @@ export default function AddAssignmentScreen() {
       </Reveal>
 
       <Reveal index={3}>
-        <Section title="Due" note={dueLabel(due) === 'Today' || dueLabel(due) === 'Tomorrow' ? dueLabel(due) : `${dueLabel(due)}, in ${daysUntil(due)} days`}>
+        <Section title="Due" note={dueLabel(due) === 'Today' || dueLabel(due) === 'Tomorrow' ? dueLabel(due) : daysUntil(due) < 0 ? `${dueLabel(due)}, ${plural(-daysUntil(due), 'day')} ago` : `${dueLabel(due)}, in ${plural(daysUntil(due), 'day')}`}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.days}>
             {days.map((d) => {
               const on = d.key === due;

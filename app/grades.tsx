@@ -33,6 +33,7 @@ import {
   useSchoolStore,
 } from '../core/schoolStore';
 import { useLifeStore } from '../core/lifeStore';
+import { offerUndo } from '../core/undoStore';
 import { alpha, colors, fonts, gaugeColor } from '../core/theme';
 
 // B or better reads sage, C gold, below that ember.
@@ -425,7 +426,15 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                         </Text>
                       </View>
                       <Text style={[styles.gradePct, { color: gradeColor(pct) }]}>{pct.toFixed(0)}%</Text>
-                      <Pressy onPress={() => deleteGrade(g.id)} hitSlop={10} accessibilityLabel={`Delete ${g.title}`}>
+                      <Pressy
+                        onPress={() => {
+                          const before = useSchoolStore.getState().grades;
+                          deleteGrade(g.id);
+                          offerUndo(`Removed “${g.title}”`, () => useSchoolStore.getState().putBack({ grades: before }), 'trash');
+                        }}
+                        hitSlop={10}
+                        accessibilityLabel={`Delete ${g.title}`}
+                      >
                         <Icon name="trash" size={16} color={alpha(colors.danger, 0.7)} />
                       </Pressy>
                     </Card>

@@ -17,6 +17,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clearScrollToTop, emberHop, firstOpen, goBack, goHome, keepScroll, keptScroll, navTucked, scrolling, setScrollToTop, wantNav } from '../../core/chrome';
+import { useEmberStore } from '../../core/emberStore';
 import { timings } from '../../core/motion';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { colors, fonts, layout } from '../../core/theme';
@@ -109,6 +110,10 @@ export function Screen({
       setRefreshing(false);
     }
   };
+  // Ember perches up by the title on many pages; the title and subtitle
+  // wrap before its spot instead of running underneath it.
+  const perch = useEmberStore((st) => (st.napping || st.y > 0.22 ? null : st.side));
+  const emberRoom = perch === 'right' ? styles.roomRight : perch === 'left' ? styles.roomLeft : null;
   const onBack = typeof back === 'function' ? back : goBack;
   const label = title ?? barTitle;
 
@@ -252,7 +257,7 @@ export function Screen({
       {title ? (
         <Animated.View
           entering={settle ? FadeInDown.duration(400).easing(Easing.out(Easing.cubic)).withInitialValues({ opacity: 0, transform: [{ translateY: 10 }] }) : undefined}
-          style={[styles.titleBlock, centered && styles.centered]}
+          style={[styles.titleBlock, centered && styles.centered, !centered && emberRoom]}
           onLayout={onTitleLayout}
         >
           <Animated.View style={[centered && styles.centered, scroll && titleStyle]}>
@@ -387,6 +392,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     minHeight: 44,
+  },
+  roomRight: {
+    paddingRight: 48,
+  },
+  roomLeft: {
+    paddingLeft: 48,
   },
   titleBlock: {
     marginTop: 18,

@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { EmberGlyph } from '../components/ember/EmberSprite';
 import { Button } from '../components/ui/Button';
@@ -21,6 +21,8 @@ import { Stepper } from '../components/ui/Stepper';
 import { EVENING_HOURS, MORNING_HOURS, TimeField } from '../components/ui/TimeField';
 import { useAIStatus } from '../components/helpers/Quota';
 import { aboutFilled } from '../core/about';
+import { goHome } from '../core/chrome';
+import { startShow } from '../core/show';
 import { warmth } from '../core/achievements';
 import { ACCESSORIES, EMBER_THEMES } from '../core/emberLook';
 import { useHubStore } from '../core/hubStore';
@@ -52,6 +54,22 @@ export default function SettingsScreen() {
   const setProfile = useSchoolStore((s) => s.setProfile);
   const settings = useLifeStore((s) => s.settings);
   const about = useLifeStore((s) => s.about);
+  const showSomeone = () =>
+    Alert.alert(
+      'Show a sample student?',
+      'The app fills with Riley, a made-up 11th grader. Your own data stays hidden and safe, AI is off, and nothing you do while showing is saved. Tap the gold pill at the top to come back.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Show',
+          onPress: async () => {
+            await startShow();
+            goHome();
+            emberSay('Meet Riley. Look around. Nothing here is yours, so tap anything.', 'cheer');
+          },
+        },
+      ]
+    );
   const setSettings = useLifeStore((s) => s.setSettings);
   const deskOrder = settings.deskOrder ?? DESK_ORDER;
   const moveDesk = (i: number, by: number) => {
@@ -442,6 +460,21 @@ export default function SettingsScreen() {
       </Reveal>
 
       <Reveal index={n++}>
+        <Section title="Show someone the app" icon="sparkle" note="For showing a friend, a teacher, or a counselor.">
+          <Card onPress={showSomeone} style={styles.aboutCard} accessibilityLabel="Show someone the app" accessibilityHint="Swaps in a made-up student. Nothing of yours is shown or changed.">
+            <View style={styles.showIcon}>
+              <Icon name="people" size={20} color={colors.flame} />
+            </View>
+            <View style={styles.flexOne}>
+              <Text style={styles.dangerTitle}>Show a sample student</Text>
+              <Text style={styles.aboutBody}>Riley’s week fills the app. Your homework, journal, and About you stay hidden and untouched, and nothing saves.</Text>
+            </View>
+            <Icon name="chevron" size={18} color={colors.textFaint} />
+          </Card>
+        </Section>
+      </Reveal>
+
+      <Reveal index={n++}>
         <Section title="Your data" icon="share" iconColor="#8CC0A8" note="Schoolwork, notes, and everything on this page live on this phone.">
           <Card>
             <Button label="Export a backup" icon="share" variant="secondary" onPress={exportAll} />
@@ -632,6 +665,14 @@ const styles = StyleSheet.create({
   },
   flexOne: {
     flex: 1,
+  },
+  showIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: alpha(colors.flame, 0.14),
   },
   aboutCard: {
     marginTop: 12,

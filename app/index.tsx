@@ -72,9 +72,12 @@ function greetingFor(name: string, time?: string, d = new Date()) {
 }
 
 // One line about the day: what's due, and what's weighing on you.
-function summaryLine(dueToday: number, dueTomorrow: number, open: number) {
+function summaryLine(dueToday: number, dueTomorrow: number, open: number, late = 0) {
   const parts: string[] = [];
-  if (dueToday) parts.push(`${dueToday} due today`);
+  // Late things are named as late, so "due today" means today (it matches School).
+  if (late && dueToday) parts.push(`${dueToday} due today, ${late} late`);
+  else if (late) parts.push(`${late} late`);
+  else if (dueToday) parts.push(`${dueToday} due today`);
   else if (dueTomorrow) parts.push(`${dueTomorrow} due tomorrow`);
   if (open) parts.push(`${open} thing${open === 1 ? '' : 's'} on your mind`);
   if (!parts.length) return 'Nothing due, nothing burning. A good day to breathe.';
@@ -144,7 +147,8 @@ export default function DeskScreen() {
     .filter((a) => !a.done)
     .sort((a, b) => a.due.localeCompare(b.due) || Number(!!b.starred) - Number(!!a.starred))
     .slice(0, 3);
-  const dueToday = assignments.filter((a) => !a.done && daysUntil(a.due) <= 0).length;
+  const dueToday = assignments.filter((a) => !a.done && daysUntil(a.due) === 0).length;
+  const lateCount = assignments.filter((a) => !a.done && daysUntil(a.due) < 0).length;
   const dueTomorrow = assignments.filter((a) => !a.done && daysUntil(a.due) === 1).length;
   const focusToday = focusMinutesOn(focus, dateKey());
   const activeHabits = habits.filter((h) => !h.archived);
@@ -152,7 +156,7 @@ export default function DeskScreen() {
   const load = tonightsLoad(assignments);
   const cap = profile.nightlyCap;
   const doneToday = assignments.filter((a) => a.doneAt && dateKey(new Date(a.doneAt)) === today).length;
-  const allClear = dueToday === 0 && dueTomorrow === 0 && doneToday > 0;
+  const allClear = dueToday === 0 && lateCount === 0 && dueTomorrow === 0 && doneToday > 0;
   const reviews = useLifeStore((s) => s.reviews);
   // Sections the student chose to hide (Settings, "Your Desk").
   const deskHidden = useLifeStore((s) => s.settings.deskHidden);
@@ -387,7 +391,7 @@ show('line') ? (
       motes
       kicker={momentLabel()}
       title={greetingFor(nickname || profile.name, timePick)}
-      subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length)}
+      subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length, lateCount)}
       right={
         <View style={styles.headerBtns}>
           <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} />

@@ -3,6 +3,7 @@ import type { IconName } from '../components/ui/Icon';
 import { create } from 'zustand';
 import { addDays, dateKey } from './dates';
 import { saveAside } from './saveAside';
+import { isShowing } from './showMode';
 
 // Everything around school that makes a student's life easier: wins,
 // gratitude, service and driving hours, countdowns, trusted people, the
@@ -131,6 +132,8 @@ export interface LifeSettings {
   deskHidden: string[];
   /** Desk sections folded with a tap on their heading. */
   deskFolded?: string[];
+  /** Desk cards closed today (they come back tomorrow). */
+  deskClosed?: { day: string; ids: string[] };
   /** Hourly pay at a job, for the earnings estimate. */
   wage?: number | null;
   /** Quiet: Ember only speaks up for big moments and important tips. */
@@ -288,7 +291,7 @@ export interface AIUsage {
   log?: { at: string; who: string; cents?: number; ms?: number; free?: boolean }[];
 }
 
-interface LifeData {
+export interface LifeData {
   wins: Win[];
   gratitude: Record<string, string[]>;
   hours: HoursEntry[];
@@ -331,6 +334,8 @@ interface LifeData {
 interface LifeStore extends LifeData {
   loaded: boolean;
   load: () => Promise<void>;
+  /** Undo: put a part of the data back exactly as it was. */
+  putBack: (patch: Partial<LifeData>) => void;
 
   addWin: (text: string) => void;
   deleteWin: (id: string) => void;
@@ -440,7 +445,7 @@ const DEFAULT_SETTINGS: LifeSettings = {
   deskHidden: [],
 };
 
-const EMPTY: LifeData = {
+export const EMPTY_LIFE: LifeData = {
   wins: [],
   gratitude: {},
   hours: [],
@@ -475,6 +480,8 @@ const FILE = 'life.json';
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 function persist(data: LifeData) {
+  // Nothing saves while showing someone the app (sample data in memory).
+  if (isShowing()) return;
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => {
     try {
@@ -552,9 +559,10 @@ export const useLifeStore = create<LifeStore>((set, get) => {
   const mapDeck = (deckId: string, fn: (d: Deck) => Deck) => commit({ decks: get().decks.map((d) => (d.id === deckId ? fn(d) : d)) });
 
   return {
-    ...EMPTY,
+    ...EMPTY_LIFE,
     loaded: false,
 
+    putBack: (patch) => commit(patch),
     load: async () => {
       if (get().loaded) return;
       let raw = '';
@@ -568,7 +576,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
           const chatAt = d.helperChatAt ?? {};
           const chats = Object.fromEntries(Object.entries(d.helperChats ?? {}).filter(([id]) => !chatAt[id] || chatAt[id] >= cutoff));
           set({
-            ...EMPTY,
+            ...EMPTY_LIFE,
             ...d,
             pack: d.pack?.length ? d.pack : DEFAULT_PACK,
             windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
@@ -749,10 +757,10 @@ export const useLifeStore = create<LifeStore>((set, get) => {
     updateDeck: (id, patch) => mapDeck(id, (d) => ({ ...d, ...patch })),
 
     snapshot: data,
-    reset: () => commit({ ...EMPTY }),
+    reset: () => commit({ ...EMPTY_LIFE }),
     restore: (d) =>
       commit({
-        ...EMPTY,
+        ...EMPTY_LIFE,
         ...d,
         pack: d.pack?.length ? d.pack : DEFAULT_PACK,
         windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,

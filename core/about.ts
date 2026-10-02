@@ -103,16 +103,24 @@ export function questionOfTheDay(about: AboutMe, today = dateKey()) {
  * warm" (and no choice) stays as written. Their nickname shows up now and
  * then, not every time. Only for "you finished something" moments.
  */
-export function cheerLine(text: string) {
+export function cheerLine(text: string, seed?: string) {
   const about = useLifeStore.getState().about;
   const name = about.nickname.trim();
-  const withName = !!name && Math.random() < 0.4;
+  // With a seed (a tip's id), the same line comes out every time it's drawn.
+  const roll = seed ? (hash(seed) % 100) / 100 : Math.random();
+  const withName = !!name && roll < 0.4;
   if (about.cheer === 'hype') {
-    const opener = ['YES', 'Let’s go', 'Look at you'][Math.floor(Math.random() * 3)];
+    const opener = ['YES', 'Let’s go', 'Look at you'][Math.floor(roll * 3)];
     return `${opener}${withName ? `, ${name}` : ''}! ${text.replace(/\.$/, '!')}`;
   }
   if (about.cheer === 'straight') return text.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? text;
   return withName ? `${text} Nice work, ${name}.` : text;
+}
+
+function hash(s: string) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
 }
 
 /** What Ember calls them: their nickname, else their first name. */

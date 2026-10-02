@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
 import { saveAside } from './saveAside';
+import { isShowing } from './showMode';
 
 // The hub: notes (a small Notion), colleges (a better Common App
 // checklist), plan blocks (a Structured-style day), and connection
@@ -131,7 +132,7 @@ export const STATUS_LABEL: Record<CollegeStatus, string> = {
   denied: 'Not this time',
 };
 
-interface HubData {
+export interface HubData {
   notes: Note[];
   colleges: College[];
   plan: PlanBlock[];
@@ -147,6 +148,8 @@ interface HubData {
 interface HubStore extends HubData {
   loaded: boolean;
   load: () => Promise<void>;
+  /** Undo: put a part of the data back exactly as it was. */
+  putBack: (patch: Partial<HubData>) => void;
   /** Replace everything with a backup's hub section (connections on this phone stay). */
   restore: (d: Partial<HubData>) => void;
 
@@ -178,7 +181,7 @@ interface HubStore extends HubData {
   toggleAid: (item: string) => void;
 }
 
-const EMPTY: HubData = {
+export const EMPTY_HUB: HubData = {
   notes: [],
   colleges: [],
   plan: [],
@@ -194,6 +197,8 @@ const FILE = 'hub.json';
 
 let timer: ReturnType<typeof setTimeout> | null = null;
 function persist(data: HubData) {
+  // Nothing saves while showing someone the app (sample data in memory).
+  if (isShowing()) return;
   if (timer) clearTimeout(timer);
   timer = setTimeout(() => {
     try {
@@ -227,7 +232,7 @@ export const useHubStore = create<HubStore>((set, get) => {
   };
 
   return {
-    ...EMPTY,
+    ...EMPTY_HUB,
     loaded: false,
 
     restore: (d) =>
@@ -241,6 +246,7 @@ export const useHubStore = create<HubStore>((set, get) => {
         aid: d.aid ?? {},
       }),
 
+    putBack: (patch) => commit(patch),
     load: async () => {
       if (get().loaded) return;
       let raw = '';
@@ -253,8 +259,8 @@ export const useHubStore = create<HubStore>((set, get) => {
             notes: d.notes ?? [],
             colleges: d.colleges ?? [],
             plan: d.plan ?? [],
-            links: { ...EMPTY.links, ...(d.links ?? {}) },
-            canvas: { ...EMPTY.canvas, ...(d.canvas ?? {}) },
+            links: { ...EMPTY_HUB.links, ...(d.links ?? {}) },
+            canvas: { ...EMPTY_HUB.canvas, ...(d.canvas ?? {}) },
             scholarships: d.scholarships ?? [],
             recs: d.recs ?? [],
             activities: d.activities ?? [],

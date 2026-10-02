@@ -5,6 +5,7 @@ import Svg, { Circle, Defs, G, Path, RadialGradient, Stop, Text as SvgText } fro
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/EmptyState';
+import { SkeletonCard } from '../components/ui/Skeleton';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
@@ -249,7 +250,10 @@ export default function TopographyScreen() {
               })}
             </Svg>
           </Card>
-        ) : loading && history.length === 0 ? null : (
+        ) : loading && history.length === 0 ? (
+          // A quiet placeholder sky while the entries load (only if it takes a moment).
+          <SkeletonCard lines={3} style={styles.skyWait} />
+        ) : (
           <EmptyState
             title={history.length === 0 ? 'The sky’s still empty.' : 'Nothing matches this filter.'}
             body={history.length === 0 ? 'Each thing you set down becomes a star here.' : undefined}
@@ -309,6 +313,9 @@ function Legend({ color, label, ring }: { color: string; label: string; ring?: b
 }
 
 const styles = StyleSheet.create({
+  skyWait: {
+    minHeight: 260,
+  },
   filters: {
     marginTop: 16,
   },

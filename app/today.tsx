@@ -17,6 +17,7 @@ import { clock, dateKey, daysUntil, isoDay } from '../core/dates';
 import { useGoogleCalendarStore } from '../core/googleCalendarStore';
 import { useHubStore } from '../core/hubStore';
 import { KIND_LABEL, useSchoolStore } from '../core/schoolStore';
+import { offerUndo } from '../core/undoStore';
 import { alpha, colors, fonts } from '../core/theme';
 
 interface Item {
@@ -135,7 +136,15 @@ export default function TodayScreen() {
                 it={it}
                 past={it.end <= nowMins}
                 onToggle={it.blockId ? () => toggleBlock(it.blockId!) : undefined}
-                onDelete={it.blockId ? () => deleteBlock(it.blockId!) : undefined}
+                onDelete={
+                  it.blockId
+                    ? () => {
+                        const before = useHubStore.getState().plan;
+                        deleteBlock(it.blockId!);
+                        offerUndo(`Removed “${it.title}”`, () => useHubStore.getState().putBack({ plan: before }), 'trash');
+                      }
+                    : undefined
+                }
               />
             </View>
           ))}

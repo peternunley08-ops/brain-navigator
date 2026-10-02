@@ -69,7 +69,7 @@ export default function NutritionScreen() {
   return (
     <Screen
       title="Food"
-      subtitle={isLoading && entries.length === 0 ? 'Loading…' : entries.length === 0 ? 'Nothing logged today.' : `${entries.length} logged today.`}
+      subtitle={entries.length === 0 ? (isLoading ? 'Today’s meals.' : 'Nothing logged today.') : `${entries.length} logged today.`}
     >
       <Reveal index={0}>
         <Card style={styles.hero}>

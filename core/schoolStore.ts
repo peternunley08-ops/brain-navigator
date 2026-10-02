@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
 import { saveAside } from './saveAside';
+import { isShowing } from './showMode';
 
 // School life: classes, what's due, focus sessions, and a small profile.
 // Kept on the phone (a JSON file in the app's documents folder) rather
@@ -92,7 +93,7 @@ export interface Profile {
   onboarded: boolean;
 }
 
-interface SchoolData {
+export interface SchoolData {
   classes: SchoolClass[];
   assignments: Assignment[];
   focus: FocusSession[];
@@ -105,6 +106,8 @@ interface SchoolData {
 interface SchoolStore extends SchoolData {
   loaded: boolean;
   load: () => Promise<void>;
+  /** Undo: put a part of the data back exactly as it was. */
+  putBack: (patch: Partial<SchoolData>) => void;
   /** Replace everything with a backup's school section. */
   restore: (d: Partial<SchoolData>) => void;
 
@@ -142,7 +145,7 @@ export const KIND_LABEL: Record<AssignmentKind, string> = {
 export const STRESS_SOURCES = ['Tests', 'Homework', 'Friends', 'Family', 'Sports', 'Job', 'College', 'Sleep', 'Money', 'Social media'];
 
 const DEFAULT_PROFILE: Profile = { name: '', grade: null, sleepGoal: 9, nightlyCap: 120, onboarded: false };
-const EMPTY: SchoolData = { classes: [], assignments: [], focus: [], profile: DEFAULT_PROFILE, stressTags: {}, grades: [] };
+export const EMPTY_SCHOOL: SchoolData = { classes: [], assignments: [], focus: [], profile: DEFAULT_PROFILE, stressTags: {}, grades: [] };
 
 const FILE = 'school.json';
 
@@ -152,6 +155,8 @@ function file() {
 
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 function persist(data: SchoolData) {
+  // Nothing saves while showing someone the app (sample data in memory).
+  if (isShowing()) return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     try {
@@ -180,9 +185,10 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
   };
 
   return {
-    ...EMPTY,
+    ...EMPTY_SCHOOL,
     loaded: false,
 
+    putBack: (patch) => commit(patch),
     load: async () => {
       if (get().loaded) return;
       let raw = '';

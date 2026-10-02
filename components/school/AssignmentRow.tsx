@@ -19,6 +19,8 @@ import { Pressy } from '../ui/Pressy';
 // when. Tap the circle to finish it; tap the rest to open it.
 export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?: number; compact?: boolean }) {
   const cls = useSchoolStore((s) => s.classes.find((c) => c.id === a.classId));
+  // Minutes already put into it in Focus, shown on the row.
+  const focused = useSchoolStore((s) => s.focus.reduce((n, f) => (f.assignmentId === a.id ? n + f.minutes : n), 0));
   const toggle = useSchoolStore((s) => s.toggleAssignment);
   const color = cls?.color ?? colors.flame;
   const n = daysUntil(a.due);
@@ -142,6 +144,12 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
               </View>
             ) : null}
             {a.minutes && !a.done ? <Text style={styles.metaText}>{a.minutes >= 60 ? `${+(a.minutes / 60).toFixed(1)}h` : `${a.minutes}m`}</Text> : null}
+            {focused > 0 && !a.done ? (
+              <View style={styles.focused}>
+                <Icon name="timer" size={11} color={colors.flame} />
+                <Text style={[styles.metaText, { color: colors.flame }]}>{focused >= 60 ? `${+(focused / 60).toFixed(1)}h` : `${focused}m`} in</Text>
+              </View>
+            ) : null}
             {a.subtasks?.length && !a.done ? (
               <Text style={styles.metaText}>
                 {a.subtasks.filter((t) => t.done).length}/{a.subtasks.length} steps
@@ -189,6 +197,11 @@ const styles = StyleSheet.create({
   },
   star: {
     color: colors.flame,
+  },
+  focused: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
   },
   landed: {
     position: 'absolute',

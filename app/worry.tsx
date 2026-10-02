@@ -17,6 +17,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { cheerLine } from '../core/about';
 import { useLifeStore } from '../core/lifeStore';
+import { offerUndo } from '../core/undoStore';
 import { colors, fonts } from '../core/theme';
 
 const LAVENDER = '#AFA2DE';
@@ -148,7 +149,9 @@ export default function WorryScreen() {
                         size="sm"
                         variant="ghost"
                         onPress={() => {
+                          const before = useLifeStore.getState().worries;
                           deleteWorry(w.id);
+                          offerUndo('Let it go', () => useLifeStore.getState().putBack({ worries: before }), 'feather');
                           emberSay('Let go. Some things aren’t yours to carry.', 'happy');
                         }}
                       />
@@ -167,7 +170,16 @@ export default function WorryScreen() {
             {showOld ? (
               <Card>
                 {handled.slice(0, 20).map((w) => (
-                  <Pressy key={w.id} onLongPress={() => deleteWorry(w.id)} style={styles.oldRow} accessibilityHint="Hold to remove">
+                  <Pressy
+                    key={w.id}
+                    onLongPress={() => {
+                      const before = useLifeStore.getState().worries;
+                      deleteWorry(w.id);
+                      offerUndo('Removed a worry', () => useLifeStore.getState().putBack({ worries: before }), 'trash');
+                    }}
+                    style={styles.oldRow}
+                    accessibilityHint="Hold to remove"
+                  >
                     <Icon name="check" size={14} color={colors.secured} />
                     <Text style={styles.oldText}>{w.text}</Text>
                   </Pressy>

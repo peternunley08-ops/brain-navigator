@@ -26,16 +26,14 @@ import { useWellnessStore } from '../core/wellnessStore';
 
 function greeting() {
   const hour = new Date().getHours();
+  if (hour < 4) return 'Still up?';
   if (hour < 12) return 'Good morning';
   if (hour < 18) return 'Good afternoon';
   return 'Good evening';
 }
 
-const DATE_LABEL = new Date().toLocaleDateString('en-US', {
-  weekday: 'long',
-  month: 'long',
-  day: 'numeric',
-});
+// Worked out when the page opens, so it's right even after midnight.
+const dateLabel = () => new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
 const STEADY_OFFER = { title: 'Stress is high', body: 'Two minutes of slow breathing settles the body fast.', icon: 'wind', color: '#8FB4E8', href: '/breathe' };
 
@@ -128,7 +126,7 @@ export default function CheckinScreen() {
 
   return (
     <Screen
-      kicker={DATE_LABEL}
+      kicker={dateLabel()}
       title={greeting()}
       subtitle={existing ? 'You can still change today’s check-in.' : 'How are you doing, really?'}
       nav={false}

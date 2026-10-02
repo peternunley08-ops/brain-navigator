@@ -5,6 +5,7 @@ import {
   statusCodes,
 } from '@react-native-google-signin/google-signin';
 import { create } from 'zustand';
+import { isShowing } from './showMode';
 
 const CALENDAR_SCOPE = 'https://www.googleapis.com/auth/calendar.events';
 const EVENTS_ENDPOINT = 'https://www.googleapis.com/calendar/v3/calendars/primary/events';
@@ -67,6 +68,7 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
   error: null,
 
   restoreSession: async () => {
+    if (isShowing()) return; // showing someone the app: sample data only
     ensureConfigured();
     if (!GoogleSignin.hasPreviousSignIn()) return;
 
@@ -112,6 +114,7 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
   },
 
   fetchTodayEvents: async () => {
+    if (isShowing()) return; // showing someone the app: sample data only
     set({ isLoading: true, error: null });
 
     try {
@@ -149,6 +152,7 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
   },
 
   createEvent: async (title, durationMinutes) => {
+    if (isShowing()) return false; // showing someone the app: sample data only
     if (!title.trim()) return false;
     set({ isSaving: true, error: null });
 

@@ -12,3 +12,8 @@ export function wordGoalFor(n: { title: string; icon: string; wordGoal?: number 
   const isEssay = /essay|personal statement|supplement|brainstorm/i.test(n.title) || n.icon === 'feather';
   return n.wordGoal !== undefined ? n.wordGoal : isEssay ? 650 : null;
 }
+
+/** "1 card", "3 cards": a count with its word, singular when it's one. */
+export function plural(n: number, word: string, many = `${word}s`) {
+  return `${n} ${n === 1 ? word : many}`;
+}

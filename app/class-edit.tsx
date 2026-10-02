@@ -14,6 +14,7 @@ import { Section } from '../components/ui/Section';
 import { TimeField } from '../components/ui/TimeField';
 import { goBack } from '../core/chrome';
 import { type ClassLevel, CLASS_COLORS, clock, useSchoolStore } from '../core/schoolStore';
+import { offerUndo } from '../core/undoStore';
 import { colors, fonts } from '../core/theme';
 
 const DAYS = [
@@ -168,7 +169,9 @@ export default function ClassEditScreen() {
             icon="trash"
             tint={colors.danger}
             onPress={() => {
+              const { classes, assignments } = useSchoolStore.getState();
               deleteClass(existing.id);
+              offerUndo(`Removed ${existing.name}`, () => useSchoolStore.getState().putBack({ classes, assignments }), 'trash');
               goBack();
             }}
             style={styles.remove}

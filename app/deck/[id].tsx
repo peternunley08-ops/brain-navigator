@@ -32,6 +32,7 @@ import { Chip, ChipRow } from '../../components/ui/Chip';
 import { goBack } from '../../core/chrome';
 import { cheerLine } from '../../core/about';
 import { checkAnswer, deckStats, dueCards, type Flashcard, parseCards, useLifeStore } from '../../core/lifeStore';
+import { plural } from '../../core/words';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { offerUndo } from '../../core/undoStore';
 
@@ -63,7 +64,7 @@ export default function DeckScreen() {
     <Screen
       glowColor={deck.color}
       title={deck.name}
-      subtitle={`${st.total} cards, ${st.mastered} mastered${due ? `, ${due} to study` : ''}`}
+      subtitle={`${plural(st.total, 'card')}, ${st.mastered} mastered${due ? `, ${due} to study` : ''}`}
       nav={mode !== 'study'}
       right={
         <View style={styles.headerBtns}>
@@ -173,7 +174,7 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
                   disabled={!parsed.length}
                   onPress={() => {
                     addCards(deck.id, parsed);
-                    emberSay(`${parsed.length} cards in. Quiz yourself before you reread anything.`, 'happy');
+                    emberSay(`${plural(parsed.length, 'card')} in. Quiz yourself before you reread anything.`, 'happy');
                     setBulk('');
                     setBulkOpen(false);
                   }}
@@ -219,7 +220,15 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
                     <View style={[styles.box, { backgroundColor: alpha(c.box >= 4 ? colors.secured : c.seen ? colors.flame : colors.textFaint, 0.18) }]}>
                       <Text style={[styles.boxText, { color: c.box >= 4 ? colors.secured : c.seen ? colors.flame : colors.textFaint }]}>{c.seen ? c.box : 'new'}</Text>
                     </View>
-                    <Pressy onPress={() => deleteCard(deck.id, c.id)} hitSlop={10} accessibilityLabel={`Delete card ${c.front}`}>
+                    <Pressy
+                      onPress={() => {
+                        const before = useLifeStore.getState().decks;
+                        deleteCard(deck.id, c.id);
+                        offerUndo('Removed a card', () => useLifeStore.getState().putBack({ decks: before }), 'trash');
+                      }}
+                      hitSlop={10}
+                      accessibilityLabel={`Delete card ${c.front}`}
+                    >
                       <Icon name="close" size={15} color={colors.textFaint} />
                     </Pressy>
                   </Card>

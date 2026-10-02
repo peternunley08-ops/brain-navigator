@@ -3,6 +3,7 @@ import { checkAchievements } from '../core/achievements';
 import { useHubStore } from '../core/hubStore';
 import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
+import { isShowing } from '../core/showMode';
 import { celebrate } from '../core/celebrateStore';
 import { emberSay } from './ember/EmberBuddy';
 
@@ -20,7 +21,8 @@ export function AchievementWatcher() {
     const run = () => {
       if (!useSchoolStore.getState().loaded || !useLifeStore.getState().loaded || !useHubStore.getState().loaded) return;
       const earned = checkAchievements();
-      if (ready && earned.length) {
+      // A sample student's badges (while showing someone the app) stay quiet.
+      if (ready && earned.length && !isShowing()) {
         const a = earned[earned.length - 1];
         if (RARE.has(a.key)) celebrate(a.title, a.body, a.color, { key: `badge-${a.key}` });
         else emberSay(`New badge: ${a.title}. ${a.body}`, 'cheer');
