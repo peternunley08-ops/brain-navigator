@@ -11,7 +11,8 @@ import { aiStatus } from './aiQuota';
 import { callName, cheerLine } from './about';
 import { usualCheckinHour } from './learned';
 import { dueCards, hoursTotal, useLifeStore, weekOf } from './lifeStore';
-import { classAverage, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
+import { lightsOutMinutes, NIGHT_END, nightNow } from './night';
+import { classAverage, clock, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
 import { useTasksStore } from './tasksStore';
 import { useWellnessStore } from './wellnessStore';
@@ -252,7 +253,7 @@ const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction
   '/plus': { title: 'Plus', line: 'More AI replies for me and the crew. Everything that keeps you safe and organized stays free either way.' },
 };
 
-export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
+export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
   const route = pathname.startsWith('/entry/')
     ? '/entry'
     : pathname.startsWith('/assignment/')
@@ -291,7 +292,20 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
     });
   }
 
-  if (lateNight) {
+  // Past midnight, sleep outranks everything, homework included.
+  const pastMidnight = hour * 60 + now.getMinutes() < NIGHT_END;
+  if (pastMidnight) {
+    const out = lightsOutMinutes(useLifeStore.getState().settings.wake, useSchoolStore.getState().profile.sleepGoal);
+    tips.push({
+      id: `past-midnight-${todayKey(now)}`,
+      line: `It’s past midnight. Homework can wait for morning-you. Your lights-out time was ${clock(out)}, and bed is the best next step.`,
+      actions: [A.breathe, A.sleep],
+      priority: 4,
+      mood: 'sleepy',
+    });
+  }
+
+  if (lateNight && !pastMidnight) {
     tips.push({
       id: `late-${todayKey(now)}`,
       line: 'It’s late. Whatever’s still open will keep until morning. A slow breath before sleep?',
