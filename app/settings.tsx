@@ -11,6 +11,7 @@ import { Field } from '../components/ui/Field';
 import { HoldToConfirm } from '../components/ui/HoldToConfirm';
 import { IconButton } from '../components/ui/IconButton';
 import { Icon } from '../components/ui/Icon';
+import { type Jump, JumpChips, useJumps } from '../components/ui/JumpChips';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
@@ -32,6 +33,16 @@ import { alpha, colors, fonts, radii } from '../core/theme';
 
 const GRADES = [9, 10, 11, 12];
 
+// The jump chips at the top, one per part of the story.
+const PARTS: Jump[] = [
+  { key: 'you', label: 'You', icon: 'star' },
+  { key: 'desk', label: 'Your Desk', icon: 'candle' },
+  { key: 'ember', label: 'Ember', icon: 'flame' },
+  { key: 'ai', label: 'AI', icon: 'sparkle' },
+  { key: 'show', label: 'Show someone', icon: 'people' },
+  { key: 'data', label: 'Your data', icon: 'share' },
+];
+
 const DESK_PARTS: { key: string; label: string }[] = [
   { key: 'countdowns', label: 'Countdowns' },
   { key: 'onething', label: 'One thing' },
@@ -50,6 +61,7 @@ const DESK_PARTS: { key: string; label: string }[] = [
 // Everything about you and how the app behaves, in one place — plus your
 // data, which you can take with you or wipe.
 export default function SettingsScreen() {
+  const jumps = useJumps();
   const profile = useSchoolStore((s) => s.profile);
   const setProfile = useSchoolStore((s) => s.setProfile);
   const settings = useLifeStore((s) => s.settings);
@@ -219,9 +231,14 @@ export default function SettingsScreen() {
     router.replace('/welcome');
   };
 
+  // The page reads like a story: you, your Desk, Ember, AI, then your data
+  // (and the button that wipes it) at the very end.
   let n = 0;
   return (
-    <Screen title="Settings" subtitle="About you, Ember, and your data.">
+    <Screen title="Settings" subtitle="You, your Desk, Ember, AI, and your data." scrollRef={jumps.scrollRef}>
+      <JumpChips items={PARTS} onJump={jumps.jump} />
+
+      <View onLayout={jumps.mark('you')} />
       <Reveal index={n++}>
         <Section title="You" icon="star">
           <Card>
@@ -250,6 +267,16 @@ export default function SettingsScreen() {
             </View>
             <Icon name="chevron" size={18} color={colors.textFaint} />
           </Card>
+          <View style={[styles.links, styles.linksGap]}>
+            <Card onPress={() => router.push('/achievements')} style={styles.link}>
+              <Icon name="trophy" size={22} color={colors.flame} />
+              <Text style={styles.linkText}>Badges</Text>
+            </Card>
+            <Card onPress={() => router.push('/year')} style={styles.link}>
+              <Icon name="star" size={22} color={colors.flame} />
+              <Text style={styles.linkText}>Your year</Text>
+            </Card>
+          </View>
         </Section>
       </Reveal>
 
@@ -273,6 +300,64 @@ export default function SettingsScreen() {
       </Reveal>
 
       <Reveal index={n++}>
+        <Section title="Goals" icon="flag">
+          <Card>
+            <Row label="Focus a week" hint="Minutes of focus sessions">
+              <Stepper value={`${Math.round(settings.focusGoal / 60 * 10) / 10}h`} onDecrement={() => setSettings({ focusGoal: Math.max(60, settings.focusGoal - 30) })} onIncrement={() => setSettings({ focusGoal: Math.min(1800, settings.focusGoal + 30) })} label="weekly focus goal" minWidth={52} />
+            </Row>
+            <Row label="Service hours" hint="Your school or club’s requirement">
+              <Stepper value={settings.serviceGoal} onDecrement={() => setSettings({ serviceGoal: Math.max(5, settings.serviceGoal - 5) })} onIncrement={() => setSettings({ serviceGoal: settings.serviceGoal + 5 })} label="service hours goal" />
+            </Row>
+            <Row label="Driving hours" hint="California asks for 50, 10 at night">
+              <Stepper value={settings.drivingGoal} onDecrement={() => setSettings({ drivingGoal: Math.max(10, settings.drivingGoal - 5) })} onIncrement={() => setSettings({ drivingGoal: settings.drivingGoal + 5 })} label="driving hours goal" />
+            </Row>
+          </Card>
+        </Section>
+      </Reveal>
+
+      <View onLayout={jumps.mark('desk')} />
+      <Reveal index={n++}>
+        <Section title="Your Desk" icon="candle" note="Tap to hide what you don’t use. The class card always stays.">
+          <ChipRow>
+            {DESK_PARTS.map((p) => {
+              const on = !settings.deskHidden.includes(p.key);
+              return (
+                <Chip
+                  key={p.key}
+                  label={p.label}
+                  icon={on ? 'check' : undefined}
+                  selected={on}
+                  onPress={() => setSettings({ deskHidden: on ? [...settings.deskHidden, p.key] : settings.deskHidden.filter((k) => k !== p.key) })}
+                />
+              );
+            })}
+          </ChipRow>
+          <Text style={styles.label}>Order, top to bottom</Text>
+          <Card padded={false} style={styles.orderCard}>
+            {deskOrder.map((k, i) => (
+              <View key={k} style={[styles.orderRow, i > 0 && styles.orderLine]}>
+                <Text style={[styles.orderText, settings.deskHidden.includes(k) && styles.orderHidden]}>{DESK_PARTS.find((p) => p.key === k)?.label ?? k}</Text>
+                {/* Rotated from outside: Pressy's own press transform would replace a rotate passed as its style. */}
+                <View style={styles.up}>
+                  <IconButton icon="back" label={`Move ${DESK_PARTS.find((p) => p.key === k)?.label} up`} size={34} disabled={i === 0} onPress={() => moveDesk(i, -1)} />
+                </View>
+                <View style={styles.down}>
+                  <IconButton
+                    icon="back"
+                    label={`Move ${DESK_PARTS.find((p) => p.key === k)?.label} down`}
+                    size={34}
+                    disabled={i === deskOrder.length - 1}
+                    onPress={() => moveDesk(i, 1)}
+                  />
+                </View>
+              </View>
+            ))}
+          </Card>
+        </Section>
+      </Reveal>
+
+      <View onLayout={jumps.mark('ember')} />
+      <Reveal index={n++}>
         <Section title="Ember" icon="flame" note={`Warmth ${w}${nextUnlock ? `, next unlock at ${nextUnlock}` : ', everything unlocked'}`}>
           <Card>
             <View style={styles.emberHead}>
@@ -283,29 +368,6 @@ export default function SettingsScreen() {
               </View>
             </View>
             {nextUnlock ? <ProgressBar value={w / nextUnlock} style={styles.gap} /> : null}
-            <Text style={styles.label}>How much Ember talks</Text>
-            <ChipRow>
-              <Chip label="Chatty" selected={!settings.emberQuiet} onPress={() => setSettings({ emberQuiet: false })} />
-              <Chip label="Quiet" selected={!!settings.emberQuiet} onPress={() => setSettings({ emberQuiet: true })} />
-              <Chip
-                label="Silent in class"
-                icon={settings.quietInClass !== false ? 'check' : undefined}
-                selected={settings.quietInClass !== false}
-                onPress={() => setSettings({ quietInClass: settings.quietInClass === false })}
-              />
-            </ChipRow>
-            <Text style={styles.hint}>Quiet keeps the big moments and important tips. Silent in class uses your class times.</Text>
-            <Text style={styles.label}>Vibration</Text>
-            <ChipRow>
-              {(['full', 'light', 'off'] as const).map((h) => (
-                <Chip key={h} label={h === 'full' ? 'Full' : h === 'light' ? 'Light taps' : 'Off'} selected={(settings.haptics ?? 'full') === h} onPress={() => setSettings({ haptics: h })} />
-              ))}
-            </ChipRow>
-            <Text style={styles.label}>Big moments</Text>
-            <ChipRow>
-              <Chip label="Whole screen" selected={!settings.quietCelebrations} onPress={() => setSettings({ quietCelebrations: false })} />
-              <Chip label="Just Ember" selected={!!settings.quietCelebrations} onPress={() => setSettings({ quietCelebrations: true })} />
-            </ChipRow>
             <Text style={styles.label}>Color</Text>
             <View style={styles.swatches}>
               {(Object.keys(EMBER_THEMES) as EmberTheme[]).map((key) => {
@@ -359,65 +421,35 @@ export default function SettingsScreen() {
               })}
             </ChipRow>
           </Card>
-        </Section>
-      </Reveal>
-
-      <Reveal index={n++}>
-        <Section title="Your Desk" icon="candle" note="Tap to hide what you don’t use. The class card always stays.">
-          <ChipRow>
-            {DESK_PARTS.map((p) => {
-              const on = !settings.deskHidden.includes(p.key);
-              return (
-                <Chip
-                  key={p.key}
-                  label={p.label}
-                  icon={on ? 'check' : undefined}
-                  selected={on}
-                  onPress={() => setSettings({ deskHidden: on ? [...settings.deskHidden, p.key] : settings.deskHidden.filter((k) => k !== p.key) })}
-                />
-              );
-            })}
-          </ChipRow>
-          <Text style={styles.label}>Order, top to bottom</Text>
-          <Card padded={false} style={styles.orderCard}>
-            {deskOrder.map((k, i) => (
-              <View key={k} style={[styles.orderRow, i > 0 && styles.orderLine]}>
-                <Text style={[styles.orderText, settings.deskHidden.includes(k) && styles.orderHidden]}>{DESK_PARTS.find((p) => p.key === k)?.label ?? k}</Text>
-                {/* Rotated from outside: Pressy's own press transform would replace a rotate passed as its style. */}
-                <View style={styles.up}>
-                  <IconButton icon="back" label={`Move ${DESK_PARTS.find((p) => p.key === k)?.label} up`} size={34} disabled={i === 0} onPress={() => moveDesk(i, -1)} />
-                </View>
-                <View style={styles.down}>
-                  <IconButton
-                    icon="back"
-                    label={`Move ${DESK_PARTS.find((p) => p.key === k)?.label} down`}
-                    size={34}
-                    disabled={i === deskOrder.length - 1}
-                    onPress={() => moveDesk(i, 1)}
-                  />
-                </View>
-              </View>
-            ))}
+          <Card style={styles.nextCard}>
+            <Text style={[styles.label, styles.firstLabel]}>How much Ember talks</Text>
+            <ChipRow>
+              <Chip label="Chatty" selected={!settings.emberQuiet} onPress={() => setSettings({ emberQuiet: false })} />
+              <Chip label="Quiet" selected={!!settings.emberQuiet} onPress={() => setSettings({ emberQuiet: true })} />
+              <Chip
+                label="Silent in class"
+                icon={settings.quietInClass !== false ? 'check' : undefined}
+                selected={settings.quietInClass !== false}
+                onPress={() => setSettings({ quietInClass: settings.quietInClass === false })}
+              />
+            </ChipRow>
+            <Text style={styles.hint}>Quiet keeps the big moments and important tips. Silent in class uses your class times.</Text>
+            <Text style={styles.label}>Big moments</Text>
+            <ChipRow>
+              <Chip label="Whole screen" selected={!settings.quietCelebrations} onPress={() => setSettings({ quietCelebrations: false })} />
+              <Chip label="Just Ember" selected={!!settings.quietCelebrations} onPress={() => setSettings({ quietCelebrations: true })} />
+            </ChipRow>
+            <Text style={styles.label}>Vibration</Text>
+            <ChipRow>
+              {(['full', 'light', 'off'] as const).map((h) => (
+                <Chip key={h} label={h === 'full' ? 'Full' : h === 'light' ? 'Light taps' : 'Off'} selected={(settings.haptics ?? 'full') === h} onPress={() => setSettings({ haptics: h })} />
+              ))}
+            </ChipRow>
           </Card>
         </Section>
       </Reveal>
 
-      <Reveal index={n++}>
-        <Section title="Goals" icon="flag">
-          <Card>
-            <Row label="Focus a week" hint="Minutes of focus sessions">
-              <Stepper value={`${Math.round(settings.focusGoal / 60 * 10) / 10}h`} onDecrement={() => setSettings({ focusGoal: Math.max(60, settings.focusGoal - 30) })} onIncrement={() => setSettings({ focusGoal: Math.min(1800, settings.focusGoal + 30) })} label="weekly focus goal" minWidth={52} />
-            </Row>
-            <Row label="Service hours" hint="Your school or club’s requirement">
-              <Stepper value={settings.serviceGoal} onDecrement={() => setSettings({ serviceGoal: Math.max(5, settings.serviceGoal - 5) })} onIncrement={() => setSettings({ serviceGoal: settings.serviceGoal + 5 })} label="service hours goal" />
-            </Row>
-            <Row label="Driving hours" hint="California asks for 50, 10 at night">
-              <Stepper value={settings.drivingGoal} onDecrement={() => setSettings({ drivingGoal: Math.max(10, settings.drivingGoal - 5) })} onIncrement={() => setSettings({ drivingGoal: settings.drivingGoal + 5 })} label="driving hours goal" />
-            </Row>
-          </Card>
-        </Section>
-      </Reveal>
-
+      <View onLayout={jumps.mark('ai')} />
       <Reveal index={n++}>
         <Section title="AI and Plus" icon="sparkle" note="Only replies written by AI count. Everything on your phone is free.">
           <Card onPress={() => router.push('/plus')}>
@@ -436,29 +468,7 @@ export default function SettingsScreen() {
         </Section>
       </Reveal>
 
-      <Reveal index={n++}>
-        <Section title="Badges and your year" icon="trophy">
-          <View style={styles.links}>
-            <Card onPress={() => router.push('/achievements')} style={styles.link}>
-              <Icon name="trophy" size={22} color={colors.flame} />
-              <Text style={styles.linkText}>Badges</Text>
-            </Card>
-            <Card onPress={() => router.push('/year')} style={styles.link}>
-              <Icon name="star" size={22} color={colors.flame} />
-              <Text style={styles.linkText}>Your year</Text>
-            </Card>
-            <Card onPress={() => router.push('/welcome')} style={styles.link}>
-              <Icon name="flame" size={22} color={colors.flame} />
-              <Text style={styles.linkText}>Replay the welcome</Text>
-            </Card>
-            <Card onPress={() => router.push('/whats-new')} style={styles.link}>
-              <Icon name="gift" size={22} color={colors.flame} />
-              <Text style={styles.linkText}>What’s new</Text>
-            </Card>
-          </View>
-        </Section>
-      </Reveal>
-
+      <View onLayout={jumps.mark('show')} />
       <Reveal index={n++}>
         <Section title="Show someone the app" icon="sparkle" note="For showing a friend, a teacher, or a counselor.">
           <Card onPress={showSomeone} style={styles.aboutCard} accessibilityLabel="Show someone the app" accessibilityHint="Swaps in a made-up student. Nothing of yours is shown or changed.">
@@ -471,9 +481,20 @@ export default function SettingsScreen() {
             </View>
             <Icon name="chevron" size={18} color={colors.textFaint} />
           </Card>
+          <View style={[styles.links, styles.linksGap]}>
+            <Card onPress={() => router.push('/whats-new')} style={styles.link}>
+              <Icon name="gift" size={22} color={colors.flame} />
+              <Text style={styles.linkText}>What’s new</Text>
+            </Card>
+            <Card onPress={() => router.push('/welcome')} style={styles.link}>
+              <Icon name="flame" size={22} color={colors.flame} />
+              <Text style={styles.linkText}>Replay the welcome</Text>
+            </Card>
+          </View>
         </Section>
       </Reveal>
 
+      <View onLayout={jumps.mark('data')} />
       <Reveal index={n++}>
         <Section title="Your data" icon="share" iconColor="#8CC0A8" note="Schoolwork, notes, and everything on this page live on this phone.">
           <Card>
@@ -662,6 +683,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+  },
+  linksGap: {
+    marginTop: 12,
+  },
+  nextCard: {
+    marginTop: 12,
+  },
+  firstLabel: {
+    marginTop: 0,
   },
   flexOne: {
     flex: 1,
