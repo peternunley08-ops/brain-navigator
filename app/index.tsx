@@ -6,6 +6,7 @@ import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-nat
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
+import { AboutCards } from '../components/desk/AboutCards';
 import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
@@ -60,9 +61,13 @@ function countLine(n: number) {
   return n === 1 ? 'One thing is still open.' : `${word} things are still open.`;
 }
 
-function greetingFor(name: string, d = new Date()) {
+// Uses what Ember calls them (About you) and, late or early, whether
+// they said they're a night owl or a morning person.
+function greetingFor(name: string, time?: string, d = new Date()) {
   const h = d.getHours();
-  const part = h < 5 ? 'Up late' : h < 12 ? 'Morning' : h < 17 ? 'Hey' : 'Evening';
+  const late = h >= 22 || h < 5;
+  const part =
+    late && time === 'b' ? 'Night owl hours' : h < 5 ? 'Up late' : h < 9 && time === 'a' ? 'Early start' : h < 12 ? 'Morning' : h < 17 ? 'Hey' : 'Evening';
   return name ? `${part}, ${name}` : 'The Desk';
 }
 
@@ -102,6 +107,11 @@ export default function DeskScreen() {
   const assignments = useSchoolStore((s) => s.assignments);
   const focus = useSchoolStore((s) => s.focus);
   const profile = useSchoolStore((s) => s.profile);
+  const nickname = useLifeStore((s) => s.about.nickname.trim());
+  const timePick = useLifeStore((s) => s.about.picks.time);
+  // A night owl's evening (or a morning person's morning) starts with the brief.
+  const hourNow = new Date().getHours();
+  const briefFirst = (timePick === 'b' && hourNow >= 17) || (timePick === 'a' && hourNow >= 5 && hourNow < 11);
   const schoolLoaded = useSchoolStore((s) => s.loaded);
 
   // First time here: Ember says hello and helps set things up.
@@ -368,7 +378,7 @@ show('line') ? (
       }
       motes
       kicker={momentLabel()}
-      title={greetingFor(profile.name)}
+      title={greetingFor(nickname || profile.name, timePick)}
       subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length)}
       right={
         <View style={styles.headerBtns}>
@@ -379,6 +389,7 @@ show('line') ? (
     >
       <Reveal index={0}>
         {show('countdowns') ? <CountdownChips /> : null}
+        {briefFirst && show('brief') ? <DayBrief /> : null}
         <WhatsNew />
         {show('onething') ? <OneThing /> : null}
         <NowCard />
@@ -387,7 +398,8 @@ show('line') ? (
         <Birthday />
         <WelcomeBack />
         <FollowUp />
-        {show('brief') ? <DayBrief /> : null}
+        {show('question') ? <AboutCards /> : null}
+        {!briefFirst && show('brief') ? <DayBrief /> : null}
         {show('nudges') ? (
           <>
             <TryThisWeek />

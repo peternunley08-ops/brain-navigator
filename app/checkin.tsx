@@ -17,6 +17,7 @@ import { Screen } from '../components/ui/Screen';
 import { ScienceNote } from '../components/ui/ScienceNote';
 import { Stepper } from '../components/ui/Stepper';
 import { TrackSlider } from '../components/ui/TrackSlider';
+import { goBack } from '../core/chrome';
 import { useHealthStore } from '../core/healthStore';
 import { dateKey, STRESS_SOURCES, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
@@ -102,7 +103,7 @@ export default function CheckinScreen() {
       // With something to offer, stay a moment so it can be tapped.
       if (offer) return;
       setTimeout(() => {
-        router.back();
+        goBack();
         if (stressLevel != null && stressLevel >= 7) {
           emberSay('Thanks for telling me. Stress is high today — Steady is one tap away.', 'concerned');
         } else if (mood != null && mood >= 4) {
@@ -253,7 +254,7 @@ export default function CheckinScreen() {
               <Text style={styles.offerBody}>{offer.body}</Text>
               <View style={styles.offerRow}>
                 <Button label="Try it" icon="arrow" size="sm" tint={offer.color} variant="secondary" onPress={() => router.replace(offer.href as never)} />
-                <Button label="Done for now" size="sm" variant="ghost" onPress={() => router.back()} />
+                <Button label="Done for now" size="sm" variant="ghost" onPress={() => goBack()} />
               </View>
             </Card>
           </Animated.View>

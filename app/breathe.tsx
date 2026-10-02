@@ -1,5 +1,6 @@
+import { DidItHelp } from '../components/about/DidItHelp';
 import * as Haptics from '../core/haptics';
-import { router } from 'expo-router';
+import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -23,6 +24,7 @@ import { Backdrop } from '../components/ui/Backdrop';
 import { Button } from '../components/ui/Button';
 import { IconButton } from '../components/ui/IconButton';
 import { BREATH_PATTERNS, cycleLength, PHASE_WORDS, phaseAt } from '../core/breathPatterns';
+import { goBack, wantNav } from '../core/chrome';
 import { useHealthStore } from '../core/healthStore';
 import { colors, fonts, spacing } from '../core/theme';
 import { noteBreathDay } from '../core/lifeStore';
@@ -77,6 +79,8 @@ function Headline({ text, size }: { text: string; size: number }) {
 }
 
 export default function BreatheScreen() {
+  // A full-screen exercise: no nav here.
+  useFocusEffect(useCallback(() => wantNav(false), []));
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const size = Math.max(240, Math.min(width - spacing.lg * 2, 360, height - 460));
@@ -269,7 +273,7 @@ export default function BreatheScreen() {
     <GestureHandlerRootView style={styles.root}>
       <Backdrop tone="dusk" glowColor="#8FB4E8" glowAt={0.45} />
       <View style={[styles.content, { paddingTop: insets.top + 8 }]}>
-        <IconButton icon="back" label="Back" onPress={() => router.back()} style={styles.back} />
+        <IconButton icon="back" label="Back" onPress={() => goBack()} style={styles.back} />
 
         <Text style={styles.title}>Breathe</Text>
         <View style={styles.subtitleWrap}>
@@ -352,6 +356,7 @@ export default function BreatheScreen() {
                   />
                 ) : null}
               </View>
+              <DidItHelp tool="breathe" color={colors.flame} />
             </>
           ) : null}
         </View>

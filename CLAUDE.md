@@ -32,7 +32,11 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
   in `_layout`), `UndoBar` (the 5-second "Undo" pill), and `ErrorScreen`
   (exported as `ErrorBoundary` from `app/_layout.tsx`).
 - `components/ui/` — the design kit: `Screen` (the frame every screen is
-  built in), `Backdrop`, `Reveal`, `Pressy`, `Button`, `Card`, `Chip`,
+  built in: it says whether the page wants the nav, draws the compact
+  glass top bar once the title scrolls away (`barTitle` for pages without
+  a `title`), tucks the nav while reading, and takes "tap the tab to go
+  up"), `Backdrop`, `Reveal` (settles a page only the first time it opens
+  in a session), `Pressy`, `Button`, `Card`, `Chip`,
   `Field`, `IconButton`, `Icon` (the app's own line icons), `Section`,
   `Stepper`, `StatTile`, `Ring`, `EmptyState`, `Candle`/`CandleGlyph`,
   `TrackSlider`, `HoldToConfirm`, `MoodPicker`, `ProgressBar`,
@@ -42,9 +46,24 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
   (+ still `EmberGlyph`), `EmberBuddy` (the overlay on every screen),
   `EmberBubble`, `Sparks`.
 - `components/` (root) — one-off feature components (`BottomNav.tsx`,
+  drawn **once** in `app/_layout.tsx` above every page, never inside a
+  page; a page hides it with `<Screen nav={false}>` or `wantNav(false)`,
   `BreathInstrument.tsx`, `EntryThreshold.tsx`, `AmbientAudioEngine.tsx` —
   the last one is **no longer mounted**, see "Current state").
-- `core/hooks/` — shared hooks: `useRealtimeRefetch`, `useOpenLoops`
+- `core/chrome.ts` — the frame's shared UI-thread values (`navWanted`,
+  `navTucked`, `scrolling`), `wantNav`, scroll-to-top, `firstOpen`, and
+  `goBack()` (use it instead of `router.back()`: a page opened straight
+  from a link has nothing behind it, and it lands on the Desk instead of
+  erroring) and `goHome()` (holding any Back).
+  `core/tools.ts` — every Drawer tool (the Drawer reads it;
+  `components/OpenWatcher.tsx` counts opens for "Recently opened" and
+  "Most used").
+  `core/motion.ts` — every spring and timing (`springs`, `timings`).
+- `core/about.ts`, `core/learned.ts`, `app/about.tsx`,
+  `components/about/` — About you (Round 5, `docs/masterpiece-5.md`):
+  what the student tells the app and what it notices, kept on the phone
+  in `life.json` under `about`; goes to the AI only if `about.shareWithAI`.
+- `core/hooks/` — shared hooks: `useClearOnSend` (chat boxes), `useRealtimeRefetch`, `useOpenLoops`
   (the one live list of everything open), `useFlameClock` (one UI-thread
   clock per screen that every flame reads).
 - `assets/` — images and audio.

@@ -29,6 +29,7 @@ import { IconButton } from '../components/ui/IconButton';
 import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
 import { Screen } from '../components/ui/Screen';
+import { goBack } from '../core/chrome';
 import { CLOSING_LINES, FOLLOW_UP_PROMPTS, OPENING_PROMPTS, randomFrom } from '../core/companionPrompts';
 import { type AIFailure, askEmber, askJob, dueFollowUp, followUpTopic, type EmberReply, type EmberTurn, soundsLikeCrisis, whyOffline } from '../core/emberAI';
 import { uid, useHubStore } from '../core/hubStore';
@@ -398,7 +399,7 @@ export default function CompanionScreen() {
     stopMic();
     const said = linesRef.current.filter((l) => !l.aside);
     if (!said.some((l) => l.from === 'you')) {
-      router.back();
+      goBack();
       return;
     }
     const content = said.map((l) => `${l.from === 'ember' ? 'Ember' : 'You'}: ${l.text}`).join('\n\n');
@@ -574,7 +575,7 @@ export default function CompanionScreen() {
         {finished ? (
           <Animated.View entering={FadeInDown.delay(900).duration(360)} style={styles.reply}>
             {crisis ? <HelpCard /> : null}
-            <Button label="Done" icon="check" variant="secondary" onPress={() => router.back()} />
+            <Button label="Done" icon="check" variant="secondary" onPress={() => goBack()} />
           </Animated.View>
         ) : null}
       </ScrollView>

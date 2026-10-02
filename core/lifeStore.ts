@@ -183,6 +183,72 @@ export interface EmberMemory {
 }
 
 /** The last Ember conversation, so it can be picked back up. */
+/**
+ * What the student has told the app about themselves. Kept on this phone;
+ * shown, changed, and erased in About you. Goes to the AI only if
+ * `shareWithAI` is on, and then only as one short line.
+ */
+export interface AboutMe {
+  /** "This or that" answers, by card id → the side they picked. */
+  picks: Record<string, string>;
+  interests: string[];
+  favSubjects: string[];
+  hardSubjects: string[];
+  studyWays: string[];
+  /** Steady tools that calm them, by id. */
+  calmers: string[];
+  /** How Ember cheers them on. */
+  cheer: 'hype' | 'calm' | 'straight' | null;
+  nickname: string;
+  /** This semester's goals, up to three. */
+  goals: { id: string; text: string; at: string; done?: boolean }[];
+  /** Question of the day answers, newest last. */
+  answers: { id: string; q: string; a: string; at: string }[];
+  /** Sunday "your week in a sentence", newest last. */
+  weeks: { week: string; text: string }[];
+  /** When each part was last set, for "added …" lines. */
+  setAt: Record<string, string>;
+  /** Off by default: About you joins the AI note as one line. */
+  shareWithAI: boolean;
+  /** Off turns off everything learned from use. */
+  learnOff: boolean;
+  /** Learned notes the student said weren't right. */
+  dismissed: string[];
+  /** "Did that help?" after a calming tool: tool id → [helped, didn't]. */
+  helped: Record<string, [number, number]>;
+  /** Days the question of the day was answered or skipped. */
+  askedOn: string[];
+  /** The get-to-know-you cards were seen. */
+  introDone: boolean;
+  /** Drawer tools opened, path → times (learned from use). */
+  opened: Record<string, number>;
+  /** Drawer tools opened lately, newest first. */
+  recent: string[];
+}
+
+export const EMPTY_ABOUT: AboutMe = {
+  picks: {},
+  interests: [],
+  favSubjects: [],
+  hardSubjects: [],
+  studyWays: [],
+  calmers: [],
+  cheer: null,
+  nickname: '',
+  goals: [],
+  answers: [],
+  weeks: [],
+  setAt: {},
+  shareWithAI: false,
+  learnOff: false,
+  dismissed: [],
+  helped: {},
+  askedOn: [],
+  introDone: false,
+  opened: {},
+  recent: [],
+};
+
 /** A thumbs up or down on an AI reply. Kept on this phone; never sent anywhere. */
 export interface ReplyFeedback {
   id: string;
@@ -254,6 +320,7 @@ interface LifeData {
   /** Titles for saved Ember chats, by entryKey of the chat's text (the journal row has no title). */
   chatTitles: Record<string, string>;
   replyFeedback: ReplyFeedback[];
+  about: AboutMe;
 }
 
 interface LifeStore extends LifeData {
@@ -312,6 +379,12 @@ interface LifeStore extends LifeData {
   rateReply: (f: Omit<ReplyFeedback, 'id' | 'at'>) => ReplyFeedback;
   unrateReply: (id: string) => void;
   clearFeedback: () => void;
+  /** Change part of About you; stamps when each part was set. */
+  setAbout: (patch: Partial<AboutMe>) => void;
+  /** Erase everything About you (keeps the two switches). */
+  forgetAbout: () => void;
+  /** A Drawer tool was opened (skipped when learning is off). */
+  noteOpen: (path: string) => void;
   recordQuiz: (score: number, correct: number, lightning?: boolean) => void;
   updateDeck: (id: string, patch: Partial<Omit<Deck, 'id' | 'cards'>>) => void;
   noteHelperUse: (assignmentId: string, helperId: string) => void;
@@ -390,6 +463,7 @@ const EMPTY: LifeData = {
   lastEmberChat: null,
   chatTitles: {},
   replyFeedback: [],
+  about: EMPTY_ABOUT,
 };
 
 const FILE = 'life.json';
@@ -459,6 +533,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
       lastEmberChat: s.lastEmberChat,
       chatTitles: s.chatTitles,
       replyFeedback: s.replyFeedback,
+      about: s.about,
     };
   };
   const commit = (patch: Partial<LifeData>) => {
@@ -493,6 +568,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
             pack: d.pack?.length ? d.pack : DEFAULT_PACK,
             windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
             settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
+            about: { ...EMPTY_ABOUT, ...(d.about ?? {}) },
             helperChats: chats,
             // Day-by-day lists only need recent days; a few months of "one thing" is plenty.
             packDone: trimDays(d.packDone ?? {}),
@@ -636,6 +712,21 @@ export const useLifeStore = create<LifeStore>((set, get) => {
     },
     unrateReply: (id) => commit({ replyFeedback: get().replyFeedback.filter((r) => r.id !== id) }),
     clearFeedback: () => commit({ replyFeedback: [] }),
+    setAbout: (patch) => {
+      const now = new Date().toISOString();
+      const stamps = Object.fromEntries(Object.keys(patch).map((k) => [k, now]));
+      const cur = get().about;
+      commit({ about: { ...cur, ...patch, setAt: { ...cur.setAt, ...stamps } } });
+    },
+    forgetAbout: () => {
+      const cur = get().about;
+      commit({ about: { ...EMPTY_ABOUT, shareWithAI: cur.shareWithAI, learnOff: cur.learnOff, introDone: true } });
+    },
+    noteOpen: (path) => {
+      const cur = get().about;
+      if (cur.learnOff) return;
+      commit({ about: { ...cur, opened: { ...cur.opened, [path]: (cur.opened[path] ?? 0) + 1 }, recent: [path, ...cur.recent.filter((x) => x !== path)].slice(0, 8) } });
+    },
     nameChat: (key, title) => commit({ chatTitles: Object.fromEntries([...Object.entries(get().chatTitles).filter(([k]) => k !== key), [key, title]].slice(-100)) }),
     noteHelperLast: (id, line) => commit({ helperLast: { ...get().helperLast, [id]: { at: new Date().toISOString(), line } } }),
     noteHelperUse: (assignmentId, helperId) => commit({ helperUse: { ...get().helperUse, [assignmentId]: helperId } }),
@@ -661,6 +752,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
         pack: d.pack?.length ? d.pack : DEFAULT_PACK,
         windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
         settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
+        about: { ...EMPTY_ABOUT, ...(d.about ?? {}) },
       }),
   };
 });

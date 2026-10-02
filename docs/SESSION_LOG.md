@@ -1604,3 +1604,32 @@ and deployed. Ember answered live in about 3–5 seconds, Quizzo answered
 through `agent`, and the app's Ember conversation replied using the
 planner. The test conversation wasn't saved.
 
+
+## 2026-10-01 — Round 4: the AI design (100 ideas), then Round 5 begins
+
+Full plan and per-idea status: `docs/masterpiece-4.md` (closed) and
+`docs/masterpiece-5.md` (in progress, with RESUME HERE).
+
+Round 4: the `ember` function became a job router (talk, helper, summary,
+title, steps, plan, scan, cards, points, practice, pick, reflect, ping) on
+Sonnet 5.5 with adaptive thinking (Haiku 4.5 for summaries), prompt caching,
+JSON-schema jobs, and `[[tags]]` turned into buttons. Live prompt is v4.5,
+deployed from the dashboard editor (Monaco `executeEdits`, SHA-256 matched
+to the repo file). In the app: AI flashcards, practice questions and key
+points on notes; "Break it into steps" (tests spread over the days before);
+Ember's pick; scan tidy-up; "Hear from Ember" on vents, check-ins and
+worries; memory with follow-ups (a Desk card asks how it went); chat titles
+in "What you've let out"; reply ratings kept on the phone; edit-and-resend;
+mic in Ember's chat; offline wait-and-retry; crisis help card pinned above
+the input. Test set `scripts/ember-eval.mjs` (15 cases, all pass, ~8¢ a
+run; costs money, ask first). Plus set to 250 replies a month. Committed
+as 3a959d0 (pushed) and 9a45d67 (not pushed yet).
+
+Round 5 ("smooth, and knows you"): the frame is rebuilt and checked live:
+one bottom nav drawn in `_layout` that tucks while reading, a glass
+compact top bar, full-page swipe back, tap-tab-to-top, a sliding tab pill,
+a draggable + sheet, Ember stepping aside during scrolls. About you (swipe
+"This or that" cards, interests, goals, calming tools, things noticed,
+share-with-AI switch off by default) is built but not yet checked live.
+Not committed yet; the user asked for commit and push when the round is
+done.

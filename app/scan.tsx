@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
+import { goBack } from '../core/chrome';
 import { aiFailLine, askJob } from '../core/emberAI';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
@@ -239,7 +239,7 @@ export default function ScanScreen() {
       if (m) learned[a.className.toLowerCase()] = m.id;
     }
     useLifeStore.getState().setSettings({ classAliases: learned });
-    router.back();
+    goBack();
     const parts = [
       addedClasses ? `${addedClasses} class${addedClasses === 1 ? '' : 'es'}` : '',
       addedWork ? `${addedWork} thing${addedWork === 1 ? '' : 's'} due` : '',

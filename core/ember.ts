@@ -339,7 +339,7 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
   const life = useLifeStore.getState();
   const mmdd = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   if (life.settings.birthday === mmdd) {
-    const name = useSchoolStore.getState().profile.name;
+    const name = life.about.nickname.trim() || useSchoolStore.getState().profile.name;
     tips.push({ id: `bday-${todayKey(now)}`, line: `Happy birthday${name ? `, ${name}` : ''}! Nothing on this app matters more than you having a good day.`, priority: 3, mood: 'cheer' });
   }
 

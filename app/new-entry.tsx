@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
@@ -13,6 +12,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { TrackSlider } from '../components/ui/TrackSlider';
+import { goBack } from '../core/chrome';
 import { useAudioStore } from '../core/audioStore';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { DraftCatalyst, useBrainNavigatorStore } from '../core/store';
@@ -66,7 +66,7 @@ export default function NewEntryScreen() {
       const stressed = (draftIntensity ?? 0) >= 7;
       useAudioStore.getState().transitionToMood(stressed ? 'muffled' : 'clear', 1000);
       setCatalysts([]);
-      router.back();
+      goBack();
       emberSay(
         stressed
           ? 'It’s on the desk now. That one’s heavy — be gentle with yourself today.'
@@ -79,7 +79,7 @@ export default function NewEntryScreen() {
   const handleCancel = () => {
     resetDraft();
     setCatalysts([]);
-    router.back();
+    goBack();
   };
 
   const intensity = (draftIntensity ?? 4) / 10;

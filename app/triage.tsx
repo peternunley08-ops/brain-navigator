@@ -9,6 +9,8 @@ import { Chip, ChipRow } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
+import { goBack } from '../core/chrome';
+import { cheerLine } from '../core/about';
 import { addDays, type Assignment, dateKey, daysUntil, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
@@ -39,7 +41,7 @@ export default function TriageScreen() {
   const settle = (msg?: string) => {
     Haptics.selectionAsync().catch(() => {});
     const left = useSchoolStore.getState().assignments.filter((a) => !a.done && a.due < today).length;
-    if (left === 0) emberSay('Nothing overdue anymore. That weight’s off.', 'cheer');
+    if (left === 0) emberSay(cheerLine('Nothing overdue anymore. That weight’s off.'), 'cheer');
     else if (msg) emberSay(msg, 'happy');
   };
 
@@ -74,7 +76,7 @@ export default function TriageScreen() {
     >
       {late.length === 0 ? (
         <EmptyState title="Nothing’s late." body="If something slips later, this is where you sort it out.">
-          <Button label="Back to School" variant="secondary" onPress={() => router.back()} />
+          <Button label="Back to School" variant="secondary" onPress={() => goBack()} />
         </EmptyState>
       ) : (
         <Reveal index={0}>

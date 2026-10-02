@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import { cheerLine } from '../../core/about';
 import { HYPE, smallestStart } from '../../core/helperOffline';
 import { useLifeStore } from '../../core/lifeStore';
 import { dueLabel, useSchoolStore } from '../../core/schoolStore';
@@ -93,7 +94,7 @@ export function Starter({ rig, assignmentId }: { rig: EmberRig; assignmentId?: s
               setBurst((b) => b + 1);
               rig.setMood('cheer');
               rig.hopUp(20);
-              emberSay('STARTED. That was the hard part. It’s in your wins jar.', 'cheer');
+              emberSay(cheerLine('STARTED. That was the hard part. It’s in your wins jar.'), 'cheer');
             }}
             style={styles.ghost}
           />

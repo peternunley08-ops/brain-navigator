@@ -17,9 +17,11 @@ import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AchievementWatcher } from '../components/AchievementWatcher';
+import { BottomNav } from '../components/BottomNav';
 import { EmberBuddy } from '../components/ember/EmberBuddy';
 import { EntryThreshold } from '../components/EntryThreshold';
 import { ErrorScreen } from '../components/ErrorScreen';
+import { OpenWatcher } from '../components/OpenWatcher';
 import { UndoBar } from '../components/UndoBar';
 import { Celebration } from '../components/Celebration';
 import { useHubStore } from '../core/hubStore';
@@ -77,6 +79,8 @@ export default function RootLayout() {
               screenOptions={{
                 headerShown: false,
                 contentStyle: { backgroundColor: colors.night },
+                // Swipe back from anywhere on the page, not just the edge.
+                fullScreenGestureEnabled: true,
               }}
             >
               {/* Adding and editing slide up as sheets, so it's clear they're
@@ -85,10 +89,13 @@ export default function RootLayout() {
               <Stack.Screen name="class-edit" options={{ presentation: 'modal' }} />
               <Stack.Screen name="new-entry" options={{ presentation: 'modal' }} />
             </Stack>
+            {/* One nav for the whole app; pages say whether they want it. */}
+            <BottomNav />
             <UndoBar />
             {/* Ember floats above every screen. */}
             <EmberBuddy />
             <AchievementWatcher />
+            <OpenWatcher />
             <Celebration />
           </>
         ) : (

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
+import { cheerLine } from '../core/about';
 import { celebrate } from '../core/celebrateStore';
 import { EmberSprite } from '../components/ember/EmberSprite';
 import { Sparks } from '../components/ember/Sparks';
@@ -21,6 +22,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { useFlameClock } from '../core/hooks/useFlameClock';
+import { bestFocusHour, usualFocusLength } from '../core/learned';
 import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
 import { addDays, clock, dateKey, daysUntil, focusMinutesOn, useSchoolStore } from '../core/schoolStore';
@@ -35,6 +37,15 @@ const PRESETS = [
   { key: 'deep', label: 'Deep', work: 50, rest: 10 },
   { key: 'hour', label: 'Hour', work: 60, rest: 10 },
 ] as const;
+
+// What the app has noticed about their focusing, said plainly (or nothing).
+function focusNote(usual: ReturnType<typeof usualFocusLength>, best: ReturnType<typeof bestFocusHour>) {
+  const h = new Date().getHours();
+  const label = (x: number) => `${x % 12 === 0 ? 12 : x % 12} ${x < 12 ? 'AM' : 'PM'}`;
+  if (best && Math.abs(h - best.hour) <= 1) return `Right on time: you usually focus around ${label(best.hour)}.`;
+  if (usual) return `Started on your usual ${usual.minutes} minutes.`;
+  return undefined;
+}
 
 function mmss(ms: number) {
   const s = Math.max(0, Math.ceil(ms / 1000));
@@ -60,12 +71,19 @@ export default function FocusScreen() {
   const open = useMemo(() => assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 6), [assignments]);
   const [target, setTarget] = useState<string | null>(assignmentParam ?? null);
   // Ember or a helper can suggest a length (`mins`); short ones come as `quick` and start right away.
+  // Otherwise it starts on their usual length, once there's a clear one
+  // (learned on the phone; off when learning is off in About you).
+  const [usual] = useState(() => usualFocusLength());
   const [length, setLength] = useState(() => {
     const m = Number(mins);
-    return m >= 5 && m <= 120 ? m : 25;
+    return m >= 5 && m <= 120 ? m : (usual?.minutes ?? 25);
   });
-  const [breakMin, setBreakMin] = useState(5);
-  const [preset, setPreset] = useState<string>(() => (mins ? (PRESETS.find((p) => p.work === Number(mins))?.key ?? 'custom') : 'pomodoro'));
+  const [breakMin, setBreakMin] = useState<number>(() => (!mins && usual ? (PRESETS.find((p) => p.work === usual.minutes)?.rest ?? 5) : 5));
+  const [preset, setPreset] = useState<string>(() => {
+    const m = mins ? Number(mins) : (usual?.minutes ?? 25);
+    return PRESETS.find((p) => p.work === m)?.key ?? 'custom';
+  });
+  const [bestHour] = useState(() => bestFocusHour());
   const [stray, setStray] = useState('');
   const [gotDone, setGotDone] = useState('');
   const [heatDay, setHeatDay] = useState<string | null>(null);
@@ -338,7 +356,7 @@ export default function FocusScreen() {
             </Section>
           </Reveal>
           <Reveal index={1}>
-            <Section title="How long?">
+            <Section title="How long?" note={focusNote(usual, bestHour)}>
               <ChipRow>
                 {PRESETS.map((p) => (
                   <Chip
@@ -522,7 +540,7 @@ export default function FocusScreen() {
               tint={colors.secured}
               onPress={() => {
                 toggleAssignment(t.id);
-                emberSay(`${t.title}: done. That’s the good stuff.`, 'cheer');
+                emberSay(cheerLine(`${t.title}: done. That’s the good stuff.`), 'cheer');
                 setTarget(null);
                 banked.current = 0;
                 setPhase('setup');

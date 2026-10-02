@@ -1,4 +1,3 @@
-import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -11,6 +10,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { StatTile } from '../components/ui/StatTile';
+import { goBack } from '../core/chrome';
 import { addDays, dateKey } from '../core/dates';
 import { useLifeStore, weekOf } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
@@ -92,7 +92,7 @@ export default function ReviewScreen() {
   const save = () => {
     saveReview({ weekOf: week, well: well.trim(), hard: hard.trim(), next: next.trim() });
     emberSay(next.trim() ? `Next week: “${next.trim().slice(0, 40)}”. I’ll remember.` : 'Week reviewed. That’s how weeks get better.', 'cheer');
-    router.back();
+    goBack();
   };
 
   const range = `${new Date(`${week}T12:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${new Date(`${end}T12:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;

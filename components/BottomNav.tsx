@@ -1,10 +1,14 @@
 import * as Haptics from '../core/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useNavigation, usePathname } from 'expo-router';
-import { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { SlideInDown } from 'react-native-reanimated';
+import { router, usePathname, useRootNavigationState } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { type LayoutChangeEvent, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { SlideInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { GestureDetector, GestureHandlerRootView, usePanGesture } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { scheduleOnRN } from 'react-native-worklets';
+import { navTucked, navWanted, scrollFocusedToTop } from '../core/chrome';
+import { springs, timings } from '../core/motion';
 import { dateKey, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, gradients } from '../core/theme';
 import { Icon, type IconName } from './ui/Icon';
@@ -43,10 +47,18 @@ const ROUTE_NAME: Record<NavPath, string> = {
   '/steady': 'steady',
 };
 
+/** Height of the bar plus the room under it, for sliding it out of sight. */
+const AWAY = 120;
+const PILL = 44;
+
+// The app's one bottom nav, drawn above every page by the root layout, so
+// it holds still while pages slide in and out under it. Pages say whether
+// they want it (see Screen); it tucks away while you read down a long page.
 export function BottomNav() {
   const pathname = usePathname();
-  const navigation = useNavigation();
+  const rootState = useRootNavigationState();
   const insets = useSafeAreaInsets();
+  const reduced = useReducedMotion();
   // School's badge: things overdue or due today and not done.
   const assignments = useSchoolStore((s) => s.assignments);
   const today = dateKey();
@@ -54,7 +66,7 @@ export function BottomNav() {
   const [adding, setAdding] = useState(false);
 
   const goTab = (path: NavPath) => {
-    const open = navigation.getState()?.routes.some((r) => r.name === ROUTE_NAME[path]);
+    const open = rootState?.routes?.some((r) => r.name === ROUTE_NAME[path]);
     if (open) {
       router.dismissTo(path);
     } else {
@@ -62,16 +74,54 @@ export function BottomNav() {
     }
   };
 
+  // Shown when the page wants it and you're not reading down a long page.
+  const shown = useAnimatedStyle(() => {
+    const v = navWanted.value * (1 - navTucked.value);
+    return reduced ? { opacity: v, transform: [{ translateY: v < 0.05 ? AWAY : 0 }] } : { transform: [{ translateY: (1 - v) * AWAY }] };
+  });
+
+  // One pill that glides to the tab you're on.
+  const [spots, setSpots] = useState<Partial<Record<NavPath, number>>>({});
+  const place = (path: NavPath) => (e: LayoutChangeEvent) => {
+    const { x, width } = e.nativeEvent.layout;
+    const at = x + (width - PILL) / 2;
+    setSpots((p) => (p[path] === at ? p : { ...p, [path]: at }));
+  };
+  const active = ([...LEFT, ...RIGHT].find((i) => i.path === pathname)?.path ?? null) as NavPath | null;
+  const pillX = useSharedValue(-100);
+  const pillOn = useSharedValue(0);
+  useEffect(() => {
+    const at = active ? spots[active] : undefined;
+    if (at == null) {
+      pillOn.value = withTiming(0, timings.quick);
+      return;
+    }
+    // From nowhere (a page that isn't a tab), appear in place; between tabs, glide.
+    if (pillOn.value < 0.5 || pillX.value < 0) pillX.value = at;
+    else pillX.value = withSpring(at, springs.snappy);
+    pillOn.value = withTiming(1, timings.base);
+  }, [active, spots, pillX, pillOn]);
+  const pillStyle = useAnimatedStyle(() => ({ opacity: pillOn.value, transform: [{ translateX: pillX.value }] }));
+
+  // The + turns toward an × while its sheet is open.
+  const turn = useSharedValue(0);
+  useEffect(() => {
+    turn.value = withSpring(adding ? 1 : 0, springs.snappy);
+  }, [adding, turn]);
+  const plusStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.value * 45}deg` }] }));
+
   return (
-    <View style={[styles.wrap, { paddingBottom: Math.max(16, insets.bottom - 8) }]} pointerEvents="box-none">
+    <Animated.View style={[styles.wrap, { paddingBottom: Math.max(16, insets.bottom - 8) }, shown]} pointerEvents="box-none">
       <View style={styles.bar}>
+        <Animated.View style={[styles.pill, pillStyle]} pointerEvents="none" />
         {LEFT.map((item) => (
           <NavSegment
             key={item.path}
             item={item}
-            active={pathname === item.path}
+            active={active === item.path}
             badge={item.path === '/school' && dueCount > 0 ? dueCount : undefined}
             onGo={goTab}
+            onLayout={place(item.path)}
           />
         ))}
 
@@ -88,17 +138,19 @@ export function BottomNav() {
             accessibilityLabel="Add something"
           >
             <LinearGradient colors={gradients.flame} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={styles.centerFill}>
-              <Icon name="plus" size={28} color={colors.flameInk} strokeWidth={2.6} />
+              <Animated.View style={plusStyle}>
+                <Icon name="plus" size={28} color={colors.flameInk} strokeWidth={2.6} />
+              </Animated.View>
             </LinearGradient>
           </Pressy>
         </View>
 
         {RIGHT.map((item) => (
-          <NavSegment key={item.path} item={item} active={pathname === item.path} onGo={goTab} />
+          <NavSegment key={item.path} item={item} active={active === item.path} onGo={goTab} onLayout={place(item.path)} />
         ))}
       </View>
       <QuickAdd open={adding} onClose={() => setAdding(false)} />
-    </View>
+    </Animated.View>
   );
 }
 
@@ -117,56 +169,91 @@ const MORE_OPTIONS: { title: string; icon: IconName; color: string; href: string
   { title: 'Hours', icon: 'hands', color: '#8CC0A8', href: '/hours' },
 ];
 
-// The + button's sheet: every way to add something, one tap each.
+// The + button's sheet: every way to add something, one tap each. Drag it
+// down to put it away; it follows the finger and springs back if you don't
+// pull far enough.
 function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
   const insets = useSafeAreaInsets();
+  const drag = useSharedValue(0);
+  const speed = useSharedValue(0);
+  useEffect(() => {
+    if (open) drag.value = 0;
+  }, [open, drag]);
+  const pan = usePanGesture({
+    activeOffsetY: 8,
+    failOffsetX: [-20, 20],
+    onUpdate: (e) => {
+      'worklet';
+      drag.value = Math.max(0, e.translationY);
+      speed.value = e.velocityY;
+    },
+    onFinalize: () => {
+      'worklet';
+      if (drag.value > 140 || speed.value > 900) {
+        drag.value = withTiming(600, timings.base);
+        scheduleOnRN(onClose);
+      } else {
+        drag.value = withSpring(0, springs.gentle);
+      }
+    },
+  });
+  const follow = useAnimatedStyle(() => ({ transform: [{ translateY: drag.value }] }));
+  const dim = useAnimatedStyle(() => ({ opacity: 1 - Math.min(1, drag.value / 400) }));
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel="Close" />
-      <Animated.View entering={SlideInDown.springify().damping(18)} style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
-        <View style={styles.grabber} />
-        <Text style={styles.sheetTitle}>Add something</Text>
-        {ADD_OPTIONS.map((o) => (
-          <Pressy
-            key={o.href}
-            style={styles.option}
-            onPress={() => {
-              onClose();
-              router.push(o.href as never);
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={o.title}
-          >
-            <View style={[styles.optionIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
-              <Icon name={o.icon} size={22} color={o.color} />
-            </View>
-            <View style={styles.optionText}>
-              <Text style={styles.optionTitle}>{o.title}</Text>
-              <Text style={styles.optionBody}>{o.body}</Text>
-            </View>
-            <Icon name="chevron" size={18} color={colors.textFaint} />
-          </Pressy>
-        ))}
-        <View style={styles.moreRow}>
-          {MORE_OPTIONS.map((o) => (
-            <Pressy
-              key={o.href}
-              style={styles.more}
-              onPress={() => {
-                onClose();
-                router.push(o.href as never);
-              }}
-              accessibilityRole="button"
-              accessibilityLabel={`Add ${o.title.toLowerCase()}`}
-            >
-              <View style={[styles.moreIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
-                <Icon name={o.icon} size={20} color={o.color} />
+      <GestureHandlerRootView style={styles.flexFill}>
+        <Animated.View style={[StyleSheet.absoluteFill, dim]}>
+          <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel="Close" />
+        </Animated.View>
+        <Animated.View entering={SlideInDown.springify().damping(18)} style={styles.sheetSlot}>
+          <GestureDetector gesture={pan}>
+            <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }, follow]}>
+              <View style={styles.grabber} />
+              <Text style={styles.sheetTitle}>Add something</Text>
+              {ADD_OPTIONS.map((o) => (
+                <Pressy
+                  key={o.href}
+                  style={styles.option}
+                  onPress={() => {
+                    onClose();
+                    router.push(o.href as never);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={o.title}
+                >
+                  <View style={[styles.optionIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
+                    <Icon name={o.icon} size={22} color={o.color} />
+                  </View>
+                  <View style={styles.optionText}>
+                    <Text style={styles.optionTitle}>{o.title}</Text>
+                    <Text style={styles.optionBody}>{o.body}</Text>
+                  </View>
+                  <Icon name="chevron" size={18} color={colors.textFaint} />
+                </Pressy>
+              ))}
+              <View style={styles.moreRow}>
+                {MORE_OPTIONS.map((o) => (
+                  <Pressy
+                    key={o.href}
+                    style={styles.more}
+                    onPress={() => {
+                      onClose();
+                      router.push(o.href as never);
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Add ${o.title.toLowerCase()}`}
+                  >
+                    <View style={[styles.moreIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
+                      <Icon name={o.icon} size={20} color={o.color} />
+                    </View>
+                    <Text style={styles.moreText}>{o.title}</Text>
+                  </Pressy>
+                ))}
               </View>
-              <Text style={styles.moreText}>{o.title}</Text>
-            </Pressy>
-          ))}
-        </View>
-      </Animated.View>
+            </Animated.View>
+          </GestureDetector>
+        </Animated.View>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
@@ -176,18 +263,34 @@ function NavSegment({
   active,
   badge,
   onGo,
+  onLayout,
 }: {
   item: NavItem;
   active: boolean;
   badge?: number;
   onGo: (path: NavPath) => void;
+  onLayout: (e: LayoutChangeEvent) => void;
 }) {
   const tint = active ? colors.flame : colors.textFaint;
+  // The chosen tab's icon lifts a little.
+  const lift = useSharedValue(active ? 1 : 0);
+  useEffect(() => {
+    lift.value = withSpring(active ? 1 : 0, springs.snappy);
+  }, [active, lift]);
+  const iconStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -2 * lift.value }, { scale: 1 + 0.06 * lift.value }] }));
+  // The badge pops when its number changes.
+  const pop = useSharedValue(1);
+  useEffect(() => {
+    if (badge) pop.value = withSequence(withTiming(1.35, { duration: 120 }), withSpring(1, springs.snappy));
+  }, [badge, pop]);
+  const badgeStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
   return (
     <Pressy
       style={styles.segment}
       depth={0.9}
-      onPress={() => (active ? undefined : onGo(item.path))}
+      onLayout={onLayout}
+      // On the tab already: back to the top of it, the way iOS tabs work.
+      onPress={() => (active ? scrollFocusedToTop() : onGo(item.path))}
       onLongPress={() => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
         router.push({ pathname: item.hold.href as never, params: item.hold.params ?? {} });
@@ -198,15 +301,16 @@ function NavSegment({
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       accessibilityLabel={badge ? `${item.label}, ${badge} open` : item.label}
+      accessibilityHint={active ? 'Goes to the top' : undefined}
     >
-      <View style={[styles.iconWrap, active && styles.iconWrapActive]}>
+      <Animated.View style={[styles.iconWrap, iconStyle]}>
         <Icon name={item.icon} size={22} color={tint} strokeWidth={active ? 2.1 : 1.8} />
         {badge ? (
-          <View style={styles.badge}>
+          <Animated.View style={[styles.badge, badgeStyle]}>
             <Text style={styles.badgeText}>{badge}</Text>
-          </View>
+          </Animated.View>
         ) : null}
-      </View>
+      </Animated.View>
       <Text style={[styles.label, { color: tint }, active && styles.labelActive]} maxFontSizeMultiplier={1.3}>
         {item.label}
       </Text>
@@ -280,7 +384,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconWrapActive: {
+  pill: {
+    position: 'absolute',
+    left: 0,
+    top: 11,
+    width: PILL,
+    height: 30,
+    borderRadius: 15,
     backgroundColor: alpha(colors.flame, 0.14),
   },
   label: {
@@ -335,11 +445,16 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: 'rgba(6, 4, 8, 0.6)',
   },
-  sheet: {
+  flexFill: {
+    flex: 1,
+  },
+  sheetSlot: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
+  },
+  sheet: {
     paddingHorizontal: 20,
     paddingTop: 10,
     borderTopLeftRadius: 28,

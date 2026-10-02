@@ -14,11 +14,13 @@ import { Icon } from '../components/ui/Icon';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
+import { Ring } from '../components/ui/Ring';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { Stepper } from '../components/ui/Stepper';
 import { EVENING_HOURS, MORNING_HOURS, TimeField } from '../components/ui/TimeField';
 import { useAIStatus } from '../components/helpers/Quota';
+import { aboutFilled } from '../core/about';
 import { warmth } from '../core/achievements';
 import { ACCESSORIES, EMBER_THEMES } from '../core/emberLook';
 import { useHubStore } from '../core/hubStore';
@@ -34,6 +36,7 @@ const DESK_PARTS: { key: string; label: string }[] = [
   { key: 'capture', label: 'Quick add' },
   { key: 'pinned', label: 'Pinned notes' },
   { key: 'brief', label: 'Morning and evening brief' },
+  { key: 'question', label: 'Question of the day' },
   { key: 'nudges', label: 'Nudges' },
   { key: 'due', label: 'Due soon' },
   { key: 'mind', label: 'On your mind' },
@@ -48,6 +51,7 @@ export default function SettingsScreen() {
   const profile = useSchoolStore((s) => s.profile);
   const setProfile = useSchoolStore((s) => s.setProfile);
   const settings = useLifeStore((s) => s.settings);
+  const about = useLifeStore((s) => s.about);
   const setSettings = useLifeStore((s) => s.setSettings);
   const deskOrder = settings.deskOrder ?? DESK_ORDER;
   const moveDesk = (i: number, by: number) => {
@@ -219,6 +223,14 @@ export default function SettingsScreen() {
               containerStyle={styles.gap}
               hint="Only so Ember can say happy birthday."
             />
+          </Card>
+          <Card onPress={() => router.push('/about')} style={styles.aboutCard} accessibilityLabel="About you" accessibilityHint="What the app knows about you">
+            <Ring progress={aboutFilled(about)} size={44} stroke={4} color="#B79AF0" value={`${Math.round(aboutFilled(about) * 100)}`} unit="%" />
+            <View style={styles.flexOne}>
+              <Text style={styles.dangerTitle}>About you</Text>
+              <Text style={styles.aboutBody}>What you like, how you study, what calms you. Change or forget any of it.</Text>
+            </View>
+            <Icon name="chevron" size={18} color={colors.textFaint} />
           </Card>
         </Section>
       </Reveal>
@@ -617,6 +629,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+  },
+  flexOne: {
+    flex: 1,
+  },
+  aboutCard: {
+    marginTop: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  aboutBody: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textMuted,
   },
   link: {
     flexBasis: '46%',

@@ -15,6 +15,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { ScienceNote } from '../components/ui/ScienceNote';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
+import { cheerLine } from '../core/about';
 import { useLifeStore } from '../core/lifeStore';
 import { colors, fonts } from '../core/theme';
 
@@ -139,7 +140,7 @@ export default function WorryScreen() {
                         tint={colors.secured}
                         onPress={() => {
                           resolveWorry(w.id);
-                          emberSay('Handled. Notice that — worries usually shrink when you look at them.', 'cheer');
+                          emberSay(cheerLine('Handled. Notice that — worries usually shrink when you look at them.'), 'cheer');
                         }}
                       />
                       <Button

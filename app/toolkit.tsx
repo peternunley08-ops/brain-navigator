@@ -13,6 +13,7 @@ import { ProgressBar } from '../components/ui/ProgressBar';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
+import { cheerLine } from '../core/about';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts } from '../core/theme';
@@ -185,7 +186,7 @@ function Reset({ color }: { color: string }) {
 
   useEffect(() => {
     if (i < 0) return;
-    if (i === RESET.length) emberSay('Five minutes, and you’re back. Now the one thing.', 'cheer');
+    if (i === RESET.length) emberSay(cheerLine('Five minutes, and you’re back. Now the one thing.'), 'cheer');
     else Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
   }, [i]);
 

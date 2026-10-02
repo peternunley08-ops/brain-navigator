@@ -44,6 +44,8 @@ export type IconName =
   | 'chat'
   | 'feather'
   | 'image'
+  | 'music'
+  | 'person'
   | 'book'
   | 'timer'
   | 'phone'
@@ -317,6 +319,19 @@ const shapes: Record<IconName, (c: string) => ReactNode> = {
       <Rect x={4} y={5} width={16} height={14} rx={3} />
       <Circle cx={9.5} cy={10} r={1.6} />
       <Path d="m5 17 4.5-4 3.5 3 2.5-2 3.5 3" />
+    </>
+  ),
+  person: () => (
+    <>
+      <Circle cx={12} cy={8} r={3.5} />
+      <Path d="M5 20a7 7 0 0 1 14 0" />
+    </>
+  ),
+  music: () => (
+    <>
+      <Path d="M9.5 17.5V6l9-2v11.5" />
+      <Circle cx={7.25} cy={17.5} r={2.25} />
+      <Circle cx={16.25} cy={15.5} r={2.25} />
     </>
   ),
 };

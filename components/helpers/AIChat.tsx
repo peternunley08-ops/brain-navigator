@@ -1,3 +1,4 @@
+import { helperChips } from '../../core/about';
 import * as Haptics from '../../core/haptics';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -174,7 +175,8 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
   };
 
   // The helper's own suggestions fit the moment; its fixed chips are the fallback.
-  const chips = last?.chips.length ? last.chips : helper.chips;
+  const about = useLifeStore((st) => st.about);
+  const chips = last?.chips.length ? last.chips : helperChips(helper.id, helper.chips, about);
 
   return (
     <View style={styles.wrap}>

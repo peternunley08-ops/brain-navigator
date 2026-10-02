@@ -2,6 +2,7 @@ import * as Haptics from '../../core/haptics';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSequence, withSpring, withTiming, useSharedValue } from 'react-native-reanimated';
+import { cheerLine } from '../../core/about';
 import { dateKey } from '../../core/dates';
 import { useLifeStore } from '../../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
@@ -64,7 +65,7 @@ export function OneThing() {
             pop.value = withSequence(withTiming(1.2, { duration: 110 }), withSpring(1, { damping: 8, stiffness: 260 }));
             setBurst((b) => b + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-            emberSay('The one thing: done. Today’s already a win.', 'cheer');
+            emberSay(cheerLine('The one thing: done. Today’s already a win.'), 'cheer');
           }
         }}
         onLongPress={() => {

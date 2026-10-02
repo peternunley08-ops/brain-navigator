@@ -5,6 +5,7 @@ import { ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-nati
 import { AIPicker, type PickItem } from '../../components/ember/AIPicker';
 import { emberSay } from '../../components/ember/EmberBuddy';
 import { ProgressBar } from '../../components/ui/ProgressBar';
+import { goBack } from '../../core/chrome';
 import { offerUndo } from '../../core/undoStore';
 import { addDays, dateKey } from '../../core/dates';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
@@ -260,6 +261,7 @@ export default function NoteScreen() {
   return (
     <Screen
       nav={false}
+      barTitle={note.title || 'Untitled'}
       glowColor={note.color}
       right={
         <View style={styles.headerBtns}>
@@ -278,7 +280,7 @@ export default function NoteScreen() {
               const snap = note;
               deleteNote(note.id);
               offerUndo(`Deleted “${snap.title || 'Untitled'}”`, () => useHubStore.getState().restoreNote(snap));
-              router.back();
+              goBack();
             }}
           />
         </View>

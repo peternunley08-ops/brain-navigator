@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, useReducedMotion } from 'react-native-reanimated';
@@ -13,6 +13,8 @@ import { HoldToConfirm } from '../../components/ui/HoldToConfirm';
 import { Reveal } from '../../components/ui/Reveal';
 import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
+import { goBack } from '../../core/chrome';
+import { cheerLine } from '../../core/about';
 import { useAudioStore } from '../../core/audioStore';
 import { useFlameClock } from '../../core/hooks/useFlameClock';
 import { uploadSnapshotImage } from '../../core/imageUpload';
@@ -162,8 +164,8 @@ export default function EntryDetailScreen() {
         return;
       }
       setTimeout(() => {
-        router.back();
-        emberSay('Resolved. That’s one less thing burning.', 'cheer');
+        goBack();
+        emberSay(cheerLine('Resolved. That’s one less thing burning.'), 'cheer');
       }, Math.max(0, leaveAt - Date.now()));
     });
   };
@@ -181,7 +183,7 @@ export default function EntryDetailScreen() {
         return;
       }
       setTimeout(() => {
-        router.back();
+        goBack();
         emberSay('Let go. You don’t have to carry that one anymore.', 'happy');
       }, Math.max(0, leaveAt - Date.now()));
     });
@@ -196,7 +198,7 @@ export default function EntryDetailScreen() {
       <Screen nav={false}>
         {lookedUp ? (
           <EmptyState title="This one isn’t here anymore." body="It may have been removed. Everything else is where you left it.">
-            <Button label="Back to the Desk" variant="secondary" onPress={() => router.back()} />
+            <Button label="Back to the Desk" variant="secondary" onPress={() => goBack()} />
           </EmptyState>
         ) : null}
       </Screen>
@@ -212,7 +214,7 @@ export default function EntryDetailScreen() {
   });
 
   return (
-    <Screen nav={false} scrollRef={scrollRef} tone="ember" glowColor={displayState === 'shelved' ? '#AFA2DE' : '#F5B45C'}>
+    <Screen nav={false} scrollRef={scrollRef} barTitle={entry.mood || 'Untitled'} tone="ember" glowColor={displayState === 'shelved' ? '#AFA2DE' : '#F5B45C'}>
       <View style={styles.hero}>
         <Candle
           width={156}

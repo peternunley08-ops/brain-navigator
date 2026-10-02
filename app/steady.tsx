@@ -4,6 +4,7 @@ import { type ReactNode, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { DidItHelp } from '../components/about/DidItHelp';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { EmberGlyph } from '../components/ember/EmberSprite';
 import { Button } from '../components/ui/Button';
@@ -15,6 +16,7 @@ import { QuickBreath } from '../components/ui/QuickBreath';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { useFlameClock } from '../core/hooks/useFlameClock';
+import { calmOrder } from '../core/about';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
@@ -24,6 +26,14 @@ const BLUE = '#8FB4E8';
 
 // 5-4-3-2-1: a grounding exercise that pulls attention out of a spiral and
 // back into the room, one sense at a time.
+const DOORS = ['breathe', 'vent', 'ember', 'ground'];
+const SMALL = [
+  { id: 'toolkit', title: 'Toolkit', body: 'Test nerves, tense-and-release, self-kindness', icon: 'sparkle' as const, color: '#AFA2DE', path: '/toolkit' },
+  { id: 'worry', title: 'Worry box', body: 'Put it down for later', icon: 'feather' as const, color: '#AFA2DE', path: '/worry' },
+  { id: 'people', title: 'Your people', body: 'Text someone you trust', icon: 'people' as const, color: '#E89AB8', path: '/people' },
+  { id: 'sleep', title: 'Sleep', body: 'Tonight’s plan', icon: 'bed' as const, color: '#8FB4E8', path: '/sleep' },
+];
+
 const GROUNDING = [
   { n: 5, sense: 'see', prompt: 'Name five things you can see. Small ones count — a light switch, a shadow.' },
   { n: 4, sense: 'touch', prompt: 'Four things you can feel. The chair under you, your sleeve, the air.' },
@@ -38,6 +48,11 @@ export default function SteadyScreen() {
   const breathDays = useLifeStore((s) => s.settings.breathDays);
   const month = dateKey().slice(0, 7);
   const breathedThisMonth = (breathDays ?? []).filter((d) => d.startsWith(month)).length;
+  // What calms this student goes first (About you), then the usual order.
+  const about = useLifeStore((st) => st.about);
+  const doors = calmOrder(about, DOORS);
+  const smallTools = calmOrder(about, SMALL.map((t) => t.id)).map((id) => SMALL.find((t) => t.id === id)!);
+  const reordered = doors.join() !== DOORS.join() || smallTools[0].id !== SMALL[0].id;
 
   return (
     <Screen back={false} tone="dusk" glowColor={BLUE} motes kicker="Take a breath." title="Steady" subtitle="For when it’s a lot, right now.">
@@ -60,46 +75,42 @@ export default function SteadyScreen() {
             </Text>
           ) : null}
         </Reveal>
-        <Reveal index={0}>
-          <Door
-            title="Breathe"
-            body="A guided breath you can feel. Box, 4-7-8, or even. Two minutes helps."
-            tint={BLUE}
-            onPress={() => router.push('/breathe')}
-            art={
-              <Candle width={ART / 1.42} time={time} intensity={0.55} remaining={0.8} seed={4.2} state="lit" reducedMotion={reducedMotion} igniteDelay={180} />
-            }
-          />
-        </Reveal>
-        <Reveal index={1}>
-          <Door
-            title="Let it out"
-            body="Say it or type it, and let it go. Nothing here is graded."
-            tint={colors.unlocked}
-            onPress={() => router.push('/vent')}
-            art={<VoiceArt />}
-          />
-        </Reveal>
-        <Reveal index={2}>
-          <Door
-            title="Talk it through with Ember"
-            body="A few gentle questions, for when you don’t know where to start."
-            tint={colors.flame}
-            onPress={() => router.push('/companion')}
-            art={<EmberGlyph size={46} />}
-          />
-        </Reveal>
-        <Reveal index={3}>
-          <Grounding />
-        </Reveal>
+        {doors.map((id, i) => (
+          <Reveal key={id} index={i}>
+            {id === 'breathe' ? (
+              <Door
+                title="Breathe"
+                body="A guided breath you can feel. Box, 4-7-8, or even. Two minutes helps."
+                tint={BLUE}
+                onPress={() => router.push('/breathe')}
+                art={
+                  <Candle width={ART / 1.42} time={time} intensity={0.55} remaining={0.8} seed={4.2} state="lit" reducedMotion={reducedMotion} igniteDelay={180} />
+                }
+              />
+            ) : id === 'vent' ? (
+              <Door
+                title="Let it out"
+                body="Say it or type it, and let it go. Nothing here is graded."
+                tint={colors.unlocked}
+                onPress={() => router.push('/vent')}
+                art={<VoiceArt />}
+              />
+            ) : id === 'ember' ? (
+              <Door
+                title="Talk it through with Ember"
+                body="A few gentle questions, for when you don’t know where to start."
+                tint={colors.flame}
+                onPress={() => router.push('/companion')}
+                art={<EmberGlyph size={46} />}
+              />
+            ) : (
+              <Grounding />
+            )}
+          </Reveal>
+        ))}
         <Reveal index={4}>
           <View style={styles.tools}>
-            {[
-              { title: 'Toolkit', body: 'Test nerves, tense-and-release, self-kindness', icon: 'sparkle' as const, color: '#AFA2DE', path: '/toolkit' },
-              { title: 'Worry box', body: 'Put it down for later', icon: 'feather' as const, color: '#AFA2DE', path: '/worry' },
-              { title: 'Your people', body: 'Text someone you trust', icon: 'people' as const, color: '#E89AB8', path: '/people' },
-              { title: 'Sleep', body: 'Tonight’s plan', icon: 'bed' as const, color: BLUE, path: '/sleep' },
-            ].map((t) => (
+            {smallTools.map((t) => (
               <Card key={t.path} onPress={() => router.push(t.path as never)} style={styles.tool} accessibilityLabel={t.title} accessibilityHint={t.body}>
                 <Icon name={t.icon} size={20} color={t.color} />
                 <Text style={styles.toolTitle}>{t.title}</Text>
@@ -107,6 +118,11 @@ export default function SteadyScreen() {
               </Card>
             ))}
           </View>
+          {reordered ? (
+            <Pressy onPress={() => router.push('/about')} haptic="none" accessibilityRole="link" style={styles.yours}>
+              <Text style={styles.yoursText}>Your picks go first. Change them in About you.</Text>
+            </Pressy>
+          ) : null}
         </Reveal>
       </View>
     </Screen>
@@ -212,6 +228,7 @@ function Grounding() {
               <Button label="Again" variant="secondary" size="sm" icon="repeat" onPress={start} />
               <Button label="Breathe next" variant="secondary" size="sm" icon="wind" tint={BLUE} onPress={() => router.push('/breathe')} />
             </View>
+            <DidItHelp tool="ground" color={colors.secured} />
           </Animated.View>
         ) : (
           <Animated.View key={step} entering={reduced ? FadeIn : FadeInDown.duration(320)} exiting={FadeOut.duration(120)}>
@@ -242,6 +259,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textFaint,
     textAlign: 'center',
+  },
+  yours: {
+    alignSelf: 'center',
+    marginTop: 10,
+    paddingVertical: 6,
+  },
+  yoursText: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
   },
   tools: {
     flexDirection: 'row',

@@ -14,16 +14,20 @@ interface IconButtonProps {
   style?: StyleProp<ViewStyle>;
   /** Dimmed and inert, e.g. "move up" on the first row. */
   disabled?: boolean;
+  onLongPress?: () => void;
+  accessibilityHint?: string;
 }
 
-export function IconButton({ icon, onPress, label, size = 42, color, tint, style, disabled }: IconButtonProps) {
+export function IconButton({ icon, onPress, onLongPress, accessibilityHint, label, size = 42, color, tint, style, disabled }: IconButtonProps) {
   return (
     <Pressy
       onPress={onPress}
+      onLongPress={onLongPress}
       disabled={disabled}
       depth={0.9}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: !!disabled }}
       hitSlop={6}
       style={[

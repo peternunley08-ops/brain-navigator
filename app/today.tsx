@@ -189,31 +189,34 @@ function TimelineItem({ it, past, onToggle, onDelete }: { it: Item; past: boolea
   const length = Math.max(10, it.end - it.start);
   const height = Math.min(130, Math.max(56, length * 1.1));
   return (
-    <Animated.View entering={FadeInDown.duration(300)} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(18)} style={[styles.item, past && styles.past]}>
-      <Text style={styles.time}>{clock(it.start)}</Text>
-      <Pressy
-        onPress={onToggle}
-        disabled={!onToggle}
-        depth={0.9}
-        style={[styles.capsule, { height, backgroundColor: it.done ? it.color : alpha(it.color, 0.18), borderColor: alpha(it.color, 0.6) }]}
-        accessibilityRole={onToggle ? 'checkbox' : undefined}
-        accessibilityState={onToggle ? { checked: !!it.done } : undefined}
-      >
-        <Icon name={it.done && it.kind === 'block' ? 'check' : it.icon} size={18} color={it.done ? colors.flameInk : it.color} strokeWidth={2.2} />
-      </Pressy>
-      <View style={styles.itemBody}>
-        <Text style={[styles.itemTitle, it.done && it.kind === 'block' && styles.doneText]} numberOfLines={2}>
-          {it.title}
-        </Text>
-        <Text style={styles.itemSub}>
-          {clock(it.start)} – {clock(it.end)}, {it.sub}
-        </Text>
-      </View>
-      {onDelete ? (
-        <Pressy onPress={onDelete} hitSlop={10} depth={0.85} style={styles.trash} accessibilityLabel={`Remove ${it.title}`}>
-          <Icon name="close" size={15} color={colors.textFaint} />
+    // Dimming lives on an inner view so it doesn't fight the fade-in.
+    <Animated.View entering={FadeInDown.duration(300)} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(18)}>
+      <View style={[styles.item, past && styles.past]}>
+        <Text style={styles.time}>{clock(it.start)}</Text>
+        <Pressy
+          onPress={onToggle}
+          disabled={!onToggle}
+          depth={0.9}
+          style={[styles.capsule, { height, backgroundColor: it.done ? it.color : alpha(it.color, 0.18), borderColor: alpha(it.color, 0.6) }]}
+          accessibilityRole={onToggle ? 'checkbox' : undefined}
+          accessibilityState={onToggle ? { checked: !!it.done } : undefined}
+        >
+          <Icon name={it.done && it.kind === 'block' ? 'check' : it.icon} size={18} color={it.done ? colors.flameInk : it.color} strokeWidth={2.2} />
         </Pressy>
-      ) : null}
+        <View style={styles.itemBody}>
+          <Text style={[styles.itemTitle, it.done && it.kind === 'block' && styles.doneText]} numberOfLines={2}>
+            {it.title}
+          </Text>
+          <Text style={styles.itemSub}>
+            {clock(it.start)} – {clock(it.end)}, {it.sub}
+          </Text>
+        </View>
+        {onDelete ? (
+          <Pressy onPress={onDelete} hitSlop={10} depth={0.85} style={styles.trash} accessibilityLabel={`Remove ${it.title}`}>
+            <Icon name="close" size={15} color={colors.textFaint} />
+          </Pressy>
+        ) : null}
+      </View>
     </Animated.View>
   );
 }

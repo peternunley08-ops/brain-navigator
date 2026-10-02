@@ -1,5 +1,5 @@
 import * as Haptics from '../../core/haptics';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
@@ -29,6 +29,8 @@ import { Section } from '../../components/ui/Section';
 import { Segmented } from '../../components/ui/Segmented';
 import { StatTile } from '../../components/ui/StatTile';
 import { Chip, ChipRow } from '../../components/ui/Chip';
+import { goBack } from '../../core/chrome';
+import { cheerLine } from '../../core/about';
 import { checkAnswer, deckStats, dueCards, type Flashcard, parseCards, useLifeStore } from '../../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { offerUndo } from '../../core/undoStore';
@@ -83,7 +85,7 @@ export default function DeckScreen() {
               const snap = deck;
               useLifeStore.getState().deleteDeck(deck.id);
               offerUndo(`Deleted “${snap.name}”`, () => useLifeStore.getState().restoreDeck(snap));
-              router.back();
+              goBack();
             }}
           />
         </View>
@@ -280,7 +282,7 @@ function StudyView({ deckId, typeIt, reverse, hardest, onDone }: { deckId: strin
     setQueue((q) => (ok ? q.slice(1) : [...q.slice(1), q[0]]));
     if (ok && queue.length === 1) {
       setBurst((b) => b + 1);
-      emberSay('Deck done. Your brain just did the hard, good kind of work.', 'cheer');
+      emberSay(cheerLine('Deck done. Your brain just did the hard, good kind of work.'), 'cheer');
     }
   };
 

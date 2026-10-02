@@ -1,4 +1,4 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -12,6 +12,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { TimeField } from '../components/ui/TimeField';
+import { goBack } from '../core/chrome';
 import { type ClassLevel, CLASS_COLORS, clock, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
 
@@ -74,7 +75,7 @@ export default function ClassEditScreen() {
       end,
       ...(kind === 'class' ? { level: effectiveLevel } : {}),
     });
-    router.back();
+    goBack();
     if (!existing) emberSay(`${name.trim()} is on your schedule. I’ll tell you when it’s next.`, 'happy');
   };
 
@@ -167,7 +168,7 @@ export default function ClassEditScreen() {
             tint={colors.danger}
             onPress={() => {
               deleteClass(existing.id);
-              router.back();
+              goBack();
             }}
             style={styles.remove}
           />

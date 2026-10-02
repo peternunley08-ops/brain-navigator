@@ -12,6 +12,7 @@ import { Field } from '../components/ui/Field';
 import { Icon } from '../components/ui/Icon';
 import { Screen } from '../components/ui/Screen';
 import { Stepper } from '../components/ui/Stepper';
+import { goBack } from '../core/chrome';
 import { useSchoolStore } from '../core/schoolStore';
 import { HELPERS } from '../core/helpers';
 import { alpha, colors, fonts } from '../core/theme';
@@ -58,12 +59,12 @@ export default function WelcomeScreen() {
     setProfile({ onboarded: true });
     rig.setMood('cheer');
     setBurst((b) => b + 1);
-    setTimeout(() => router.back(), 700);
+    setTimeout(() => goBack(), 700);
   };
 
   const skipAll = () => {
     setProfile({ name: name.trim(), grade, onboarded: true });
-    router.back();
+    goBack();
   };
 
   const line =

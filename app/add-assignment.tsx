@@ -10,6 +10,7 @@ import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
+import { goBack } from '../core/chrome';
 import { addDays, type AssignmentKind, dateKey, daysUntil, dueLabel, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
 
@@ -87,11 +88,11 @@ export default function AddAssignmentScreen() {
     if (!t) return;
     if (existing) {
       updateAssignment(existing.id, { title: t, kind, classId, due, minutes, notes: notes.trim() });
-      router.back();
+      goBack();
       return;
     }
     addAssignment({ title: t, kind, classId, due, minutes, notes: notes.trim() });
-    router.back();
+    goBack();
     const n = daysUntil(due);
     if ((kind === 'test' || kind === 'quiz') && n >= 1 && n <= 4) {
       emberSay(`A ${KIND_LABEL[kind].toLowerCase()} ${dueLabel(due).toLowerCase() === 'tomorrow' ? 'tomorrow' : `on ${dueLabel(due)}`}. Short study sessions between now and then beat one long cram.`, 'curious');

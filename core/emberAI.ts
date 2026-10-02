@@ -10,6 +10,7 @@
 
 import { FunctionsHttpError } from '@supabase/supabase-js';
 import type { IconName } from '../components/ui/Icon';
+import { aboutForAI } from './about';
 import { canUseAI, recordAIUse } from './aiQuota';
 import { type Helper, type HelperId, helperById } from './helpers';
 import { useLifeStore } from './lifeStore';
@@ -144,6 +145,10 @@ export function buildNote(screen: string, opts: NoteOptions = {}, now = new Date
   const first = school.profile.name.trim().split(/\s+/)[0];
   if (first) lines.push(`Their first name: ${first.slice(0, 30)}.`);
   if (school.profile.grade) lines.push(`They're in grade ${school.profile.grade}.`);
+  // About you goes along only if they turned sharing on: one line, never
+  // their answers to the daily questions.
+  const about = aboutForAI(useLifeStore.getState().about);
+  if (about) lines.push(`About them, in their own words (use lightly, don't recite it): ${redact(about)}.`);
   const settings = useLifeStore.getState().settings;
   lines.push(`Wind-down starts at ${clockOf(settings.windDown)}. Nightly homework cap: ${school.profile.nightlyCap} min. Sleep goal: ${school.profile.sleepGoal} h.`);
   const ns = nowState(school.classes, now);

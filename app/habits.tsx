@@ -15,6 +15,7 @@ import { Ring } from '../components/ui/Ring';
 import { ScienceNote } from '../components/ui/ScienceNote';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
+import { cheerLine } from '../core/about';
 import { Habit, HabitFrequency, useHabitsStore } from '../core/habitsStore';
 import { alpha, colors, dimensionColor, fonts } from '../core/theme';
 import { WELLNESS_DIMENSIONS, WellnessDimension, dimensionLabel } from '../core/wellness';
@@ -199,7 +200,7 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
       const s = useHabitsStore.getState();
       const daily = s.habits.filter((h) => !h.archived && h.frequency === 'daily');
       if (daily.length > 0 && daily.every((h) => s.isLoggedToday(h.id))) {
-        emberSay('Every habit, done today. That’s how streaks get built.', 'cheer');
+        emberSay(cheerLine('Every habit, done today. That’s how streaks get built.'), 'cheer');
       }
     }
   };

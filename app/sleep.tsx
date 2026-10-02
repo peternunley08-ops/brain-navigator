@@ -14,6 +14,7 @@ import { ScienceNote } from '../components/ui/ScienceNote';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { MORNING_HOURS, TimeField } from '../components/ui/TimeField';
+import { cheerLine } from '../core/about';
 import { addDays, dateKey } from '../core/dates';
 import { type ListItem, useLifeStore } from '../core/lifeStore';
 import { clock, useSchoolStore } from '../core/schoolStore';
@@ -162,7 +163,7 @@ function Checklist({
     const finishing = !checked.includes(item.id);
     toggle(done, key, item.id);
     Haptics.impactAsync(finishing ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
-    if (finishing && count + 1 === list.length) emberSay(doneLine, 'cheer');
+    if (finishing && count + 1 === list.length) emberSay(cheerLine(doneLine), 'cheer');
   };
 
   const add = () => {

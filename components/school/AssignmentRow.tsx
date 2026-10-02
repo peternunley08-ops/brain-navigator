@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeOut, interpolate, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
+import { cheerLine } from '../../core/about';
 import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, type Assignment, useSchoolStore } from '../../core/schoolStore';
 import { offerUndo } from '../../core/undoStore';
 import { alpha, colors, fonts } from '../../core/theme';
@@ -33,7 +34,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     toggle(a.id);
     if (finishing) {
       const left = useSchoolStore.getState().assignments.filter((x) => !x.done && daysUntil(x.due) <= 1).length;
-      if (left === 0) emberSay('That’s everything due by tomorrow. Go do something that isn’t school.', 'cheer');
+      if (left === 0) emberSay(cheerLine('That’s everything due by tomorrow. Go do something that isn’t school.'), 'cheer');
     }
   };
 
@@ -47,6 +48,9 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     offerUndo(`Moved “${a.title}” to tomorrow`, () => useSchoolStore.getState().updateAssignment(a.id, { due: was }), 'arrow');
   };
+  // A tick under the finger the moment a swipe will act, and again if it won't.
+  const armed = useSharedValue(0);
+  const tick = () => Haptics.selectionAsync().catch(() => {});
   const pan = usePanGesture({
     activeOffsetX: [-14, 14],
     failOffsetY: [-10, 10],
@@ -54,9 +58,15 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     onUpdate: (e) => {
       'worklet';
       tx.value = e.translationX;
+      const over = e.translationX > 90 ? 1 : e.translationX < -90 ? -1 : 0;
+      if (over !== armed.value) {
+        armed.value = over;
+        scheduleOnRN(tick);
+      }
     },
     onFinalize: () => {
       'worklet';
+      armed.value = 0;
       const v = tx.value;
       if (v > 90) scheduleOnRN(check);
       else if (v < -90) scheduleOnRN(swipeLater);

@@ -18,6 +18,8 @@ import { Reveal } from '../../components/ui/Reveal';
 import { ScienceNote } from '../../components/ui/ScienceNote';
 import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
+import { goBack } from '../../core/chrome';
+import { cheerLine } from '../../core/about';
 import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, planBackward, spreadSteps, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { helperById, type HelperId } from '../../core/helpers';
@@ -88,7 +90,7 @@ export default function AssignmentScreen() {
     const finishing = !subtasks.find((t) => t.id === sid)?.done;
     Haptics.impactAsync(finishing ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     if (finishing && next.length > 1 && next.every((t) => t.done)) {
-      emberSay('Every step done. The big thing turned out to be a bunch of small things.', 'cheer');
+      emberSay(cheerLine('Every step done. The big thing turned out to be a bunch of small things.'), 'cheer');
       if (next.length >= 3) celebrate('Every step, done', `${a.title}: ${next.length} small steps added up to the whole thing.`, undefined, { key: `steps-${a.id}`, win: `Finished every step of ${a.title}` });
     }
   };
@@ -106,6 +108,7 @@ export default function AssignmentScreen() {
   return (
     <Screen
       nav={false}
+      barTitle={a.title}
       glowColor={color}
       right={
         <View style={styles.headerBtns}>
@@ -346,8 +349,8 @@ export default function AssignmentScreen() {
             const finishing = !a.done;
             toggle(a.id);
             if (finishing) {
-              router.back();
-              emberSay(isTest ? 'Test’s behind you. However it went, it’s done.' : 'Done. One less thing.', 'cheer');
+              goBack();
+              emberSay(cheerLine(isTest ? 'Test’s behind you. However it went, it’s done.' : 'Done. One less thing.'), 'cheer');
             }
           }}
         />
@@ -379,7 +382,7 @@ export default function AssignmentScreen() {
               const snapshot = a;
               remove(a.id);
               offerUndo(`Deleted “${snapshot.title}”`, () => useSchoolStore.getState().restoreAssignment(snapshot));
-              router.back();
+              goBack();
             }}
           />
         </View>

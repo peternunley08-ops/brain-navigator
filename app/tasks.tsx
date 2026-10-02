@@ -20,6 +20,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { Stepper } from '../components/ui/Stepper';
 import { TaskTimer } from '../components/ui/TaskTimer';
+import { cheerLine } from '../core/about';
 import { Task, TaskCategory, useTasksStore } from '../core/tasksStore';
 import { alpha, colors, dimensionColor, fonts, layout } from '../core/theme';
 import { WELLNESS_DIMENSIONS } from '../core/wellness';
@@ -171,7 +172,7 @@ function TaskRow({ task, index }: { task: Task; index: number }) {
     if (finishing) {
       const { tasks } = useTasksStore.getState();
       if (tasks.length > 0 && tasks.every((t) => t.completed)) {
-        emberSay('Plate cleared. Every last thing. Go enjoy that.', 'cheer');
+        emberSay(cheerLine('Plate cleared. Every last thing. Go enjoy that.'), 'cheer');
       }
     }
   };

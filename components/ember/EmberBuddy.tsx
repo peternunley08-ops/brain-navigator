@@ -20,6 +20,7 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
 import { type EmberMood, inClassQuiet, useEmberStore } from '../../core/emberStore';
+import { scrolling } from '../../core/chrome';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
@@ -444,10 +445,12 @@ export function EmberBuddy() {
     const g = geo.value;
     // Napping Ember tucks into the edge it's on.
     const tuck = x.value > g.W / 2 ? 1 : -1;
+    // While a page scrolls, Ember steps toward its edge and dims, then comes back.
+    const away = scrolling.value * (1 - n);
     return {
-      opacity: show.value,
+      opacity: show.value * (1 - 0.55 * away),
       transform: [
-        { translateX: x.value + tuck * n * S * 0.2 },
+        { translateX: x.value + tuck * n * S * 0.2 + tuck * away * S * 0.32 },
         { translateY: y.value + n * H_BOX * 0.25 },
         { scale: (1 - 0.1 * press.value) * (1 - (1 - NAP_SCALE) * n) * (0.6 + 0.4 * show.value) },
       ],

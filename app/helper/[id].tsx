@@ -125,7 +125,7 @@ export default function HelperScreen() {
   }, [ask]);
 
   return (
-    <Screen glowColor={helper.color} right={<QuotaPill />}>
+    <Screen glowColor={helper.color} barTitle={helper.name} right={<QuotaPill />}>
       <View style={styles.stage}>
         <Sparks burst={burst} reach={90} />
         <View style={compact ? styles.compactRow : styles.center}>
