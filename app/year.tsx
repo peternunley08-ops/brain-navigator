@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { EmberGlyph } from '../components/ember/EmberSprite';
 import { Card } from '../components/ui/Card';
+import { CandleGlyph } from '../components/ui/CandleGlyph';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
@@ -10,7 +11,7 @@ import { Segmented } from '../components/ui/Segmented';
 import { StatTile } from '../components/ui/StatTile';
 import { daysShowedUp } from '../core/achievements';
 import { plural } from '../core/words';
-import { dateKey } from '../core/dates';
+import { addDays, dateKey } from '../core/dates';
 import { useHubStore } from '../core/hubStore';
 import { hoursTotal, useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
@@ -62,6 +63,19 @@ export default function YearScreen() {
         ? Math.round((focus.filter((f) => monthOf(f.at) === m.key).reduce((s, f) => s + f.minutes, 0) / 60) * 10) / 10
         : [...showedDays].filter((k) => k.startsWith(m.key)).length
   );
+  // A candle for each of the last twelve weeks (Monday to Sunday), sized by what got finished.
+  const monday = dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - ((now.getDay() + 6) % 7)));
+  const weeks = Array.from({ length: 12 }, (_, i) => {
+    const start = addDays(monday, (i - 11) * 7);
+    const end = addDays(start, 6);
+    const count = assignments.filter((a) => {
+      if (!a.doneAt) return false;
+      const k = dateKey(new Date(a.doneAt));
+      return k >= start && k <= end;
+    }).length;
+    return { start, count };
+  });
+  const weekPeak = Math.max(1, ...weeks.map((w) => w.count));
   const peak = Math.max(...values);
   const best = peak > 0 ? months[values.indexOf(peak)] : null;
   // The picked month in words, next to the one before it.
@@ -143,6 +157,30 @@ export default function YearScreen() {
       </Reveal>
 
       <Reveal index={n++}>
+        <Section title="Candle of the week" note="One candle for each week. The more you finished, the taller and brighter it burns.">
+          <Card style={styles.shelf}>
+            <View style={styles.shelfRow}>
+              {weeks.map((w, i) => (
+                <View
+                  key={w.start}
+                  style={[styles.shelfCell, w.count === 0 && { opacity: 0.35 }]}
+                  accessible
+                  accessibilityLabel={`Week of ${w.start}: ${plural(w.count, 'thing')} finished`}
+                >
+                  <CandleGlyph
+                    size={20}
+                    intensity={0.2 + 0.8 * (w.count / weekPeak)}
+                    remaining={0.35 + 0.65 * (w.count / weekPeak)}
+                  />
+                </View>
+              ))}
+            </View>
+            <View style={styles.shelfBoard} />
+          </Card>
+        </Section>
+      </Reveal>
+
+      <Reveal index={n++}>
         <Section title="You">
           <View style={styles.row}>
             <StatTile label="Wins" value={String(life.wins.length)} color="#E6C46A" />
@@ -206,6 +244,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
+  shelf: { paddingTop: 14, paddingBottom: 0, overflow: 'hidden' },
+  shelfRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+  shelfCell: { alignItems: 'center' },
+  shelfBoard: { height: 6, marginTop: 2, marginHorizontal: -16, backgroundColor: alpha(colors.flame, 0.22) },
   barTrack: {
     height: 110,
     width: '100%',
