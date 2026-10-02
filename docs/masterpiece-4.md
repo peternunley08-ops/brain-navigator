@@ -183,9 +183,29 @@ under 25 words. Ember once wrote "With until Monday" (a slip, watch for it).
 ## RESUME HERE (for a fresh session after compaction)
 
 Read this file, then CLAUDE.md "Ember's AI brain". Check `git status`.
-Find the first group in the build order with `[ ]` items and keep going.
-Keep live AI tests rare (see the money rule). Redeploying `ember` needs the
-user signed in to Supabase in the browser pane.
+Last commit: e3c6943 (step 2), pushed. Everything before it is saved.
+
+Next, in order (the user said "keep going with the next steps"):
+1. Server fix + redeploy as v4.3: `pick` reason one sentence under 25
+   words (see "Fix in the next redeploy" above). Edit only the changed
+   spots in the dashboard editor via JS, check SHA-256, Deploy updates.
+2. Try in the Simulator (run from Xcode): Flashcards and Practice test on
+   "Chem unit 2 notes" (note id munnfeth6ybl46), Scan "Read it again with
+   AI" (paste text path), "Hear from Ember" on a worry, and Try again.
+3. Then the `[ ]` ideas, in build-order groups: past Ember chats with
+   titles (#28, uses the `title` job), mic in Ember's chat (#76,
+   expo-speech-recognition is already in the build), edit-and-resend
+   (#75), thumbs/report (#87, #88), offline queue (#94), test set (#91;
+   running it costs money, ask first), plan math (#97, the user decides
+   prices), CLAUDE.md wrap-up (#100).
+Keep live AI tests rare (see the money rule): 8 of 20 free replies were
+left this week after testing (resets Monday). Redeploying `ember` needs
+the user signed in to Supabase in the browser pane (session was still
+signed in on 2026-10-01). Simulator tips: deep links
+`brainnavigator://assignment/<id>`, `/note/<id>`, `/school`, `/ai`,
+`/companion`, `/helper/<id>`; wait for scrolling to stop before tapping;
+the hardware-keyboard accent menu can stick on "a" (type the next letter);
+never tap Done in Ember's chat for tests (it saves to the journal).
 
 ## Progress log
 
