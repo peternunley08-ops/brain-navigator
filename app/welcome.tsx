@@ -5,6 +5,7 @@ import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { EmberSprite } from '../components/ember/EmberSprite';
 import { Sparks } from '../components/ember/Sparks';
 import { useEmberRig } from '../components/ember/useEmberRig';
+import { ThisOrThatDeck } from '../components/about/ThisOrThatDeck';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
@@ -14,17 +15,18 @@ import { Screen } from '../components/ui/Screen';
 import { Stepper } from '../components/ui/Stepper';
 import { goBack } from '../core/chrome';
 import { useSchoolStore } from '../core/schoolStore';
+import { THIS_OR_THAT } from '../core/about';
 import { HELPERS } from '../core/helpers';
 import { alpha, colors, fonts } from '../core/theme';
 
 const GRADES = [9, 10, 11, 12];
 const CAPS = [60, 90, 120, 180];
-const STEPS = 4;
+const STEPS = 5;
 
 // First launch (and replayable from Settings). Ember introduces itself and
 // gets three things: what to call you, your classes, and how much a school
-// night should hold, with a quick hello from the helper crew in between.
-// All skippable; all changeable later.
+// night should hold, with a quick hello from the helper crew in between,
+// and ends by offering the This-or-that cards. All skippable; all changeable later.
 export default function WelcomeScreen() {
   const profile = useSchoolStore((s) => s.profile);
   const classes = useSchoolStore((s) => s.classes);
@@ -76,7 +78,9 @@ export default function WelcomeScreen() {
           : 'Let’s get your classes in, so I always know what’s next.'
         : step === 2
           ? 'I brought friends. Each one helps with a different part of studying.'
-          : 'Last thing: how much should a school night hold?';
+          : step === 3
+            ? 'Almost done: how much should a school night hold?'
+            : 'One last thing, just for fun. Swipe a few, or skip them.';
 
   return (
     <Screen nav={false} back={false} tone="ember" motes right={<Button label="Skip" variant="ghost" size="sm" onPress={skipAll} />}>
@@ -142,6 +146,10 @@ export default function WelcomeScreen() {
               ))}
             </Card>
             <Text style={styles.crewNote}>Their games and plans are free and work on your phone. AI chat comes with 20 replies a week.</Text>
+          </View>
+        ) : step === 4 ? (
+          <View style={styles.block}>
+            <ThisOrThatDeck cards={THIS_OR_THAT.slice(0, 5)} doneText="That’s every card. You can change any answer in About you." />
           </View>
         ) : (
           <View style={styles.block}>
