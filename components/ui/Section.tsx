@@ -30,7 +30,7 @@ export function Section({ title, note, action, icon, iconColor = colors.flame, c
     <View style={styles.headText}>
       <View style={styles.titleRow}>
         {icon ? <Icon name={icon} size={17} color={iconColor} /> : null}
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title} accessibilityRole="header">{title}</Text>
         {onToggleFold ? (
           <Animated.View style={turn}>
             <Icon name="chevron" size={14} color={colors.textFaint} />

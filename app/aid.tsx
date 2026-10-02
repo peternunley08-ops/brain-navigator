@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
   },
   big: {
     fontFamily: fonts.display,
+    fontVariant: ['tabular-nums'],
     fontSize: 28,
     color: colors.text,
   },

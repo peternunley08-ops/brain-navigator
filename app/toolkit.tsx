@@ -1,6 +1,6 @@
 import * as Haptics from '../core/haptics';
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -10,6 +10,7 @@ import { Chip, ChipRow } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
 import { Icon, type IconName } from '../components/ui/Icon';
 import { ProgressBar } from '../components/ui/ProgressBar';
+import { type Jump, JumpChips, useJumps } from '../components/ui/JumpChips';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
@@ -28,16 +29,28 @@ const TOOLS: { key: Tool; title: string; body: string; icon: IconName; color: st
   { key: 'reframe', title: 'Check the thought', body: 'Catch a thinking trap and rewrite it.', icon: 'sparkle', color: '#AFA2DE' },
 ];
 
+const JUMPS: Jump[] = [
+  { key: 'reset', label: 'Reset', icon: 'timer' },
+  { key: 'test', label: 'Before a test', icon: 'flag' },
+  { key: 'pmr', label: 'Unclench', icon: 'wind' },
+  { key: 'kind', label: 'Be kind', icon: 'heart' },
+  { key: 'reframe', label: 'Check a thought', icon: 'sparkle' },
+];
+
 // Small, proven tools for hard moments — each one short enough to use in
 // a bathroom stall between classes.
 export default function ToolkitScreen() {
   const [open, setOpen] = useState<Tool | null>(null);
+  const jumps = useJumps();
   return (
-    <Screen tone="dusk" title="Toolkit" subtitle="Short tools for hard moments.">
+    <Screen tone="dusk" title="Toolkit" subtitle="Short tools for hard moments." scrollRef={jumps.scrollRef}>
+      <JumpChips items={JUMPS} onJump={jumps.jump} />
       {TOOLS.map((t, i) => {
         const isOpen = open === t.key;
         return (
-          <Reveal key={t.key} index={i}>
+          <Fragment key={t.key}>
+          <View onLayout={jumps.mark(t.key)} />
+          <Reveal index={i}>
             <Animated.View layout={LinearTransition.springify().damping(20)}>
               <Card tint={isOpen ? t.color : undefined} style={styles.card}>
                 <Pressy onPress={() => setOpen(isOpen ? null : t.key)} style={styles.head} accessibilityRole="button" accessibilityState={{ expanded: isOpen }}>
@@ -62,6 +75,7 @@ export default function ToolkitScreen() {
               </Card>
             </Animated.View>
           </Reveal>
+          </Fragment>
         );
       })}
       <Reveal index={TOOLS.length}>
@@ -446,6 +460,7 @@ const styles = StyleSheet.create({
   count: {
     marginTop: 8,
     fontFamily: fonts.display,
+    fontVariant: ['tabular-nums'],
     fontSize: 44,
     color: colors.textMuted,
     textAlign: 'center',

@@ -248,6 +248,7 @@ const styles = StyleSheet.create({
   num: {
     width: 16,
     fontFamily: fonts.display,
+    fontVariant: ['tabular-nums'],
     fontSize: 16,
   },
   stepText: {

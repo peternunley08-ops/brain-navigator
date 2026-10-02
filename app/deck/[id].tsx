@@ -512,6 +512,7 @@ const styles = StyleSheet.create({
   score: {
     marginTop: 14,
     fontFamily: fonts.body,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
     color: colors.textFaint,
     textAlign: 'center',

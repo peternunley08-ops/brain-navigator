@@ -706,6 +706,7 @@ const styles = StyleSheet.create({
     marginTop: 7,
     minWidth: 18,
     fontFamily: fonts.bodySemi,
+    fontVariant: ['tabular-nums'],
     fontSize: 16,
     lineHeight: 23,
     color: colors.flame,
@@ -726,6 +727,7 @@ const styles = StyleSheet.create({
   },
   countText: {
     fontFamily: fonts.bodyMedium,
+    fontVariant: ['tabular-nums'],
     fontSize: 12,
     color: colors.textFaint,
   },

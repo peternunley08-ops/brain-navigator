@@ -448,6 +448,7 @@ const styles = StyleSheet.create({
   statValue: {
     marginTop: 4,
     fontFamily: fonts.display,
+    fontVariant: ['tabular-nums'],
     fontSize: 20,
     color: colors.text,
   },
