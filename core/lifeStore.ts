@@ -168,6 +168,8 @@ export interface LifeSettings {
   breathDays?: string[];
   /** How much the phone vibrates: off, light taps only, or full (default). */
   haptics?: 'off' | 'light' | 'full';
+  /** The night (tonightKey) the student put the day down; the Desk stays quiet until morning. */
+  putDown?: string;
 }
 
 /**
