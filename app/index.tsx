@@ -44,6 +44,7 @@ import type { CognitiveStateEntry } from '../core/store';
 import { beforeNight, isNight, minutesOf, nightClockVersion, nightNow, nightStart, parseNightParam, setNightClock, subscribeNightClock } from '../core/night';
 import { clock, dateKey, daysUntil, focusMinutesOn, tonightsLoad, useSchoolStore } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
+import { plural } from '../core/words';
 import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 
@@ -86,6 +87,14 @@ function summaryLine(dueToday: number, dueTomorrow: number, open: number, late =
   if (!parts.length) return 'Nothing due, nothing burning. A good day to breathe.';
   const s = parts.join(', ');
   return `${s.charAt(0).toUpperCase()}${s.slice(1)}.`;
+}
+
+// At night the same facts, said gently: what is left for tonight, and lateness can wait.
+function nightSummaryLine(dueToday: number, dueTomorrow: number, open: number, late = 0) {
+  const rest = late || dueTomorrow || open;
+  if (!dueToday) return rest ? 'Nothing left for tonight. The rest can wait for morning.' : 'Nothing left for tonight. Rest well.';
+  const left = dueToday === 1 ? 'One thing' : plural(dueToday, 'thing');
+  return rest ? `${left} left for tonight. The rest can wait for morning.` : `${left} left for tonight.`;
 }
 
 function ageLabel(createdAt: string) {
@@ -419,7 +428,7 @@ show('line') ? (
       motes
       kicker={momentLabel(nightNow())}
       title={greetingFor(nickname || profile.name, timePick, nightNow())}
-      subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length, lateCount)}
+      subtitle={(night ? nightSummaryLine : summaryLine)(dueToday, dueTomorrow, openLoops.length, lateCount)}
       right={
         <View style={styles.headerBtns}>
           <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} />
