@@ -178,6 +178,7 @@ const styles = StyleSheet.create({
   },
   num: {
     fontFamily: fonts.display,
+    fontVariant: ['tabular-nums'],
     fontSize: 22,
     color: BLUE,
     width: 24,
@@ -241,6 +242,7 @@ const styles = StyleSheet.create({
   },
   count: {
     fontFamily: fonts.bodySemi,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
     color: colors.textFaint,
   },

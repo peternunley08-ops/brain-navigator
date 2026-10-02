@@ -335,6 +335,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontFamily: fonts.bodyBold,
+    fontVariant: ['tabular-nums'],
     fontSize: 10,
     color: colors.flameInk,
   },

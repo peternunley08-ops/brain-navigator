@@ -460,6 +460,7 @@ const styles = StyleSheet.create({
   count: {
     marginTop: 8,
     fontFamily: fonts.display,
+    fontVariant: ['tabular-nums'],
     fontSize: 44,
     color: colors.textMuted,
     textAlign: 'center',
