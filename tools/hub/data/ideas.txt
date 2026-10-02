@@ -328,3 +328,7 @@ R6-16 | S | 2 | atlas | One average | Every average comes from classAverage(). |
 R6-17 | S | 2 | atlas | Counting is the same | plural() everywhere. | R6#17 =verified
 R6-18 | S | 2 | atlas | Time words are the same | dueLabel() everywhere. | R6#18 =verified
 R6-19 | S | 2 | atlas | Bar titles match | By design. | R6#19 =verified
+SEC-1 | L | 3 | shield | Notion key out of the app | The Notion secret is read through EXPO_PUBLIC_, so it ships inside the app. Move Notion calls into a Supabase function; Peter rotates the key. |
+SEC-2 | S | 2 | shield | Check links before opening | Links saved in Connections open only if they are https. Crisis tel: and sms: lines keep working. |
+SEC-3 | M | 2 | shield | Vulnerable packages | npm audit shows high flags in expo, @expo/cli, node-forge and google-signin. Bump within SDK 57 where a fix exists. |
+SEC-4 | S | 2 | shield | Keys can never be committed | The gate now blocks real keys in code, and the scanner checks every tracked file. |

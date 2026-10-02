@@ -265,6 +265,27 @@
       "owns": [
         "docs drafts Atlas assigns"
       ]
+    },
+    {
+      "id": "shield",
+      "name": "Shield",
+      "role": "Security",
+      "color": "#7FB3E8",
+      "model": "Sonnet 4.6 (scan is free)",
+      "mission": "Hunts security flags and patches them. A free scanner (tools/hub/security.mjs) finds leaked keys, secrets baked into the app, unchecked links, risky web views, cleartext traffic, leaky function logs and vulnerable packages. Shield triages each flag, patches what code can fix, proves it with a rescan and the gate, and hands Peter the steps only he can do (rotating keys, dashboard secrets).",
+      "workflow": [
+        "Scan",
+        "Triage",
+        "Patch",
+        "Gate",
+        "Rescan",
+        "Hand off"
+      ],
+      "owns": [
+        "tools/hub/security.mjs",
+        "tools/hub/SECURITY.md",
+        "security flags in any file (smallest fix)"
+      ]
     }
   ],
   "rules": [

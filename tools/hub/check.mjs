@@ -47,6 +47,7 @@ const RULES = [
   ['error', 'new-array-selector', (l) => /use\w+Store\(\(\w+\)\s*=>\s*\w+(\.\w+)+\.(filter|map|slice|concat|sort)\(/.test(l), 'zustand 5 loops forever on a new array per call: select the array, filter in render (or useMemo)'],
   ['error', 'auth', (l) => /supabase\.auth\.|auth\.users/.test(l), 'no Supabase Auth or auth.users without the user saying so'],
   ['error', 'jsx-dollar', (l, f) => f.endsWith('.tsx') && /\$\{/.test(l) && !l.includes('`'), 'template syntax outside backticks: in JSX text `${x}` renders a literal "$"; write {x}'],
+  ['error', 'secret', (l) => /sk-ant-[A-Za-z0-9_-]{20,}|\b(ntn_|secret_)[A-Za-z0-9]{30,}|\bAKIA[0-9A-Z]{16}\b|-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(l), 'a real key in code: remove it (the owner rotates it); secrets live in Supabase function secrets, never EXPO_PUBLIC_'],
   ['error', 'console-log', (l) => /console\.log\(/.test(l), 'remove console.log before handing off'],
   ['warn', 'raw-pressable', (l) => /<(Pressable|TouchableOpacity|TouchableHighlight)\b/.test(l), 'tappable things use Pressy (spring press + haptic) or a kit component'],
   ['warn', 'hex-color', (l, f) => /['"]#[0-9a-fA-F]{6}['"]/.test(l) && !f.endsWith('core/theme.ts') && !f.endsWith('core/emberLook.ts'), 'colors come from core/theme (colors/alpha)'],
