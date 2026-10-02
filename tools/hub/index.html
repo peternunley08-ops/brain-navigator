@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  color-scheme: dark;
   --night: #120F14; --nightHigh: #1B1520; --surface: #211A25; --surfaceHigh: #2B2230; --sunk: #17121A;
   --line: rgba(255,228,190,.09); --lineStrong: rgba(255,228,190,.18);
   --text: #F5EBDD; --muted: #C3B3A0; --faint: #998C7D; --hint: #7E7266;
@@ -29,7 +30,8 @@ body {
 h1, h2, h3 { font-family: Fraunces, Georgia, serif; font-weight: 600; margin: 0; letter-spacing: -.01em; }
 h2 { font-size: 20px; }
 h3 { font-size: 15px; font-weight: 600; }
-.wrap { max-width: 1480px; margin: 0 auto; padding: 22px 22px 80px; }
+.wrap { max-width: 1480px; margin: 0 auto; padding-inline: max(16px, 2vw); padding-block: 22px 80px; }
+@media (max-width: 600px) { .brand h1 { font-size: 24px; } .clock { display: none; } .controls input { min-width: 0; } }
 .num { font-variant-numeric: tabular-nums; }
 .card { background: linear-gradient(180deg, rgba(43,34,48,.82), rgba(33,26,37,.82)); border: 1px solid var(--line); border-radius: var(--r); padding: 18px 18px 16px; box-shadow: 0 18px 40px rgba(0,0,0,.28); backdrop-filter: blur(6px); }
 .card > header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
@@ -60,11 +62,12 @@ h3 { font-size: 15px; font-weight: 600; }
 
 /* flow */
 .flow { margin-bottom: 16px; }
-#flow { width: 100%; height: 190px; display: block; }
+.scrollx { overflow-x: auto; scrollbar-width: thin; }
+#flow { width: 100%; min-width: 760px; height: 190px; display: block; }
 .flowlegend { display: flex; gap: 14px; flex-wrap: wrap; color: var(--faint); font-size: 12px; margin-top: 6px; }
 
 /* agents */
-.agents { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.agents { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 12px; margin-bottom: 16px; }
 .agent { position: relative; overflow: hidden; }
 .agent::before { content: ''; position: absolute; inset: -40% -20% auto auto; width: 220px; height: 220px; background: radial-gradient(closest-side, var(--c), transparent); opacity: .10; pointer-events: none; }
 .agent.active::before { opacity: .22; animation: breathe 3.2s ease-in-out infinite; }
@@ -117,10 +120,10 @@ h3 { font-size: 15px; font-weight: 600; }
 #feed .msg { color: var(--muted); }
 #feed .ids { display: inline-flex; gap: 4px; margin-left: 6px; }
 #feed .ids a { font-size: 11px; color: var(--flame); cursor: pointer; }
-.simwrap { display: flex; gap: 14px; align-items: flex-start; }
+.simwrap { display: flex; gap: 14px; align-items: flex-start; flex-wrap: wrap; }
 .phone { width: 210px; flex: none; border-radius: 34px; padding: 8px; background: linear-gradient(160deg, #3a3036, #1a1519); border: 1px solid var(--lineStrong); box-shadow: 0 20px 50px rgba(0,0,0,.5), inset 0 0 0 1px rgba(255,255,255,.04); }
 .phone img { width: 100%; display: block; border-radius: 27px; min-height: 380px; background: #000; cursor: zoom-in; }
-.simside { flex: 1; min-width: 0; }
+.simside { flex: 1; min-width: 160px; }
 #shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 8px; margin-top: 8px; }
 #shots figure { margin: 0; cursor: zoom-in; }
 #shots img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
@@ -128,7 +131,7 @@ h3 { font-size: 15px; font-weight: 600; }
 
 /* timeline */
 .timeline { margin-bottom: 16px; }
-#lanes { width: 100%; display: block; }
+#lanes { width: 100%; min-width: 720px; display: block; }
 
 /* bank */
 .bank { margin-bottom: 16px; }
@@ -141,7 +144,7 @@ h3 { font-size: 15px; font-weight: 600; }
 .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
 .controls input, .controls select { background: var(--sunk); color: var(--text); border: 1px solid var(--lineStrong); border-radius: 10px; padding: 7px 10px; font: inherit; }
 .controls input { flex: 1; min-width: 200px; }
-.ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; }
+.ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr)); gap: 8px; }
 .idea { cursor: pointer; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; background: rgba(23,18,26,.55); position: relative; transition: transform .15s ease, border-color .15s; }
 .idea:hover { transform: translateY(-1px); border-color: var(--lineStrong); }
 .idea .row1 { display: flex; gap: 6px; align-items: center; font-size: 11px; color: var(--faint); }
@@ -157,7 +160,7 @@ h3 { font-size: 15px; font-weight: 600; }
 
 /* ways */
 .ways { margin-bottom: 16px; }
-.waygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 14px; }
+.waygrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 14px; }
 .wf { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 8px 0 14px; }
 .wf span { padding: 5px 10px; border-radius: 10px; background: rgba(23,18,26,.6); border: 1px solid var(--line); font-size: 12.5px; }
 .wf em { color: var(--hint); font-style: normal; }
@@ -202,7 +205,7 @@ td code { color: var(--muted); }
 
   <section class="card flow">
     <header><h2>The flow of work</h2><span class="sub">Each spark is an idea moving a stage. Tap a stage to see its ideas.</span></header>
-    <svg id="flow" role="img" aria-label="Pipeline of ideas through each stage"></svg>
+    <div class="scrollx"><svg id="flow" role="img" aria-label="Pipeline of ideas through each stage"></svg></div>
   </section>
 
   <section class="agents" id="agents"></section>
@@ -227,7 +230,7 @@ td code { color: var(--muted); }
 
   <section class="card timeline">
     <header><h2>Timeline</h2><span class="sub" id="tlSpan"></span></header>
-    <svg id="lanes"></svg>
+    <div class="scrollx"><svg id="lanes"></svg></div>
   </section>
 
   <section class="card bank">
@@ -251,7 +254,7 @@ td code { color: var(--muted); }
 
   <section class="card">
     <header><h2>Branches and worktrees</h2><span class="sub" id="gitSub"></span></header>
-    <div id="git"></div>
+    <div id="git" class="scrollx"></div>
   </section>
 </div>
 
@@ -266,6 +269,8 @@ const STAGES = ['backlog', 'queued', 'building', 'checked', 'review', 'integrate
 const STAGE_COLOR = { backlog: '#7E7266', queued: '#C3B3A0', building: '#F5B45C', checked: '#B9D98A', review: '#AFA2DE', integrated: '#7FB8F0', verified: '#8CC0A8', shipped: '#FFDCA6', blocked: '#F07060', dropped: '#5d5249' };
 const STAGE_LABEL = { backlog: 'Idea bank', queued: 'Queued', building: 'Building', checked: 'Gate passed', review: 'Handed off', integrated: 'Merged', verified: 'Verified live', shipped: 'Shipped', blocked: 'Blocked', dropped: 'Decided against' };
 const TYPE_ICON = { hello: '→', claim: '✦', step: '•', file: '✎', check: '✓', commit: '◆', done: '★', blocked: '!', dropped: '×', note: '…', idea: '+', queue: '⇢', integrated: '⇄', verified: '◉', shipped: '▲', shot: '▣', bye: '☾', state: '~' };
+const SNAP = window.__SNAPSHOT__ || null;
+const shotUrl = (name) => (SNAP && SNAP.shots && SNAP.shots[name]) || `/live/shots/${encodeURIComponent(name)}`;
 const view = { feedAgent: '', area: '', status: '', owner: '', size: '', q: '', sort: 'flow', limit: 120 };
 let lastSig = '';
 let S = null, D = null, prevStatus = new Map(), seenEvents = 0, firstLoad = true;
@@ -499,7 +504,7 @@ function renderAgents(now) {
         <div class="m">${last ? `${esc(last.msg || last.type)} <span class="sub">${ago(last.t, now)}</span>` : esc(a.mission)}</div>
         ${cur ? `<div class="bar"><i style="width:${Math.max(4, a.pct || cur.pct || 8)}%"></i></div>` : ''}</div>
       <div class="steps">${a.workflow.map((w, i) => `<span class="${i < a.step ? 'done' : i === a.step ? 'cur' : ''}">${esc(w)}</span>`).join('')}</div>
-      <div class="astats"><div><b>${queued.length}</b><span>on the list</span></div><div><b>${done}</b><span>handed off</span></div><div><b>${a.checksOk}<span class="sub">/${a.checksOk + a.checksFail}</span></b><span>gates passed</span></div><div><b>${a.id === 'scout' || a.id === 'sentinel' ? a.filed : a.files.size}</b><span>${a.id === 'scout' || a.id === 'sentinel' ? 'ideas filed' : 'files touched'}</span></div></div>
+      <div class="astats"><div><b>${queued.length}</b><span>on the list</span></div><div><b>${done}</b><span>${a.id === 'atlas' ? 'verified' : 'handed off'}</span></div><div><b>${a.checksOk}<span class="sub">/${a.checksOk + a.checksFail}</span></b><span>gates passed</span></div><div><b>${a.id === 'scout' || a.id === 'sentinel' ? a.filed : a.files.size}</b><span>${a.id === 'scout' || a.id === 'sentinel' ? 'ideas filed' : 'files touched'}</span></div></div>
       <svg class="spark" viewBox="0 0 300 28" preserveAspectRatio="none"><polyline points="${pts}" fill="none" stroke="${a.color}" stroke-width="1.6" opacity=".9"/><polyline points="0,28 ${pts} 300,28" fill="${a.color}" opacity=".08"/></svg>
       ${tree ? `<div class="tree"><code>${esc(tree.branch || '')}</code><span class="plus">+${tree.plus || 0}</span><span class="minus">−${tree.minus || 0}</span><span>${tree.files || 0} files</span><span>${(tree.commits || []).length} commits</span></div>` : a.tree?.branch ? `<div class="tree"><code>${esc(a.tree.branch)}</code></div>` : ''}
       ${queued.length ? `<div class="queue">${queued.slice(0, 6).map((i) => `<a data-idea="${esc(i.id)}"><span class="sdot" style="background:${STAGE_COLOR[i.status]}"></span>${esc(i.id)} ${esc(i.title)}</a>`).join('')}${queued.length > 6 ? `<span class="sub">and ${queued.length - 6} more</span>` : ''}</div>` : ''}
@@ -528,7 +533,7 @@ function renderFeed(now) {
 
 function renderShots() {
   const shots = S.events.filter((e) => e.shot).slice(-24).reverse();
-  $('#shots').innerHTML = shots.length ? shots.map((e) => `<figure data-src="/live/shots/${encodeURIComponent(e.shot)}"><img loading="lazy" src="/live/shots/${encodeURIComponent(e.shot)}" alt=""><figcaption>${esc((e.ideas || []).join(', '))} ${esc(e.msg).slice(0, 60)}</figcaption></figure>`).join('') : '<p class="sub">Nothing verified yet this wave.</p>';
+  $('#shots').innerHTML = shots.length ? shots.map((e) => `<figure data-src="${shotUrl(e.shot)}"><img loading="lazy" src="${shotUrl(e.shot)}" alt=""><figcaption>${esc((e.ideas || []).join(', '))} ${esc(e.msg).slice(0, 60)}</figcaption></figure>`).join('') : '<p class="sub">Nothing verified yet this wave.</p>';
   $('#shots').querySelectorAll('figure').forEach((f) => f.addEventListener('click', () => lightbox(f.dataset.src)));
 }
 
@@ -623,7 +628,7 @@ function openIdea(id) {
     <p><span class="st" style="background:${c}22;color:${c};border:1px solid ${c}55">${STAGE_LABEL[i.status]}</span> ${ow ? `<span class="pill" style="border-color:${ow.color};color:${ow.color}">${esc(ow.name)}</span>` : '<span class="pill">Not assigned</span>'} <span class="pill">Size ${esc(i.size)}</span> <span class="pill">Impact ${i.impact}/3</span> ${i.tags.map((t) => `<span class="tag">${esc(t)}</span>`).join(' ')}</p>
     ${i.by ? `<p class="sub">Filed by ${esc(S.team.agents.find((a) => a.id === i.by)?.name || i.by)}</p>` : ''}
     <h3 style="margin-top:16px">History</h3>
-    ${i.history.length ? `<ol>${i.history.map((e) => { const a = S.team.agents.find((x) => x.id === e.agent); return `<li style="--c:${e.ok === false ? '#F07060' : a?.color}"><b style="color:${a?.color}">${esc(a?.name || e.agent)}</b> ${esc(e.type)} <span class="sub">${hhmm(e.t)}</span><br>${esc(e.msg)}${e.shot ? `<br><img src="/live/shots/${encodeURIComponent(e.shot)}" style="width:140px;border-radius:12px;margin-top:6px">` : ''}</li>`; }).join('')}</ol>` : '<p class="sub">No events yet.</p>'}`;
+    ${i.history.length ? `<ol>${i.history.map((e) => { const a = S.team.agents.find((x) => x.id === e.agent); return `<li style="--c:${e.ok === false ? '#F07060' : a?.color}"><b style="color:${a?.color}">${esc(a?.name || e.agent)}</b> ${esc(e.type)} <span class="sub">${hhmm(e.t)}</span><br>${esc(e.msg)}${e.shot ? `<br><img src="${shotUrl(e.shot)}" style="width:140px;border-radius:12px;margin-top:6px">` : ''}</li>`; }).join('')}</ol>` : '<p class="sub">No events yet.</p>'}`;
   $('#drawer').classList.add('open');
 }
 $('#closeDrawer').addEventListener('click', () => $('#drawer').classList.remove('open'));
@@ -662,6 +667,13 @@ function renderGit() {
 
 // ---------- polling ----------
 async function poll() {
+  if (SNAP) {
+    S = SNAP.state;
+    $('#dot').className = 'dot';
+    $('#liveText').textContent = `Snapshot from ${new Date(SNAP.at).toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' })}. The live hub runs on the Mac.`;
+    render();
+    return;
+  }
   try {
     const r = await fetch('/api/state', { cache: 'no-store' });
     const next = await r.json();
@@ -677,6 +689,7 @@ async function poll() {
   }
 }
 function refreshSim() {
+  if (SNAP) { if (SNAP.sim) $('#sim').src = SNAP.sim; $('#simAt').textContent = `iPhone 17 Pro, ${new Date(SNAP.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`; return; }
   if (document.hidden) return;
   const img = new Image();
   img.onload = () => { $('#sim').src = img.src; $('#simAt').textContent = `iPhone 17 Pro, ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`; };
@@ -689,8 +702,8 @@ $('#fSize').addEventListener('change', (e) => { view.size = e.target.value; rend
 $('#fSort').addEventListener('change', (e) => { view.sort = e.target.value; renderBank([...D.ideas.values()]); });
 setInterval(() => { $('#clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }, 1000);
 $('#clock').textContent = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-poll(); setInterval(poll, 2500);
-refreshSim(); setInterval(refreshSim, 6000);
+poll(); refreshSim();
+if (!SNAP) { setInterval(poll, 2500); setInterval(refreshSim, 6000); }
 if (!reduce) requestAnimationFrame(tick);
 addEventListener('resize', () => S && render());
 </script>

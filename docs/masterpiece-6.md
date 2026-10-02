@@ -175,6 +175,56 @@ checked · [–] decided against (with why)
 5. **Smoothness**: 76–90 alongside.
 6. **Quality**: 91–100, commit and push.
 
+## The team (2026-10-02, from Wave 1)
+
+The ask: "create a team of agents, give them jobs like tasks still waiting and
+new ideas, give them workflows, be the master mind … make a virtual hub screen
+dashboard showing the flow of work … create hundreds of ideas … make them work
+exactly how they should as we have been working together."
+
+How it works (all in `tools/hub/`, see `tools/hub/BRIEFING.md`):
+
+- **The Work Hub** (`server.mjs`, `index.html`; preview "hub" on port 4410): a
+  live dashboard of the team, every idea's stage, a flow diagram where each
+  idea that moves sends a spark down the pipe, a live feed, a timeline per
+  agent, every worktree's git state, the Simulator live, and a proof gallery
+  of verification screenshots. `export.mjs` freezes it into one page that is
+  published as an Artifact for the phone and refreshed at milestones.
+- **The idea bank** (`data/ideas.txt`): the Round 6 plan plus 180 new ideas in
+  23 areas (280 at launch); Scout and Sentinel add grounded ones as `S###`.
+- **The pipeline**: Idea bank → Queued → Building → Gate passed → Handed off
+  → Merged → Verified live → Shipped. Agents report each step with `hub.mjs`
+  (append-only `live/events.jsonl`; the dashboard folds the events into state).
+- **The gate** (`check.mjs`): the house rules this app learned the hard way
+  (goBack, haptics, stable selectors, no uppercase or middle dots, no auth,
+  plural(), no console.log, Pressy, theme colors and fonts, no Reanimated deps
+  arrays, calm copy), checked on every added line, plus the type-check.
+  Every commit passes it.
+- **The roles**: Atlas (me: plan, assign, merge, verify live, ship), Nocturne
+  (night), Lumen (polish and presentable), Spark (surprise), Glide (motion),
+  Guide (first impressions), Sentinel (quality sweep and tests), Scout (ideas,
+  read-only). Each owns a set of files for the wave so no two touch the same
+  file; anything outside their files comes back as "wiring for Atlas".
+
+Decisions:
+
+- **Builders work in their own git worktrees; only Atlas touches main, Metro,
+  and the Simulator.** One Simulator can't be shared, and the user's rule is
+  that nothing counts as done until it's checked live with real taps. So
+  builders pass the gate and hand off a how-to-check-it script; I merge and
+  verify.
+- **File ownership per wave** instead of letting agents edit anything: merges
+  stay clean and nobody undoes anyone else's work.
+- **No native rebuilds and no new packages in a wave**: ideas that need one are
+  filed and batched for the phone build at the end.
+- **Metro and the type-check skip `.claude/worktrees` and `tools/hub`**
+  (`metro.config.js`, `tsconfig.json`), so agents' copies of the app never leak
+  into the running app.
+- The Agent tool created five worktrees from the last pushed commit rather than
+  main; caught in the first minute (the hub's branch table showed it) and each
+  agent fast-forwarded to main before building. Next wave: push before
+  launching, or tell agents to fast-forward first.
+
 ## RESUME HERE (for a fresh session after compaction)
 
 Round 6 started 2026-10-02. Done so far: #1, #2 (audit fixes), plus two
