@@ -14,6 +14,7 @@ import { Section } from '../components/ui/Section';
 import { normalizeCanvasUrl, syncCanvas } from '../core/canvas';
 import { useGoogleCalendarStore } from '../core/googleCalendarStore';
 import { useHubStore } from '../core/hubStore';
+import { openSafe } from '../core/links';
 import { alpha, colors, fonts } from '../core/theme';
 
 const SCHOOL_REQUEST = `Hi, I use an app called Brain Navigator to keep track of my classes and assignments. My school Google account blocks it from connecting to Google Classroom and Calendar. Could the school approve it in the Google Admin console (Security → API controls → App access control)? It only needs read-only access to my own classes and coursework. Thank you!`;
@@ -143,7 +144,7 @@ export default function ConnectionsScreen() {
             color="#8FB4E8"
             title="Aeries"
             body={links.aeries ? 'Grades and attendance' : 'Add your district’s Aeries link'}
-            onPress={() => (links.aeries ? Linking.openURL(normalizeCanvasUrl(links.aeries)) : setAeriesOpen(true))}
+            onPress={() => (links.aeries ? openSafe(links.aeries) : setAeriesOpen(true))}
             onLongPress={() => setAeriesOpen(true)}
           />
           {aeriesOpen ? (
@@ -162,7 +163,7 @@ export default function ConnectionsScreen() {
               />
             </Card>
           ) : null}
-          <Row icon="message" color="#9FD08A" title="ParentSquare" body="School messages and announcements" onPress={() => Linking.openURL(links.parentsquare)} />
+          <Row icon="message" color="#9FD08A" title="ParentSquare" body="School messages and announcements" onPress={() => openSafe(links.parentsquare)} />
           <Row icon="flag" color="#F5B45C" title="Common App" body="Plus your own tracker for every college" onPress={() => router.push('/college')} extra={{ label: 'Open site', onPress: () => Linking.openURL('https://apply.commonapp.org') }} />
           <Row icon="message" color="#F07060" title="Gmail" body="Your inbox" onPress={() => Linking.openURL('https://mail.google.com')} />
           <Row icon="jar" color="#8CC0A8" title="Google Drive" body="Docs and files" onPress={() => Linking.openURL('https://drive.google.com')} />
