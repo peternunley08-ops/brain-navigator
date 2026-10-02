@@ -1,4 +1,5 @@
 import { helperChips } from '../../core/about';
+import { plural } from '../../core/words';
 import * as Haptics from '../../core/haptics';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -166,7 +167,7 @@ export function AIChat({ helper, rig, extra, starter, onUseOffline }: AIChatProp
       if (await useTasksStore.getState().addTask(p.title, 'occupational', parseInt(p.detail ?? '', 10) || null)) added.push(p.title);
     }
     if (!added.length) return;
-    offerUndo(`${added.length} block${added.length === 1 ? '' : 's'} on your plate`, () => {
+    offerUndo(`${plural(added.length, 'block')} on your plate`, () => {
       for (const title of added) {
         const t = [...useTasksStore.getState().tasks].reverse().find((x) => x.title === title);
         if (t) useTasksStore.getState().deleteTask(t.id);

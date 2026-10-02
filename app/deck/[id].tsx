@@ -153,7 +153,7 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
           <StatTile label="Learning" value={String(st.learning)} color={colors.flame} />
           <StatTile label="Mastered" value={String(st.mastered)} color={colors.secured} />
         </View>
-        {st.total ? <Button label={due ? `Study ${due} card${due === 1 ? '' : 's'}` : 'Study anyway'} icon="play" onPress={onStudy} style={styles.gap} /> : null}
+        {st.total ? <Button label={due ? `Study ${plural(due, 'card')}` : 'Study anyway'} icon="play" onPress={onStudy} style={styles.gap} /> : null}
       </Reveal>
 
       <Reveal index={2}>
@@ -169,7 +169,7 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
                   hint="One card per line. Separate the two sides with :: or a dash."
                 />
                 <Button
-                  label={parsed.length ? `Add ${parsed.length} card${parsed.length === 1 ? '' : 's'}` : 'Add cards'}
+                  label={parsed.length ? `Add ${plural(parsed.length, 'card')}` : 'Add cards'}
                   icon="plus"
                   disabled={!parsed.length}
                   onPress={() => {
@@ -316,7 +316,7 @@ function StudyView({ deckId, typeIt, reverse, hardest, onDone }: { deckId: strin
         <Icon name="trophy" size={44} color={colors.flame} />
         <Text style={styles.doneTitle}>That’s the deck.</Text>
         <Text style={styles.doneBody}>
-          {total} card{total === 1 ? '' : 's'} reviewed. Cards you knew come back in a few days; the tricky ones come back tomorrow.
+          {total} ${plural(total, 'card')} reviewed. Cards you knew come back in a few days; the tricky ones come back tomorrow.
         </Text>
         <Button label="Back to the cards" variant="secondary" onPress={onDone} style={styles.gap} />
       </Animated.View>

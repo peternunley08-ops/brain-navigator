@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { plural } from '../../core/words';
 import { StyleSheet, Text, View } from 'react-native';
 import { AssignmentRow } from '../../components/school/AssignmentRow';
 import { Button } from '../../components/ui/Button';
@@ -112,7 +113,7 @@ export default function ClassScreen() {
                   <View style={styles.flex}>
                     <Text style={styles.pct}>{avg.toFixed(1)}%</Text>
                     <Text style={styles.sub}>
-                      {mine.length} grade{mine.length === 1 ? '' : 's'}
+                      {mine.length} ${plural(mine.length, 'grade')}
                       {Object.keys(cls.weights ?? {}).length ? ', weighted' : ''}
                     </Text>
                   </View>

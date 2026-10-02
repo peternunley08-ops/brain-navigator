@@ -1,4 +1,5 @@
 import * as Haptics from '../../core/haptics';
+import { plural } from '../../core/words';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useRef, useState } from 'react';
 import { ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -168,7 +169,7 @@ export default function NoteScreen() {
     if (chosen.length) life.addCards(deck.id, chosen);
     setCardPick(null);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    emberSay(`${chosen.length} flashcard${chosen.length === 1 ? '' : 's'} ${linked ? `added to “${deck.name}”` : 'made from this page'}.`, 'happy');
+    emberSay(`${plural(chosen.length, 'flashcard')} ${linked ? `added to “${deck.name}”` : 'made from this page'}.`, 'happy');
     router.push(`/deck/${deck.id}`);
   };
 
@@ -192,7 +193,7 @@ export default function NoteScreen() {
     life.addCards(deck.id, fresh.map((p) => ({ front: p.title, back: p.detail ?? '' })));
     const added = [...cardIds()].filter((id) => !before.has(id));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    const n = `${fresh.length} card${fresh.length === 1 ? '' : 's'}`;
+    const n = `${plural(fresh.length, 'card')}`;
     offerUndo(`Added ${n}${skipped ? `, ${skipped} already there` : ''}`, () => {
       const l = useLifeStore.getState();
       if (made) l.deleteDeck(deck.id);
@@ -204,7 +205,7 @@ export default function NoteScreen() {
     cards: {
       chip: 'Flashcards',
       label: 'Make flashcards',
-      add: (k: number) => `Add ${k} card${k === 1 ? '' : 's'}`,
+      add: (k: number) => `Add ${plural(k, 'card')}`,
       load: async () => {
         const res = await askJob<{ cards: { front: string; back: string }[] }>('cards', pageText.slice(0, 7500), { who: 'cards' });
         return res.ok ? { ok: true as const, items: res.data.cards.map((c) => ({ title: c.front, detail: c.back })) } : res;
@@ -396,7 +397,7 @@ export default function NoteScreen() {
 
       <View style={styles.count}>
         <Text style={styles.countText}>
-          {words} word{words === 1 ? '' : 's'}
+          {words} ${plural(words, 'word')}
           {goal ? ` of ${goal}` : ''}
         </Text>
         {goal ? <ProgressBar value={words / goal} color={words > goal ? colors.danger : note.color} height={4} style={styles.countBar} /> : null}
@@ -453,7 +454,7 @@ export default function NoteScreen() {
               {!linked
                 ? `Make ${fresh.length} flashcards from this page`
                 : fresh.length
-                  ? `Add ${fresh.length} new card${fresh.length === 1 ? '' : 's'} to “${linked.name}”`
+                  ? `Add ${plural(fresh.length, 'new card')} to “${linked.name}”`
                   : `Cards are up to date. Open “${linked.name}”`}
             </Text>
           </Pressy>
@@ -504,7 +505,7 @@ export default function NoteScreen() {
               <Pressy onPress={makeCards} disabled={!cardPick.length} style={[styles.makeCards, styles.pickGo, !cardPick.length && styles.dim]} accessibilityRole="button">
                 <Icon name="cards" size={15} color={colors.flame} />
                 <Text style={styles.makeCardsText}>
-                  {linked ? 'Add' : 'Make'} {cardPick.length} card{cardPick.length === 1 ? '' : 's'}
+                  {linked ? 'Add' : 'Make'} {cardPick.length} ${plural(cardPick.length, 'card')}
                 </Text>
               </Pressy>
             </View>

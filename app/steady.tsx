@@ -1,4 +1,5 @@
 import * as Haptics from '../core/haptics';
+import { plural } from '../core/words';
 import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
@@ -71,7 +72,7 @@ export default function SteadyScreen() {
           <QuickBreath color={BLUE} />
           {breathedThisMonth ? (
             <Text style={styles.breathCount}>
-              You took a breathing break on {breathedThisMonth} day{breathedThisMonth === 1 ? '' : 's'} this month.
+              You took a breathing break on {breathedThisMonth} ${plural(breathedThisMonth, 'day')} this month.
             </Text>
           ) : null}
         </Reveal>

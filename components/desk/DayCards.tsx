@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { celebrate } from '../../core/celebrateStore';
+import { plural } from '../../core/words';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { addDays, dateKey, daysUntil } from '../../core/dates';
@@ -79,10 +80,10 @@ export function DayBrief() {
         title="This morning"
         body={[
           first ? `${todays.length} class${todays.length === 1 ? '' : 'es'}, starting with ${first.name} at ${clock(first.start)}.` : 'No classes today.',
-          due ? `${due} thing${due === 1 ? '' : 's'} due today.` : 'Nothing due today.',
+          due ? `${plural(due, 'thing')} due today.` : 'Nothing due today.',
           one ? `Your one thing: ${one}.` : null,
           weekMin >= 30 ? `${Math.round((weekMin / 60) * 10) / 10} hours of focus so far this week.` : null,
-          soon ? `${soon.title} in ${daysUntil(soon.date)} day${daysUntil(soon.date) === 1 ? '' : 's'}.` : null,
+          soon ? `${soon.title} in ${plural(daysUntil(soon.date), 'day')}.` : null,
         ]
           .filter(Boolean)
           .join(' ')}
@@ -190,7 +191,7 @@ export function WelcomeBack() {
       icon="sun"
       color="#F5A36B"
       title={`Welcome back. It’s been ${away} days.`}
-      body={[week ? `${week} thing${week === 1 ? '' : 's'} due this week.` : 'Nothing due this week.', late ? `${late} slipped past; triage helps.` : null].filter(Boolean).join(' ')}
+      body={[week ? `${plural(week, 'thing')} due this week.` : 'Nothing due this week.', late ? `${late} slipped past; triage helps.` : null].filter(Boolean).join(' ')}
       onPress={() => router.push(late ? '/triage' : '/school')}
       onClose={setHidden}
     />

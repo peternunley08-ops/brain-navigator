@@ -17,6 +17,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { cheerLine } from '../core/about';
 import { Habit, HabitFrequency, useHabitsStore } from '../core/habitsStore';
+import { plural } from '../core/words';
 import { alpha, colors, dimensionColor, fonts } from '../core/theme';
 import { WELLNESS_DIMENSIONS, WellnessDimension, dimensionLabel } from '../core/wellness';
 
@@ -189,7 +190,7 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
   const logged = new Set(logs.filter((l) => l.habit_id === habit.id).map((l) => l.log_date));
 
   const unit = habit.frequency === 'daily' ? 'day' : 'week';
-  const streakLabel = `${streak} ${unit}${streak === 1 ? '' : 's'}`;
+  const streakLabel = plural(streak, unit);
 
   const scale = useSharedValue(1);
   const toggle = async () => {

@@ -1,6 +1,7 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { goBack } from '../core/chrome';
+import { plural } from '../core/words';
 import { aiFailLine, askJob } from '../core/emberAI';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
@@ -164,7 +165,7 @@ export default function ScanScreen() {
       kind: (kinds.includes(it.kind) ? it.kind : 'homework') as FoundAssignment['kind'],
       className: it.className || null,
     }));
-    setTidy({ busy: false, line: `Claude found ${assignments.length} thing${assignments.length === 1 ? '' : 's'} to do. Check them below.` });
+    setTidy({ busy: false, line: `Claude found ${plural(assignments.length, 'thing')} to do. Check them below.` });
     // Claude's class names replace the phone's guesses ("AP Bio P3 Ms Rivera.
     // Posted Sep 28" → "AP Bio"). A guess Claude also named keeps its teacher
     // and times; a guess with times came from a schedule and stays; the rest go.
@@ -242,7 +243,7 @@ export default function ScanScreen() {
     goBack();
     const parts = [
       addedClasses ? `${addedClasses} class${addedClasses === 1 ? '' : 'es'}` : '',
-      addedWork ? `${addedWork} thing${addedWork === 1 ? '' : 's'} due` : '',
+      addedWork ? `${plural(addedWork, 'thing')} due` : '',
       timed ? `times for ${timed} class${timed === 1 ? '' : 'es'}` : '',
     ].filter(Boolean);
     emberSay(parts.length ? `Brought in ${parts.join(' and ')}. Check the dates look right.` : 'Nothing new to bring in.', parts.length ? 'cheer' : 'idle');
@@ -380,7 +381,7 @@ export default function ScanScreen() {
               </Section>
             ) : null}
 
-            <Button label={count ? `Bring in ${count} thing${count === 1 ? '' : 's'}` : 'Nothing picked'} icon="check" onPress={importPicked} disabled={!count} style={styles.primary} />
+            <Button label={count ? `Bring in ${plural(count, 'thing')}` : 'Nothing picked'} icon="check" onPress={importPicked} disabled={!count} style={styles.primary} />
             {textRecognitionAvailable ? (
               <Button label="Add more screenshots" icon="plus" variant="secondary" onPress={() => choose(true)} style={styles.more} />
             ) : (

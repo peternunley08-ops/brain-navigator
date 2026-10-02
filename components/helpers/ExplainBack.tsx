@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { EXPLAIN_CHECKS } from '../../core/helperOffline';
+import { plural } from '../../core/words';
 import { type NoteBlock, uid, useHubStore } from '../../core/hubStore';
 import { useLifeStore } from '../../core/lifeStore';
 import { colors, fonts } from '../../core/theme';
@@ -57,7 +58,7 @@ export function ExplainBack({ rig, topic: initial, onAskAI }: { rig: EmberRig; t
         multiline
         placeholder="No notes. Just what you know."
         containerStyle={styles.gap}
-        hint={`${words} word${words === 1 ? '' : 's'}${ready ? '' : '. Aim for at least 15.'}`}
+        hint={`${plural(words, 'word')}${ready ? '' : '. Aim for at least 15.'}`}
       />
       {ready ? (
         <Animated.View entering={FadeInDown.duration(260)}>
