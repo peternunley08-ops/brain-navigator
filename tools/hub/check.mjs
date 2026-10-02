@@ -46,6 +46,7 @@ const RULES = [
   ['error', 'middle-dot', (l) => /['"`>][^'"`<]*\s·\s[^'"`<]*['"`<]/.test(l) && !/^\s*(\/\/|\*)/.test(l), 'no "A · B · C" joins in copy; write a sentence'],
   ['error', 'new-array-selector', (l) => /use\w+Store\(\(\w+\)\s*=>\s*\w+(\.\w+)+\.(filter|map|slice|concat|sort)\(/.test(l), 'zustand 5 loops forever on a new array per call: select the array, filter in render (or useMemo)'],
   ['error', 'auth', (l) => /supabase\.auth\.|auth\.users/.test(l), 'no Supabase Auth or auth.users without the user saying so'],
+  ['error', 'jsx-dollar', (l, f) => f.endsWith('.tsx') && /\$\{/.test(l) && !l.includes('`'), 'template syntax outside backticks: in JSX text `${x}` renders a literal "$"; write {x}'],
   ['error', 'console-log', (l) => /console\.log\(/.test(l), 'remove console.log before handing off'],
   ['warn', 'raw-pressable', (l) => /<(Pressable|TouchableOpacity|TouchableHighlight)\b/.test(l), 'tappable things use Pressy (spring press + haptic) or a kit component'],
   ['warn', 'hex-color', (l, f) => /['"]#[0-9a-fA-F]{6}['"]/.test(l) && !f.endsWith('core/theme.ts') && !f.endsWith('core/emberLook.ts'), 'colors come from core/theme (colors/alpha)'],
