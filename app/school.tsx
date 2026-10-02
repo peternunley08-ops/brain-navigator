@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { AssignmentRow } from '../components/school/AssignmentRow';
 import { EmberPick } from '../components/school/EmberPick';
 import { Chip } from '../components/ui/Chip';
@@ -221,7 +221,7 @@ export default function SchoolScreen() {
           ) : null}
           {onlyClass && !groups.length ? <Text style={styles.noneFor}>Nothing open for this class.</Text> : null}
           {groups.map((g) => (
-          <Animated.View key={g.title} layout={glide}>
+          <Animated.View key={g.title} layout={glide} exiting={FadeOut.duration(220)}>
           <Reveal index={n++}>
             <Section
               title={g.title}

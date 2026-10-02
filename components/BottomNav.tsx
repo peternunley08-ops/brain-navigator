@@ -90,6 +90,7 @@ export function BottomNav() {
   const active = ([...LEFT, ...RIGHT].find((i) => i.path === pathname)?.path ?? null) as NavPath | null;
   const pillX = useSharedValue(-100);
   const pillOn = useSharedValue(0);
+  const pillTo = useSharedValue(0);
   useEffect(() => {
     const at = active ? spots[active] : undefined;
     if (at == null) {
@@ -97,11 +98,24 @@ export function BottomNav() {
       return;
     }
     // From nowhere (a page that isn't a tab), appear in place; between tabs, glide.
-    if (pillOn.value < 0.5 || pillX.value < 0) pillX.value = at;
-    else pillX.value = withSpring(at, springs.snappy);
+    if (pillOn.value < 0.5 || pillX.value < 0) {
+      pillTo.value = at;
+      pillX.value = at;
+    }
+    else {
+      pillTo.value = at;
+      pillX.value = withSpring(at, springs.snappy);
+    }
     pillOn.value = withTiming(1, timings.base);
-  }, [active, spots, pillX, pillOn]);
-  const pillStyle = useAnimatedStyle(() => ({ opacity: pillOn.value, transform: [{ translateX: pillX.value }] }));
+  }, [active, spots, pillX, pillOn, pillTo]);
+  // While it travels the pill stretches toward where it's going, then settles.
+  const pillStyle = useAnimatedStyle(() => {
+    if (reduced) return { opacity: pillOn.value, transform: [{ translateX: pillX.value }] };
+    const gap = pillTo.value - pillX.value;
+    const stretch = 1 + Math.min(0.3, Math.abs(gap) / 500);
+    const lead = Math.sign(gap) * ((stretch - 1) * PILL) / 2;
+    return { opacity: pillOn.value, transform: [{ translateX: pillX.value + lead }, { scaleX: stretch }] };
+  });
 
   // The + turns toward an × while its sheet is open.
   const turn = useSharedValue(0);
