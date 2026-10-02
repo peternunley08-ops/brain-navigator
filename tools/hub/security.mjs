@@ -88,7 +88,7 @@ try {
   const vulns = JSON.parse(audit.stdout || '{}').vulnerabilities || {};
   for (const [name, v] of Object.entries(vulns)) {
     if (v.severity === 'high' || v.severity === 'critical')
-      findings.push({ sev: v.severity === 'critical' ? 'high' : 'med', id: 'dep-vuln', file: 'package.json', line: 0, why: `${name} has a known ${v.severity} vulnerability${v.isDirect ? '' : ' (pulled in by another package)'}`, fix: v.fixAvailable ? 'npx expo install --fix, or bump within the SDK 57 range' : 'No fix yet; note it' });
+      findings.push({ sev: v.severity === 'critical' ? 'high' : 'med', id: 'dep-vuln', file: 'package.json', line: 0, why: `${name} has a known ${v.severity} vulnerability${v.isDirect ? '' : ' (pulled in by another package)'}`, fix: 'Wait for an Expo SDK 57 patch release, then npx expo install --fix. Never npm audit fix --force (it downgrades Expo)' });
   }
 } catch {
   /* offline: no audit */
