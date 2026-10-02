@@ -17,7 +17,8 @@ const flag = (k) => {
   return i >= 0 ? args[i + 1] : undefined;
 };
 const agent = flag('agent') || 'shield';
-const cwd = process.cwd();
+// Scan the checkout we are in (a worktree too); from anywhere else, scan the app.
+const cwd = existsSync(join(process.cwd(), '.git')) ? process.cwd() : MAIN;
 const git = (a) => {
   try {
     return execFileSync('git', a, { cwd, encoding: 'utf8', maxBuffer: 32 << 20 });
