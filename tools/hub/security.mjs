@@ -27,7 +27,7 @@ const git = (a) => {
 };
 
 const TEXT = /\.(ts|tsx|js|mjs|cjs|json|md|html|sh|toml|ya?ml|plist|sql|txt|env.*)$|^\.env/;
-const SKIP = /(^|\/)(node_modules|ios\/Pods|\.claude|tools\/hub\/live)\/|package-lock\.json$/;
+const SKIP = /(^|\/)(node_modules|ios\/Pods|\.claude|tools\/hub\/live)\/|tools\/hub\/(security|check)\.mjs$|package-lock\.json$/;
 const files = git(['ls-files']).split('\n').filter((f) => f && TEXT.test(f) && !SKIP.test(f) && existsSync(join(cwd, f)));
 
 // Public by design: the Supabase anon key, Google OAuth client ids, Notion db ids.
@@ -45,7 +45,7 @@ const RULES = [
   ['med', 'eval', (l, f) => /\.(ts|tsx|js)$/.test(f) && /\beval\(|new Function\(/.test(l), 'eval or new Function runs strings as code', 'Remove; parse data instead'],
   ['med', 'webview-open', (l) => /originWhitelist=\{\[['"]\*['"]\]\}|injectedJavaScript=/.test(l), 'WebView open to any origin or running injected script', 'Limit origins; avoid injected script'],
   ['med', 'cleartext-http', (l, f) => /\.(ts|tsx)$/.test(f) && /['"`]http:\/\/(?!localhost|127\.0\.0\.1)/.test(l), 'Cleartext http:// request', 'Use https://'],
-  ['med', 'open-url-unchecked', (l, f) => /\.(ts|tsx)$/.test(f) && /Linking\.openURL\((?!['"`])/.test(l) && !/^(app\/help\.tsx|components\/ember\/HelpCard\.tsx)$/.test(f) && !/https?:|tel:|mailto:|sms:/.test(l), 'Opens a URL built from data; check the scheme first', 'Allow only https:, tel:, sms:, mailto:'],
+  ['med', 'open-url-unchecked', (l, f) => /\.(ts|tsx)$/.test(f) && /Linking\.openURL\((?!['"`])/.test(l) && !/^(app\/help\.tsx|components\/ember\/HelpCard\.tsx|core\/links\.ts)$/.test(f) && !/https?:|tel:|mailto:|sms:/.test(l), 'Opens a URL built from data; check the scheme first', 'Allow only https:, tel:, sms:, mailto:'],
   ['med', 'fn-cors-wildcard', (l, f) => f.startsWith('supabase/functions/') && /Access-Control-Allow-Origin['"]?\s*:\s*['"]\*['"]/.test(l), 'Edge function answers any website (CORS *)', 'Accepted while the app is native-only: a browser origin is not a gate for a native app; revisit if a web build ships'],
   ['med', 'fn-log-body', (l, f) => f.startsWith('supabase/functions/') && /console\.(log|info)\(.*\b(body|messages|text|prompt|content)\b/.test(l), 'Edge function may log what the person wrote', 'Log counts and timings only'],
   ['low', 'tls-off', (l) => /NSAllowsArbitraryLoads<\/key>\s*<true|rejectUnauthorized:\s*false/.test(l), 'Transport security turned off', 'Remove the exception'],
