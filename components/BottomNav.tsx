@@ -1,9 +1,9 @@
 import * as Haptics from '../core/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname, useRootNavigationState } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { type LayoutChangeEvent, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { SlideInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, SlideInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { GestureDetector, GestureHandlerRootView, usePanGesture } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -122,6 +122,7 @@ export function BottomNav() {
             badge={item.path === '/school' && dueCount > 0 ? dueCount : undefined}
             onGo={goTab}
             onLayout={place(item.path)}
+            edge={item.path === '/' ? 'start' : undefined}
           />
         ))}
 
@@ -146,7 +147,7 @@ export function BottomNav() {
         </View>
 
         {RIGHT.map((item) => (
-          <NavSegment key={item.path} item={item} active={active === item.path} onGo={goTab} onLayout={place(item.path)} />
+          <NavSegment key={item.path} item={item} active={active === item.path} onGo={goTab} onLayout={place(item.path)} edge={item.path === '/steady' ? 'end' : undefined} />
         ))}
       </View>
       <QuickAdd open={adding} onClose={() => setAdding(false)} />
@@ -264,12 +265,15 @@ function NavSegment({
   badge,
   onGo,
   onLayout,
+  edge,
 }: {
   item: NavItem;
   active: boolean;
   badge?: number;
   onGo: (path: NavPath) => void;
   onLayout: (e: LayoutChangeEvent) => void;
+  /** The first and last tabs keep their hold hint on screen. */
+  edge?: 'start' | 'end';
 }) {
   const tint = active ? colors.flame : colors.textFaint;
   // The chosen tab's icon lifts a little.
@@ -284,14 +288,27 @@ function NavSegment({
     if (badge) pop.value = withSequence(withTiming(1.35, { duration: 120 }), withSpring(1, springs.snappy));
   }, [badge, pop]);
   const badgeStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
+  // Holding a tab says what the hold will do, a beat before it does it.
+  const [hint, setHint] = useState(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const endHint = () => {
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = null;
+    setHint(false);
+  };
   return (
     <Pressy
       style={styles.segment}
       depth={0.9}
       onLayout={onLayout}
+      onPressIn={() => {
+        hintTimer.current = setTimeout(() => setHint(true), 180);
+      }}
+      onPressOut={endHint}
       // On the tab already: back to the top of it, the way iOS tabs work.
       onPress={() => (active ? scrollFocusedToTop() : onGo(item.path))}
       onLongPress={() => {
+        endHint();
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
         router.push({ pathname: item.hold.href as never, params: item.hold.params ?? {} });
       }}
@@ -303,15 +320,26 @@ function NavSegment({
       accessibilityLabel={badge ? `${item.label}, ${badge} open` : item.label}
       accessibilityHint={active ? 'Goes to the top' : undefined}
     >
+      {hint ? (
+        <View style={[styles.hintSlot, edge === 'start' ? styles.hintStart : edge === 'end' ? styles.hintEnd : null]} pointerEvents="none">
+          <Animated.View entering={FadeInDown.duration(160)} exiting={FadeOut.duration(120)} style={styles.hint}>
+            <Text style={styles.hintText} numberOfLines={1} maxFontSizeMultiplier={1.3}>
+              {item.hold.label}
+            </Text>
+          </Animated.View>
+        </View>
+      ) : null}
       <Animated.View style={[styles.iconWrap, iconStyle]}>
         <Icon name={item.icon} size={22} color={tint} strokeWidth={active ? 2.1 : 1.8} />
         {badge ? (
           <Animated.View style={[styles.badge, badgeStyle]}>
-            <Text style={styles.badgeText}>{badge}</Text>
+            <Text style={styles.badgeText} maxFontSizeMultiplier={1}>
+              {badge}
+            </Text>
           </Animated.View>
         ) : null}
       </Animated.View>
-      <Text style={[styles.label, { color: tint }, active && styles.labelActive]} maxFontSizeMultiplier={1.3}>
+      <Text style={[styles.label, { color: tint }, active && styles.labelActive]} maxFontSizeMultiplier={1.2} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.75}>
         {item.label}
       </Text>
     </Pressy>
@@ -319,6 +347,41 @@ function NavSegment({
 }
 
 const styles = StyleSheet.create({
+  hintSlot: {
+    position: 'absolute',
+    bottom: '100%',
+    marginBottom: 14,
+    left: -90,
+    right: -90,
+    alignItems: 'center',
+  },
+  hintStart: {
+    left: -6,
+    right: 'auto',
+    alignItems: 'flex-start',
+  },
+  hintEnd: {
+    left: 'auto',
+    right: -6,
+    alignItems: 'flex-end',
+  },
+  hint: {
+    shadowColor: '#000',
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceHigh,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+  },
+  hintText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    color: colors.text,
+  },
   moreRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

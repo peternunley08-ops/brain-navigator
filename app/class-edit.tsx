@@ -81,6 +81,7 @@ export default function ClassEditScreen() {
 
   return (
     <Screen
+      sheet
       nav={false}
       backIcon="close"
       title={existing ? 'Edit class' : kind === 'activity' ? 'Add an activity' : 'Add a class'}

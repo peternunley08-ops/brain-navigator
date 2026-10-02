@@ -86,6 +86,7 @@ export default function NewEntryScreen() {
 
   return (
     <Screen
+      sheet
       back={handleCancel}
       backIcon="close"
       nav={false}

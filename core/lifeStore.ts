@@ -129,6 +129,8 @@ export interface LifeSettings {
   plusPlan: 'monthly' | 'yearly' | null;
   /** Desk sections the student turned off. */
   deskHidden: string[];
+  /** Desk sections folded with a tap on their heading. */
+  deskFolded?: string[];
   /** Hourly pay at a job, for the earnings estimate. */
   wage?: number | null;
   /** Quiet: Ember only speaks up for big moments and important tips. */
@@ -224,6 +226,8 @@ export interface AboutMe {
   opened: Record<string, number>;
   /** Drawer tools opened lately, newest first. */
   recent: string[];
+  /** The day the Desk's "Something I noticed" card was last put away. */
+  noticedOn: string;
 }
 
 export const EMPTY_ABOUT: AboutMe = {
@@ -247,6 +251,7 @@ export const EMPTY_ABOUT: AboutMe = {
   introDone: false,
   opened: {},
   recent: [],
+  noticedOn: '',
 };
 
 /** A thumbs up or down on an AI reply. Kept on this phone; never sent anywhere. */

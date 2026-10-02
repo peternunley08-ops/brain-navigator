@@ -172,6 +172,42 @@ Gotchas found while verifying:
   space; fast-typing races there aren't real-world bugs, but they did
   expose the two real ones above.
 
+### Round 5: smooth, and knows you (2026-10-01 → 10-02, `docs/masterpiece-5.md`)
+
+**The frame** (`components/ui/Screen.tsx`, `core/chrome.ts`, `core/motion.ts`):
+one BottomNav drawn in `app/_layout.tsx` that tucks while reading down and
+returns on any move up; tap your tab to go up; hold a tab and a label says
+what the hold does; a glass compact bar (Back + title, tap to go up) once
+the big title scrolls away; full-page swipe back; hold Back for the Desk
+(`goHome`); `goBack()` everywhere (a page opened from a link has nothing
+behind it); pull past the top brightens the light; the backdrop drifts
+slower than the page; a gold reading line under the bar on long pages;
+School, Focus, and Steady keep their scroll for 10 minutes; Reveal,
+count-ups (`core/hooks/useCountUp`), and chart draw-ins
+(`core/hooks/useDrawIn`) play only the first time a page opens in a
+session and never under Reduce Motion. Every spring and duration lives in
+`core/motion.ts`. Quick-add pages (add-assignment, class-edit, new-entry)
+are iOS form sheets with a grabber (`SHEET` in `_layout.tsx`); pass
+`sheet` to `Screen` there so it drops the status-bar gap when it is one.
+`Section` takes `folded`/`onToggleFold` (Desk sections remember it in
+`settings.deskFolded`).
+
+**About you** (`app/about.tsx`, `core/about.ts`, `core/learned.ts`,
+`components/about/`, `components/desk/AboutCards.tsx`): what the student
+tells the app (This-or-that cards, interests, subjects, study ways,
+calmers, cheer style, nickname, goals, daily answers, weekly sentences)
+and what it notices from use (focus hour and length, check-in hour, sleep
+and mood, what helped), kept in `life.json` under `about`. Rules: it stays
+on the phone; every learned thing says what it's based on, needs 5+
+examples, and has "Not right"; "Learn from how I use the app" off stops
+all of it (including Drawer most-used/recent via `components/OpenWatcher`);
+only `aboutForAI()` (told, never learned, never answers or weeks) joins
+the AI note, and only when `about.shareWithAI` is on, so "What did Ember
+see?" shows it. It shapes the app: Steady's order (`calmOrder`), the
+check-in offer on a hard day (`bestCalmer`), Focus's starting length,
+the greeting (nickname, night owl / morning person), Ember's cheers
+(`cheerLine`), helper chips (`helperChips`). Erase everything has Undo.
+
 ### High school hub (2026-09-29)
 
 The user redirected the app toward **high school wellness and student

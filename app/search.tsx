@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
@@ -126,26 +127,28 @@ export default function SearchScreen() {
         <Reveal key={g.title} index={gi + 1}>
           <Section title={g.title} note={`${g.hits.length}`}>
             <View style={styles.list}>
-              {g.hits.slice(0, open.includes(g.title) ? g.hits.length : 12).map((h) => (
-                <Card
-                  key={h.key}
-                  onPress={() => {
-                    remember();
-                    router.push(h.href as never);
-                  }}
-                  style={styles.row}
-                >
-                  <Icon name={h.icon} size={18} color={h.color} />
-                  <View style={styles.flex}>
-                    <Text style={styles.title} numberOfLines={1}>
-                      {h.title}
-                    </Text>
-                    <Text style={styles.sub} numberOfLines={1}>
-                      {h.sub}
-                    </Text>
-                  </View>
-                  <Icon name="chevron" size={16} color={colors.textFaint} />
-                </Card>
+              {g.hits.slice(0, open.includes(g.title) ? g.hits.length : 12).map((h, i) => (
+                // Results slide in as you type, and the list reshapes smoothly.
+                <Animated.View key={h.key} entering={FadeInDown.delay(Math.min(i, 6) * 25).duration(200)} exiting={FadeOut.duration(120)} layout={LinearTransition.duration(200)}>
+                  <Card
+                    onPress={() => {
+                      remember();
+                      router.push(h.href as never);
+                    }}
+                    style={styles.row}
+                  >
+                    <Icon name={h.icon} size={18} color={h.color} />
+                    <View style={styles.flex}>
+                      <Text style={styles.title} numberOfLines={1}>
+                        {h.title}
+                      </Text>
+                      <Text style={styles.sub} numberOfLines={1}>
+                        {h.sub}
+                      </Text>
+                    </View>
+                    <Icon name="chevron" size={16} color={colors.textFaint} />
+                  </Card>
+                </Animated.View>
               ))}
               {g.hits.length > 12 && !open.includes(g.title) ? (
                 <Button label={`Show all ${g.hits.length}`} variant="ghost" size="sm" onPress={() => setOpen((o) => [...o, g.title])} />

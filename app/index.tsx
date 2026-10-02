@@ -157,6 +157,12 @@ export default function DeskScreen() {
   // Sections the student chose to hide (Settings, "Your Desk").
   const deskHidden = useLifeStore((s) => s.settings.deskHidden);
   const show = (key: string) => !deskHidden.includes(key);
+  // Desk sections fold with a tap on their heading, and stay folded.
+  const deskFolded = useLifeStore((s) => s.settings.deskFolded) ?? [];
+  const fold = (key: string) => ({
+    folded: deskFolded.includes(key),
+    onToggleFold: () => useLifeStore.getState().setSettings({ deskFolded: deskFolded.includes(key) ? deskFolded.filter((k) => k !== key) : [...deskFolded, key] }),
+  });
   const deskOrder = useLifeStore((s) => s.settings.deskOrder) ?? DESK_ORDER;
   const achievementCount = useLifeStore((s) => Object.keys(s.achievements).length);
   const warmNow = useMemo(() => warmth(), [achievementCount, assignments, focus]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -175,6 +181,7 @@ export default function DeskScreen() {
 show('due') ? (
       <Reveal index={1}>
         <Section
+          {...fold('due')}
           title="Due soon"
           note={load.items.length ? `Tonight: ${load.minutes} of ${cap} minutes${load.minutes > cap ? ', over your cap' : ''}` : undefined}
           action={{ label: assignments.some((a) => !a.done) ? 'All' : 'Add', onPress: () => router.push(assignments.some((a) => !a.done) ? '/school' : '/add-assignment') }}>
@@ -207,7 +214,7 @@ show('due') ? (
       <>
         {show('mind') ? (
       <Reveal index={2}>
-        <Section title="On your mind" note={countLine(openLoops.length)}>
+        <Section {...fold('mind')} title="On your mind" note={countLine(openLoops.length)}>
         <View style={styles.desk}>
           <View style={styles.candles}>
             {onDesk.length === 0 ? (
@@ -267,6 +274,7 @@ show('due') ? (
 show('checkin') ? (
       <Reveal index={4}>
         <Section
+          {...fold('checkin')}
           title="How you’re doing"
           action={todaysCheckin ? { label: 'Edit', onPress: () => router.push('/checkin') } : undefined}
         >

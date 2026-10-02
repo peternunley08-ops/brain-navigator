@@ -4,7 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { aboutFilled, pickLabel, questionOfTheDay, THIS_OR_THAT } from '../../core/about';
 import { dateKey } from '../../core/dates';
-import { useLifeStore } from '../../core/lifeStore';
+import { learnedNotes } from '../../core/learned';
+import { useLifeStore, weekOf } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
 import { colors, fonts } from '../../core/theme';
 import { ThisOrThatDeck } from '../about/ThisOrThatDeck';
@@ -41,8 +42,39 @@ export function AboutCards() {
   if (needIntro) return <GetToKnowYou />;
   const recheck = stillTrue(about, today);
   if (recheck) return <StillTrue {...recheck} />;
+  // Sundays: the week in a sentence, kept in About you as their story.
+  if (new Date().getDay() === 0 && !about.weeks.some((w) => w.week === weekOf(today)) && !about.askedOn.includes(`week-${today}`)) return <WeekSentence />;
   const q = questionOfTheDay(about, today);
-  return q ? <Question q={q} /> : null;
+  if (q) return <Question q={q} />;
+  return about.noticedOn === today ? null : <Noticed />;
+}
+
+// One thing the app has noticed, a different one each day, with what it's
+// based on. "Not right" drops it for good; "Got it" puts it away for today.
+function Noticed() {
+  const notes = learnedNotes();
+  if (!notes.length) return null;
+  const today = dateKey();
+  const note = notes[Number(today.replace(/-/g, '')) % notes.length];
+  const { about, setAbout } = useLifeStore.getState();
+  return (
+    <Animated.View key={note.id} entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
+      <Card tint={VIOLET} style={styles.card}>
+        <Header title="Something I noticed" onClose={() => setAbout({ noticedOn: today })} />
+        <View style={styles.noticeRow}>
+          <Icon name={note.icon} size={18} color={VIOLET} />
+          <View style={styles.flex}>
+            <Text style={styles.notice}>{note.text}</Text>
+            <Text style={styles.basis}>{note.basis}</Text>
+          </View>
+        </View>
+        <View style={styles.actions}>
+          <Button label="Not right" variant="ghost" size="sm" onPress={() => setAbout({ dismissed: [...about.dismissed, note.id], noticedOn: today })} />
+          <Button label="Got it" variant="secondary" size="sm" onPress={() => setAbout({ noticedOn: today })} />
+        </View>
+      </Card>
+    </Animated.View>
+  );
 }
 
 function Header({ title, onClose }: { title: string; onClose: () => void }) {
@@ -116,6 +148,38 @@ function Question({ q }: { q: string }) {
   );
 }
 
+function WeekSentence() {
+  const [text, setText] = useState('');
+  const today = dateKey();
+  const done = (line?: string) => {
+    const { about, setAbout } = useLifeStore.getState();
+    if (line) setAbout({ weeks: [...about.weeks, { week: weekOf(today), text: line.slice(0, 160) }] });
+    else setAbout({ askedOn: [...about.askedOn, `week-${today}`].slice(-60) });
+    if (line) emberSay('Kept. A year of these is a story.', 'cheer');
+  };
+  return (
+    <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
+      <Card tint={VIOLET} style={styles.card}>
+        <Header title="Your week in a sentence" onClose={() => done()} />
+        <Text style={styles.q}>If this week were one sentence, what would it be?</Text>
+        <Field
+          value={text}
+          onChangeText={setText}
+          placeholder="Busy, but I got through it"
+          returnKeyType="done"
+          maxLength={160}
+          onSubmitEditing={(e) => e.nativeEvent.text.trim() && done(e.nativeEvent.text.trim())}
+          containerStyle={styles.gap}
+        />
+        <View style={styles.actions}>
+          <Button label="Skip" variant="ghost" size="sm" onPress={() => done()} />
+          <Button label="Keep it" size="sm" disabled={!text.trim()} onPress={() => done(text.trim())} />
+        </View>
+      </Card>
+    </Animated.View>
+  );
+}
+
 /** An old This-or-that answer to check on, if answers are 60+ days old. */
 function stillTrue(about: ReturnType<typeof useLifeStore.getState>['about'], today: string) {
   const at = about.setAt.picks;
@@ -181,6 +245,26 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemi,
     fontSize: 15,
     color: colors.text,
+  },
+  flex: {
+    flex: 1,
+  },
+  noticeRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  notice: {
+    fontFamily: fonts.displaySoft,
+    fontSize: 17,
+    lineHeight: 24,
+    color: colors.text,
+  },
+  basis: {
+    marginTop: 4,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
   },
   q: {
     fontFamily: fonts.displaySoft,

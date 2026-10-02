@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { springs } from '../../core/motion';
 import { colors, fonts } from '../../core/theme';
 import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
@@ -14,28 +16,54 @@ interface SectionProps {
   iconColor?: string;
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
+  /** Foldable: tap the heading to tuck the content away (and back). */
+  folded?: boolean;
+  onToggleFold?: () => void;
 }
 
 // A serif heading in sentence case, then its content. Never an uppercase
 // eyebrow (see "Design system" in CLAUDE.md).
-export function Section({ title, note, action, icon, iconColor = colors.flame, children, style }: SectionProps) {
+export function Section({ title, note, action, icon, iconColor = colors.flame, children, style, folded, onToggleFold }: SectionProps) {
+  // Points down while open, right while folded.
+  const turn = useAnimatedStyle(() => ({ transform: [{ rotate: withSpring(folded ? '0deg' : '90deg', springs.snappy) }] }));
+  const heading = (
+    <View style={styles.headText}>
+      <View style={styles.titleRow}>
+        {icon ? <Icon name={icon} size={17} color={iconColor} /> : null}
+        <Text style={styles.title}>{title}</Text>
+        {onToggleFold ? (
+          <Animated.View style={turn}>
+            <Icon name="chevron" size={14} color={colors.textFaint} />
+          </Animated.View>
+        ) : null}
+      </View>
+      {note ? <Text style={styles.note}>{note}</Text> : null}
+    </View>
+  );
   return (
     <View style={[styles.wrap, style]}>
       <View style={styles.head}>
-        <View style={styles.headText}>
-          <View style={styles.titleRow}>
-            {icon ? <Icon name={icon} size={17} color={iconColor} /> : null}
-            <Text style={styles.title}>{title}</Text>
-          </View>
-          {note ? <Text style={styles.note}>{note}</Text> : null}
-        </View>
+        {onToggleFold ? (
+          <Pressy
+            onPress={onToggleFold}
+            style={styles.headText}
+            depth={0.98}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: !folded }}
+            accessibilityHint={folded ? 'Shows this section' : 'Tucks this section away'}
+          >
+            {heading}
+          </Pressy>
+        ) : (
+          heading
+        )}
         {action ? (
           <Pressy onPress={action.onPress} hitSlop={10} accessibilityRole="button">
             <Text style={styles.action}>{action.label}</Text>
           </Pressy>
         ) : null}
       </View>
-      {children}
+      {folded ? null : onToggleFold ? <Animated.View entering={FadeIn.duration(220)}>{children}</Animated.View> : children}
     </View>
   );
 }

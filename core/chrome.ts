@@ -12,6 +12,8 @@ export const navWanted = makeMutable(1);
 export const navTucked = makeMutable(0);
 /** 1 while a page is being dragged or is gliding; Ember steps aside. */
 export const scrolling = makeMutable(0);
+/** Bumped when a page is pulled to refresh; Ember hops. */
+export const emberHop = makeMutable(0);
 
 /** The page in front says whether it wants the nav. */
 export function wantNav(want: boolean) {
@@ -54,5 +56,17 @@ export function goBack() {
 export function goHome() {
   if (router.canDismiss()) router.dismissAll();
   router.navigate('/');
+}
+
+// Coming back to a tab lands where you were, for a while (tabs other than
+// the Desk are fresh pages each time, so their scroll is kept here).
+const TAB_ROOTS = new Set(['/school', '/focus', '/steady']);
+const kept = new Map<string, { y: number; at: number }>();
+export function keepScroll(path: string, y: number) {
+  if (TAB_ROOTS.has(path)) kept.set(path, { y, at: Date.now() });
+}
+export function keptScroll(path: string) {
+  const k = kept.get(path);
+  return k && Date.now() - k.at < 10 * 60000 && k.y > 40 ? k.y : 0;
 }
 

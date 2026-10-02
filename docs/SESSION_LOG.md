@@ -1633,3 +1633,20 @@ a draggable + sheet, Ember stepping aside during scrolls. About you (swipe
 share-with-AI switch off by default) is built but not yet checked live.
 Not committed yet; the user asked for commit and push when the round is
 done.
+
+## 2026-10-02 — Round 5 finished (smooth, and knows you)
+
+Picked up after a compaction and finished `docs/masterpiece-5.md`
+(93 done, 6 decided against, 1 not seeable live). Highlights: About you
+(swipe cards, chips, goals, daily question, weekly sentence, what the app
+noticed, sharing with the AI off by default and previewed), the app
+shaping itself to it (Steady order, hard-day offer, Focus length, greeting,
+cheer style, helper chips), and the frame (one nav, glass bar, safe Back
+and hold-for-Desk, sheets with grabbers, reading line, pull glow, tabs keep
+their scroll). Bugs found and fixed while checking live: Back on a page
+opened from a link threw "GO_BACK was not handled"; nickname and goal
+fields dropped the last letter on return; the replay deck showed no cards;
+big titles were half-faded at rest on Focus and Steady; nav labels clipped
+at large text sizes; Focus redrew 4× a second. Simulator data was reset to
+a clean state afterwards. Next: `docs/masterpiece-6.md`.
+

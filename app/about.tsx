@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { Alert, Share, StyleSheet, Switch, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, type LayoutChangeEvent, ScrollView, Share, StyleSheet, Switch, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { ThisOrThatDeck } from '../components/about/ThisOrThatDeck';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -8,7 +9,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
-import { Icon } from '../components/ui/Icon';
+import { Icon, type IconName } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
@@ -19,7 +20,16 @@ import { learnedNotes } from '../core/learned';
 import { type AboutMe, useLifeStore } from '../core/lifeStore';
 import { offerUndo } from '../core/undoStore';
 import { useSchoolStore } from '../core/schoolStore';
-import { alpha, colors, fonts } from '../core/theme';
+import { alpha, colors, fonts, layout } from '../core/theme';
+
+const JUMPS: { key: string; label: string; icon: IconName }[] = [
+  { key: 'cards', label: 'This or that', icon: 'sparkle' },
+  { key: 'into', label: 'What you’re into', icon: 'heart' },
+  { key: 'calm', label: 'Calms you', icon: 'wind' },
+  { key: 'goals', label: 'Goals', icon: 'flag' },
+  { key: 'noticed', label: 'Noticed', icon: 'timer' },
+  { key: 'sharing', label: 'Sharing', icon: 'chat' },
+];
 
 const when = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '');
 
@@ -28,6 +38,26 @@ const when = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-US', 
 // what it has noticed from how you use it, each with where it came from.
 // Change any of it, forget any of it, or erase all of it. Nothing here
 // leaves the phone unless you turn on sharing with Ember.
+// What other parts of the app already know about you (#71–74), shown here
+// so it's all in one place. Read-only; each row opens where it lives.
+function gatherAround(
+  stressTags: Record<string, string[]>,
+  people: { name: string }[],
+  wins: { text: string; at: string }[],
+  weeks: { week: string; text: string }[]
+) {
+  const rows: { title: string; body: string; icon: IconName; path: string }[] = [];
+  const since = new Date(Date.now() - 30 * 86400000).toISOString().slice(0, 10);
+  const counts = new Map<string, number>();
+  for (const [day, tags] of Object.entries(stressTags)) if (day >= since) for (const t of tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+  const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+  if (top.length) rows.push({ title: 'What’s weighed on you this month', body: top.map(([t, c]) => `${t} (${c} day${c === 1 ? '' : 's'})`).join(', '), icon: 'feather', path: '/moods' });
+  if (people.length) rows.push({ title: 'The people you trust', body: people.map((p) => p.name).slice(0, 5).join(', '), icon: 'people', path: '/people' });
+  if (wins.length) rows.push({ title: 'Wins you kept', body: [...wins].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3).map((w) => `“${w.text.slice(0, 50)}”`).join('  '), icon: 'jar', path: '/wins' });
+  if (weeks.length) rows.push({ title: 'Your weeks, in a sentence', body: [...weeks].reverse().slice(0, 3).map((w) => `“${w.text}”`).join('  '), icon: 'star', path: '' });
+  return rows;
+}
+
 export default function AboutScreen() {
   const about = useLifeStore((s) => s.about);
   const set = useLifeStore((s) => s.setAbout);
@@ -38,6 +68,21 @@ export default function AboutScreen() {
   const [goal, setGoal] = useState('');
   const [replay, setReplay] = useState(false);
   const notes = learnedNotes();
+  // Jump chips: glide to a section on this long page.
+  const list = useRef<ScrollView | null>(null);
+  const spots = useRef<Record<string, number>>({});
+  const mark = (key: string) => (e: LayoutChangeEvent) => {
+    spots.current[key] = e.nativeEvent.layout.y;
+  };
+  const insets = useSafeAreaInsets();
+  const jump = (key: string) => {
+    const y = spots.current[key];
+    if (y != null) list.current?.scrollTo({ y: Math.max(0, y - insets.top - 60), animated: true });
+  };
+  const stressTags = useSchoolStore((s) => s.stressTags);
+  const people = useLifeStore((s) => s.people);
+  const wins = useLifeStore((s) => s.wins);
+  const around = gatherAround(stressTags, people, wins, about.weeks);
 
   const toggle = (key: 'interests' | 'favSubjects' | 'hardSubjects' | 'studyWays' | 'calmers', value: string) => {
     const list = about[key];
@@ -56,6 +101,7 @@ export default function AboutScreen() {
       about.hardSubjects.length ? `Hardest subjects: ${about.hardSubjects.join(', ')}` : '',
       about.goals.length ? `Goals: ${about.goals.map((g) => `${g.text}${g.done ? ' (done)' : ''}`).join('; ')}` : '',
       ...about.answers.map((a) => `${a.q} ${a.a}`),
+      ...about.weeks.map((w) => `Week of ${w.week}: ${w.text}`),
     ].filter(Boolean);
     Share.share({ message: lines.join('\n') }).catch(() => {});
   };
@@ -77,7 +123,13 @@ export default function AboutScreen() {
 
   let n = 0;
   return (
-    <Screen title="About you" subtitle="What the app knows about you. Change or forget any of it. It stays on this phone." glowColor="#B79AF0">
+    <Screen title="About you" subtitle="What the app knows about you. Change or forget any of it. It stays on this phone." glowColor="#B79AF0" scrollRef={list}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.jumpRow} contentContainerStyle={styles.jumps}>
+        {JUMPS.map((j) => (
+          <Chip key={j.key} label={j.label} icon={j.icon} onPress={() => jump(j.key)} />
+        ))}
+      </ScrollView>
+      <View onLayout={mark('cards')} />
       <Reveal index={n++}>
         <Section title="This or that" note={unpicked ? `${picked.length} answered` : 'All answered'} action={picked.length && !unpicked ? { label: replay ? 'Close' : 'Play again', onPress: () => setReplay((v) => !v) } : undefined}>
           {unpicked || replay ? (
@@ -126,6 +178,7 @@ export default function AboutScreen() {
         </Section>
       </Reveal>
 
+      <View onLayout={mark('into')} />
       <Reveal index={n++}>
         <Section title="What you’re into" note={about.interests.length ? `${about.interests.length} picked` : undefined}>
           <ChipRow>
@@ -163,6 +216,7 @@ export default function AboutScreen() {
         </Section>
       </Reveal>
 
+      <View onLayout={mark('calm')} />
       <Reveal index={n++}>
         <Section title="What calms you" note="These go first on Steady">
           <ChipRow>
@@ -198,6 +252,7 @@ export default function AboutScreen() {
         </Section>
       </Reveal>
 
+      <View onLayout={mark('goals')} />
       <Reveal index={n++}>
         <Section title="This semester’s goals" note={about.goals.length ? `${about.goals.filter((g) => g.done).length} of ${about.goals.length} done` : 'Up to three'}>
           {about.goals.map((g) => (
@@ -254,6 +309,26 @@ export default function AboutScreen() {
         </Reveal>
       ) : null}
 
+      {around.length ? (
+        <Reveal index={n++}>
+          <Section title="From around the app" note="Already yours, gathered here">
+            <Card>
+              {around.map((r, i) => (
+                <Pressy key={r.title} disabled={!r.path} onPress={() => router.push(r.path as never)} style={[styles.answer, i > 0 && styles.divider]} accessibilityRole={r.path ? 'link' : 'text'}>
+                  <Icon name={r.icon} size={16} color={colors.flame} />
+                  <View style={styles.flex}>
+                    <Text style={styles.answerQ}>{r.title}</Text>
+                    <Text style={styles.answerA}>{r.body}</Text>
+                  </View>
+                  {r.path ? <Icon name="chevron" size={16} color={colors.textFaint} /> : null}
+                </Pressy>
+              ))}
+            </Card>
+          </Section>
+        </Reveal>
+      ) : null}
+
+      <View onLayout={mark('noticed')} />
       <Reveal index={n++}>
         <Section title="Things I’ve noticed" note={about.learnOff ? 'Off' : notes.length ? `${notes.length}` : undefined}>
           <Card>
@@ -282,6 +357,7 @@ export default function AboutScreen() {
         </Section>
       </Reveal>
 
+      <View onLayout={mark('sharing')} />
       <Reveal index={n++}>
         <Section title="Ember and the helpers">
           <Card>
@@ -313,6 +389,14 @@ export default function AboutScreen() {
 }
 
 const styles = StyleSheet.create({
+  jumpRow: {
+    marginHorizontal: -layout.gutter,
+  },
+  jumps: {
+    gap: 8,
+    paddingTop: 4,
+    paddingHorizontal: layout.gutter,
+  },
   flex: {
     flex: 1,
   },

@@ -34,6 +34,14 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 // A crash in any screen lands here instead of a white screen.
 export { ErrorScreen as ErrorBoundary };
 
+// Quick-add pages: a full-height iOS sheet with a grabber to pull it down.
+const SHEET = {
+  presentation: 'formSheet' as const,
+  sheetAllowedDetents: [1],
+  sheetGrabberVisible: true,
+  sheetCornerRadius: 28,
+};
+
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
     Fraunces_600SemiBold,
@@ -83,11 +91,11 @@ export default function RootLayout() {
                 fullScreenGestureEnabled: true,
               }}
             >
-              {/* Adding and editing slide up as sheets, so it's clear they're
-                  a quick detour from the screen underneath. */}
-              <Stack.Screen name="add-assignment" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="class-edit" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="new-entry" options={{ presentation: 'modal' }} />
+              {/* Adding and editing slide up as iOS sheets with a grabber, so
+                  it's clear they're a quick detour from the screen underneath. */}
+              <Stack.Screen name="add-assignment" options={SHEET} />
+              <Stack.Screen name="class-edit" options={SHEET} />
+              <Stack.Screen name="new-entry" options={SHEET} />
             </Stack>
             {/* One nav for the whole app; pages say whether they want it. */}
             <BottomNav />

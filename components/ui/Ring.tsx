@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
+import { useCountUp } from '../../core/hooks/useCountUp';
 import { alpha, colors, fonts } from '../../core/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -33,6 +34,8 @@ export function Ring({
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const p = useSharedValue(0);
+  // The number counts up alongside the arc the first time it shows.
+  const shownValue = useCountUp(value, 900);
 
   useEffect(() => {
     p.value = withDelay(delay, withTiming(Math.max(0, Math.min(1, progress ?? 0)), { duration: 900, easing: Easing.out(Easing.cubic) }));
@@ -62,7 +65,7 @@ export function Ring({
         </Svg>
         <View style={styles.center}>
           <Text style={[styles.value, { fontSize: size * 0.27 }]} numberOfLines={1}>
-            {value ?? '–'}
+            {shownValue ?? '–'}
             {unit ? <Text style={[styles.unit, { fontSize: size * 0.15 }]}>{unit}</Text> : null}
           </Text>
         </View>

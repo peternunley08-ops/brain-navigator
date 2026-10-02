@@ -103,6 +103,7 @@ export default function AddAssignmentScreen() {
 
   return (
     <Screen
+      sheet
       nav={false}
       backIcon="close"
       glowColor={accent}

@@ -1,5 +1,10 @@
+import Animated, { useAnimatedProps } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
+import { useDrawIn } from '../../core/hooks/useDrawIn';
 import { colors } from '../../core/theme';
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface SparklineProps {
   values: number[];
@@ -9,7 +14,13 @@ interface SparklineProps {
 }
 
 // A small trend line with a soft fill under it and a dot on the latest value.
+// It draws itself left to right the first time it shows.
 export function Sparkline({ values, color = colors.flame, width = 100, height = 36 }: SparklineProps) {
+  const p = useDrawIn();
+  const len = useLength(values, width, height);
+  const lineProps = useAnimatedProps(() => ({ strokeDashoffset: len * (1 - p.value) }));
+  const areaProps = useAnimatedProps(() => ({ fillOpacity: p.value }));
+  const dotProps = useAnimatedProps(() => ({ opacity: p.value > 0.92 ? 1 : 0 }));
   if (values.length < 2) return null;
   const min = Math.min(...values);
   const max = Math.max(...values);
@@ -31,9 +42,25 @@ export function Sparkline({ values, color = colors.flame, width = 100, height = 
           <Stop offset="1" stopColor={color} stopOpacity={0} />
         </LinearGradient>
       </Defs>
-      <Path d={area} fill={`url(#${id})`} />
-      <Path d={line} stroke={color} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx={last.x} cy={last.y} r={3.2} fill={color} />
+      <AnimatedPath d={area} fill={`url(#${id})`} animatedProps={areaProps} />
+      <AnimatedPath d={line} stroke={color} strokeWidth={2} fill="none" strokeLinecap="round" strokeLinejoin="round" strokeDasharray={`${len} ${len}`} animatedProps={lineProps} />
+      <AnimatedCircle cx={last.x} cy={last.y} r={3.2} fill={color} animatedProps={dotProps} />
     </Svg>
   );
 }
+
+// The line's length, for drawing it in with a dash.
+function useLength(values: number[], width: number, height: number) {
+  if (values.length < 2) return 0;
+  const min = Math.min(...values);
+  const span = Math.max(...values) - min || 1;
+  const pad = 4;
+  let len = 0;
+  for (let i = 1; i < values.length; i++) {
+    const dx = (width - pad * 2) / (values.length - 1);
+    const dy = ((values[i] - values[i - 1]) / span) * (height - pad * 2);
+    len += Math.hypot(dx, dy);
+  }
+  return Math.ceil(len) + 2;
+}
+

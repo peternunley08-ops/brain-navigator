@@ -1,14 +1,16 @@
 import * as Haptics from '../../core/haptics';
 import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
-import Animated, { FadeInDown, FadeOut, interpolate, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, interpolate, LinearTransition, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 import { cheerLine } from '../../core/about';
 import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, type Assignment, useSchoolStore } from '../../core/schoolStore';
 import { offerUndo } from '../../core/undoStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, radii } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
+import { Sparks } from '../ember/Sparks';
 import { Card } from '../ui/Card';
 import { Icon } from '../ui/Icon';
 import { Pressy } from '../ui/Pressy';
@@ -25,11 +27,14 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
   const big = a.kind === 'test' || a.kind === 'quiz' || a.kind === 'project';
 
   const pop = useSharedValue(1);
+  // A tiny spark off the check when something gets finished.
+  const [spark, setSpark] = useState(0);
   const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));
 
   const check = () => {
     const finishing = !a.done;
     if (finishing) pop.value = withSequence(withTiming(1.25, { duration: 110 }), withSpring(1, { damping: 8, stiffness: 260 }));
+    if (finishing) setSpark((n) => n + 1);
     Haptics.impactAsync(finishing ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     toggle(a.id);
     if (finishing) {
@@ -74,6 +79,14 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     },
   });
   const slide = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
+  // Something just added glows once where it lands.
+  const glow = useSharedValue(0);
+  useEffect(() => {
+    if (Date.now() - new Date(a.createdAt).getTime() < 6000) {
+      glow.value = withDelay(250, withSequence(withTiming(1, { duration: 320 }), withDelay(700, withTiming(0, { duration: 900 }))));
+    }
+  }, [a.createdAt, glow]);
+  const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
   const doneUnder = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [0, 90], [0, 1], 'clamp') }));
   const laterUnder = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [-90, 0], [1, 0], 'clamp') }));
 
@@ -107,6 +120,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
           <Animated.View style={[styles.check, { borderColor: a.done ? color : alpha(color, 0.6) }, a.done && { backgroundColor: color }, popStyle]}>
             {a.done ? <Icon name="check" size={16} color={colors.flameInk} strokeWidth={2.8} /> : null}
           </Animated.View>
+          {spark ? <Sparks burst={spark} reach={26} color={color} /> : null}
         </Pressy>
         <View style={styles.body}>
           <Text style={[styles.title, a.done && styles.done]} numberOfLines={2}>
@@ -140,6 +154,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
         {/* Every row says when; soon and late ones stand out. */}
         <Text style={[styles.due, late && { color: colors.danger }, soon && !late && { color: colors.flame }]}>{dueLabel(a.due)}</Text>
       </Card>
+      <Animated.View pointerEvents="none" style={[styles.landed, { borderColor: color, shadowColor: color }, glowStyle]} />
       </Animated.View>
       </GestureDetector>
     </Animated.View>
@@ -174,6 +189,18 @@ const styles = StyleSheet.create({
   },
   star: {
     color: colors.flame,
+  },
+  landed: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: radii.lg,
+    borderWidth: 1.5,
+    shadowOpacity: 0.7,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
   },
   card: {
     flexDirection: 'row',

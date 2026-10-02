@@ -8,6 +8,7 @@ import type { EmberMood } from './emberStore';
 import { useHabitsStore } from './habitsStore';
 import { useHubStore } from './hubStore';
 import { aiStatus } from './aiQuota';
+import { usualCheckinHour } from './learned';
 import { dueCards, hoursTotal, useLifeStore, weekOf } from './lifeStore';
 import { classAverage, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
@@ -72,6 +73,7 @@ const A = {
   cards: { label: 'Flashcards', href: '/flashcards', icon: 'cards' },
   review: { label: 'Weekly review', href: '/review', icon: 'star' },
   wins: { label: 'Wins', href: '/wins', icon: 'jar' },
+  about: { label: 'About you', href: '/about', icon: 'person' },
   toolkit: { label: 'Toolkit', href: '/toolkit', icon: 'sparkle' },
   worry: { label: 'Worry box', href: '/worry', icon: 'feather' },
   triage: { label: 'Sort it out', href: '/triage', icon: 'flag' },
@@ -236,6 +238,10 @@ const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction
   '/aid': { title: 'Financial aid', line: 'The FAFSA and friends, step by step. Do it with a parent — it unlocks grants and work-study.' },
   '/hours': { title: 'Hours', line: 'Service hours toward your requirement, driving practice toward your license, and work shifts.' },
   '/countdowns': { title: 'Countdowns', line: 'Breaks, events, birthdays, finals. A break shows how much of the wait is behind you; finals shows what to plan.' },
+  '/about': {
+    title: 'About you',
+    line: 'Everything the app knows about you: what you told it and what it noticed, each saying where it came from. Change or forget any of it. It stays on this phone unless you turn on sharing.',
+  },
   '/review': { title: 'Weekly review', line: 'Five minutes on Sunday: what went well, what was hard, one thing for next week.' },
   '/helpers': { title: 'Helpers', line: 'My crew. Quizzo quizzes, Pip plans, Quill coaches writing, Sage explains, Spark gets you started. Each has a free on-phone mode and an AI chat.' },
   '/helper': { title: 'A helper', line: 'The first tab works on your phone, free, as much as you like. The AI chat tab uses your AI allowance — one per reply.' },
@@ -294,7 +300,9 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
     });
   }
 
-  if (!checkin && hour >= 7 && !lateNight) {
+  // Waits for their usual check-in time once the app has learned it.
+  const usualCheckin = usualCheckinHour();
+  if (!checkin && hour >= Math.max(7, (usualCheckin?.hour ?? 7) - 1) && !lateNight) {
     tips.push({
       id: `checkin-${todayKey(now)}`,
       line: 'You haven’t checked in today. It takes about a minute, and it helps me notice how you’re doing.',
@@ -407,6 +415,13 @@ export function adviseFor(pathname: string, now = new Date()): EmberAdvice {
   const svc = hoursTotal(life.hours, 'service');
   if (route === '/hours' && svc > 0 && svc < svcGoal) {
     tips.push({ id: 'svc-left', line: `${Math.round((svcGoal - svc) * 10) / 10} service hours to go. A regular weekly spot makes it add up without thinking.`, priority: 0 });
+  }
+
+  // Sunday: a word about this semester's goals, if they set any.
+  const openGoals = life.about.goals.filter((g) => !g.done);
+  if (now.getDay() === 0 && hour >= 10 && openGoals.length) {
+    const g = openGoals[now.getDate() % openGoals.length];
+    tips.push({ id: `goal-${todayKey(now)}`, line: `It’s Sunday. How’s “${g.text.slice(0, 40)}” going? Check it off in About you when it’s done.`, actions: [A.about], priority: 1, mood: 'curious' });
   }
 
   // Sunday evening, no review yet this week.

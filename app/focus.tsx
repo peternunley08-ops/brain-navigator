@@ -136,7 +136,8 @@ export default function FocusScreen() {
 
   useEffect(() => {
     if (phase !== 'running' && phase !== 'break') return;
-    const t = setInterval(() => setNow(Date.now()), 250);
+    // Once a second is enough for mm:ss; the page doesn't redraw faster than it needs to.
+    const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, [phase]);
 

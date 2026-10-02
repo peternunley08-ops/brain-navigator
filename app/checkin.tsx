@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { TAG_TOOLS } from '../components/desk/DayCards';
 import { emberSay } from '../components/ember/EmberBuddy';
+import { bestCalmer } from '../core/learned';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
@@ -93,7 +94,13 @@ export default function CheckinScreen() {
   const existing = todaysCheckin();
 
   // What to offer right after saving: the tool for what's weighing on you, or breathing when stress is high.
-  const offer = tags.map((t) => TAG_TOOLS[t]).find(Boolean) ?? (stressLevel != null && stressLevel >= 7 ? STEADY_OFFER : null);
+  // On a hard day (stress 7+ or mood 2 or lower), what helped them before
+  // comes first, then their own calming pick, then breathing.
+  const hard = (stressLevel != null && stressLevel >= 7) || (mood != null && mood <= 2);
+  const calm = hard ? bestCalmer() : null;
+  const offer =
+    tags.map((t) => TAG_TOOLS[t]).find(Boolean) ??
+    (calm ? { title: `Try ${calm.label.toLowerCase()}`, body: `${calm.why} A few minutes might take the edge off.`, icon: calm.icon, color: '#8FB4E8', href: calm.path } : hard ? STEADY_OFFER : null);
 
   const handleSave = async () => {
     const ok = await saveTodayCheckin({ mood, sleepHours, sleepQuality, stressLevel, notes });

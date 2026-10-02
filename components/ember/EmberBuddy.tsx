@@ -7,6 +7,7 @@ import Animated, {
   Easing,
   FadeIn,
   FadeOut,
+  useAnimatedReaction,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -20,7 +21,7 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
 import { type EmberMood, inClassQuiet, useEmberStore } from '../../core/emberStore';
-import { scrolling } from '../../core/chrome';
+import { emberHop, navTucked, scrolling } from '../../core/chrome';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
@@ -319,6 +320,35 @@ export function EmberBuddy() {
     return () => clearTimeout(t);
   }, [toast, rig]);
 
+  // Ember's eyes follow the page: down while you read down, up when you
+  // scroll back, back to you when the page stops.
+  const followScroll = (dir: number) => {
+    if (useEmberStore.getState().napping || reducedMotion) return;
+    if (dir === 0) {
+      rig.holdGaze(false);
+      rig.look(0, 0);
+      return;
+    }
+    rig.holdGaze(true);
+    rig.look(0, dir > 0 ? 0.6 : -0.45);
+  };
+  // A pull to refresh gets a little hop.
+  const hop = () => {
+    if (!useEmberStore.getState().napping && !reducedMotion) rig.hopUp(14);
+  };
+  useAnimatedReaction(
+    () => emberHop.value,
+    (n, was) => {
+      if (was !== null && n !== was) scheduleOnRN(hop);
+    },
+  );
+  useAnimatedReaction(
+    () => (scrolling.value > 0.5 ? (navTucked.value > 0.5 ? 1 : -1) : 0),
+    (dir, was) => {
+      if (dir !== was && was !== null) scheduleOnRN(followScroll, dir);
+    },
+  );
+
   // Every so often, when nothing else is going on, Ember does something
   // small on its own — stretches, looks around, a little hop. Not under
   // Reduce Motion: unprompted movement is exactly what that setting is for.
@@ -326,6 +356,13 @@ export function EmberBuddy() {
     if (reducedMotion) return;
     let alive = true;
     let t: ReturnType<typeof setTimeout>;
+    // Late at night, the first thing Ember does is a sleepy yawn.
+    const h = new Date().getHours();
+    const sleepyHour = h >= 23 || h < 4;
+    const first = setTimeout(() => {
+      const s = useEmberStore.getState();
+      if (alive && sleepyHour && !s.napping && !s.bubbleOpen && !s.toast) rig.yawn();
+    }, 4500);
     const next = () => {
       t = setTimeout(() => {
         if (!alive) return;
@@ -343,6 +380,7 @@ export function EmberBuddy() {
     return () => {
       alive = false;
       clearTimeout(t);
+      clearTimeout(first);
     };
   }, [rig, reducedMotion]);
 

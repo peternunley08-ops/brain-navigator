@@ -128,10 +128,10 @@ export function callName() {
  */
 export function aboutForAI(about: AboutMe): string | null {
   if (!about.shareWithAI) return null;
-  const picks = THIS_OR_THAT.map((c) => pickLabel(c, about.picks[c.id] ?? '')).filter(Boolean);
+  const picks = THIS_OR_THAT.map((c) => pickLabel(c, about.picks[c.id] ?? '')).filter((x): x is string => !!x);
   const parts = [
     about.nickname ? `goes by ${about.nickname}` : '',
-    picks.length ? picks.slice(0, 6).join(', ').toLowerCase() : '',
+    picks.length ? picks.slice(0, 6).map((x) => x[0].toLowerCase() + x.slice(1)).join(', ') : '',
     about.interests.length ? `into ${about.interests.slice(0, 5).join(', ').toLowerCase()}` : '',
     about.favSubjects.length ? `favorite ${about.favSubjects.length > 1 ? 'subjects' : 'subject'}: ${about.favSubjects.join(', ')}` : '',
     about.hardSubjects.length ? `finds ${about.hardSubjects.join(', ')} hard` : '',

@@ -1,7 +1,7 @@
 import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { useFocusEffect, usePathname } from 'expo-router';
 import { type ReactNode, type RefObject, useCallback, useRef, useState } from 'react';
-import { type LayoutChangeEvent, Pressable, RefreshControl, type ScrollView, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { type LayoutChangeEvent, Pressable, RefreshControl, type ScrollView, StyleSheet, Text, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   FadeInDown,
@@ -10,13 +10,15 @@ import Animated, {
   useAnimatedReaction,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withDelay,
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { clearScrollToTop, firstOpen, goBack, goHome, navTucked, scrolling, setScrollToTop, wantNav } from '../../core/chrome';
+import { clearScrollToTop, emberHop, firstOpen, goBack, goHome, keepScroll, keptScroll, navTucked, scrolling, setScrollToTop, wantNav } from '../../core/chrome';
 import { timings } from '../../core/motion';
+import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { colors, fonts, layout } from '../../core/theme';
 import { Backdrop } from './Backdrop';
 import { IconButton } from './IconButton';
@@ -53,6 +55,8 @@ interface ScreenProps {
   centered?: boolean;
   /** Pull down to refresh. */
   onRefresh?: () => Promise<unknown> | void;
+  /** Shown as an iOS sheet (quick-add pages): no status-bar gap when it is one. */
+  sheet?: boolean;
 }
 
 // The frame every screen in the app is built in: the night room, a round
@@ -80,14 +84,25 @@ export function Screen({
   scrollRef,
   centered,
   onRefresh,
+  sheet,
 }: ScreenProps) {
-  const insets = useSafeAreaInsets();
+  const safe = useSafeAreaInsets();
+  // A sheet starts below the status bar, so its top inset is zero. Opened
+  // straight from a link, the same page is full screen and keeps it.
+  // (In a sheet the page is shorter than the window; that's how it knows.)
+  const [inSheet, setInSheet] = useState(false);
+  const { height: winH } = useWindowDimensions();
+  const onRootLayout = (e: LayoutChangeEvent) => {
+    if (sheet) setInSheet(e.nativeEvent.layout.height < winH - 20);
+  };
+  const insets = inSheet ? { ...safe, top: 10 } : safe;
   const pathname = usePathname();
   const [settle] = useState(() => firstOpen(pathname));
   const [refreshing, setRefreshing] = useState(false);
   const refresh = async () => {
     if (!onRefresh) return;
     setRefreshing(true);
+    emberHop.value += 1;
     try {
       await onRefresh();
     } finally {
@@ -117,8 +132,17 @@ export function Screen({
     }, [nav, toTop]),
   );
 
+  const reduced = useReducedMotion();
   const y = useSharedValue(0);
   const lastY = useSharedValue(0);
+  // How far the page can scroll, and how tall the window is, for the
+  // reading line on long pages.
+  const roomV = useSharedValue(0);
+  const view = useSharedValue(1);
+  const { width: winW } = useWindowDimensions();
+  const [restoreY] = useState(() => keptScroll(pathname));
+  const restored = useRef(restoreY === 0);
+  const keep = useCallback((at: number) => keepScroll(pathname, at), [pathname]);
   // Where the big title ends, so the compact bar arrives as it leaves.
   const titleEnd = useSharedValue(title ? 140 : 70);
   const onScroll = useAnimatedScrollHandler({
@@ -128,6 +152,8 @@ export function Screen({
       const dy = at - lastY.value;
       lastY.value = at;
       const room = e.contentSize.height - e.layoutMeasurement.height;
+      roomV.value = room;
+      view.value = e.layoutMeasurement.height;
       // Reading down a long page tucks the nav away; any move up, the top,
       // or the very end brings it back.
       if (room < 160 || at < 80 || at > room - 24) {
@@ -144,11 +170,13 @@ export function Screen({
     onMomentumBegin: () => {
       scrolling.value = withTiming(1, timings.quick);
     },
-    onEndDrag: () => {
+    onEndDrag: (e) => {
       scrolling.value = withDelay(700, withTiming(0, timings.calm));
+      runOnJS(keep)(e.contentOffset.y);
     },
-    onMomentumEnd: () => {
+    onMomentumEnd: (e) => {
       scrolling.value = withDelay(350, withTiming(0, timings.calm));
+      runOnJS(keep)(e.contentOffset.y);
     },
   });
 
@@ -158,29 +186,56 @@ export function Screen({
   const hasTitle = !!title;
   const [barOn, setBarOn] = useState(false);
   useAnimatedReaction(
-    () => y.value > (hasTitle ? titleEnd.value - cut - 16 : 30),
+    () => y.value > (hasTitle ? Math.max(titleEnd.value - cut - 16, 30) : 30),
     (on, was) => {
       if (on !== was) runOnJS(setBarOn)(on);
     },
   );
   const barText = useAnimatedStyle(() => {
-    const from = hasTitle ? titleEnd.value - cut - 36 : 10;
-    const to = hasTitle ? titleEnd.value - cut + 4 : 50;
+    const to = hasTitle ? Math.max(titleEnd.value - cut + 4, 50) : 50;
+    const from = hasTitle ? Math.max(10, to - 40) : 10;
     return {
       opacity: interpolate(y.value, [from, to], [0, 1], 'clamp'),
       transform: [{ translateY: interpolate(y.value, [from, to], [6, 0], 'clamp') }],
     };
   });
   const barFill = useAnimatedStyle(() => {
-    const from = hasTitle ? titleEnd.value - cut - 36 : 10;
-    const to = hasTitle ? titleEnd.value - cut + 4 : 50;
+    const to = hasTitle ? Math.max(titleEnd.value - cut + 4, 50) : 50;
+    const from = hasTitle ? Math.max(10, to - 40) : 10;
     return { opacity: interpolate(y.value, [from, to], [0, 1], 'clamp') };
   });
   // The big title eases up and fades as it slides under the bar.
-  const titleStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(y.value, [titleEnd.value - cut - 90, titleEnd.value - cut], [1, 0.1], 'clamp'),
-    transform: [{ translateY: interpolate(y.value, [0, titleEnd.value], [0, titleEnd.value * 0.18], 'clamp') }],
+  // (Never before the page moves: a title near the top still starts at full strength.)
+  const titleStyle = useAnimatedStyle(() => {
+    const end = Math.max(titleEnd.value - cut, 60);
+    const start = Math.max(4, end - 90);
+    return {
+      opacity: interpolate(y.value, [start, end], [1, 0.1], 'clamp'),
+      transform: [{ translateY: interpolate(y.value, [0, titleEnd.value], [0, titleEnd.value * 0.18], 'clamp') }],
+    };
+  });
+  // Pulling past the top brightens the candlelight instead of a dead edge.
+  const pullGlow = useAnimatedStyle(() => ({
+    opacity: interpolate(y.value, [-140, 0], [1, 0], 'clamp'),
+    transform: [{ scale: reduced ? 1 : interpolate(y.value, [-140, 0], [1.15, 0.9], 'clamp') }],
   }));
+  // The room's light drifts slower than the page, for a little depth.
+  const depth = useAnimatedStyle(() => ({
+    transform: [{ translateY: reduced ? 0 : interpolate(y.value, [0, 900], [0, -60], 'clamp') }],
+  }));
+  // A thin line under the bar on long pages: how far through you are.
+  const reading = useAnimatedStyle(() => {
+    const long = roomV.value > view.value * 1.5;
+    const p = roomV.value > 0 ? Math.min(1, Math.max(0, y.value / roomV.value)) : 0;
+    return { opacity: long ? interpolate(y.value, [40, 140], [0, 1], 'clamp') : 0, width: p * winW };
+  });
+  // Back on a tab after a little while: land where you were.
+  const onContentSize = (_w: number, h: number) => {
+    if (restored.current || h < restoreY + 200) return;
+    restored.current = true;
+    list.current?.scrollTo({ y: restoreY, animated: false });
+  };
+
   const onTitleLayout = (e: LayoutChangeEvent) => {
     const { y: top, height } = e.nativeEvent.layout;
     titleEnd.value = top + height;
@@ -219,8 +274,23 @@ export function Screen({
 
   return (
     <RevealContext.Provider value={settle}>
-      <View style={styles.root}>
-        <Backdrop tone={tone} glowColor={glowColor} motes={motes} />
+      <View style={styles.root} onLayout={onRootLayout} collapsable={false}>
+        <Animated.View style={[styles.backdrop, depth]} pointerEvents="none">
+          <Backdrop tone={tone} glowColor={glowColor} motes={motes} />
+        </Animated.View>
+        {scroll ? (
+          <Animated.View style={[styles.pullGlow, pullGlow]} pointerEvents="none">
+            <Svg width={winW} height={320}>
+              <Defs>
+                <RadialGradient id="pull" cx="50%" cy="0%" rx="70%" ry="100%">
+                  <Stop offset="0" stopColor={glowColor ?? colors.flame} stopOpacity={0.32} />
+                  <Stop offset="1" stopColor={glowColor ?? colors.flame} stopOpacity={0} />
+                </RadialGradient>
+              </Defs>
+              <Ellipse cx={winW / 2} cy={0} rx={winW * 0.8} ry={320} fill="url(#pull)" />
+            </Svg>
+          </Animated.View>
+        ) : null}
         {scroll ? (
           <Animated.ScrollView
             ref={setList}
@@ -231,6 +301,7 @@ export function Screen({
             automaticallyAdjustKeyboardInsets
             showsVerticalScrollIndicator={false}
             onScroll={onScroll}
+            onContentSizeChange={onContentSize}
             scrollEventThrottle={16}
             refreshControl={onRefresh ? <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.flame} /> : undefined}
           >
@@ -266,6 +337,7 @@ export function Screen({
               </Pressable>
               <View style={styles.barSide} />
             </Animated.View>
+            <Animated.View style={[styles.reading, reading]} />
           </View>
         ) : null}
         {overlay}
@@ -278,6 +350,28 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
     backgroundColor: colors.night,
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: -60,
+  },
+  pullGlow: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 320,
+  },
+  reading: {
+    position: 'absolute',
+    left: 0,
+    bottom: 0,
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: colors.flame,
   },
   flex: {
     flex: 1,

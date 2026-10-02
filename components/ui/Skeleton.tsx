@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { colors, radii } from '../../core/theme';
@@ -17,6 +17,13 @@ export function Skeleton({ height = 16, width = '100%', radius = radii.sm, style
 
 /** A card-shaped stack of skeleton lines. */
 export function SkeletonCard({ lines = 2, style }: { lines?: number; style?: StyleProp<ViewStyle> }) {
+  // Only if loading takes a moment: a fast load never flashes a placeholder.
+  const [late, setLate] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setLate(true), 300);
+    return () => clearTimeout(t);
+  }, []);
+  if (!late) return <View style={[styles.card, styles.hidden, style]} />;
   return (
     <View style={[styles.card, style]} accessibilityLabel="Loading" accessibilityRole="progressbar">
       <Skeleton height={18} width="55%" />
@@ -28,6 +35,9 @@ export function SkeletonCard({ lines = 2, style }: { lines?: number; style?: Sty
 }
 
 const styles = StyleSheet.create({
+  hidden: {
+    opacity: 0,
+  },
   block: {
     backgroundColor: colors.surfaceHigh,
   },
