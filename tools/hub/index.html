@@ -318,11 +318,11 @@ function derive(s) {
       if (!it) continue;
       it.history.push(e);
       const to = { queue: 'queued', claim: 'building', commit: 'review', done: 'review', integrated: 'integrated', verified: 'verified', shipped: 'shipped', blocked: 'blocked', dropped: 'dropped' }[e.type];
-      if (e.type === 'queue') it.owner = e.to || it.owner;
+      if (e.type === 'queue') it.owner = e.to === 'none' ? null : e.to || it.owner;
       if (e.type === 'claim') { it.owner = e.agent; a?.claimed.add(id); if (a) a.cur = id; }
       if (e.type === 'step') { if (['backlog', 'queued'].includes(it.status)) it.status = 'building'; if (e.pct != null) it.pct = e.pct; if (a) { a.cur = id; a.claimed.add(id); } }
       if (e.type === 'check' && e.ok && ['building', 'queued', 'backlog'].includes(it.status)) it.status = 'checked';
-      if (to) it.status = to;
+      if (to) it.status = e.type === 'queue' && e.to === 'none' ? 'backlog' : to;
       if (e.type === 'done' || e.type === 'commit') { it.pct = 100; a?.handed.add(id); if (a && a.cur === id) a.cur = null; }
       if (e.pct != null && a && a.cur === id) a.pct = e.pct;
     }
