@@ -17,6 +17,7 @@ export function Stepper({ value, onDecrement, onIncrement, label, minWidth = 44 
       <Pressy
         onPress={onDecrement}
         depth={0.88}
+        hitSlop={6}
         style={styles.btn}
         accessibilityRole="button"
         accessibilityLabel={label ? `Less ${label}` : 'Less'}
@@ -27,6 +28,7 @@ export function Stepper({ value, onDecrement, onIncrement, label, minWidth = 44 
       <Pressy
         onPress={onIncrement}
         depth={0.88}
+        hitSlop={6}
         style={styles.btn}
         accessibilityRole="button"
         accessibilityLabel={label ? `More ${label}` : 'More'}

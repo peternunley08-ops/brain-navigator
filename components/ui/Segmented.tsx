@@ -20,6 +20,7 @@ export function Segmented<T extends string>({ options, value, onChange, style }:
             key={o.key}
             onPress={() => onChange(o.key)}
             depth={0.95}
+            hitSlop={6}
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             style={[styles.seg, on && styles.segOn]}

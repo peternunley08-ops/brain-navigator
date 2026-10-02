@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { plural } from '../core/words';
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { Linking, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -184,23 +184,9 @@ export default function CollegeScreen() {
         <Reveal index={1}>
           <Section title="Coming up">
             <Card>
-              {timeline.map((x, i) => {
-                const d = daysUntil(x.date);
-                return (
-                  <View key={x.key} style={[styles.tlRow, i === timeline.length - 1 && styles.tlLast]}>
-                    <View style={[styles.tlDot, { backgroundColor: x.color }]} />
-                    <View style={styles.flex}>
-                      <Text style={styles.tlTitle} numberOfLines={1}>
-                        {x.title}
-                      </Text>
-                      <Text style={styles.nextMeta}>
-                        {x.kind}, {dueLabel(x.date)}
-                      </Text>
-                    </View>
-                    <Text style={[styles.tlDays, d <= 7 && { color: colors.unlocked }]}>{d === 0 ? 'today' : `${d}d`}</Text>
-                  </View>
-                );
-              })}
+              {timeline.map((x, i) => (
+                <TimelineRow key={x.key} item={x} index={i} length={timeline.length} styles={styles} colors={colors} />
+              ))}
             </Card>
           </Section>
         </Reveal>
@@ -320,6 +306,38 @@ function AddCollege({ onSave }: { onSave: (c: Omit<College, 'id'>) => void }) {
     </Animated.View>
   );
 }
+
+type TimelineItem = { key: string; date: string; title: string; kind: string; color: string };
+
+interface TimelineRowProps {
+  item: TimelineItem;
+  index: number;
+  length: number;
+  styles: Record<string, any>;
+  colors: Record<string, string>;
+}
+
+const TimelineRow = memo(
+  ({ item, index, length, styles, colors }: TimelineRowProps) => {
+    const d = daysUntil(item.date);
+    return (
+      <View key={item.key} style={[styles.tlRow, index === length - 1 && styles.tlLast]}>
+        <View style={[styles.tlDot, { backgroundColor: item.color }]} />
+        <View style={styles.flex}>
+          <Text style={styles.tlTitle} numberOfLines={1}>
+            {item.title}
+          </Text>
+          <Text style={styles.nextMeta}>
+            {item.kind}, {dueLabel(item.date)}
+          </Text>
+        </View>
+        <Text style={[styles.tlDays, d <= 7 && { color: colors.unlocked }]}>{d === 0 ? 'today' : `${d}d`}</Text>
+      </View>
+    );
+  },
+  (prev, next) => prev.item === next.item && prev.index === next.index && prev.length === next.length
+);
+TimelineRow.displayName = 'TimelineRow';
 
 function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: boolean; onToggle: () => void }) {
   const toggleStep = useHubStore((s) => s.toggleStep);
