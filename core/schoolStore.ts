@@ -376,10 +376,7 @@ export function workloadByDay(assignments: Assignment[], days = 14, today = date
 
 /** Spreads study steps across the days before something's due. */
 export function planBackward(a: Assignment, today = dateKey()): Subtask[] {
-  const [y, m, d] = a.due.split('-').map(Number);
-  const dueDate = new Date(y, m - 1, d);
-  const [ty, tm, td] = today.split('-').map(Number);
-  const span = Math.max(1, Math.round((dueDate.getTime() - new Date(ty, tm - 1, td).getTime()) / 86400000));
+  const span = spanTo(a.due, today);
   const steps: string[] =
     a.kind === 'test' || a.kind === 'quiz'
       ? ['Gather notes and the study guide', 'Make flashcards for what you keep forgetting', 'Practice test, no notes', 'Redo what you missed', 'Quick review and early night']
@@ -390,9 +387,21 @@ export function planBackward(a: Assignment, today = dateKey()): Subtask[] {
           : ['Figure out exactly what’s being asked', 'Gather what you need', 'Do the biggest part', 'Finish and check it', 'Turn it in'];
   const n = Math.min(steps.length, span);
   const chosen = n === steps.length ? steps : [...steps.slice(0, n - 1), steps[steps.length - 1]];
-  // Spread evenly from today; the last step lands the day before it's due.
-  return chosen.map((text, i) => {
-    const offset = i === chosen.length - 1 ? span - 1 : Math.floor((i * span) / chosen.length);
+  return spreadSteps(chosen, a.due, today);
+}
+
+/** Days between today and a due date, at least 1. */
+function spanTo(due: string, today: string): number {
+  const [y, m, d] = due.split('-').map(Number);
+  const [ty, tm, td] = today.split('-').map(Number);
+  return Math.max(1, Math.round((new Date(y, m - 1, d).getTime() - new Date(ty, tm - 1, td).getTime()) / 86400000));
+}
+
+/** Gives each step a day: evenly from today, the last one the day before it's due. Steps can share a day. */
+export function spreadSteps(texts: string[], due: string, today = dateKey()): Subtask[] {
+  const span = spanTo(due, today);
+  return texts.map((text, i) => {
+    const offset = i === texts.length - 1 ? span - 1 : Math.floor((i * span) / texts.length);
     return { id: uid(), text, done: false, on: addDays(today, offset) };
   });
 }

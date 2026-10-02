@@ -18,13 +18,17 @@ import { Reveal } from '../../components/ui/Reveal';
 import { ScienceNote } from '../../components/ui/ScienceNote';
 import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
-import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, planBackward, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
+import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, planBackward, spreadSteps, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { helperById, type HelperId } from '../../core/helpers';
 import { useLifeStore } from '../../core/lifeStore';
 import { celebrate } from '../../core/celebrateStore';
 import { askJob } from '../../core/emberAI';
 import { offerUndo } from '../../core/undoStore';
+
+// The model sometimes labels steps with days ("Fri: Do 10 problems"); the app
+// picks the days itself, so those labels come off.
+const DAY_PREFIX = /^(?:(?:mon|tue|wed|thu|fri|sat|sun)[a-z]*\.?|today|tonight|tomorrow|day \d+)(?:\s+(?:morning|afternoon|evening|night))?\s*[:–—-]\s*/i;
 
 // A polite, specific note to a teacher. The student reads it, edits it,
 // and sends it themselves.
@@ -68,6 +72,8 @@ export default function AssignmentScreen() {
   const dateText = new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
   const subtasks = a.subtasks ?? [];
   const stepsDone = subtasks.filter((t) => t.done).length;
+  // AI study sessions for a test or quiz a few days off get a day each.
+  const spreadOut = (a.kind === 'test' || a.kind === 'quiz') && daysUntil(a.due) >= 2;
 
   const setSubtasks = (next: Subtask[]) => update(a.id, { subtasks: next });
   const addStep = () => {
@@ -230,11 +236,17 @@ export default function AssignmentScreen() {
                   if (!res.ok) return res;
                   return { ok: true, items: res.data.steps.map((st) => ({ title: st.title, detail: `About ${st.minutes} min` })) };
                 }}
-                addLabel={(k) => (k === 1 ? 'Add 1 step' : `Add ${k} steps`)}
+                addLabel={(k) => {
+                  const days = spreadOut ? new Set(spreadSteps(Array<string>(k).fill(''), a.due).map((t) => t.on)).size : 1;
+                  return `Add ${k === 1 ? '1 step' : `${k} steps`}${days > 1 ? ` over ${days} days` : ''}`;
+                }}
                 onAdd={(picked) => {
                   const before = subtasks;
-                  setSubtasks([...subtasks, ...picked.map((p) => ({ id: uid(), text: `${p.title}${p.detail ? ` (${p.detail.replace('About ', '')})` : ''}`, done: false }))]);
+                  const texts = picked.map((p) => `${p.title.replace(DAY_PREFIX, '')}${p.detail ? ` (${p.detail.replace('About ', '')})` : ''}`);
+                  const added: Subtask[] = spreadOut ? spreadSteps(texts, a.due) : texts.map((text) => ({ id: uid(), text, done: false }));
+                  setSubtasks([...subtasks, ...added]);
                   offerUndo(`Added ${picked.length} step${picked.length === 1 ? '' : 's'}`, () => update(a.id, { subtasks: before }), 'list');
+                  if (spreadOut) emberSay(`Spread across ${new Set(added.map((t) => t.on)).size} days. Just today’s step, today.`, 'happy');
                 }}
               />
             ) : null}

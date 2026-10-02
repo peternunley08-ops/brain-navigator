@@ -174,14 +174,29 @@ export default function NoteScreen() {
   // page's deck; key points go at the bottom of the page.
   const pageText = asText(note.title, note.blocks);
   const pageHasText = pageText.replace(/\s+/g, ' ').length >= 60;
+  // AI cards join this page's deck. Cards it already has are skipped, and
+  // Undo takes back exactly what was added (and the deck, if this made it).
   const toDeck = (picked: PickItem[]) => {
     const life = useLifeStore.getState();
     const cls = classes.find((c) => c.id === note.classId);
+    const fresh = picked.filter((p) => !have.has(p.title.trim().toLowerCase()));
+    const skipped = picked.length - fresh.length;
+    if (!fresh.length) return emberSay(`All ${picked.length === 1 ? 'of that is' : 'of those are'} already in “${linked?.name ?? deckName}”.`, 'happy');
+    const made = !linked;
     const deck = linked ?? life.saveDeck({ name: deckName, classId: note.classId, color: cls?.color ?? note.color });
     if (deck.noteId !== note.id) life.updateDeck(deck.id, { noteId: note.id });
-    life.addCards(deck.id, picked.map((p) => ({ front: p.title, back: p.detail ?? '' })));
+    const cardIds = () => new Set(useLifeStore.getState().decks.find((d) => d.id === deck.id)?.cards.map((c) => c.id) ?? []);
+    const before = cardIds();
+    life.addCards(deck.id, fresh.map((p) => ({ front: p.title, back: p.detail ?? '' })));
+    const added = [...cardIds()].filter((id) => !before.has(id));
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-    emberSay(`${picked.length} card${picked.length === 1 ? '' : 's'} added to “${deck.name}”. Quizzo can play them with you.`, 'happy');
+    const n = `${fresh.length} card${fresh.length === 1 ? '' : 's'}`;
+    offerUndo(`Added ${n}${skipped ? `, ${skipped} already there` : ''}`, () => {
+      const l = useLifeStore.getState();
+      if (made) l.deleteDeck(deck.id);
+      else added.forEach((id) => l.deleteCard(deck.id, id));
+    }, 'cards');
+    emberSay(`${n} added to “${deck.name}”${skipped ? ` (${skipped} ${skipped === 1 ? 'was' : 'were'} already there)` : ''}. Quizzo can play them with you.`, 'happy');
   };
   const AI_MODES = {
     cards: {

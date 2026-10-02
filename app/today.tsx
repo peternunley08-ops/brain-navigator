@@ -155,7 +155,7 @@ export default function TodayScreen() {
                 </View>
                 <ChipRow style={styles.gap}>
                   {LENGTHS.map((l) => (
-                    <Chip key={l} label={l >= 60 ? `${l / 60}${l % 60 ? '.5' : ''} h` : `${l} min`} selected={length === l} onPress={() => setLength(l)} icon="clock" />
+                    <Chip key={l} label={l >= 60 ? `${l / 60} h` : `${l} min`} selected={length === l} onPress={() => setLength(l)} icon="clock" />
                   ))}
                 </ChipRow>
                 <View style={styles.swatches}>

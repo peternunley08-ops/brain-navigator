@@ -183,7 +183,7 @@ export default function AddAssignmentScreen() {
         >
           <ChipRow>
             {DURATIONS.map((m) => (
-              <Chip key={m} label={m >= 60 ? `${m / 60}${m % 60 ? '.5' : ''} h` : `${m} min`} icon="clock" selected={minutes === m} color={accent} onPress={() => setMinutes(m)} />
+              <Chip key={m} label={m >= 60 ? `${m / 60} h` : `${m} min`} icon="clock" selected={minutes === m} color={accent} onPress={() => setMinutes(m)} />
             ))}
           </ChipRow>
         </Section>

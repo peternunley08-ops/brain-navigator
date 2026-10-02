@@ -78,7 +78,7 @@ Status marks:
 35. [x] Open a specific assignment, deck, or note from a reply
 36. [x] Pip's plan comes back as time blocks: "Put this on tonight" adds them
 37. [x] Break an assignment into steps: a preview with checkboxes, then add them as subtasks
-38. [ ] Test prep spread across days, added to the week with one tap
+38. [x] Test prep spread across days, added to the week with one tap
 39. [~] Start a Focus session for the exact thing named, with minutes set
 40. [~] Everything the AI adds can be undone from the toast
 
@@ -176,22 +176,26 @@ from core/emberAI.ts.
 Done in prompt v4.2 (deployed 2026-10-01): `title` is a JSON schema
 `{ title }`, and `reflect` has the banned openers.
 
-Fix in the next redeploy: `pick`'s reason ran long and rambled ("…and the
-test is something you can't really prep for now…"); cap it at one sentence
-under 25 words. Ember once wrote "With until Monday" (a slip, watch for it).
+Done in prompt v4.3 (deployed 2026-10-01): `pick`'s reason is one sentence
+under 25 words (live: 24 words), and `steps` turns a test or quiz into study
+sessions. Ember once wrote "With until Monday" (a slip, watch for it).
+
+Fix in the next redeploy: `steps` sometimes starts titles with a day
+("Thu: …"). The app strips those (DAY_PREFIX in app/assignment/[id].tsx),
+but the prompt should say "no days in titles; the app picks the days".
 
 ## RESUME HERE (for a fresh session after compaction)
 
 Read this file, then CLAUDE.md "Ember's AI brain". Check `git status`.
-Last commit: e3c6943 (step 2), pushed. Everything before it is saved.
+Last pushed work: prompt v4.3 + #38 + note-card dedupe/Undo (see the log).
 
 Next, in order (the user said "keep going with the next steps"):
-1. Server fix + redeploy as v4.3: `pick` reason one sentence under 25
-   words (see "Fix in the next redeploy" above). Edit only the changed
-   spots in the dashboard editor via JS, check SHA-256, Deploy updates.
-2. Try in the Simulator (run from Xcode): Flashcards and Practice test on
-   "Chem unit 2 notes" (note id munnfeth6ybl46), Scan "Read it again with
-   AI" (paste text path), "Hear from Ember" on a worry, and Try again.
+1. Verify the note-card Undo with a real tap: Practice test on "Chem unit 2
+   notes" (note id munnfeth6ybl46), Add, then tap Undo within 6.5 s (take
+   no other steps in between that take seconds; the toast sits 96 pt above
+   the bottom inset, Undo at about x 345, y 719).
+2. Try in the Simulator (run from Xcode): Scan "Read it again with AI"
+   (paste text path), "Hear from Ember" on a worry, and Try again.
 3. Then the `[ ]` ideas, in build-order groups: past Ember chats with
    titles (#28, uses the `title` job), mic in Ember's chat (#76,
    expo-speech-recognition is already in the build), edit-and-resend
@@ -199,7 +203,7 @@ Next, in order (the user said "keep going with the next steps"):
    running it costs money, ask first), plan math (#97, the user decides
    prices), CLAUDE.md wrap-up (#100).
 Keep live AI tests rare (see the money rule): 8 of 20 free replies were
-left this week after testing (resets Monday). Redeploying `ember` needs
+left this week after testing; now 3 (resets Monday). Redeploying `ember` needs
 the user signed in to Supabase in the browser pane (session was still
 signed in on 2026-10-01). Simulator tips: deep links
 `brainnavigator://assignment/<id>`, `/note/<id>`, `/school`, `/ai`,
@@ -248,3 +252,18 @@ never tap Done in Ember's chat for tests (it saves to the journal).
   buttons had the same words; the memory count showed a bare "0"; Pip's
   plan preview was squeezed inside the chat box. In-app testing cost about
   6¢ (the app's own log). Test steps were left on the Gatsby assignment.
+- 2026-10-01: Prompt v4.3 deployed (pick reason capped; test-aware steps),
+  checked with two curl calls (about 0.75¢). #38: AI steps for a test or
+  quiz two or more days away get a day each (spreadSteps in schoolStore,
+  shared with "Plan it backward"); the button says "Add 6 steps over 4
+  days". Verified live on a "Cell biology quiz" due Monday: 6 sessions
+  over Thu to Sun, Ember said "Spread across 4 days", Undo offered. Fixed
+  "1.5.5 h" chips on Add homework and Today (now "1.5 h"). Note AI cards:
+  cards already in the deck are skipped ("Added 1 card, 3 already there",
+  verified live) and adding now has Undo. NOT yet verified: tapping that
+  Undo (two tries missed the 6.5 s window; the store logic is synchronous,
+  so it should work). Flashcards and Practice test verified live; both
+  stay inside the note and say when the note doesn't cover something.
+  Test data: "Cell biology quiz" (muqa3calgnkk4o) and extra cards in the
+  "Chem unit 2 notes" deck (being cleaned up). AI replies used this week
+  on the Simulator: 17 of 20.

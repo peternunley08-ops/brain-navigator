@@ -26,7 +26,7 @@
 // API to write the reply. Message text is never logged here: only timing,
 // token counts, and how the reply ended.
 
-const PROMPT_VERSION = '4.2';
+const PROMPT_VERSION = '4.3';
 
 const SONNET = 'claude-sonnet-5-5';
 const HAIKU = 'claude-haiku-4-5';
@@ -220,7 +220,7 @@ function jobFor(kind: string, agent: string | null): Job | null {
         maxTokens: 8000,
         maxInput: 3000,
         turns: 1,
-        system: `${ONE_SHOT_BASE}\n\nBreak the assignment into three to seven small steps the student does themselves, in order, each with a realistic number of minutes. Steps are actions ("Pick three sources", not "Research"). Never do the work for them.`,
+        system: `${ONE_SHOT_BASE}\n\nBreak the assignment into three to seven small steps the student does themselves, in order, each with a realistic number of minutes. Steps are actions ("Pick three sources", not "Research"). For a test or quiz, the steps are study sessions that can go on different days ("Make flashcards for unit 2", "Do 10 practice problems"), each 15 to 40 minutes, ending with a short review. Never do the work for them.`,
         schema: obj({ steps: list({ title: str, minutes: int }) }),
       };
     case 'plan':
@@ -280,7 +280,7 @@ function jobFor(kind: string, agent: string | null): Job | null {
         maxTokens: 6000,
         maxInput: 2000,
         turns: 1,
-        system: `${ONE_SHOT_BASE}\n\nFrom what's due in the app note, pick the one thing the student should start first right now, using due dates, size, and the time of day. Give its reference (like a1) and one short, friendly sentence why.`,
+        system: `${ONE_SHOT_BASE}\n\nFrom what's due in the app note, pick the one thing the student should start first right now, using due dates, size, and the time of day. Give its reference (like a1) and why in one short, friendly sentence of under 25 words, naming only the reason that matters most.`,
         schema: obj({ ref: str, why: str }),
       };
     case 'reflect':
