@@ -1,12 +1,13 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { router, useFocusEffect } from 'expo-router';
-import { Fragment, type ReactNode, useCallback, useEffect, useMemo } from 'react';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { AboutCards } from '../components/desk/AboutCards';
+import { NightDesk } from '../components/desk/NightDesk';
 import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
@@ -28,6 +29,7 @@ import { NowCard } from '../components/school/NowCard';
 import { Button } from '../components/ui/Button';
 import { Candle, candleRemaining, candleSeed } from '../components/ui/Candle';
 import { Card } from '../components/ui/Card';
+import { Chip, ChipRow } from '../components/ui/Chip';
 import { Icon, type IconName } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
 import { Pressy } from '../components/ui/Pressy';
@@ -39,7 +41,8 @@ import { useHabitsStore } from '../core/habitsStore';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
-import { dateKey, daysUntil, focusMinutesOn, tonightsLoad, useSchoolStore } from '../core/schoolStore';
+import { beforeNight, isNight, minutesOf, nightClockVersion, nightNow, nightStart, parseNightParam, setNightClock, subscribeNightClock } from '../core/night';
+import { clock, dateKey, daysUntil, focusMinutesOn, tonightsLoad, useSchoolStore } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
 import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
@@ -116,6 +119,29 @@ export default function DeskScreen() {
   const hourNow = new Date().getHours();
   const briefFirst = (timePick === 'b' && hourNow >= 17) || (timePick === 'a' && hourNow >= 5 && hourNow < 11);
   const schoolLoaded = useSchoolStore((s) => s.loaded);
+
+  // Night runs from the wind-down hour (an hour later for a night owl) to 4:30 AM,
+  // and the Desk shrinks to a short stack. In development only,
+  // brainnavigator://?night=23:30 pretends it is that time and ?night=off stops.
+  const { night: nightParam } = useLocalSearchParams<{ night?: string }>();
+  useSyncExternalStore(subscribeNightClock, nightClockVersion);
+  useEffect(() => {
+    const m = parseNightParam(nightParam);
+    if (__DEV__ && m !== undefined) setNightClock(m);
+  }, [nightParam]);
+  const [, setMinute] = useState(0);
+  useEffect(() => {
+    const iv = setInterval(() => setMinute((m) => m + 1), 60000);
+    return () => clearInterval(iv);
+  }, []);
+  const windDown = useLifeStore((s) => s.settings.windDown);
+  const nowMin = minutesOf(nightNow());
+  const startMin = nightStart(windDown, timePick === 'b');
+  const night = isNight(nowMin, startMin);
+  const [showAll, setShowAll] = useState(false);
+  useEffect(() => {
+    if (!night) setShowAll(false);
+  }, [night]);
 
   // First time here: Ember says hello and helps set things up.
   useEffect(() => {
@@ -375,7 +401,7 @@ show('line') ? (
     <Screen
       back={false}
       tone="ember"
-      glowColor={skyGlow()}
+      glowColor={skyGlow(nightNow())}
       onRefresh={() =>
         Promise.all([
           fetchCheckins(),
@@ -389,8 +415,8 @@ show('line') ? (
         })
       }
       motes
-      kicker={momentLabel()}
-      title={greetingFor(nickname || profile.name, timePick)}
+      kicker={momentLabel(nightNow())}
+      title={greetingFor(nickname || profile.name, timePick, nightNow())}
       subtitle={summaryLine(dueToday, dueTomorrow, openLoops.length, lateCount)}
       right={
         <View style={styles.headerBtns}>
@@ -399,64 +425,74 @@ show('line') ? (
         </View>
       }
     >
-      <Reveal index={0}>
-        {show('countdowns') ? <CountdownChips /> : null}
-        {briefFirst && show('brief') ? <DayBrief /> : null}
-        <WhatsNew />
-        {show('onething') ? <OneThing /> : null}
-        <NowCard />
-        {show('capture') ? <QuickCapture /> : null}
-        {show('pinned') ? <PinnedNotes /> : null}
-        <Birthday />
-        <WelcomeBack />
-        <FollowUp />
-        {show('question') ? <AboutCards /> : null}
-        {!briefFirst && show('brief') ? <DayBrief /> : null}
-        {show('nudges') ? (
-          <>
-            <TryThisWeek />
-            <HelperNudge />
-            <PlanTest />
-            <TagTool />
-            <WorryTime />
-            <Resurface />
-            <NextBadge />
-          </>
-        ) : null}
-      </Reveal>
+      {night && !showAll ? (
+        <NightDesk onShowAll={() => setShowAll(true)} />
+      ) : (
+        <>
+          <Reveal index={0}>
+            {beforeNight(nowMin, startMin) ? (
+            <ChipRow style={styles.windChip}>
+              <Chip label={`Wind-down at ${clock(startMin)}`} icon="moon" onPress={() => router.push('/sleep')} />
+            </ChipRow>
+          ) : null}
+          {show('countdowns') ? <CountdownChips /> : null}
+            {briefFirst && show('brief') ? <DayBrief /> : null}
+            <WhatsNew />
+            {show('onething') ? <OneThing /> : null}
+            <NowCard />
+            {show('capture') ? <QuickCapture /> : null}
+            {show('pinned') ? <PinnedNotes /> : null}
+            <Birthday />
+            <WelcomeBack />
+            <FollowUp />
+            {show('question') ? <AboutCards /> : null}
+            {!briefFirst && show('brief') ? <DayBrief /> : null}
+            {show('nudges') ? (
+              <>
+                <TryThisWeek />
+                <HelperNudge />
+                <PlanTest />
+                <TagTool />
+                <WorryTime />
+                <Resurface />
+                <NextBadge />
+              </>
+            ) : null}
+          </Reveal>
 
-      {allClear ? (
-        <Reveal index={0}>
-          <Card tint={colors.secured} style={styles.clear}>
-            <Sparks burst={1} reach={60} />
-            <Icon name="sparkle" size={22} color={colors.secured} />
-            <View style={styles.promptText}>
-              <Text style={styles.promptTitle}>All clear.</Text>
-              <Text style={styles.promptBody}>
-                {doneToday} thing{doneToday === 1 ? '' : 's'} done today, nothing due by tomorrow. The rest of the day is yours.
-              </Text>
-            </View>
-          </Card>
-        </Reveal>
-      ) : null}
+          {allClear ? (
+            <Reveal index={0}>
+              <Card tint={colors.secured} style={styles.clear}>
+                <Sparks burst={1} reach={60} />
+                <Icon name="sparkle" size={22} color={colors.secured} />
+                <View style={styles.promptText}>
+                  <Text style={styles.promptTitle}>All clear.</Text>
+                  <Text style={styles.promptBody}>
+                    {doneToday} thing{doneToday === 1 ? '' : 's'} done today, nothing due by tomorrow. The rest of the day is yours.
+                  </Text>
+                </View>
+              </Card>
+            </Reveal>
+          ) : null}
 
-      {reviewDue ? (
-        <Reveal index={0}>
-          <Card onPress={() => router.push('/review')} style={styles.clear}>
-            <Icon name="star" size={22} color={colors.flame} />
-            <View style={styles.promptText}>
-              <Text style={styles.promptTitle}>Look back at your week</Text>
-              <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
-            </View>
-            <Icon name="chevron" size={18} color={colors.textFaint} />
-          </Card>
-        </Reveal>
-      ) : null}
+          {reviewDue ? (
+            <Reveal index={0}>
+              <Card onPress={() => router.push('/review')} style={styles.clear}>
+                <Icon name="star" size={22} color={colors.flame} />
+                <View style={styles.promptText}>
+                  <Text style={styles.promptTitle}>Look back at your week</Text>
+                  <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
+                </View>
+                <Icon name="chevron" size={18} color={colors.textFaint} />
+              </Card>
+            </Reveal>
+          ) : null}
 
-      {deskOrder.map((k) => (
-        <Fragment key={k}>{deskSections[k]}</Fragment>
-      ))}
-
+          {deskOrder.map((k) => (
+            <Fragment key={k}>{deskSections[k]}</Fragment>
+          ))}
+        </>
+      )}
     </Screen>
   );
 }
@@ -535,6 +571,9 @@ const styles = StyleSheet.create({
   headerBtns: {
     flexDirection: 'row',
     gap: 8,
+  },
+  windChip: {
+    marginTop: 12,
   },
   clear: {
     marginTop: 12,
