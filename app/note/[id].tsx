@@ -397,7 +397,7 @@ export default function NoteScreen() {
 
       <View style={styles.count}>
         <Text style={styles.countText}>
-          {words} ${plural(words, 'word')}
+          {plural(words, 'word')}
           {goal ? ` of ${goal}` : ''}
         </Text>
         {goal ? <ProgressBar value={words / goal} color={words > goal ? colors.danger : note.color} height={4} style={styles.countBar} /> : null}
@@ -505,7 +505,7 @@ export default function NoteScreen() {
               <Pressy onPress={makeCards} disabled={!cardPick.length} style={[styles.makeCards, styles.pickGo, !cardPick.length && styles.dim]} accessibilityRole="button">
                 <Icon name="cards" size={15} color={colors.flame} />
                 <Text style={styles.makeCardsText}>
-                  {linked ? 'Add' : 'Make'} {cardPick.length} ${plural(cardPick.length, 'card')}
+                  {linked ? 'Add' : 'Make'} {plural(cardPick.length, 'card')}
                 </Text>
               </Pressy>
             </View>

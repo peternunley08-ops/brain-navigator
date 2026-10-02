@@ -113,7 +113,7 @@ export default function ClassScreen() {
                   <View style={styles.flex}>
                     <Text style={styles.pct}>{avg.toFixed(1)}%</Text>
                     <Text style={styles.sub}>
-                      {mine.length} ${plural(mine.length, 'grade')}
+                      {plural(mine.length, 'grade')}
                       {Object.keys(cls.weights ?? {}).length ? ', weighted' : ''}
                     </Text>
                   </View>

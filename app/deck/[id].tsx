@@ -316,7 +316,7 @@ function StudyView({ deckId, typeIt, reverse, hardest, onDone }: { deckId: strin
         <Icon name="trophy" size={44} color={colors.flame} />
         <Text style={styles.doneTitle}>That’s the deck.</Text>
         <Text style={styles.doneBody}>
-          {total} ${plural(total, 'card')} reviewed. Cards you knew come back in a few days; the tricky ones come back tomorrow.
+          {plural(total, 'card')} reviewed. Cards you knew come back in a few days; the tricky ones come back tomorrow.
         </Text>
         <Button label="Back to the cards" variant="secondary" onPress={onDone} style={styles.gap} />
       </Animated.View>

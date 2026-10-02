@@ -128,7 +128,7 @@ export default function FlashcardsScreen() {
                         </Text>
                         <Text style={styles.sub}>
                           {c ? `${c.name}, ` : ''}
-                          {st.total} ${plural(st.total, 'card')}
+                          {plural(st.total, 'card')}
                         </Text>
                       </View>
                       {due ? (

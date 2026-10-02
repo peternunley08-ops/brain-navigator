@@ -331,7 +331,7 @@ export default function FocusScreen() {
           <Animated.View entering={FadeInDown.duration(360)} style={styles.center}>
             <Text style={styles.doneTitle}>{workedMin >= length ? 'Candle’s out. Well done.' : `${plural(workedMin, 'minute')} in.`}</Text>
             <Text style={styles.label}>
-              {workedMin} ${plural(workedMin, 'minute')} of real focus{t ? ` on ${t.title}` : ''}.
+              {plural(workedMin, 'minute')} of real focus{t ? ` on ${t.title}` : ''}.
             </Text>
           </Animated.View>
         ) : phase === 'break' ? (

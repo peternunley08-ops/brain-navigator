@@ -72,7 +72,7 @@ export default function SteadyScreen() {
           <QuickBreath color={BLUE} />
           {breathedThisMonth ? (
             <Text style={styles.breathCount}>
-              You took a breathing break on {breathedThisMonth} ${plural(breathedThisMonth, 'day')} this month.
+              You took a breathing break on {plural(breathedThisMonth, 'day')} this month.
             </Text>
           ) : null}
         </Reveal>

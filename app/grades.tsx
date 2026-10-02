@@ -227,7 +227,7 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
           <View style={styles.flex}>
             <Text style={styles.pct}>{avg == null ? 'No grades yet' : `${avg.toFixed(1)}%`}</Text>
             <Text style={styles.sub}>
-              {weightTotal ? `Weighted by category (${weightTotal}% set)` : 'Total points'}, {mine.length} ${plural(mine.length, 'grade')}
+              {weightTotal ? `Weighted by category (${weightTotal}% set)` : 'Total points'}, {plural(mine.length, 'grade')}
             </Text>
           </View>
         </Card>
