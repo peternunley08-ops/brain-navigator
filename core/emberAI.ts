@@ -135,8 +135,12 @@ export interface NoteOptions {
 export function buildNote(screen: string, opts: NoteOptions = {}, now = new Date()): { text: string; refs: Record<string, NoteRef> } {
   const lines: string[] = [];
   const refs: Record<string, NoteRef> = {};
+  // The time to the quarter hour: precise enough for "it's late", and the
+  // note stays the same from one message to the next.
+  const quarter = new Date(now);
+  quarter.setMinutes(Math.floor(now.getMinutes() / 15) * 15, 0, 0);
   lines.push(
-    `Today: ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} (${todayKey(now)}), ${now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}.`
+    `Today: ${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })} (${todayKey(now)}), about ${quarter.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}.`
   );
   lines.push(`They opened this from: ${screen}.`);
   if (opts.justListen) lines.push('Just listen is on: reflect and ask, no advice.');
@@ -376,10 +380,13 @@ export type JobResult<T> = { ok: true; data: T; cents: number; ms: number; model
  * ping) as `{ reply }`. `input` is what to work on; `screen` adds the app
  * note when the job needs to know about the day.
  */
+const NO_NOTE = new Set<string>(['cards', 'practice', 'points', 'title', 'ping']);
+
 export async function askJob<T = { reply: string }>(kind: Kind, input: string, opts: { screen?: string; who?: string; note?: NoteOptions } = {}): Promise<JobResult<T>> {
   const free = FREE_KINDS.has(kind);
   if (!free && !canUseAI()) return { ok: false, reason: 'limit' };
-  const built = opts.screen ? buildNote(opts.screen, opts.note) : null;
+  // Jobs that work only from their input never carry the app note.
+  const built = opts.screen && !NO_NOTE.has(kind) ? buildNote(opts.screen, opts.note) : null;
   const res = await callEmber({ kind, messages: [{ role: 'user', content: redact(input) }], context: built?.text });
   if (!res.ok) return res;
   const payload = res.data.data ?? (typeof res.data.reply === 'string' ? { reply: res.data.reply } : null);

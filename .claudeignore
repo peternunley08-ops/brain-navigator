@@ -1,0 +1,12 @@
+node_modules/
+package-lock.json
+ios/Pods/
+ios/build/
+.expo/
+.claude/worktrees/
+assets/
+docs/SESSION_LOG.md
+docs/todo.md
+docs/ARCHIVE_CLAUDE_FULL.md
+docs/masterpiece*.md
+supabase/.temp/

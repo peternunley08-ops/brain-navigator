@@ -6,19 +6,19 @@
 // returns the reply in a shape the app can turn into buttons.
 //
 // Jobs:
-//   talk     Ember's conversation (Sonnet, deep thinking)
-//   helper   one of the helper crew (Sonnet, effort per helper)
+//   talk     Ember's conversation (Sonnet, low effort: short replies)
+//   helper   one of the helper crew (Sonnet; high effort only for Pip, Quill, Sage)
 //   summary  one line about a finished conversation, for Ember's memory, and its title (Haiku)
 //   title    a few words naming a conversation (Haiku)
 //   steps    an assignment broken into steps (JSON)
 //   plan     tonight's plan as time blocks, from a Pip chat (JSON)
 //   scan     text read from a screenshot → assignments (JSON)
 //   cards    a note → flashcards (JSON)
-//   points   a note → key points (JSON)
+//   points   a note → key points (JSON, Haiku)
 //   practice a note → practice questions (JSON)
-//   pick     what to do first (JSON)
-//   reflect  one warm line about a vent, check-in, or worry
-//   ping     "Test Ember's brain"
+//   pick     what to do first (JSON, Haiku)
+//   reflect  one warm line about a vent, check-in, or worry (Haiku)
+//   ping     "Test Ember's brain" (Haiku)
 //
 // The Anthropic key lives only in the server-side secret
 // `brain-navigator-v2` (Supabase dashboard → Edge Functions → Secrets) and
@@ -26,7 +26,7 @@
 // API to write the reply. Message text is never logged here: only timing,
 // token counts, and how the reply ended.
 
-const PROMPT_VERSION = '4.5';
+const PROMPT_VERSION = '4.6';
 
 const SONNET = 'claude-sonnet-5-5';
 const HAIKU = 'claude-haiku-4-5';
@@ -116,7 +116,7 @@ ${TAGS}`;
 
 const HELPERS: Record<string, { effort: Effort; persona: string }> = {
   quizzo: {
-    effort: 'medium',
+    effort: 'low',
     persona: `<you>
 You are Quizzo, an upbeat game-show-host quiz master. Ask one question at a time about the topic they give (or the deck in the app note), wait for their answer, say whether it's right and briefly why, and adapt the difficulty. Mix multiple choice (A–D on separate lines) and short answer.
 After grading an answer, add [[score:R|W]] with the running totals of right and wrong answers in this chat.
@@ -184,16 +184,18 @@ interface Job {
   maxInput: number;
   /** How many recent turns are sent. */
   turns: number;
+  /** Doesn't need the app note (the input says everything). */
+  noNote?: boolean;
 }
 
 function jobFor(kind: string, agent: string | null): Job | null {
   switch (kind) {
     case 'talk':
-      return { model: SONNET, effort: 'high', maxTokens: 16000, system: EMBER, tags: true, maxInput: 2000, turns: 16 };
+      return { model: SONNET, effort: 'low', maxTokens: 8000, system: EMBER, tags: true, maxInput: 2000, turns: 10 };
     case 'helper': {
       const h = agent ? HELPERS[agent] : undefined;
       if (!h) return null;
-      return { model: SONNET, effort: h.effort, maxTokens: 16000, system: `${HELPER_BASE}\n\n${h.persona}`, tags: true, maxInput: 4000, turns: 16 };
+      return { model: SONNET, effort: h.effort, maxTokens: 16000, system: `${HELPER_BASE}\n\n${h.persona}`, tags: true, maxInput: 4000, turns: 10 };
     }
     case 'summary':
       return {
@@ -246,6 +248,7 @@ function jobFor(kind: string, agent: string | null): Job | null {
     case 'cards':
       return {
         model: SONNET,
+        noNote: true,
         effort: 'medium',
         maxTokens: 8000,
         maxInput: 8000,
@@ -255,9 +258,9 @@ function jobFor(kind: string, agent: string | null): Job | null {
       };
     case 'points':
       return {
-        model: SONNET,
-        effort: 'low',
-        maxTokens: 6000,
+        model: HAIKU,
+        noNote: true,
+        maxTokens: 1500,
         maxInput: 8000,
         turns: 1,
         system: `${ONE_SHOT_BASE}\n\nPull the three to seven most important points out of the student's own note, each one short line in plain words. Only use what's in the note.`,
@@ -266,6 +269,7 @@ function jobFor(kind: string, agent: string | null): Job | null {
     case 'practice':
       return {
         model: SONNET,
+        noNote: true,
         effort: 'medium',
         maxTokens: 8000,
         maxInput: 8000,
@@ -275,9 +279,8 @@ function jobFor(kind: string, agent: string | null): Job | null {
       };
     case 'pick':
       return {
-        model: SONNET,
-        effort: 'medium',
-        maxTokens: 6000,
+        model: HAIKU,
+        maxTokens: 300,
         maxInput: 2000,
         turns: 1,
         system: `${ONE_SHOT_BASE}\n\nFrom what's due in the app note, pick the one thing the student should start first right now, using due dates, size, and the time of day. Give its reference (like a1) and why in one short, friendly sentence of under 25 words, naming only the reason that matters most.`,
@@ -285,15 +288,14 @@ function jobFor(kind: string, agent: string | null): Job | null {
       };
     case 'reflect':
       return {
-        model: SONNET,
-        effort: 'medium',
-        maxTokens: 6000,
+        model: HAIKU,
+        maxTokens: 400,
         maxInput: 4000,
         turns: 1,
         system: `${ONE_SHOT_BASE}\n\nThe student shared something from a vent, a check-in, or a worry. Answer in Ember's voice (a small, warm flame; a friend, not a counselor): one short sentence that shows you heard the specific thing, then one gentle question. No advice unless they asked, no diagnosis. Never open with stock validation like "That sounds hard", "That sounds like a lot", "I hear you", or "That's valid"; start with the specific thing they said. If it's a worry, the question can be whether it's in their control.`,
       };
     case 'ping':
-      return { model: SONNET, effort: 'low', maxTokens: 2000, maxInput: 200, turns: 1, system: 'Reply with one short, cheerful sentence saying you can hear them.' };
+      return { model: HAIKU, maxTokens: 100, maxInput: 200, turns: 1, noNote: true, system: 'Reply with one short, cheerful sentence saying you can hear them.' };
     default:
       return null;
   }
@@ -438,8 +440,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // Recent turns only, each capped, so a long conversation stays cheap.
+    // The window moves in steps of four, so the history at its front stays
+    // identical for several turns in a row and can be read from the cache.
+    const from = Math.floor(Math.max(0, messages.length - job.turns) / 4) * 4;
     const recent = messages
-      .slice(-job.turns)
+      .slice(from)
       .map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, job.maxInput) }));
     // The API needs the first turn to be the person's.
     while (recent.length && recent[0].role !== 'user') recent.shift();
@@ -449,11 +454,17 @@ Deno.serve(async (req: Request) => {
     // the long system prompt is identical every time and can be cached.
     const last = recent[recent.length - 1];
     const apiMessages: { role: string; content: unknown }[] = recent.slice(0, -1);
+    // Cache everything before the newest message (system prompt + history).
+    if (apiMessages.length) {
+      const prev = apiMessages[apiMessages.length - 1];
+      apiMessages[apiMessages.length - 1] = { role: prev.role, content: [{ type: 'text', text: String(prev.content), cache_control: { type: 'ephemeral' } }] };
+    }
+    const note = job.noNote ? '' : context;
     apiMessages.push({
       role: 'user',
-      content: context
+      content: note
         ? [
-            { type: 'text', text: `<app_note>\n${String(context).slice(0, 3000)}\n</app_note>` },
+            { type: 'text', text: `<app_note>\n${String(note).slice(0, 3000)}\n</app_note>` },
             { type: 'text', text: last.content },
           ]
         : last.content,
