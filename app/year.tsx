@@ -9,6 +9,7 @@ import { Section } from '../components/ui/Section';
 import { Segmented } from '../components/ui/Segmented';
 import { StatTile } from '../components/ui/StatTile';
 import { daysShowedUp } from '../core/achievements';
+import { plural } from '../core/words';
 import { dateKey } from '../core/dates';
 import { useHubStore } from '../core/hubStore';
 import { hoursTotal, useLifeStore } from '../core/lifeStore';
@@ -77,7 +78,7 @@ export default function YearScreen() {
   const line =
     showed === 0
       ? 'It all starts with one day. This page fills in as you go.'
-      : `You showed up on ${showed} day${showed === 1 ? '' : 's'}. That’s the whole secret.`;
+      : `You showed up on ${plural(showed, 'day')}. That’s the whole secret.`;
 
   let n = 0;
   return (

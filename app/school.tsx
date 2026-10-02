@@ -16,6 +16,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { addDays, type Assignment, dateKey, daysUntil, tonightsLoad, useSchoolStore } from '../core/schoolStore';
+import { plural } from '../core/words';
 import { syncCanvas } from '../core/canvas';
 import { smallestStart } from '../core/helperOffline';
 import { useHubStore } from '../core/hubStore';
@@ -98,7 +99,7 @@ export default function SchoolScreen() {
         emberSay(r.ok ? 'Synced with Canvas.' : r.message, r.ok ? 'happy' : 'concerned');
       }}
       title="School"
-      subtitle={open.length === 0 ? 'Nothing due. Nice.' : `${open.length} thing${open.length === 1 ? '' : 's'} to do.`}
+      subtitle={open.length === 0 ? 'Nothing due. Nice.' : `${plural(open.length, 'thing')} to do.`}
       right={
         <View style={styles.headerBtns}>
           <IconButton icon="search" label="Search" onPress={() => router.push('/search')} />
@@ -138,7 +139,7 @@ export default function SchoolScreen() {
             <Text style={styles.loadNote}>
               {over
                 ? 'More than one night holds. Start the biggest thing first, and see if anything can move.'
-                : `${load.items.length} thing${load.items.length === 1 ? '' : 's'} due by tomorrow. It fits.`}
+                : `${plural(load.items.length, 'thing')} due by tomorrow. It fits.`}
             </Text>
           </Card>
         </Reveal>

@@ -15,6 +15,7 @@ import { ProgressBar } from '../components/ui/ProgressBar';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { dateKey, daysUntil, dueLabel } from '../core/dates';
+import { plural } from '../core/words';
 import { type CountdownKind, useLifeStore } from '../core/lifeStore';
 import { parseDue } from '../core/scanParser';
 import { useSchoolStore } from '../core/schoolStore';
@@ -132,7 +133,7 @@ export default function CountdownsScreen() {
                     <View style={styles.finals}>
                       <Text style={styles.sub}>
                         {finalsTests.length
-                          ? `${finalsTests.length} test${finalsTests.length === 1 ? '' : 's'} and project${finalsTests.length === 1 ? '' : 's'} before then. Plan each one backward. A little every day beats a week of cramming.`
+                          ? `${plural(finalsTests.length, 'test')} and ${plural(finalsTests.length, 'project')} before then. Plan each one backward. A little every day beats a week of cramming.`
                           : 'Add each final as a test so they can be planned backward.'}
                       </Text>
                       <Button label={finalsTests.length ? 'See them' : 'Add a final'} size="sm" variant="secondary" onPress={() => router.push(finalsTests.length ? '/school' : '/add-assignment')} style={styles.gapSm} />

@@ -11,6 +11,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { useHubStore } from '../core/hubStore';
+import { plural } from '../core/words';
 import { clock, dueLabel, isoDay, useSchoolStore, workloadByDay } from '../core/schoolStore';
 import { alpha, colors, fonts, layout, radii } from '../core/theme';
 
@@ -140,7 +141,7 @@ export default function WeekScreen() {
       <Reveal index={1}>
         <Section
           title="The next two weeks"
-          note={heavy ? `${heavy} day${heavy === 1 ? '' : 's'} over your ${hm(cap)} cap. Move something earlier?` : `Every day fits under your ${hm(cap)} cap.`}
+          note={heavy ? `${plural(heavy, 'day')} over your ${hm(cap)} cap. Move something earlier?` : `Every day fits under your ${hm(cap)} cap.`}
         >
           <Card>
             <View style={styles.heatRow}>

@@ -2,6 +2,7 @@ import * as Haptics from '../core/haptics';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeText, textRecognitionAvailable } from '../modules/text-recognition';
 import { type FoundGrade, parseGrades } from '../core/scanParser';
+import { plural } from '../core/words';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -114,7 +115,7 @@ function Overview({
                       {c.name}
                     </Text>
                     <Text style={styles.sub}>
-                      {avg == null ? 'No grades yet' : `${avg.toFixed(1)}%, ${mine.length} grade${mine.length === 1 ? '' : 's'}`}
+                      {avg == null ? 'No grades yet' : `${avg.toFixed(1)}%, ${plural(mine.length, 'grade')}`}
                       {c.level && c.level !== 'regular' ? `, ${c.level === 'ap' ? 'AP' : 'Honors'}` : ''}
                     </Text>
                   </View>
@@ -177,7 +178,7 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
     const picked = (scanned ?? []).filter((g) => scanPicked.includes(g.key));
     for (const g of picked) addGrade({ classId: cls.id, title: g.title, category: g.category, score: g.score, outOf: g.outOf, date: dateKey() });
     setScanned(null);
-    emberSay(`${picked.length} grade${picked.length === 1 ? '' : 's'} in. Check the categories look right.`, 'happy');
+    emberSay(`${plural(picked.length, 'grade')} in. Check the categories look right.`, 'happy');
   };
 
   const mine = grades.filter((g) => g.classId === cls.id).sort((a, b) => b.date.localeCompare(a.date));
@@ -226,7 +227,7 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
           <View style={styles.flex}>
             <Text style={styles.pct}>{avg == null ? 'No grades yet' : `${avg.toFixed(1)}%`}</Text>
             <Text style={styles.sub}>
-              {weightTotal ? `Weighted by category (${weightTotal}% set)` : 'Total points'}, {mine.length} grade{mine.length === 1 ? '' : 's'}
+              {weightTotal ? `Weighted by category (${weightTotal}% set)` : 'Total points'}, {mine.length} ${plural(mine.length, 'grade')}
             </Text>
           </View>
         </Card>
@@ -300,7 +301,7 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                     </Pressy>
                   );
                 })}
-                <Button label={`Add ${scanPicked.length} grade${scanPicked.length === 1 ? '' : 's'}`} icon="check" variant="secondary" onPress={importScanned} disabled={!scanPicked.length} style={styles.gap} />
+                <Button label={`Add ${plural(scanPicked.length, 'grade')}`} icon="check" variant="secondary" onPress={importScanned} disabled={!scanPicked.length} style={styles.gap} />
               </View>
             ) : null}
           </Card>

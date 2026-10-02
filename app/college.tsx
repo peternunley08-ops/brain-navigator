@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { plural } from '../core/words';
 import { useState } from 'react';
 import { Linking, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -360,7 +361,7 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
             <Text style={styles.meta}>
               {PLAN_LABEL[c.plan]}
               {c.deadline ? `, ${dueLabel(c.deadline)}` : ''}
-              {n != null && n >= 0 && n <= 30 && (c.status === 'applying' || c.status === 'researching') ? `, in ${n} day${n === 1 ? '' : 's'}` : ''}
+              {n != null && n >= 0 && n <= 30 && (c.status === 'applying' || c.status === 'researching') ? `, in ${plural(n, 'day')}` : ''}
             </Text>
           </View>
           <View style={[styles.status, { backgroundColor: alpha(color, 0.16) }]}>
@@ -473,7 +474,7 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
                   key={n}
                   onPress={() => saveCollege({ ...c, visitRating: c.visitRating === n ? undefined : n })}
                   hitSlop={4}
-                  accessibilityLabel={`${n} star${n === 1 ? '' : 's'}`}
+                  accessibilityLabel={`${plural(n, 'star')}`}
                   accessibilityState={{ selected: (c.visitRating ?? 0) >= n }}
                 >
                   <Icon name="star" size={24} color={(c.visitRating ?? 0) >= n ? colors.flame : colors.lineStrong} strokeWidth={2} />

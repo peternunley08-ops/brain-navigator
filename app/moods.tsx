@@ -10,6 +10,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { addDays, dateKey } from '../core/dates';
+import { plural } from '../core/words';
 import { useLifeStore } from '../core/lifeStore';
 import { focusMinutesOn, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts, radii } from '../core/theme';
@@ -78,8 +79,8 @@ export default function MoodsScreen() {
     const won = wins.filter((w) => onDay(w.at)).length;
     const bits = [
       mins ? `${mins} minutes of focus` : null,
-      done ? `${done} thing${done === 1 ? '' : 's'} finished` : null,
-      won ? `${won} win${won === 1 ? '' : 's'} in the jar` : null,
+      done ? `${plural(done, 'thing')} finished` : null,
+      won ? `${plural(won, 'win')} in the jar` : null,
     ].filter(Boolean);
     return bits.length ? `That day: ${bits.join(', ')}.` : '';
   })();
@@ -92,7 +93,7 @@ export default function MoodsScreen() {
             <IconButton icon="back" label="Previous month" size={34} onPress={() => setOffset((o) => o - 1)} />
             <View style={styles.calTitle}>
               <Text style={styles.month}>{month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</Text>
-              <Text style={styles.sub}>{logged} day{logged === 1 ? '' : 's'} checked in</Text>
+              <Text style={styles.sub}>{logged} ${plural(logged, 'day')} checked in</Text>
             </View>
             <IconButton icon="chevron" label="Next month" size={34} onPress={() => setOffset((o) => Math.min(0, o + 1))} />
           </View>

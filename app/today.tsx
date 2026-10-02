@@ -14,6 +14,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { TimeField } from '../components/ui/TimeField';
 import { clock, dateKey, daysUntil, isoDay } from '../core/dates';
+import { plural } from '../core/words';
 import { useGoogleCalendarStore } from '../core/googleCalendarStore';
 import { useHubStore } from '../core/hubStore';
 import { KIND_LABEL, useSchoolStore } from '../core/schoolStore';
@@ -110,7 +111,7 @@ export default function TodayScreen() {
     <Screen
       kicker={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
       title="Your day"
-      subtitle={items.length ? `${items.length} thing${items.length === 1 ? '' : 's'} on the timeline.` : 'An open day. Plan a block or two.'}
+      subtitle={items.length ? `${plural(items.length, 'thing')} on the timeline.` : 'An open day. Plan a block or two.'}
     >
       {dueToday.length ? (
         <Reveal index={0}>

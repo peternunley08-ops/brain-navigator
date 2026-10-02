@@ -15,6 +15,7 @@ import { ScienceNote } from '../components/ui/ScienceNote';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { deckStats, dueCards, parseCards, useLifeStore } from '../core/lifeStore';
+import { plural } from '../core/words';
 import { CLASS_COLORS, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
 
@@ -62,7 +63,7 @@ export default function FlashcardsScreen() {
   return (
     <Screen
       title="Flashcards"
-      subtitle={decks.length ? (dueTotal ? `${dueTotal} card${dueTotal === 1 ? '' : 's'} ready to study.` : 'Nothing due. Your memory’s holding.') : 'Quiz yourself. It beats rereading.'}
+      subtitle={decks.length ? (dueTotal ? `${plural(dueTotal, 'card')} ready to study.` : 'Nothing due. Your memory’s holding.') : 'Quiz yourself. It beats rereading.'}
       right={decks.length ? <IconButton icon="plus" label="New deck" onPress={() => setMaking((m) => !m)} /> : undefined}
     >
       {making ? (
@@ -94,7 +95,7 @@ export default function FlashcardsScreen() {
                     value={shared}
                     onChangeText={setShared}
                     placeholder={'Bio unit 4\nmitosis :: cell division\nosmosis :: water across a membrane'}
-                    hint={sharedCards.length ? `“${sharedName}”, ${sharedCards.length} card${sharedCards.length === 1 ? '' : 's'}` : 'Paste the whole message. The first line becomes the name.'}
+                    hint={sharedCards.length ? `“${sharedName}”, ${plural(sharedCards.length, 'card')}` : 'Paste the whole message. The first line becomes the name.'}
                     autoCapitalize="none"
                   />
                   <Button label={`Add “${sharedName}”`} icon="plus" variant="secondary" onPress={importShared} disabled={!sharedCards.length} style={styles.gap} />
@@ -127,7 +128,7 @@ export default function FlashcardsScreen() {
                         </Text>
                         <Text style={styles.sub}>
                           {c ? `${c.name}, ` : ''}
-                          {st.total} card{st.total === 1 ? '' : 's'}
+                          {st.total} ${plural(st.total, 'card')}
                         </Text>
                       </View>
                       {due ? (

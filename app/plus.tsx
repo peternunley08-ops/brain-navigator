@@ -13,6 +13,7 @@ import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { aiBreakdown, FREE_PER_WEEK, PLANS, type PlanKey, PLUS_PER_MONTH, purchasePlus, restorePurchases } from '../core/aiQuota';
+import { plural } from '../core/words';
 import { HELPERS } from '../core/helpers';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
@@ -80,7 +81,7 @@ export default function PlusScreen() {
           <ProgressBar value={st.used / st.limit} color={st.left <= 3 ? colors.unlocked : colors.flame} style={styles.bar} />
           <Text style={styles.small}>
             Resets {st.resets}
-            {st.resets === 'tomorrow' ? '' : `, in ${st.resetsIn} day${st.resetsIn === 1 ? '' : 's'}`}.
+            {st.resets === 'tomorrow' ? '' : `, in ${plural(st.resetsIn, 'day')}`}.
           </Text>
           {used.length ? (
             <View style={styles.log}>

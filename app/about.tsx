@@ -16,6 +16,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { aboutForAI, CALMERS, CHEER, INTERESTS, pickLabel, STUDY_WAYS, SUBJECTS, THIS_OR_THAT } from '../core/about';
+import { plural } from '../core/words';
 import { learnedNotes } from '../core/learned';
 import { type AboutMe, useLifeStore } from '../core/lifeStore';
 import { offerUndo } from '../core/undoStore';
@@ -51,7 +52,7 @@ function gatherAround(
   const counts = new Map<string, number>();
   for (const [day, tags] of Object.entries(stressTags)) if (day >= since) for (const t of tags) counts.set(t, (counts.get(t) ?? 0) + 1);
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
-  if (top.length) rows.push({ title: 'What’s weighed on you this month', body: top.map(([t, c]) => `${t} (${c} day${c === 1 ? '' : 's'})`).join(', '), icon: 'feather', path: '/moods' });
+  if (top.length) rows.push({ title: 'What’s weighed on you this month', body: top.map(([t, c]) => `${t} (${plural(c, 'day')})`).join(', '), icon: 'feather', path: '/moods' });
   if (people.length) rows.push({ title: 'The people you trust', body: people.map((p) => p.name).slice(0, 5).join(', '), icon: 'people', path: '/people' });
   if (wins.length) rows.push({ title: 'Wins you kept', body: [...wins].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3).map((w) => `“${w.text.slice(0, 50)}”`).join('  '), icon: 'jar', path: '/wins' });
   if (weeks.length) rows.push({ title: 'Your weeks, in a sentence', body: [...weeks].reverse().slice(0, 3).map((w) => `“${w.text}”`).join('  '), icon: 'star', path: '' });

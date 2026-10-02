@@ -10,6 +10,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { goBack } from '../core/chrome';
+import { plural } from '../core/words';
 import { cheerLine } from '../core/about';
 import { addDays, type Assignment, dateKey, daysUntil, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts } from '../core/theme';
@@ -56,7 +57,7 @@ export default function TriageScreen() {
   return (
     <Screen
       title="Sort out what’s late"
-      subtitle={late.length ? `${late.length} thing${late.length === 1 ? '' : 's'}. One decision each.` : undefined}
+      subtitle={late.length ? `${plural(late.length, 'thing')}. One decision each.` : undefined}
       right={
         late.length > 1 ? (
           <Button

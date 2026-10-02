@@ -27,6 +27,7 @@ import { useLifeStore } from '../../core/lifeStore';
 import { celebrate } from '../../core/celebrateStore';
 import { askJob } from '../../core/emberAI';
 import { offerUndo } from '../../core/undoStore';
+import { plural } from '../../core/words';
 
 // The model sometimes labels steps with days ("Fri: Do 10 problems"); the app
 // picks the days itself, so those labels come off.
@@ -97,7 +98,8 @@ export default function AssignmentScreen() {
   const planIt = () => {
     const plan = planBackward(a);
     setSubtasks([...subtasks.filter((t) => t.done), ...plan]);
-    emberSay(`Spread across ${new Set(plan.map((p) => p.on)).size} day${plan.length === 1 ? '' : 's'}. Just today’s step, today.`, 'happy');
+    const numDays = new Set(plan.map((p) => p.on)).size;
+    emberSay(`Spread across ${plural(numDays, 'day')}. Just today's step, today.`, 'happy');
   };
   const move = (to: string) => {
     update(a.id, { due: to });

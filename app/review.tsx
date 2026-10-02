@@ -11,6 +11,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { StatTile } from '../components/ui/StatTile';
 import { goBack } from '../core/chrome';
+import { plural } from '../core/words';
 import { addDays, dateKey } from '../core/dates';
 import { useLifeStore, weekOf } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
@@ -74,8 +75,8 @@ export default function ReviewScreen() {
   const wentWell = [
     bestDay && bestDay.score > 0 ? { label: `${dayName(bestDay.k)} went well`, text: `${dayName(bestDay.k)} was a good day${bestBits.length ? `: ${bestBits.join(', ')}` : ''}.` } : null,
     topClassName ? { label: `Focus on ${topClassName}`, text: `I put real focus into ${topClassName}.` } : null,
-    winCount ? { label: `${winCount} win${winCount === 1 ? '' : 's'}`, text: `${winCount} win${winCount === 1 ? '' : 's'} in the jar.` } : null,
-    done ? { label: `${done} finished`, text: `Finished ${done} thing${done === 1 ? '' : 's'}.` } : null,
+    winCount ? { label: `${plural(winCount, 'win')}`, text: `${plural(winCount, 'win')} in the jar.` } : null,
+    done ? { label: `${done} finished`, text: `Finished ${plural(done, 'thing')}.` } : null,
   ].filter((x): x is { label: string; text: string } => !!x);
   const highlights: { icon: IconName; color: string; text: string }[] = [
     bestDay && bestDay.score > 0

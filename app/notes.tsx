@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { plural } from '../core/words';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Chip } from '../components/ui/Chip';
@@ -92,7 +93,7 @@ export default function NotesScreen() {
       ) : null}
 
       <Reveal index={1}>
-        <Section title="Pages" note={notes.length ? `${sorted.length === notes.length ? '' : `${sorted.length} of `}${notes.length} page${notes.length === 1 ? '' : 's'}` : undefined}>
+        <Section title="Pages" note={notes.length ? `${sorted.length === notes.length ? '' : `${sorted.length} of `}${plural(notes.length, 'page')}` : undefined}>
           {sorted.length === 0 ? (
             notes.length ? (
               <EmptyState title="Nothing matches." body="Try another word or class." />
