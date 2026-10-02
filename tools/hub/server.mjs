@@ -170,7 +170,7 @@ createServer(async (req, res) => {
     }
     let file;
     if (url.pathname.startsWith('/live/shots/')) file = join(LIVE, 'shots', decodeURIComponent(url.pathname.slice(12)).replace(/\.\./g, ''));
-    else file = join(HERE, url.pathname === '/' ? 'index.html' : url.pathname.replace(/\.\./g, ''));
+    else file = join(HERE, url.pathname === '/' ? 'map.html' : url.pathname.replace(/\.\./g, ''));
     if (!file.startsWith(HERE) && !file.startsWith(LIVE)) return res.writeHead(403).end();
     const buf = await readFile(file);
     res.writeHead(200, { 'content-type': TYPES[extname(file)] || 'application/octet-stream', 'cache-control': 'no-store' });
