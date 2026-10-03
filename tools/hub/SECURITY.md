@@ -3,7 +3,7 @@
 Shield finds security flags and patches them. The scanner is a plain script, so finding flags costs no AI tokens; Shield's tokens go only to triage and fixes.
 
 ## Loop
-1. **Scan**: `node /Users/peternunley/Desktop/brain-navigator/tools/hub/security.mjs --quiet` from your worktree. It prints file:line, why, and the fix. It never prints a secret's value, and neither do you.
+1. **Scan**: `node tools/hub/security.mjs --quiet` from your worktree. It prints file:line, why, and the fix. It never prints a secret's value, and neither do you.
 2. **Triage** each open flag into one of three:
    - **Patch**: code can fix it safely (validate a URL scheme, drop a body from a log, remove a hard-coded value, bump a package within the SDK 57 range).
    - **Needs Peter**: only he can do it (rotate a key, set a Supabase function secret, deploy a function, anything in a dashboard). Write the exact steps; do not attempt them.

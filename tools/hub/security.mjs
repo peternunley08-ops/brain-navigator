@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Shield's scanner: finds security flags without spending any AI tokens.
-//   node /Users/peternunley/Desktop/brain-navigator/tools/hub/security.mjs [--agent shield] [--json] [--quiet]
+//   node tools/hub/security.mjs [--agent shield] [--json] [--quiet]
 // Run from a worktree or the main checkout. It never prints a secret's value,
 // only where it is and which rule caught it. Exits 1 when a high flag is open.
 // Accepted risks (decided by Peter, see SECURITY.md) are listed but not counted.

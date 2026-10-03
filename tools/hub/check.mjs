@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // The quality gate. Run it from a worktree (or the main checkout) before
 // handing work off:
-//   node /Users/peternunley/Desktop/brain-navigator/tools/hub/check.mjs --agent <name> [--idea ID]
+//   node tools/hub/check.mjs --agent <name> [--idea ID]
 // 1. House rules on every added line of every changed .ts/.tsx file
 //    (the rules this app has learned the hard way; see CLAUDE.md).
 // 2. The TypeScript check (npx tsc --noEmit).

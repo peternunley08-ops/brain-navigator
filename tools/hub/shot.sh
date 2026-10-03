@@ -8,5 +8,5 @@ xcrun simctl io booted screenshot --type=png "$out" >/dev/null 2>&1
 sips -Z 1000 "$out" >/dev/null 2>&1 || true
 args=(atlas shot --shot "$out")
 [ "$ideas" != "-" ] && args+=(--idea "$ideas")
-node /Users/peternunley/Desktop/brain-navigator/tools/hub/hub.mjs "${args[@]}" "$*"
+node "$(dirname "$0")/hub.mjs" "${args[@]}" "$*"
 echo "$out"

@@ -3,7 +3,7 @@
 // the dashboard folds the events into live state. Append-only, one JSON
 // line per event, safe to call from any worktree.
 //
-//   node /Users/peternunley/Desktop/brain-navigator/tools/hub/hub.mjs <agent> <type> [flags] "message"
+//   node tools/hub/hub.mjs <agent> <type> [flags] "message"
 //
 // types:  hello · state · claim · step · file · check · commit · done
 //         blocked · dropped · note · idea · queue · integrated · verified
@@ -16,10 +16,11 @@
 //         --to AGENT       (queue) who the idea goes to
 //         --area K --size S|M|L --impact 1-3 --title T   (idea) a new idea
 //         --shot PATH      (shot) a screenshot to show in the gallery
+import { fileURLToPath } from 'node:url';
 import { appendFileSync, copyFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
-const LIVE = process.env.HUB_LIVE || '/Users/peternunley/Desktop/brain-navigator/tools/hub/live';
+const LIVE = process.env.HUB_LIVE || fileURLToPath(new URL('./live', import.meta.url));
 mkdirSync(join(LIVE, 'shots'), { recursive: true });
 
 const [agent, type, ...rest] = process.argv.slice(2);

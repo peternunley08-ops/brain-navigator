@@ -35,33 +35,34 @@
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "Brain Navigator reads your sleep, heart rate, and step data to fill in your daily check-in and reflect it on the Wellness Wheel.",
-          "NSHealthUpdateUsageDescription": "Brain Navigator writes mindful minutes sessions to Health when you log them in the app."
+          "NSHealthShareUsageDescription": "Brain Navigator reads your sleep, resting heart rate and steps to fill in your daily check-in. It stays on your phone.",
+          "NSHealthUpdateUsageDescription": "Brain Navigator saves mindful minutes to Health when you log them."
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Brain Navigator uses your location to show live weather and surf conditions on Today."
+          "locationWhenInUsePermission": "Brain Navigator uses your approximate location for the weather and today's sunset, which set the room's sky."
         }
       ],
       [
         "expo-audio",
         {
-          "microphonePermission": "Brain Navigator uses your microphone for the on-demand ambient noise check on the Health screen's Sleep Quality card."
+          "microphonePermission": "Brain Navigator uses the microphone when you choose to: to speak an entry instead of typing it, and for the optional room-noise check on the Sleep card. Nothing is recorded or uploaded."
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Brain Navigator uses your photo library to attach a snapshot image to an entry."
+          "photosPermission": "Brain Navigator opens your photos only when you pick one: a screenshot of your schedule or grades to read on the phone, or a picture for an entry.",
+          "cameraPermission": false
         }
       ],
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "Brain Navigator uses your microphone so you can speak a vent entry instead of typing it.",
-          "speechRecognitionPermission": "Brain Navigator converts your spoken vent entry to text on-device."
+          "microphonePermission": "Brain Navigator uses the microphone when you choose to: to speak an entry instead of typing it, and for the optional room-noise check on the Sleep card. Nothing is recorded or uploaded.",
+          "speechRecognitionPermission": "Brain Navigator turns what you say into text on your phone, so you can speak an entry."
         }
       ]
     ],

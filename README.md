@@ -83,4 +83,6 @@ The app grew in rounds. Each round has a plan with every idea and its status (`[
 
 Rounds 6 and later were built by a small team of AI agents working in parallel, each in its own git branch, with one orchestrator reviewing and merging. See [`tools/hub/BRIEFING.md`](tools/hub/BRIEFING.md).
 
-More: [docs index](docs/README.md) · [house rules for contributors](CLAUDE.md)
+**Want to help?** Start with [CONTRIBUTING.md](CONTRIBUTING.md): setup, the `.env` file, how work flows, and the house rules.
+
+More: [docs index](docs/README.md) · [house rules](CLAUDE.md)
