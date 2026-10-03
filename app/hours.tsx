@@ -19,6 +19,7 @@ import { addDays, dateKey, dueLabel } from '../core/dates';
 import { type HoursEntry, hoursTotal, useLifeStore } from '../core/lifeStore';
 import { clock, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
+import { plural } from '../core/words';
 import { offerUndo } from '../core/undoStore';
 
 type Kind = HoursEntry['kind'];
@@ -98,7 +99,7 @@ export default function HoursScreen() {
     setDriveTags([]);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const after = before + minutes / 60;
-    if (goal && before < goal && after >= goal) emberSay(`${goal} hours of ${m.noun}. You reached your goal.`, 'cheer');
+    if (goal && before < goal && after >= goal) emberSay(`${plural(goal, 'hour')} of ${m.noun}. You reached your goal.`, 'cheer');
     else emberSay(`${h(minutes / 60)} hour${minutes === 60 ? '' : 's'} logged.`, 'happy');
     setNote('');
   };
