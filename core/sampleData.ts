@@ -338,7 +338,7 @@ export function sampleTables(): Record<string, Record<string, unknown>[]> {
     cognitive_state: [
       entry(1, 'unlocked', 'The college essay feels huge', 7, 5),
       entry(2, 'unlocked', 'Weird lunch with Jordan', 4, 2),
-      entry(3, 'unlocked', 'Genetics test on Monday', 6, 0),
+      entry(3, 'unlocked', 'The Genetics test', 6, 0),
       entry(4, 'secured', 'Asking for the extension', 6, 9, { in_trove: true, notes: 'Mr. Grant said yes. It was fine.' }),
       entry(5, 'secured', 'Track tryouts', 5, 15),
       entry(6, 'secured', 'Lost my bus pass', 3, 12),
