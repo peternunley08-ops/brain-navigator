@@ -83,13 +83,13 @@ checked · [–] decided against (with why)
 24. [ ] Ember holds a tiny candle at night and speaks softer (shorter lines)
 25. [~] "Put the day down": one tap at night lists what got done, sets down what's left for tomorrow, and says goodnight
 26. [~] A goodnight line from Ember that names one real thing from the day
-27. [ ] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now
+27. [~] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now
 28. [~] After midnight, Ember's first line is about sleep, never homework
 29. [~] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk
 30. [ ] The sky outside the room follows the real sunset time (from the weather store's location, if it has one)
 31. [~] Stars appear in the night backdrop, a few at a time, slower than the motes
 32. [~] Night mode respects Reduce Motion (stars stay still)
-33. [ ] The night stack works with the Desk's fold choices (folded stays folded)
+33. [~] The night stack works with the Desk's fold choices (folded stays folded)
 34. [~] Night is learned: if they're a night owl, the night layout starts later
 35. [~] Sunday night: the week sentence card leads the night stack
 
@@ -148,7 +148,7 @@ checked · [–] decided against (with why)
 83. [ ] The keyboard and the page move together (fields slide, never jump)
 84. [ ] Sheets snap to a half height when their content is short
 85. [ ] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
-86. [ ] Haptic texture on sliders (a tick per step)
+86. [~] Haptic texture on sliders (a tick per step)
 87. [ ] Swipe between days in Your day
 88. [ ] Ember's drag follows the finger with a slight lag (weight)
 89. [~] Toasts and the Undo bar never overlap (a single queue)

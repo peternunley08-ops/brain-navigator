@@ -57,6 +57,16 @@ function Stack({ onShowAll }: { onShowAll: () => void }) {
 }
 
 // Sunday night: the week's own words from the review, else the week-in-a-sentence card.
+// Night sections fold with the same deskFolded list as the Desk, and stay folded.
+function useNightFold(key: string) {
+  const deskFolded = useLifeStore((s) => s.settings.deskFolded) ?? [];
+  const folded = deskFolded.includes(key);
+  return {
+    folded,
+    onToggleFold: () => useLifeStore.getState().setSettings({ deskFolded: folded ? deskFolded.filter((k) => k !== key) : [...deskFolded, key] }),
+  };
+}
+
 function WeekCard() {
   const reviews = useLifeStore((s) => s.reviews);
   const week = weekOf(tonightKey());
@@ -108,6 +118,7 @@ function TonightCard() {
 }
 
 function TomorrowCard() {
+  const fold = useNightFold('night-tomorrow');
   const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
   const key = morningKey();
@@ -116,7 +127,7 @@ function TomorrowCard() {
   const shown = due.slice(0, MAX_DUE);
   const className = (id: string | null) => classes.find((c) => c.id === id)?.name;
   return (
-    <Section title="Tomorrow">
+    <Section title="Tomorrow" {...fold}>
       <Card style={styles.rows}>
         {first ? (
           <Pressy onPress={() => router.push(`/class/${first.id}`)} style={styles.row} accessibilityRole="button">
@@ -153,6 +164,7 @@ function TomorrowCard() {
 }
 
 function PackCard() {
+  const fold = useNightFold('night-pack');
   const pack = useLifeStore((s) => s.pack);
   const packDone = useLifeStore((s) => s.packDone);
   const toggle = useLifeStore((s) => s.toggleListItem);
@@ -165,7 +177,7 @@ function PackCard() {
     if (!checked.includes(id) && count + 1 === pack.length) emberSay(cheerLine('Bag’s packed. Tomorrow-you says thanks.'), 'cheer');
   };
   return (
-    <Section title="Pack for tomorrow" note={count === pack.length ? 'All packed' : `${count} of ${pack.length} packed`}>
+    <Section title="Pack for tomorrow" note={count === pack.length ? 'All packed' : `${count} of ${pack.length} packed`} {...fold}>
       <Card>
         {pack.map((item) => {
           const on = checked.includes(item.id);
