@@ -54,6 +54,11 @@ export interface Person {
   reachedAt?: string;
 }
 
+/** The private safety plan: four short lists, kept only on this phone. */
+export type SafetyKey = 'signs' | 'coping' | 'reach' | 'places';
+export type SafetyPlan = Record<SafetyKey, ListItem[]>;
+export const EMPTY_SAFETY: SafetyPlan = { signs: [], coping: [], reach: [], places: [] };
+
 export interface ListItem {
   id: string;
   text: string;
@@ -331,6 +336,8 @@ export interface LifeData {
   chatTitles: Record<string, string>;
   replyFeedback: ReplyFeedback[];
   about: AboutMe;
+  /** Private safety plan. Never sent to AI or a server. */
+  safetyPlan?: SafetyPlan;
 }
 
 interface LifeStore extends LifeData {
@@ -352,6 +359,8 @@ interface LifeStore extends LifeData {
 
   savePerson: (p: Omit<Person, 'id'> & { id?: string }) => void;
   deletePerson: (id: string) => void;
+  addSafetyItem: (key: SafetyKey, text: string) => void;
+  removeSafetyItem: (key: SafetyKey, id: string) => void;
 
   setList: (which: 'pack' | 'windDownItems', items: ListItem[]) => void;
   toggleListItem: (which: 'packDone' | 'windDownDone', date: string, id: string) => void;
@@ -476,6 +485,7 @@ export const EMPTY_LIFE: LifeData = {
   chatTitles: {},
   replyFeedback: [],
   about: EMPTY_ABOUT,
+  safetyPlan: EMPTY_SAFETY,
 };
 
 const FILE = 'life.json';
@@ -548,6 +558,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
       chatTitles: s.chatTitles,
       replyFeedback: s.replyFeedback,
       about: s.about,
+      safetyPlan: s.safetyPlan,
     };
   };
   const commit = (patch: Partial<LifeData>) => {
@@ -584,6 +595,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
             windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
             settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
             about: { ...EMPTY_ABOUT, ...(d.about ?? {}) },
+            safetyPlan: { ...EMPTY_SAFETY, ...(d.safetyPlan ?? {}) },
             helperChats: chats,
             // Day-by-day lists only need recent days; a few months of "one thing" is plenty.
             packDone: trimDays(d.packDone ?? {}),
@@ -626,6 +638,16 @@ export const useLifeStore = create<LifeStore>((set, get) => {
 
     savePerson: (p) => commit({ people: upsert(get().people, p) }),
     deletePerson: (id) => commit({ people: get().people.filter((p) => p.id !== id) }),
+    addSafetyItem: (key, text) => {
+      const t = text.trim();
+      if (!t) return;
+      const cur = { ...EMPTY_SAFETY, ...(get().safetyPlan ?? {}) };
+      commit({ safetyPlan: { ...cur, [key]: [...cur[key], { id: uid(), text: t }] } });
+    },
+    removeSafetyItem: (key, id) => {
+      const cur = { ...EMPTY_SAFETY, ...(get().safetyPlan ?? {}) };
+      commit({ safetyPlan: { ...cur, [key]: cur[key].filter((x) => x.id !== id) } });
+    },
 
     setList: (which, items) => commit({ [which]: items } as Partial<LifeData>),
     toggleListItem: (which, date, id) => {
@@ -768,6 +790,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
         windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
         settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
         about: { ...EMPTY_ABOUT, ...(d.about ?? {}) },
+        safetyPlan: { ...EMPTY_SAFETY, ...(d.safetyPlan ?? {}) },
       }),
   };
 });

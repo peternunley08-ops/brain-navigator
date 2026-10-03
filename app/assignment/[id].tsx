@@ -228,6 +228,7 @@ export default function AssignmentScreen() {
               <AIPicker
                 label="Break it into steps"
                 sends="Sends this assignment’s title, class, due date, time estimate, and notes to Claude."
+                watch={[a.title, a.notes ?? '', ...subtasks.map((t) => t.text)].join('\n')}
                 color={color}
                 load={async () => {
                   const input = [

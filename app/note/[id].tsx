@@ -470,6 +470,7 @@ export default function NoteScreen() {
               key={aiMode}
               label={AI_MODES[aiMode].label}
               sends="Sends this page’s title and text to Claude. Only what’s on this page."
+              watch={pageText}
               color={note.color}
               load={AI_MODES[aiMode].load}
               addLabel={AI_MODES[aiMode].add}

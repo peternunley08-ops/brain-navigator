@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import * as Haptics from '../../core/haptics';
-import { type AIFailure, aiFailLine } from '../../core/emberAI';
+import { type AIFailure, aiFailLine, soundsLikeCrisis } from '../../core/emberAI';
+import { HelpCard } from './HelpCard';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
@@ -27,13 +28,15 @@ interface Props {
   color?: string;
   /** Nothing to suggest yet (e.g. an empty note). */
   disabled?: boolean;
+  /** Everything typed that this button would send. If it sounds like danger, the help lines show first. */
+  watch?: string;
 }
 
 // An AI suggestion you look over before anything changes: tap the sparkle
 // button, see the list with every item checked, untick what you don't want,
 // then add the rest. Tapping the button is the consent to send; the line
 // under it says exactly what goes.
-export function AIPicker({ label, sends, load, addLabel, onAdd, color = colors.flame, disabled }: Props) {
+export function AIPicker({ label, sends, load, addLabel, onAdd, color = colors.flame, disabled, watch }: Props) {
   const [state, setState] = useState<{ kind: 'idle' } | { kind: 'loading' } | { kind: 'preview'; items: PickItem[]; on: boolean[] } | { kind: 'error'; reason: AIFailure }>({ kind: 'idle' });
 
   const run = async () => {
@@ -90,6 +93,7 @@ export function AIPicker({ label, sends, load, addLabel, onAdd, color = colors.f
 
   return (
     <View style={styles.wrap}>
+      {watch && soundsLikeCrisis(watch) ? <HelpCard /> : null}
       <Button
         label={state.kind === 'loading' ? 'Thinking…' : label}
         icon="sparkle"
