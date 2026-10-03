@@ -30,6 +30,11 @@ export function setNightClock(minutes: number | null) {
   listeners.forEach((l) => l());
 }
 
+/** The developer's pretend time (minutes after midnight), or null for the real clock. */
+export function nightClockOverride() {
+  return override;
+}
+
 /** Now, or today at the developer's pretend time. */
 export function nightNow(): Date {
   if (override == null) return new Date();

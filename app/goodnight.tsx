@@ -33,13 +33,15 @@ export default function GoodnightScreen() {
   const classes = useSchoolStore((s) => s.classes);
   const focus = useSchoolStore((s) => s.focus);
   const wins = useLifeStore((s) => s.wins);
-  const checkedIn = useWellnessStore((s) => s.todaysCheckin() != null);
+  const checkins = useWellnessStore((s) => s.checkins);
   const addWorry = useLifeStore((s) => s.addWorry);
   const [text, setText] = useState('');
   const [kept, setKept] = useState(false);
   const [help, setHelp] = useState(false);
 
   const key = tonightKey();
+  // After midnight the check-in that counts is the one from the day being put down.
+  const checkedIn = checkins.some((c) => c.checkin_date === key);
   // Today runs 5 AM to 5 AM, like tonight does.
   const today = useMemo(() => {
     const done = assignments
@@ -91,6 +93,8 @@ export default function GoodnightScreen() {
           ? `${plural(today.minutes, 'minute')} of focus today. Goodnight.`
           : today.won.length
             ? 'You wrote down a win today. Goodnight.'
+            : checkedIn
+              ? 'You checked in with yourself today. Goodnight.'
             : 'You made it through today. Goodnight.',
       'happy'
     );

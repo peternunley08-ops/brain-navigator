@@ -42,7 +42,7 @@ import { useHabitsStore } from '../core/habitsStore';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
-import { beforeNight, isNight, minutesOf, nightClockVersion, nightNow, nightStart, parseNightParam, setNightClock, subscribeNightClock } from '../core/night';
+import { beforeNight, isNight, minutesOf, minutesToNight, NIGHT_END, nightClockOverride, nightClockVersion, nightNow, nightStart, parseNightParam, setNightClock, subscribeNightClock } from '../core/night';
 import { clock, dateKey, daysUntil, focusMinutesOn, isoDay, nowState, tonightsLoad, useSchoolStore, type SchoolClass } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
 import { plural } from '../core/words';
@@ -94,7 +94,9 @@ function summaryLine(dueToday: number, dueTomorrow: number, open: number, late =
 }
 
 // At night the same facts, said gently: what is left for tonight, and lateness can wait.
-function nightSummaryLine(dueToday: number, dueTomorrow: number, open: number, late = 0) {
+function nightSummaryLine(dueToday: number, dueTomorrow: number, open: number, late = 0, afterMidnight = false) {
+  // After midnight "due today" means the coming morning, so there is nothing left for tonight.
+  if (afterMidnight) return 'It’s past midnight. Everything else can wait for morning.';
   const rest = late || dueTomorrow || open;
   if (!dueToday) return rest ? 'Nothing left for tonight. The rest can wait for morning.' : 'Nothing left for tonight. Rest well.';
   const left = dueToday === 1 ? 'One thing' : plural(dueToday, 'thing');
@@ -456,7 +458,7 @@ show('line') ? (
       title={greetingFor(nickname || profile.name, timePick, nightNow())}
       subtitle={
         night
-          ? nightSummaryLine(dueToday, dueTomorrow, openLoops.length, lateCount)
+          ? nightSummaryLine(dueToday, dueTomorrow, openLoops.length, lateCount, nowMin < NIGHT_END)
           : dayPartLine(classes, nightNow(), summaryLine(dueToday, dueTomorrow, openLoops.length, lateCount))
       }
       right={
@@ -466,16 +468,26 @@ show('line') ? (
         </View>
       }
     >
+      {__DEV__ && nightClockOverride() != null ? (
+        <ChipRow style={styles.windChip}>
+          <Chip label={`Pretend time ${clock(nightClockOverride() ?? 0)}`} icon="clock" onPress={() => setNightClock(null)} accessibilityLabel="Pretend time is on. Tap to use the real clock." />
+        </ChipRow>
+      ) : null}
       {night && !showAll ? (
         <NightDesk onShowAll={() => setShowAll(true)} />
       ) : (
         <>
           <Reveal index={0}>
             {beforeNight(nowMin, startMin) ? (
-            <ChipRow style={styles.windChip}>
-              <Chip label={`Wind-down at ${clock(startMin)}`} icon="moon" onPress={() => router.push('/sleep')} />
-            </ChipRow>
-          ) : null}
+              <ChipRow style={styles.windChip}>
+                <Chip
+                  label={`Wind-down in ${plural(minutesToNight(nowMin, startMin), 'minute')}`}
+                  icon="moon"
+                  onPress={() => router.push('/sleep')}
+                  accessibilityLabel={`Wind-down at ${clock(startMin)}. Open sleep.`}
+                />
+              </ChipRow>
+            ) : null}
           {show('countdowns') ? <CountdownChips /> : null}
             {briefFirst && show('brief') ? <DayBrief /> : null}
             <WhatsNew />
