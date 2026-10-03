@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn, FadeOut, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, withTiming } from 'react-native-reanimated';
 import { AssignmentRow } from '../components/school/AssignmentRow';
 import { EmberPick } from '../components/school/EmberPick';
 import { Chip } from '../components/ui/Chip';
@@ -79,6 +79,47 @@ export default function SchoolScreen() {
         { title: 'This week', items: open.filter((a) => daysUntil(a.due) >= 2 && daysUntil(a.due) <= 6) },
         { title: 'Coming up', items: open.filter((a) => daysUntil(a.due) >= 7) },
       ].filter((g) => g.items.length > 0);
+
+  // A group whose last open row was just ticked stays mounted for a moment so the
+  // tick reads and the page does not jump; then it collapses with the glide.
+  const reduceMotion = useReducedMotion();
+  const [, setHoldTick] = useState(0);
+  const prevGroups = useRef<{ title: string; items: Assignment[] }[]>([]);
+  const held = useRef(new Map<string, { ids: string[]; tint?: string }>());
+  const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const liveTitles = new Set(groups.map((g) => g.title));
+  for (const t of [...held.current.keys()]) if (liveTitles.has(t)) held.current.delete(t);
+  if (!reduceMotion) {
+    for (const pg of prevGroups.current) {
+      if (liveTitles.has(pg.title) || held.current.has(pg.title)) continue;
+      const nowDone = pg.items.every((it) => assignments.some((x) => x.id === it.id && x.done));
+      if (!nowDone) continue;
+      held.current.set(pg.title, { ids: pg.items.map((it) => it.id), tint: (pg as { tint?: string }).tint });
+      const title = pg.title;
+      const timer = setTimeout(() => {
+        timers.current.delete(timer);
+        held.current.delete(title);
+        setHoldTick((v) => v + 1);
+      }, 1300);
+      timers.current.add(timer);
+    }
+  }
+  useEffect(() => {
+    prevGroups.current = groups;
+  });
+  useEffect(() => {
+    const t = timers.current;
+    return () => t.forEach(clearTimeout);
+  }, []);
+  const GROUP_ORDER = ['Overdue', 'Today', 'Tomorrow', 'This week', 'Coming up', 'Due that day'];
+  const shownGroups = [
+    ...groups,
+    ...[...held.current.entries()].map(([title, h]) => ({
+      title,
+      tint: h.tint,
+      items: assignments.filter((a) => h.ids.includes(a.id)),
+    })),
+  ].sort((a, b) => GROUP_ORDER.indexOf(a.title) - GROUP_ORDER.indexOf(b.title));
 
   const load = tonightsLoad(assignments);
   // The best next thing: overdue or soonest, starred first, shortest breaks ties.
@@ -220,7 +261,7 @@ export default function SchoolScreen() {
             </ScrollView>
           ) : null}
           {onlyClass && !groups.length ? <Text style={styles.noneFor}>Nothing open for this class.</Text> : null}
-          {groups.map((g) => (
+          {shownGroups.map((g) => (
           <Animated.View key={g.title} layout={glide} exiting={FadeOut.duration(220)}>
           <Reveal index={n++}>
             <Section
