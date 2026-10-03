@@ -22,7 +22,7 @@ on a meter.
 7. Final report: 30 lines max, in the format below.
 
 ## Hub
-`node /Users/peternunley/Desktop/brain-navigator/tools/hub/hub.mjs <you> <type> [flags] "message"`
+`node tools/hub/hub.mjs <you> <type> [flags] "message"`
 - `hello --state reading --model <model> --branch "$(git branch --show-current)" --path "$(pwd)" "starting X"`
 - `claim --idea ID "plan in one sentence"` · `step --idea ID --pct N "milestone"`
 - `done --idea ID "what it does; how to see it"` · `dropped --idea ID "why"`
@@ -31,7 +31,7 @@ on a meter.
 
 ## Gate and commit
 Before each commit, from your worktree root:
-`node /Users/peternunley/Desktop/brain-navigator/tools/hub/check.mjs --agent <you> --idea <ID>`
+`node tools/hub/check.mjs --agent <you> --idea <ID>`
 Fix every ERROR; fix warnings that apply. Then `git add <exact files>` (never
 `-A`, never node_modules) and commit:
 `git commit -m "<Title>: <what>" -m "Ideas: <IDs>" -m "Co-Authored-By: Claude <noreply@anthropic.com>"`
