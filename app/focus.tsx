@@ -25,7 +25,7 @@ import { useFlameClock } from '../core/hooks/useFlameClock';
 import { bestFocusHour, usualFocusLength } from '../core/learned';
 import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
-import { addDays, clock, dateKey, daysUntil, focusMinutesOn, useSchoolStore } from '../core/schoolStore';
+import { addDays, clock, dateKey, daysUntil, focusMinutesOn, minutesOn, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
 import { alpha, colors, fonts, layout, skyGlow } from '../core/theme';
 
@@ -75,6 +75,13 @@ export default function FocusScreen() {
   // Otherwise it starts on their usual length, once there's a clear one
   // (learned on the phone; off when learning is off in About you).
   const [usual] = useState(() => usualFocusLength());
+  // Smart start: with nothing chosen, offer the homework due soonest that fits their usual
+  // focus length (what's left of its estimate, after the time already spent). One tap accepts.
+  const smartStart = useMemo(() => {
+    if (!usual) return null;
+    const fits = (a: (typeof open)[number]) => Math.max(5, (a.minutes ?? 30) - minutesOn(focus, a.id)) <= usual.minutes;
+    return open.find((a) => daysUntil(a.due) >= 0 && fits(a)) ?? null;
+  }, [open, usual, focus]);
   const [length, setLength] = useState(() => {
     const m = Number(mins);
     return m >= 5 && m <= 120 ? m : (usual?.minutes ?? 25);
@@ -346,6 +353,18 @@ export default function FocusScreen() {
         <>
           <Reveal index={0}>
             <Section title="What are you working on?">
+              {target === null && !quick && smartStart ? (
+                <ChipRow>
+                  <Chip
+                    label={`Start with ${smartStart.title.length > 22 ? `${smartStart.title.slice(0, 21)}…` : smartStart.title}?`}
+                    icon="flag"
+                    onPress={() => setTarget(smartStart.id)}
+                  />
+                  <Text style={styles.smartNote}>
+                    {daysUntil(smartStart.due) === 0 ? 'Due today' : daysUntil(smartStart.due) === 1 ? 'Due tomorrow' : `Due in ${plural(daysUntil(smartStart.due), 'day')}`}, fits your usual {usual?.minutes} minutes.
+                  </Text>
+                </ChipRow>
+              ) : null}
               <ChipRow>
                 <Chip label="Just focus" selected={target === null} onPress={() => setTarget(null)} />
                 {open.map((a) => {
@@ -661,6 +680,12 @@ export default function FocusScreen() {
 }
 
 const styles = StyleSheet.create({
+  smartNote: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    alignSelf: 'center',
+  },
   flex: {
     flex: 1,
   },
