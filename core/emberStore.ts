@@ -50,7 +50,8 @@ interface EmberStore extends EmberPrefs {
   setBubbleOpen: (open: boolean) => void;
   markSeen: (id: string) => void;
   /** Ember says something short, then it fades. */
-  say: (text: string, mood?: EmberMood) => void;
+  /** `asked`: the student reached for Ember (a hold, a breath), so quiet modes let it through. */
+  say: (text: string, mood?: EmberMood, asked?: boolean) => void;
   clearToast: (id: number) => void;
 }
 
@@ -73,7 +74,7 @@ function persist(p: EmberPrefs) {
 
 let toastSeq = 0;
 /** The latest line held back while the Undo bar is up. */
-let waiting: { text: string; mood: EmberMood } | null = null;
+let waiting: { text: string; mood: EmberMood; asked?: boolean } | null = null;
 
 export const useEmberStore = create<EmberStore>((set, get) => ({
   ...DEFAULTS,
@@ -117,13 +118,13 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
     if (!get().seen.includes(id)) set({ seen: [...get().seen, id] });
   },
 
-  say: (text, mood = 'happy') => {
-    // Quiet mode keeps only the big moments; class time keeps nothing.
-    if (inClassQuiet()) return;
-    if (useLifeStore.getState().settings.emberQuiet && mood !== 'cheer') return;
+  say: (text, mood = 'happy', asked = false) => {
+    // Quiet mode keeps only the big moments; class time keeps nothing (unless they asked).
+    if (!asked && inClassQuiet()) return;
+    if (!asked && useLifeStore.getState().settings.emberQuiet && mood !== 'cheer') return;
     // The Undo bar and Ember's line share the bottom of the screen: one at a time.
     if (useUndoStore.getState().item) {
-      waiting = { text, mood };
+      waiting = { text, mood, asked };
       return;
     }
     toastSeq += 1;
@@ -140,13 +141,13 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
 useUndoStore.subscribe((state, prev) => {
   const ember = useEmberStore.getState();
   if (state.item && !prev.item && ember.toast) {
-    waiting = { text: ember.toast.text, mood: ember.toast.mood };
+    waiting = { text: ember.toast.text, mood: ember.toast.mood, asked: true };
     useEmberStore.setState({ toast: null });
   } else if (!state.item && prev.item && waiting) {
     const next = waiting;
     waiting = null;
     setTimeout(() => {
-      if (!useUndoStore.getState().item) useEmberStore.getState().say(next.text, next.mood);
+      if (!useUndoStore.getState().item) useEmberStore.getState().say(next.text, next.mood, next.asked);
       else waiting = next;
     }, 350);
   }

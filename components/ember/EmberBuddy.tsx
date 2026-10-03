@@ -226,7 +226,7 @@ export function EmberBuddy() {
     rig.wiggle();
     setBurst((b) => b + 1);
     useEmberStore.getState().setBubbleOpen(false);
-    useEmberStore.getState().say(COMFORT[Math.floor(Math.random() * COMFORT.length)], 'happy');
+    useEmberStore.getState().say(COMFORT[Math.floor(Math.random() * COMFORT.length)], 'happy', true);
   }, [rig]);
 
   const dizzy = useCallback(() => {
@@ -271,7 +271,7 @@ export function EmberBuddy() {
       breathTimers.current = [];
       swell.value = withTiming(0, { duration: reducedMotion ? 0 : 900 });
       rig.setMood('idle');
-      if (closing) useEmberStore.getState().say('That was a good one. Thank you for breathing with me.', 'happy');
+      if (closing) useEmberStore.getState().say('That was a good one. Thank you for breathing with me.', 'happy', true);
     },
     [rig, reducedMotion, swell]
   );
@@ -284,7 +284,7 @@ export function EmberBuddy() {
     const at = (ms: number, fn: () => void) => breathTimers.current.push(setTimeout(fn, ms));
     const turn = (text: string) => {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
-      useEmberStore.getState().say(text, 'happy');
+      useEmberStore.getState().say(text, 'happy', true);
     };
     for (let i = 0; i < 3; i++) {
       at(i * 10000, () => turn('Breathe in with me.'));
