@@ -13,6 +13,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { daysUntil } from '../core/dates';
+import { openSafe } from '../core/links';
 import { type Person, useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
@@ -21,7 +22,8 @@ const PINK = '#E89AB8';
 
 // Openers for when it's hard to know what to say. Tapping one opens
 // Messages with it filled in — you still press send.
-const OPENERS = ['Hey, are you free to talk?', 'Having a rough day. Can I vent for a sec?', 'Can you check on me later?', 'Want to hang out this week?'];
+const CAN_TALK = 'Can you talk?';
+const OPENERS = [CAN_TALK, 'Having a rough day. Can I vent for a sec?', 'Can you check on me later?', 'Want to hang out this week?'];
 
 // The few people you'd actually reach out to, one tap away. Numbers stay
 // on this phone.
@@ -46,10 +48,11 @@ export default function PeopleScreen() {
 
   // Remember when you last reached out, so the app can nudge you about the quiet ones.
   const reached = (p: Person) => savePerson({ ...p, reachedAt: new Date().toISOString() });
-  const text = (p: Person) => {
+  // Opens Messages with the words already in the box. The app never sends anything.
+  const text = (p: Person, words: string | null = opener) => {
     const digits = p.phone.replace(/[^\d+]/g, '');
     reached(p);
-    Linking.openURL(opener ? `sms:${digits}&body=${encodeURIComponent(opener)}` : `sms:${digits}`).catch(() => {});
+    openSafe(words ? `sms:${digits}&body=${encodeURIComponent(words)}` : `sms:${digits}`);
   };
   const call = (p: Person) => {
     reached(p);
@@ -117,6 +120,15 @@ export default function PeopleScreen() {
                     accessibilityLabel={`Talked to ${p.name} in person`}
                   >
                     <Text style={styles.inPerson}>Talked in person</Text>
+                  </Pressy>
+                  <Pressy
+                    onPress={() => text(p, CAN_TALK)}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Text ${p.name}: ${CAN_TALK}`}
+                    accessibilityHint="Opens Messages with the text ready. You press send."
+                  >
+                    <Text style={styles.inPerson}>Ask “Can you talk?”</Text>
                   </Pressy>
                 </View>
               </Pressy>
