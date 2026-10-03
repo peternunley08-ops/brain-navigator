@@ -101,7 +101,7 @@ checked · [–] decided against (with why)
 40. [ ] A guided tour in show mode: Ember walks through five pages with one line each
 41. [ ] The wake screen: Ember yawns, stretches, and the quote fades in (one breath long)
 42. [x] First run: the welcome flow ends with the five This-or-that cards, so the app knows you from minute one
-43. [ ] Every empty page has an Ember drawing and one clear next step (consistent art, not just text)
+43. [x] Every empty page has an Ember drawing and one clear next step (consistent art, not just text) (EmptyState draws Ember by default; the plain lines left are in-section notes, by design)
 44. [ ] Cards share one shadow and one corner radius scale (audit the stragglers)
 45. [ ] Section headings breathe the same everywhere (spacing audit)
 46. [~] Every number in the app uses tabular figures so columns line up
@@ -161,7 +161,7 @@ checked · [–] decided against (with why)
 94. [ ] Every new piece with Reduce Motion
 95. [x] Show-someone mode can't save over real data (tested by checking the files before and after) — checked: file fingerprints identical after checking things off as Riley; only your own Settings visits changed, no Riley data in your files
 96. [ ] The app opens to the Desk in under a second on the phone (measure)
-97. [ ] CLAUDE.md: night Desk, show mode, the shelf, and their rules
+97. [x] CLAUDE.md: night Desk, show mode, the shelf, and their rules
 98. [ ] SESSION_LOG and this file's progress log
 99. [ ] Secret scan, commit, push
 100. [ ] Write Round 7's plan from what's left and what the user says
