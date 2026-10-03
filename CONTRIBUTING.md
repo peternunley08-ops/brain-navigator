@@ -27,6 +27,15 @@ cp .env.example .env            # then fill in the values Peter sends
 npx expo run:ios                # Simulator (first build takes ~15 min)
 ```
 
+The first `expo run:ios` installs CocoaPods for you, into Homebrew Ruby's gem
+folder, which isn't on your PATH yet. If it then stops with
+`spawn pod ENOENT`, add that folder to `~/.zshrc`, open a new terminal and
+run it again:
+
+```bash
+export PATH="$(ls -d /opt/homebrew/lib/ruby/gems/*/bin | tail -1):$PATH"
+```
+
 On your own iPhone: `./scripts/build-phone.sh` (plugged in, unlocked).
 The bundle ID `com.peternunley.brainnavigator` is tied to Peter's Apple team;
 if Xcode refuses to sign it with yours, change `ios.bundleIdentifier` in
