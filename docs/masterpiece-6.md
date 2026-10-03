@@ -77,18 +77,18 @@ checked · [–] decided against (with why)
 20. [ ] A last full pass: open every page once more after the round, read every word
 
 ### B. Night, the app's best hour (21–35)
-21. [ ] **Night Desk**: after wind-down, the Desk becomes one quiet card stack: tomorrow's first class, what's due tomorrow, the pack list, and "lights out by"
-22. [ ] Everything else on the Desk folds away at night (one tap shows it all)
-23. [ ] The room dims a little more each hour after wind-down
+21. [~] **Night Desk**: after wind-down, the Desk becomes one quiet card stack: tomorrow's first class, what's due tomorrow, the pack list, and "lights out by"
+22. [~] Everything else on the Desk folds away at night (one tap shows it all)
+23. [~] The room dims a little more each hour after wind-down
 24. [ ] Ember holds a tiny candle at night and speaks softer (shorter lines)
-25. [ ] "Put the day down": one tap at night lists what got done, sets down what's left for tomorrow, and says goodnight
-26. [ ] A goodnight line from Ember that names one real thing from the day
+25. [~] "Put the day down": one tap at night lists what got done, sets down what's left for tomorrow, and says goodnight
+26. [~] A goodnight line from Ember that names one real thing from the day
 27. [ ] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now
-28. [ ] After midnight, Ember's first line is about sleep, never homework
+28. [~] After midnight, Ember's first line is about sleep, never homework
 29. [ ] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk
 30. [ ] The sky outside the room follows the real sunset time (from the weather store's location, if it has one)
-31. [ ] Stars appear in the night backdrop, a few at a time, slower than the motes
-32. [ ] Night mode respects Reduce Motion (stars stay still)
+31. [~] Stars appear in the night backdrop, a few at a time, slower than the motes
+32. [~] Night mode respects Reduce Motion (stars stay still)
 33. [ ] The night stack works with the Desk's fold choices (folded stays folded)
 34. [ ] Night is learned: if they're a night owl, the night layout starts later
 35. [ ] Sunday night: the week sentence card leads the night stack
@@ -100,27 +100,27 @@ checked · [–] decided against (with why)
 39. [x] While showing, nothing from the real journal, check-ins, or About you can appear — the online database is replaced by an in-memory stand-in (core/sampleDb.ts); your files are never written while showing
 40. [ ] A guided tour in show mode: Ember walks through five pages with one line each
 41. [ ] The wake screen: Ember yawns, stretches, and the quote fades in (one breath long)
-42. [ ] First run: the welcome flow ends with the five This-or-that cards, so the app knows you from minute one
+42. [x] First run: the welcome flow ends with the five This-or-that cards, so the app knows you from minute one
 43. [ ] Every empty page has an Ember drawing and one clear next step (consistent art, not just text)
 44. [ ] Cards share one shadow and one corner radius scale (audit the stragglers)
 45. [ ] Section headings breathe the same everywhere (spacing audit)
-46. [ ] Every number in the app uses tabular figures so columns line up
+46. [~] Every number in the app uses tabular figures so columns line up
 47. [ ] Icons in the Drawer get a soft inner glow in their color
 48. [ ] The + sheet's options get small illustrations
-49. [ ] What's New gets a Round 5–6 entry with the best changes
-50. [ ] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
-51. [ ] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
+49. [~] What's New gets a Round 5–6 entry with the best changes
+50. [x] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
+51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
 52. [ ] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen
 53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/)
 54. [ ] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots
 55. [ ] The phone gets a fresh Release build with everything (free signing renews)
 
 ### D. Surprise: things that make it feel like nothing else (56–75)
-56. [ ] **Candle of the week**: every Sunday, the week's focus minutes, wins, and check-ins become one candle on a shelf; the shelf fills over the semester (Your year)
+56. [x] **Candle of the week**: every Sunday, the week's focus minutes, wins, and check-ins become one candle on a shelf; the shelf fills over the semester (Your year)
 57. [ ] The shelf is touchable: tap a week's candle to see its sentence and best moment
 58. [ ] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm
 59. [ ] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day
-60. [ ] The Desk's candle burns brighter with the day's progress (done vs due)
+60. [~] The Desk's candle burns brighter with the day's progress (done vs due)
 61. [ ] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop
 62. [ ] **Hold the flame**: holding Ember for a long breath starts a 3-breath calm right there, anywhere in the app
 63. [ ] **Pocket worry**: shake the phone to drop a worry into the box from anywhere (with Undo)
@@ -139,12 +139,12 @@ checked · [–] decided against (with why)
 
 ### E. Smoothness, the second pass (76–90)
 76. [ ] Numbers animate when they change, not only on first open
-77. [ ] Rows that move between groups (Today → Done) glide instead of jumping
+77. [x] Rows that move between groups (Today → Done) glide instead of jumping
 78. [ ] The tab pill stretches slightly as it slides (a liquid feel)
 79. [ ] Pages pushed from a card grow from that card (a zoom-from-card transition where supported)
-80. [ ] The compact bar's title slides up from where the big title was
-81. [ ] Chips press with a springy sink like cards
-82. [ ] Pull-to-refresh on School and Steady too, with Ember's hop
+80. [~] The compact bar's title slides up from where the big title was
+81. [~] Chips press with a springy sink like cards
+82. [~] Pull-to-refresh on School and Steady too, with Ember's hop
 83. [ ] The keyboard and the page move together (fields slide, never jump)
 84. [ ] Sheets snap to a half height when their content is short
 85. [ ] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
@@ -227,12 +227,13 @@ Decisions:
 
 ## RESUME HERE (for a fresh session after compaction)
 
-Round 6 wave 2 is merged, live-checked and pushed (2026-10-02). The hub's
-home is now the solar-system work map (tools/hub/map.html, port 4410).
-Shield (security) joined the team: run `node tools/hub/security.mjs` any
-time; rules in tools/hub/SECURITY.md. Next: the next agent wave from the
-queue (about 50 ideas) once the weekly limit resets; Night Desk leftovers
-(goodnight, ?night=21:30 chip, 00:30 Ember tip, gentler night subtitle).
+Wave 3 runs in a cloud session on branch `claude/round6-wave3` (draft PR).
+The gate works there (`node tools/hub/check.mjs --agent atlas`); there is
+no Simulator in the cloud, so every [~] item still needs a live check on
+the Mac before it becomes [x]. Status marks above were brought up to date
+on 2026-10-03, so read them instead of searching the code. Wave 3: Glide
+(School group-collapse jump, Steady pull-to-refresh) and Spark (firsts,
+tiny wins radar).
 
 ## Progress log
 
@@ -258,3 +259,10 @@ queue (about 50 ideas) once the weekly limit resets; Night Desk leftovers
   waits on an Expo SDK 57 patch; never `npm audit fix --force`.
 - Noticed, not fixed: ticking the last row of a group makes the page jump
   as the group disappears (scroll position is clamped). Worth a Glide idea.
+- 2026-10-03 (cloud, wave 3): Night Desk leftovers. After midnight the
+  subtitle stops counting the next morning's work, the past-midnight tip
+  says "was" only after lights-out, the wind-down chip counts down, a
+  dev-only chip shows the pretend clock (tap for real time), and goodnight
+  counts the check-in from the day being put down. What's New gets the
+  Round 5–6 entry (card returns once, version 3). Gate scripts now find the
+  repo from their own path, so they run on the Mac and in the cloud.
