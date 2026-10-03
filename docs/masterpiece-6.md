@@ -140,7 +140,7 @@ checked · [–] decided against (with why)
 ### E. Smoothness, the second pass (76–90)
 76. [ ] Numbers animate when they change, not only on first open
 77. [x] Rows that move between groups (Today → Done) glide instead of jumping
-78. [ ] The tab pill stretches slightly as it slides (a liquid feel)
+78. [~] The tab pill stretches slightly as it slides (a liquid feel)
 79. [ ] Pages pushed from a card grow from that card (a zoom-from-card transition where supported)
 80. [~] The compact bar's title slides up from where the big title was
 81. [~] Chips press with a springy sink like cards
@@ -150,7 +150,7 @@ checked · [–] decided against (with why)
 85. [ ] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
 86. [~] Haptic texture on sliders (a tick per step)
 87. [~] Swipe between days in Your day
-88. [ ] Ember's drag follows the finger with a slight lag (weight)
+88. [~] Ember's drag follows the finger with a slight lag (weight)
 89. [~] Toasts and the Undo bar never overlap (a single queue)
 90. [ ] Everything at 120 Hz: no JavaScript per frame during scroll or drag (audit with the perf monitor)
 
