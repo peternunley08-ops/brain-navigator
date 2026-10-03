@@ -1,7 +1,7 @@
 import * as Haptics from '../../core/haptics';
 import { router, usePathname } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { AppState, Keyboard, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -27,13 +27,15 @@ import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
 import { colors, fonts } from '../../core/theme';
+import { dateKey } from '../../core/dates';
+import { isShowing } from '../../core/showMode';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { EmberBubble } from './EmberBubble';
 import { autoAccessory } from '../../core/emberLook';
 import { useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
 import { EmberSprite } from './EmberSprite';
-import { Sparks } from './Sparks';
+import { Confetti, Sparks } from './Sparks';
 import { useEmberRig } from './useEmberRig';
 
 // Ember lives on top of every screen. Drag it anywhere and it swings back
@@ -92,6 +94,29 @@ export function EmberBuddy() {
 
   const [keyboardUp, setKeyboardUp] = useState(false);
   const [burst, setBurst] = useState(0);
+  const [confetti, setConfetti] = useState(0);
+
+  // Birthday: a party hat all day, and confetti the first time the app opens that day.
+  useEffect(() => {
+    const check = () => {
+      const life = useLifeStore.getState();
+      const today = dateKey();
+      const birthday = life.settings.birthday;
+      const on = !!birthday && today.slice(5) === birthday && !isShowing();
+      useEmberStore.getState().setHat(on);
+      if (!on) return;
+      const key = `birthday-sparks-${today.slice(0, 4)}`;
+      const done = life.settings.celebrated ?? [];
+      if (done.includes(key) || reducedMotion) return;
+      life.setSettings({ celebrated: [...done, key].slice(-200) });
+      setConfetti((c) => c + 1);
+    };
+    check();
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st === 'active') check();
+    });
+    return () => sub.remove();
+  }, [reducedMotion]);
   const [mode, setMode] = useState<'tips' | 'about'>('tips');
   const [tipIndex, setTipIndex] = useState(0);
 
@@ -581,6 +606,7 @@ export function EmberBuddy() {
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      <Confetti run={confetti} width={W} height={H} colors={[colors.flame, colors.flameHot, '#E89AB8', colors.text]} />
       {bubbleOpen && !hidden ? (
         <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(160)} style={StyleSheet.absoluteFill}>
           <Pressable style={styles.scrim} onPress={closeBubble} accessibilityLabel="Close Ember" />

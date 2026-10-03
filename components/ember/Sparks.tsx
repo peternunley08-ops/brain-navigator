@@ -64,7 +64,48 @@ function Spark({ i, p, reach, color }: { i: number; p: SharedValue<number>; reac
   );
 }
 
+// Birthday confetti: a few slow pieces drifting down across the room, once.
+const PIECES = 16;
+
+export const Confetti = memo(function Confetti({ run, width, height, colors }: { run: number; width: number; height: number; colors: string[] }) {
+  const p = useSharedValue(1);
+  const reduced = useReducedMotion();
+  useEffect(() => {
+    if (run === 0 || reduced) return;
+    p.value = 0;
+    p.value = withTiming(1, { duration: 5200, easing: Easing.linear });
+  }, [run, reduced, p]);
+  if (run === 0 || reduced) return null;
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      {Array.from({ length: PIECES }, (_, i) => (
+        <Piece key={i} i={i} p={p} width={width} height={height} color={colors[i % colors.length]} />
+      ))}
+    </View>
+  );
+});
+
+function Piece({ i, p, width, height, color }: { i: number; p: SharedValue<number>; width: number; height: number; color: string }) {
+  const x0 = ((i * 53) % 100) / 100 * width;
+  const delay = ((i * 29) % 10) / 24;
+  const sway = 12 + (i % 4) * 5;
+  const w = 5 + (i % 3) * 2;
+  const style = useAnimatedStyle(() => {
+    const v = Math.max(0, Math.min(1, (p.value - delay) / (1 - delay)));
+    return {
+      opacity: v <= 0 || v >= 1 ? 0 : Math.min(1, v * 6) * Math.min(1, (1 - v) * 5),
+      transform: [
+        { translateX: x0 + Math.sin(v * 9 + i) * sway },
+        { translateY: -20 + v * (height * 0.7) },
+        { rotate: `${v * 360 + i * 40}deg` },
+      ],
+    };
+  });
+  return <Animated.View style={[styles.piece, { width: w, height: w * 0.55, backgroundColor: color }, style]} />;
+}
+
 const styles = StyleSheet.create({
+  piece: { position: 'absolute', top: 0, left: 0, borderRadius: 1 },
   center: {
     position: 'absolute',
     top: 0,

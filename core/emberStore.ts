@@ -43,11 +43,20 @@ interface EmberStore extends EmberPrefs {
   bubbleOpen: boolean;
   /** Help tips already opened this session, so their dot doesn't come back. */
   seen: string[];
+  /** Transient (never saved): what Ember is holding right now. */
+  prop: 'book' | 'hat' | null;
+  /** Birthday hat, worn whenever nothing else is held. */
+  hat: boolean;
+  /** Bumps once to make Ember glance up from its book. */
+  peeks: number;
 
   load: () => Promise<void>;
   setPerch: (side: 'left' | 'right', y: number) => void;
   setNapping: (napping: boolean) => void;
   setBubbleOpen: (open: boolean) => void;
+  setProp: (prop: 'book' | 'hat' | null) => void;
+  setHat: (hat: boolean) => void;
+  peek: () => void;
   markSeen: (id: string) => void;
   /** Ember says something short, then it fades. */
   /** `asked`: the student reached for Ember (a hold, a breath), so quiet modes let it through. */
@@ -82,6 +91,9 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
   toast: null,
   bubbleOpen: false,
   seen: [],
+  prop: null,
+  hat: false,
+  peeks: 0,
 
   load: async () => {
     try {
@@ -113,6 +125,10 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
   },
 
   setBubbleOpen: (open) => set({ bubbleOpen: open }),
+
+  setProp: (prop) => set({ prop }),
+  setHat: (hat) => set({ hat }),
+  peek: () => set({ peeks: get().peeks + 1 }),
 
   markSeen: (id) => {
     if (!get().seen.includes(id)) set({ seen: [...get().seen, id] });
