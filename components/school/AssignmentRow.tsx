@@ -162,6 +162,18 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
         </View>
         {/* Every row says when; soon and late ones stand out. */}
         <Text style={[styles.due, late && { color: colors.danger }, soon && !late && { color: colors.flame }]}>{dueLabel(a.due)}</Text>
+        {!a.done && !compact ? (
+          <Pressy
+            onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })}
+            depth={0.85}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`Start ${a.title} in Focus`}
+            style={styles.start}
+          >
+            <Icon name="play" size={14} color={colors.flame} />
+          </Pressy>
+        ) : null}
       </Card>
       <Animated.View pointerEvents="none" style={[styles.landed, { borderColor: color, shadowColor: color }, glowStyle]} />
       </Animated.View>
@@ -282,6 +294,15 @@ const styles = StyleSheet.create({
   kindText: {
     fontFamily: fonts.bodySemi,
     fontSize: 10,
+  },
+  start: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    backgroundColor: alpha(colors.flame, 0.14),
   },
   due: {
     fontFamily: fonts.bodySemi,
