@@ -13,6 +13,7 @@ checked · `[–]` decided against (with why)
 ## A. See Round 6 live (on the Mac)
 
 1. [ ] Fix the phone install: Xcode said "the developer disk image could not be mounted". Unlock the phone, let Xcode prepare it (Window → Devices and Simulators), update Xcode if iOS 27.2 isn't supported
+   - [~] iOS 27 launch: apps built with the iOS 27 SDK won't open without the UIScene life cycle. `plugins/withSceneLifecycle.js` wires in Expo's scene delegate at prebuild. Opens on the iOS 27 and iOS 26 simulators, deep links work warm and cold; check on the phone
 2. [ ] Release build on the phone: `./scripts/build-phone.sh --main`
 3. [ ] Walk every `[~]` item in Round 6 with real taps; flip it to `[x]` or file the bug here
 4. [ ] Night: `?night=21:30`, `?night=00:30`, Sunday night, `?night=08:00` for First light

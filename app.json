@@ -64,7 +64,8 @@
           "microphonePermission": "Brain Navigator uses the microphone when you choose to: to speak an entry instead of typing it, and for the optional room-noise check on the Sleep card. Nothing is recorded or uploaded.",
           "speechRecognitionPermission": "Brain Navigator turns what you say into text on your phone, so you can speak an entry."
         }
-      ]
+      ],
+      "./plugins/withSceneLifecycle"
     ],
     "scheme": "brainnavigator"
   }
