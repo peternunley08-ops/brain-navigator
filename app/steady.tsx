@@ -5,6 +5,7 @@ import { type ReactNode, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
+import { TrustedAdult } from '../components/TrustedAdult';
 import { DidItHelp } from '../components/about/DidItHelp';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { EmberGlyph } from '../components/ember/EmberSprite';
@@ -67,6 +68,9 @@ export default function SteadyScreen() {
             </View>
             <Icon name="chevron" size={18} color="#F07060" />
           </Card>
+        </Reveal>
+        <Reveal index={0}>
+          <TrustedAdult />
         </Reveal>
         <Reveal index={0}>
           <Card tint={BLUE} onPress={() => router.push('/safety-plan')} style={styles.help} accessibilityLabel="Safety plan" accessibilityHint="Your own private plan for a hard moment">
