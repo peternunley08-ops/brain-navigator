@@ -55,13 +55,13 @@ npm install
 npx expo start            # Simulator / dev build
 ```
 
-**Install a Release build on the iPhone** (from the Mac, phone unlocked and connected):
+**Install a Release build on the iPhone** (from the Mac, phone plugged in and unlocked):
 
 ```bash
-LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 npx expo run:ios --configuration Release --device <device-udid>
+./scripts/build-phone.sh --main     # pull main, find the phone, build, install
 ```
 
-`LANG` is required: without it CocoaPods crashes. Find the UDID with `xcrun devicectl list devices`. If Xcode says the developer disk image can't be mounted, unlock the phone and let Xcode finish preparing it (Window → Devices and Simulators).
+The script sets UTF-8 (CocoaPods crashes without it), finds the connected iPhone, and warns if Xcode can't prepare it. Free signing lasts 7 days; run it again when the app stops opening. If Xcode says the developer disk image can't be mounted, unlock the phone and let Xcode finish preparing it (Window → Devices and Simulators).
 
 **Before every commit:** `node tools/hub/check.mjs --agent <name>` (house rules plus the type check).
 

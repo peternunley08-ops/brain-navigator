@@ -429,7 +429,7 @@ export function OneKindThing() {
       body={`“${line}” Tap to open it in Messages. Nothing sends until you do.`}
       onPress={() => {
         setSettings({ kindWeek: week });
-        Linking.openURL('sms:' + person.phone.trim() + '&body=' + encodeURIComponent(line)).catch(() => {});
+        Linking.openURL('sms:' + person.phone.replace(/[^\d+]/g, '') + '&body=' + encodeURIComponent(line)).catch(() => {});
       }}
       onClose={setHidden}
     />

@@ -317,6 +317,8 @@ interface ChatMessage {
   content: string;
 }
 
+const MAX_BODY = 200_000;
+
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
@@ -415,9 +417,20 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (req.method !== 'POST') return json({ error: 'Method not allowed', code: 'bad_request' }, 405);
+
   const started = Date.now();
   try {
-    const { messages, context, agent, kind: rawKind } = (await req.json()) as {
+    // A request is a short conversation plus a note; anything far bigger is a mistake or abuse.
+    const raw = await req.text();
+    if (raw.length > MAX_BODY) return json({ error: 'Too large', code: 'bad_request' }, 413);
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return json({ error: 'Bad JSON', code: 'bad_request' }, 400);
+    }
+    const { messages, context, agent, kind: rawKind } = parsed as {
       messages: ChatMessage[];
       context?: string;
       agent?: string | null;

@@ -24,7 +24,7 @@ export default function AchievementsScreen() {
   const earnedCount = ALL_ACHIEVEMENTS.filter((a) => got[a.key]).length;
   const [open, setOpen] = useState<string | null>(null);
 
-  // The still-to-earn tiles beyond the first few arrive once the page settles.
+  // Every tile is laid out at once so nothing moves; the icons and bars past the first few fill in once the page settles.
   const [rest, setRest] = useState(false);
   useEffect(() => {
     const task = InteractionManager.runAfterInteractions(() => setRest(true));
@@ -72,17 +72,19 @@ export default function AchievementsScreen() {
                     </Card>
                   </View>
                 ))}
-                {(rest ? waiting : waiting.slice(0, 6)).map(({ a, p }) => (
+                {waiting.map(({ a, p }, i) => {
+                  const full = rest || i < 6;
+                  return (
                   <View key={a.key} style={styles.cell}>
                     <Card style={[styles.tile, styles.locked]}>
                       <View style={[styles.medal, styles.medalLocked]}>
-                        <Icon name={a.icon} size={24} color={colors.textFaint} />
+                        {full ? <Icon name={a.icon} size={24} color={colors.textFaint} /> : null}
                       </View>
                       <Text style={[styles.title, styles.titleLocked]}>{a.title}</Text>
                       <Text style={styles.body}>{a.body}</Text>
                       {p && p.have > 0 ? (
                         <View style={styles.progress}>
-                          <ProgressBar value={p.have / p.need} color={a.color} height={4} />
+                          {full ? <ProgressBar value={p.have / p.need} color={a.color} height={4} /> : <View style={styles.barHold} />}
                           <Text style={styles.date}>
                             {p.have} of {p.need} {p.unit}
                           </Text>
@@ -90,7 +92,8 @@ export default function AchievementsScreen() {
                       ) : null}
                     </Card>
                   </View>
-                ))}
+                  );
+                })}
               </View>
             </Section>
           </Reveal>
@@ -117,6 +120,9 @@ const styles = StyleSheet.create({
   tile: {
     alignItems: 'center',
     minHeight: 168,
+  },
+  barHold: {
+    height: 4,
   },
   locked: {
     opacity: 0.6,

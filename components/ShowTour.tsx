@@ -10,11 +10,11 @@ import { emberSay } from './ember/EmberBuddy';
 import { Pressy } from './ui/Pressy';
 
 const LINES: { text: string; mood: 'happy' | 'curious' | 'idle' }[] = [
-  { text: 'This is the Desk. Riley sees today at a glance: what is due, what is next, one thing to start with.', mood: 'happy' },
-  { text: 'School keeps Riley’s classes and homework in one place, with the nearest deadline first.', mood: 'idle' },
-  { text: 'Focus is a study candle. Riley picks a stretch of time and the candle burns down with it.', mood: 'curious' },
-  { text: 'Steady is for the heavier evenings: breathing, a worry box, a way to wind down.', mood: 'idle' },
-  { text: 'And Your year adds it all up, gently. That is the tour. Nothing here was saved.', mood: 'happy' },
+  { text: 'This is the Desk. Today Riley has a Gatsby reading and Problem set 4.2 due, and a dentist visit at 4:30.', mood: 'happy' },
+  { text: 'School keeps AP Biology, Algebra II and the rest in one place. The Genetics unit test is four days out.', mood: 'idle' },
+  { text: 'Focus is a study candle. Riley has been giving it 25 minutes at a time, most recently for the Genetics unit test.', mood: 'curious' },
+  { text: 'Steady holds Riley’s habits, like a morning walk and reading 20 minutes, plus a worry box for heavier evenings.', mood: 'idle' },
+  { text: 'Your year adds up Riley’s weeks, gently. That is the tour, and nothing here was saved.', mood: 'happy' },
 ];
 
 // While showing Riley: offers a short tour of five pages, then a small

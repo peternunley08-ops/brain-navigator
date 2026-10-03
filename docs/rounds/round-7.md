@@ -13,7 +13,7 @@ checked · `[–]` decided against (with why)
 ## A. See Round 6 live (on the Mac)
 
 1. [ ] Fix the phone install: Xcode said "the developer disk image could not be mounted". Unlock the phone, let Xcode prepare it (Window → Devices and Simulators), update Xcode if iOS 27.2 isn't supported
-2. [ ] Release build on the phone from `main` (README has the command; `LANG=en_US.UTF-8` is required)
+2. [ ] Release build on the phone: `./scripts/build-phone.sh --main`
 3. [ ] Walk every `[~]` item in Round 6 with real taps; flip it to `[x]` or file the bug here
 4. [ ] Night: `?night=21:30`, `?night=00:30`, Sunday night, `?night=08:00` for First light
 5. [ ] Ember: hold to breathe, drag weight, night candle, study buddy book, birthday hat
@@ -25,24 +25,24 @@ checked · `[–]` decided against (with why)
 
 9. [ ] Open to the Desk in under a second on the phone; measure cold start (R6-96)
 10. [ ] 120 Hz audit with the perf monitor: no JS per frame on scroll or drag (R6-90)
-11. [ ] Badges: render locked tiles without the late jump (from R6-85)
+11. [~] Badges: render locked tiles without the late jump (from R6-85)
 
 ## C. Easy to update the phone
 
 12. [ ] Over-the-air updates: add `expo-updates` (one native build), so JS-only rounds reach the phone without the Mac
-13. [ ] A one-command build script (`scripts/build-phone.sh`) wrapping the Release command, UTF-8 and the device ID
+13. [~] A one-command build script (`scripts/build-phone.sh`) wrapping the Release command, UTF-8 and the device ID
 
 ## D. Native batch (one rebuild, done together)
 
 14. [ ] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63)
 15. [ ] Home screen widget: tonight's first class and what's due
-16. [ ] A speaker icon in the kit for Fire crackle (it borrows `music` today)
+16. [~] A speaker icon in the kit for Fire crackle (drawn in code, no rebuild needed)
 
 ## E. Show it well
 
 17. [ ] Screenshots script for the hero pages into `docs/screens/` (R6-53), in show mode only
 18. [ ] Put the screenshots in `docs/WHAT-THIS-IS.md` and the README
-19. [ ] The show tour's lines checked against Riley's sample data
+19. [~] The show tour's lines checked against Riley's sample data
 
 ## F. From the idea bank
 

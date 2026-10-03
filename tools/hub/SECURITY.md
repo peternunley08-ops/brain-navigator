@@ -29,3 +29,15 @@ Shield writes steps 1 and 2 on its branch and lists step 3 for Peter.
 
 ## Accepted risks
 Listed in `ACCEPTED` in security.mjs. Changing that list is Peter's call.
+
+## Review log
+
+- 2026-10-03, full sweep (cloud): git history clean (161 commits, no keys).
+  Removed the unused `chat` function (no limits, leaked upstream errors).
+  `ember` caps the request body and is POST only. `notion` honours an
+  optional `NOTION_DATABASES` allowlist. Canvas addresses are forced to
+  https. The one-kind-thing text link keeps only digits and +. New scanner
+  rules: `fn-error-leak`, `http-token`. Open: undeploy `chat`; set
+  `NOTION_DATABASES`; Canvas token and Google sign-in live in plain app
+  files (move to expo-secure-store in the Round 7 native batch).
+
