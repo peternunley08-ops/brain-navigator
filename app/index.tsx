@@ -56,6 +56,7 @@ import { offerUndo } from '../core/undoStore';
 import { selectionAsync } from '../core/haptics';
 import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
+import { isShowing } from '../core/showMode';
 
 const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 const MAX_ON_DESK = 9;
@@ -262,7 +263,8 @@ export default function DeskScreen() {
   const reviewDue = (dow === 0 || dow === 6 || (dow === 5 && now.getHours() >= 15)) && !reviews.some((r) => r.weekOf === weekOf());
   const earn = useLifeStore((s) => s.earn);
   useEffect(() => {
-    if (allClear && earn('all_clear')) emberSay('New badge: All clear. Nothing due by tomorrow.', 'cheer');
+    // Celebrations stay quiet while showing Riley (the badge is hers, in memory only).
+    if (allClear && earn('all_clear') && !isShowing()) emberSay('New badge: All clear. Nothing due by tomorrow.', 'cheer');
   }, [allClear, earn]);
   const habitsDone = activeHabits.filter((h) => logs.some((l) => l.habit_id === h.id && l.log_date === today)).length;
 

@@ -325,7 +325,7 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
 
 // Date helpers live in ./dates (no native imports, so they can be tested
 // on their own); re-exported here for convenience.
-export { addDays, clock, dateKey, daysUntil, dueLabel, isoDay } from './dates';
+export { addDays, clock, dateKey, daysUntil, dueLabel, dueWords, isoDay } from './dates';
 import { addDays, dateKey, isoDay } from './dates';
 
 // ---- Derived ------------------------------------------------------------------

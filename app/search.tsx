@@ -13,7 +13,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { useHubStore } from '../core/hubStore';
 import { useLifeStore, isSealed } from '../core/lifeStore';
-import { dueLabel, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
+import { dueLabel, dueWords, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
 import { colors, fonts } from '../core/theme';
 
@@ -62,7 +62,7 @@ export default function SearchScreen() {
           .map((a) => ({
             key: a.id,
             title: a.title,
-            sub: `${KIND_LABEL[a.kind]}${className(a.classId) ? `, ${className(a.classId)}` : ''}, ${a.done ? 'done' : `due ${dueLabel(a.due).toLowerCase()}`}`,
+            sub: `${KIND_LABEL[a.kind]}${className(a.classId) ? `, ${className(a.classId)}` : ''}, ${a.done ? 'done' : `due ${dueWords(a.due)}`}`,
             icon: a.done ? 'check' : 'book',
             color: classes.find((c) => c.id === a.classId)?.color ?? colors.flame,
             href: `/assignment/${a.id}`,

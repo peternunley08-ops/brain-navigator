@@ -12,7 +12,7 @@ import { Pressy } from '../components/ui/Pressy';
 import { Icon } from '../components/ui/Icon';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
-import { dateKey, dueLabel } from '../core/dates';
+import { dateKey, dueLabel, dueWords } from '../core/dates';
 import { type RecLetter, useHubStore } from '../core/hubStore';
 import { parseDue } from '../core/scanParser';
 import { alpha, colors, fonts } from '../core/theme';
@@ -78,7 +78,7 @@ export default function RecsScreen() {
                     <Text style={styles.name}>{r.teacher}</Text>
                     <Text style={styles.meta}>
                       {r.due ? `Due ${dueLabel(r.due)}` : 'No due date'}
-                      {r.askedOn ? `, asked ${dueLabel(r.askedOn).toLowerCase()}` : ''}
+                      {r.askedOn ? `, asked ${dueWords(r.askedOn)}` : ''}
                     </Text>
                   </View>
                   <IconButton icon="trash" label={`Remove ${r.teacher}`} size={34} color={alpha(colors.danger, 0.7)} onPress={() => remove(r.id)} />
