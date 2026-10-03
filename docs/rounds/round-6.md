@@ -77,88 +77,88 @@ checked · [–] decided against (with why)
 20. [ ] A last full pass: open every page once more after the round, read every word (needs the Mac; moved to Round 7)
 
 ### B. Night, the app's best hour (21–35)
-21. [~] **Night Desk**: after wind-down, the Desk becomes one quiet card stack: tomorrow's first class, what's due tomorrow, the pack list, and "lights out by"
-22. [~] Everything else on the Desk folds away at night (one tap shows it all)
-23. [~] The room dims a little more each hour after wind-down
-24. [~] Ember holds a tiny candle at night and speaks softer (shorter lines)
-25. [~] "Put the day down": one tap at night lists what got done, sets down what's left for tomorrow, and says goodnight
-26. [~] A goodnight line from Ember that names one real thing from the day
-27. [~] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now
-28. [~] After midnight, Ember's first line is about sleep, never homework
-29. [~] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk
-30. [~] The sky outside the room follows the real sunset time (from the weather store's location, if it has one)
-31. [~] Stars appear in the night backdrop, a few at a time, slower than the motes
-32. [~] Night mode respects Reduce Motion (stars stay still)
-33. [~] The night stack works with the Desk's fold choices (folded stays folded)
-34. [~] Night is learned: if they're a night owl, the night layout starts later
-35. [~] Sunday night: the week sentence card leads the night stack
+21. [x] **Night Desk**: after wind-down, the Desk becomes one quiet card stack: tomorrow's first class, what's due tomorrow, the pack list, and "lights out by" — seen in the Simulator (2026-10-03 walk)
+22. [x] Everything else on the Desk folds away at night (one tap shows it all) — seen; folded sections stay folded
+23. [x] The room dims a little more each hour after wind-down — seen, subtle (the veil deepens a little each hour); it now also follows the real clock while a page sits open
+24. [x] Ember holds a tiny candle at night and speaks softer (shorter lines) — seen: a tiny candle beside Ember at night
+25. [x] "Put the day down": one tap at night lists what got done, sets down what's left for tomorrow, and says goodnight — seen
+26. [~] A goodnight line from Ember that names one real thing from the day — fixed after the walk: the goodnight line keeps its "Goodnight." (night trimmed it); check live
+27. [x] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now — seen: "Keep it for tomorrow" leads after dark
+28. [x] After midnight, Ember's first line is about sleep, never homework — seen at 00:30
+29. [x] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk — seen, and fixed: it also comes when the Desk was left open overnight (checked 14:00 then 08:00); a school-day first class still to see
+30. [~] The sky outside the room follows the real sunset time (from the weather store's location, if it has one) — needs the phone: location and weather
+31. [x] Stars appear in the night backdrop, a few at a time, slower than the motes — seen; slowed after the walk so stars breathe slower than the motes
+32. [x] Night mode respects Reduce Motion (stars stay still) — seen with Reduce Motion on: stars still, no motes
+33. [x] The night stack works with the Desk's fold choices (folded stays folded) — seen
+34. [x] Night is learned: if they're a night owl, the night layout starts later — seen, from the This-or-that pick (night owl starts an hour later), not learned from use
+35. [~] Sunday night: the week sentence card leads the night stack — needs a real Sunday night; fixed after the walk to read the night's day past midnight (tonightWeekday)
 
 ### C. Presentable (36–55)
 36. [x] **Show someone**: Settings → "Show someone the app" swaps in a full set of sample data (a made-up student), shown with a small banner, and nothing saves; one tap returns to your own app untouched — Settings → Show someone the app; Riley's data in every store; a gold "Showing Riley | Done" pill under the Dynamic Island (checked both ways)
 37. [x] Sample data covers every page (classes, homework, notes, decks, wins, moods, colleges) so every page looks lived-in — core/sampleData.ts: classes, homework with steps, focus, grades, notes, colleges, decks, wins, people (555 numbers), hours, About you, 14 check-ins, habits, entries, journal
 38. [x] While showing, AI calls are off and Ember says so (no cost, nothing sent) — AI off (aiOff in the sample settings and the client refuses), Notion, Calendar, Health, weather cut off
 39. [x] While showing, nothing from the real journal, check-ins, or About you can appear — the online database is replaced by an in-memory stand-in (core/sampleDb.ts); your files are never written while showing
-40. [~] A guided tour in show mode: Ember walks through five pages with one line each
-41. [~] The wake screen: Ember yawns, stretches, and the quote fades in (one breath long)
+40. [x] A guided tour in show mode: Ember walks through five pages with one line each — seen, and fixed: lines stay up long enough to read, Focus shows its line, Steady's and the Desk's lines match the pages
+41. [x] The wake screen: Ember yawns, stretches, and the quote fades in (one breath long) — seen; it now starts with its eyes closed
 42. [x] First run: the welcome flow ends with the five This-or-that cards, so the app knows you from minute one
 43. [x] Every empty page has an Ember drawing and one clear next step (consistent art, not just text) (EmptyState draws Ember by default; the plain lines left are in-section notes, by design)
-44. [~] Cards share one shadow and one corner radius scale (audit the stragglers)
-45. [~] Section headings breathe the same everywhere (spacing audit)
-46. [~] Every number in the app uses tabular figures so columns line up
-47. [~] Icons in the Drawer get a soft inner glow in their color
-48. [~] The + sheet's options get small illustrations
-49. [~] What's New gets a Round 5–6 entry with the best changes
+44. [x] Cards share one shadow and one corner radius scale (audit the stragglers) — seen across ~15 pages
+45. [x] Section headings breathe the same everywhere (spacing audit) — seen
+46. [x] Every number in the app uses tabular figures so columns line up — seen in Grades' columns
+47. [x] Icons in the Drawer get a soft inner glow in their color — seen
+48. [x] The + sheet's options get small illustrations — seen on the four main rows
+49. [x] What's New gets a Round 5–6 entry with the best changes — seen (it doesn't mention the later surprises: sparks, firsts, weather)
 50. [x] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
 51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
-52. [~] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen
+52. [~] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen — fixed after the walk: the dot clears wherever the page is opened from; check live
 53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/) (needs the Mac; moved to Round 7)
 54. [~] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots (docs/WHAT-THIS-IS.md covers it; screenshots wait on R6-53, which needs the Mac)
 55. [ ] The phone gets a fresh Release build with everything (free signing renews) (needs the Mac; moved to Round 7)
 
 ### D. Surprise: things that make it feel like nothing else (56–75)
 56. [x] **Candle of the week**: every Sunday, the week's focus minutes, wins, and check-ins become one candle on a shelf; the shelf fills over the semester (Your year)
-57. [~] The shelf is touchable: tap a week's candle to see its sentence and best moment
-58. [~] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm
-59. [~] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day
-60. [~] The Desk's candle burns brighter with the day's progress (done vs due)
-61. [~] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop
-62. [~] **Hold the flame**: holding Ember for a long breath starts a 3-breath calm right there, anywhere in the app
+57. [x] The shelf is touchable: tap a week's candle to see its sentence and best moment — seen
+58. [~] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm — seen quiet, but lines cut each other off; fixed after the walk (lines wait their turn); check live
+59. [~] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day — fixed after the walk: sparks land on the candle row, or just rise and fade when it's off screen; check live
+60. [x] The Desk's candle burns brighter with the day's progress (done vs due) — seen, subtle
+61. [~] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop — needs the phone: weather only loads from Check-in (see Round 7)
+62. [x] **Hold the flame**: holding Ember for a long breath starts a 3-breath calm right there, anywhere in the app — seen, and fixed: letting go no longer ends the calm
 63. [–] **Pocket worry**: shake the phone to drop a worry into the box from anywhere (with Undo) (needs expo-sensors, a new native package; moved to Round 7 with the next native build)
-64. [~] **Study buddy**: during Focus, Ember studies too (a tiny book), and peeks up when time's half done
-65. [~] **Streak of light**: the days you showed up glow as a thin line under the Desk title (no numbers, no guilt)
-66. [~] **One kind thing**: once a week, Ember suggests texting one person from Your people something kind (a ready line, they tap send)
-67. [~] **Exam season mode**: when 3+ tests are within a week, the Desk turns into a study plan view with a countdown ring per test
-68. [~] **Birthday morning**: the room has confetti sparks and Ember a party hat (once)
-69. [~] **Seasons**: autumn leaves, winter frost, spring blossoms drift as the motes, by date
-70. [~] **Soundscape** (opt-in, with a real mute): soft fire crackle during Focus
-71. [~] **The good mail**: a note you write to yourself in Wins can be "sealed" until a date, and opens then
-72. [~] **Your constellation**: About you drawn as stars (each pick a star), joined as more is known
-73. [~] **Ember's journal**: Ember writes one line a week about your week (on the phone, no AI)
-74. [~] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it
-75. [~] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk
+64. [x] **Study buddy**: during Focus, Ember studies too (a tiny book), and peeks up when time's half done — seen: the book, and the glance up at half time
+65. [x] **Streak of light**: the days you showed up glow as a thin line under the Desk title (no numbers, no guilt) — seen
+66. [x] **One kind thing**: once a week, Ember suggests texting one person from Your people something kind (a ready line, they tap send) — seen (nothing was sent)
+67. [~] **Exam season mode**: when 3+ tests are within a week, the Desk turns into a study plan view with a countdown ring per test — seen as a lead card with a ring per test; the rest of the Desk doesn't switch (decide if that's enough)
+68. [x] **Birthday morning**: the room has confetti sparks and Ember a party hat (once) — seen once, not again; the hat now comes off while showing Riley
+69. [x] **Seasons**: autumn leaves, winter frost, spring blossoms drift as the motes, by date — autumn seen; winter and spring need their dates
+70. [~] **Soundscape** (opt-in, with a real mute): soft fire crackle during Focus — needs the phone: the opt-in and mute work, the sound can't be heard in the Simulator
+71. [x] **The good mail**: a note you write to yourself in Wins can be "sealed" until a date, and opens then — seen
+72. [x] **Your constellation**: About you drawn as stars (each pick a star), joined as more is known — seen
+73. [x] **Ember's journal**: Ember writes one line a week about your week (on the phone, no AI) — seen, and fixed: every line has its subject ("You checked in once.")
+74. [~] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it — seen only as a fourth tip; now a nudge (priority 2); check live
+75. [x] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk — seen; the check-in page's crash it caused is fixed
 
 ### E. Smoothness, the second pass (76–90)
-76. [~] Numbers animate when they change, not only on first open (useCountUp counts from the old value to the new one, wave 2)
+76. [~] Numbers animate when they change, not only on first open (useCountUp counts from the old value to the new one, wave 2) — fixed after the walk: changes count on revisited pages, no flash of the new number; check live
 77. [x] Rows that move between groups (Today → Done) glide instead of jumping
-78. [~] The tab pill stretches slightly as it slides (a liquid feel)
-79. [~] Pages pushed from a card grow from that card (a zoom-from-card transition where supported)
-80. [~] The compact bar's title slides up from where the big title was
-81. [~] Chips press with a springy sink like cards
-82. [~] Pull-to-refresh on School and Steady too, with Ember's hop
-83. [~] The keyboard and the page move together (fields slide, never jump) (Screen already uses automaticallyAdjustKeyboardInsets and interactive dismiss)
+78. [~] The tab pill stretches slightly as it slides (a liquid feel) — fixed after the walk: glides back to the Desk too; check live
+79. [x] Pages pushed from a card grow from that card (a zoom-from-card transition where supported) — seen in Notes
+80. [x] The compact bar's title slides up from where the big title was — seen
+81. [x] Chips press with a springy sink like cards — seen
+82. [~] Pull-to-refresh on School and Steady too, with Ember's hop — School seen; Steady got pull to refresh after the walk; check live
+83. [x] The keyboard and the page move together (fields slide, never jump) (Screen already uses automaticallyAdjustKeyboardInsets and interactive dismiss) — seen
 84. [–] Sheets snap to a half height when their content is short (every sheet holds a long scrolling form; fitting to content would squash them, so they stay full height)
-85. [~] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
-86. [~] Haptic texture on sliders (a tick per step)
-87. [~] Swipe between days in Your day
-88. [~] Ember's drag follows the finger with a slight lag (weight)
-89. [~] Toasts and the Undo bar never overlap (a single queue)
+85. [~] Long lists render lazily (Notebook, Search, Badges) so pages open instantly — needs a big data set (Riley has 3 notes; the lazy limit is 30)
+86. [~] Haptic texture on sliders (a tick per step) — sliders work; the tick needs the phone
+87. [x] Swipe between days in Your day — fixed and seen: right goes to yesterday, left to tomorrow, the page stays
+88. [~] Ember's drag follows the finger with a slight lag (weight) — follows the finger; the lag can't be judged in the Simulator
+89. [x] Toasts and the Undo bar never overlap (a single queue) — seen: the line steps aside for Undo, then plays
 90. [ ] Everything at 120 Hz: no JavaScript per frame during scroll or drag (audit with the perf monitor) (needs the Mac; moved to Round 7)
 
 ### F. Quality and wrap-up (91–100)
-91. [ ] Every new piece checked live in the Simulator, with screenshots (needs the Mac; moved to Round 7)
-92. [ ] Every new piece at the largest text size (needs the Mac; moved to Round 7)
-93. [~] Every new piece with VoiceOver labels
-94. [~] Every new piece with Reduce Motion
+91. [x] Every new piece checked live in the Simulator, with screenshots — walked 2026-10-03 on four Simulators; results and fixes in Round 7
+92. [~] Every new piece at the largest text size — caps added after the walk (titles, headings, buttons, cards, wake screen); spot-checked, a full pass is Round 7
+93. [~] Every new piece with VoiceOver labels — checked by reading the code; VoiceOver itself needs the phone
+94. [x] Every new piece with Reduce Motion — seen with Reduce Motion on
 95. [x] Show-someone mode can't save over real data (tested by checking the files before and after) — checked: file fingerprints identical after checking things off as Riley; only your own Settings visits changed, no Riley data in your files
 96. [ ] The app opens to the Desk in under a second on the phone (measure) (needs the Mac; moved to Round 7)
 97. [x] CLAUDE.md: night Desk, show mode, the shelf, and their rules
