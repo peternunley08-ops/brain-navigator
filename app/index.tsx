@@ -32,6 +32,7 @@ import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
 import { Icon, type IconName } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
+import { MoodPicker } from '../components/ui/MoodPicker';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Ring } from '../components/ui/Ring';
@@ -42,14 +43,17 @@ import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
 import { beforeNight, isNight, minutesOf, nightClockVersion, nightNow, nightStart, parseNightParam, setNightClock, subscribeNightClock } from '../core/night';
-import { clock, dateKey, daysUntil, focusMinutesOn, tonightsLoad, useSchoolStore } from '../core/schoolStore';
+import { clock, dateKey, daysUntil, focusMinutesOn, isoDay, nowState, tonightsLoad, useSchoolStore, type SchoolClass } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
 import { plural } from '../core/words';
+import { offerUndo } from '../core/undoStore';
+import { selectionAsync } from '../core/haptics';
 import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 
 const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 const MAX_ON_DESK = 9;
+const MOOD_WORDS = ['Rough', 'Low', 'Okay', 'Good', 'Great'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 function momentLabel(d = new Date()) {
@@ -97,6 +101,26 @@ function nightSummaryLine(dueToday: number, dueTomorrow: number, open: number, l
   return rest ? `${left} left for tonight. The rest can wait for morning.` : `${left} left for tonight.`;
 }
 
+// The Desk follows the school day: the line under the greeting changes with where
+// the student is (before school, in class, between classes, after school, evening).
+// Night is handled separately. Uses the class schedule; no schedule, the plain summary.
+function dayPartLine(classes: SchoolClass[], d: Date, plain: string) {
+  const st = nowState(classes, d);
+  const mins = d.getHours() * 60 + d.getMinutes();
+  if (st.kind === 'in') {
+    const left = plural(st.minsLeft, 'minute');
+    return `In ${st.cls.name}, ${left} left.${st.next ? ` Then ${st.next.name}.` : ''}`;
+  }
+  if (st.kind === 'next') {
+    const first = classes.filter((c) => c.days.includes(isoDay(d))).sort((a, b) => a.start - b.start)[0];
+    if (first && st.cls.id === first.id) return `Before school. ${st.cls.name} at ${clock(st.cls.start)}. ${plain}`;
+    return `Next up: ${st.cls.name} in ${plural(st.minsUntil, 'minute')}.`;
+  }
+  if (st.kind === 'done') return d.getHours() >= 17 ? `Evening. ${plain}` : `School’s done for today. ${plain}`;
+  if (st.kind === 'free' && d.getHours() >= 17) return `Evening. ${plain}`;
+  return plain;
+}
+
 function ageLabel(createdAt: string) {
   const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / DAY_MS);
   if (days <= 0) return 'Since today';
@@ -116,11 +140,18 @@ export default function DeskScreen() {
 
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
   const todaysCheckin = useWellnessStore((s) => s.todaysCheckin());
+  const quickMood = useWellnessStore((s) => s.quickMood);
+  const logMood = async (v: number) => {
+    selectionAsync();
+    const undo = await quickMood(v);
+    if (undo) offerUndo(`Logged today as ${MOOD_WORDS[v - 1].toLowerCase()}`, () => void undo(), 'check');
+  };
   const loadingCheckins = useWellnessStore((s) => s.isLoadingCheckins && s.checkins.length === 0);
   const habits = useHabitsStore((s) => s.habits);
   const logs = useHabitsStore((s) => s.logs);
   const assignments = useSchoolStore((s) => s.assignments);
   const focus = useSchoolStore((s) => s.focus);
+  const classes = useSchoolStore((s) => s.classes);
   const profile = useSchoolStore((s) => s.profile);
   const nickname = useLifeStore((s) => s.about.nickname.trim());
   const timePick = useLifeStore((s) => s.about.picks.time);
@@ -321,7 +352,7 @@ show('checkin') ? (
         >
           {loadingCheckins ? (
             <SkeletonCard lines={1} />
-          ) : todaysCheckin ? (
+          ) : todaysCheckin?.mood != null ? (
             <Card onPress={() => router.push('/checkin')}>
               <View style={styles.rings}>
                 <Ring
@@ -350,16 +381,11 @@ show('checkin') ? (
               </View>
             </Card>
           ) : (
-            <Card tint={colors.flame} onPress={() => router.push('/checkin')}>
-              <View style={styles.promptRow}>
-                <View style={styles.promptIcon}>
-                  <Icon name="sun" size={24} color={colors.flame} />
-                </View>
-                <View style={styles.promptText}>
-                  <Text style={styles.promptTitle}>Check in for today</Text>
-                  <Text style={styles.promptBody}>Mood, sleep, and stress. About a minute.</Text>
-                </View>
-                <Icon name="chevron" size={18} color={colors.textFaint} />
+            <Card tint={colors.flame}>
+              <Text style={styles.promptTitle}>How’s today feeling?</Text>
+              <Text style={styles.promptBody}>Tap a face. Hold one for the full check-in.</Text>
+              <View style={styles.moodRow}>
+                <MoodPicker value={null} onChange={logMood} onLongPress={() => router.push('/checkin')} />
               </View>
             </Card>
           )}
@@ -428,7 +454,11 @@ show('line') ? (
       motes
       kicker={momentLabel(nightNow())}
       title={greetingFor(nickname || profile.name, timePick, nightNow())}
-      subtitle={(night ? nightSummaryLine : summaryLine)(dueToday, dueTomorrow, openLoops.length, lateCount)}
+      subtitle={
+        night
+          ? nightSummaryLine(dueToday, dueTomorrow, openLoops.length, lateCount)
+          : dayPartLine(classes, nightNow(), summaryLine(dueToday, dueTomorrow, openLoops.length, lateCount))
+      }
       right={
         <View style={styles.headerBtns}>
           <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} />
@@ -675,6 +705,9 @@ const styles = StyleSheet.create({
   rings: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+  },
+  moodRow: {
+    marginTop: 12,
   },
   promptRow: {
     flexDirection: 'row',
