@@ -616,9 +616,10 @@ function withTalk(actions?: EmberAction[]) {
 // A small glowing dot by Ember's head: "I've got something for you."
 function NudgeDot() {
   const p = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
-    p.value = withRepeat(withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.sin) }), -1, true);
-  }, [p]);
+    p.value = reduced ? 1 : withRepeat(withTiming(1, { duration: 1100, easing: Easing.inOut(Easing.sin) }), -1, true);
+  }, [p, reduced]);
   const style = useAnimatedStyle(() => ({ transform: [{ scale: 0.85 + 0.3 * p.value }], opacity: 0.75 + 0.25 * p.value }));
   return <Animated.View style={[styles.nudge, style]} pointerEvents="none" />;
 }
@@ -637,9 +638,11 @@ function Zzz({ side }: { side: 'left' | 'right' }) {
 
 function Z({ i, dir }: { i: number; dir: number }) {
   const p = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) return;
     p.value = withDelay(i * 900, withRepeat(withTiming(1, { duration: 2700, easing: Easing.out(Easing.quad) }), -1, false));
-  }, [p, i]);
+  }, [p, i, reduced]);
   const style = useAnimatedStyle(() => ({
     opacity: Math.sin(p.value * Math.PI),
     transform: [

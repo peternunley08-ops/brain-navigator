@@ -5,7 +5,7 @@ import { plural } from '../core/words';
 import { aiFailLine, askJob, soundsLikeCrisis } from '../core/emberAI';
 import { HelpCard } from '../components/ember/HelpCard';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
-import Animated, { Easing, FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, { Easing, FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, useReducedMotion, withRepeat, withTiming } from 'react-native-reanimated';
 import { recognizeText, textRecognitionAvailable } from '../modules/text-recognition';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { EmberSprite } from '../components/ember/EmberSprite';
@@ -519,9 +519,11 @@ function WorkPick({
 // phone reads.
 function ScanPreview({ uri }: { uri: string }) {
   const p = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) return;
     p.value = withRepeat(withTiming(1, { duration: 1300, easing: Easing.inOut(Easing.quad) }), -1, true);
-  }, [p]);
+  }, [p, reduced]);
   const line = useAnimatedStyle(() => ({ top: `${p.value * 96}%` }));
   return (
     <View style={styles.preview}>

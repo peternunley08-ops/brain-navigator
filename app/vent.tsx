@@ -247,11 +247,12 @@ function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => voi
 // A glowing orb; while it listens, rings ripple outward from it.
 function MicOrb({ listening, onPress }: { listening: boolean; onPress: () => void }) {
   const breathe = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
-    breathe.value = listening
+    breathe.value = listening && !reduced
       ? withRepeat(withSequence(withTiming(1, { duration: 900 }), withTiming(0, { duration: 900 })), -1)
       : withTiming(0, { duration: 300 });
-  }, [listening, breathe]);
+  }, [listening, breathe, reduced]);
   const orb = useAnimatedStyle(() => ({ transform: [{ scale: 1 + 0.05 * breathe.value }] }));
 
   return (
@@ -274,10 +275,13 @@ function MicOrb({ listening, onPress }: { listening: boolean; onPress: () => voi
 }
 
 function Ripple({ delay }: { delay: number }) {
-  const p = useSharedValue(0);
+  const p = useSharedValue(1);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) return;
+    p.value = 0;
     p.value = withDelay(delay, withRepeat(withTiming(1, { duration: 1800, easing: Easing.out(Easing.quad) }), -1, false));
-  }, [p, delay]);
+  }, [p, delay, reduced]);
   const style = useAnimatedStyle(() => ({ opacity: 0.55 * (1 - p.value), transform: [{ scale: 1 + p.value * 0.7 }] }));
   return <Animated.View style={[styles.ripple, style]} pointerEvents="none" />;
 }

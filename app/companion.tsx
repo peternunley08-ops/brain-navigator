@@ -607,12 +607,14 @@ function Thinking() {
 
 function Dot({ i }: { i: number }) {
   const p = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
+    if (reduced) return;
     p.value = withDelay(
       i * 160,
       withRepeat(withSequence(withTiming(1, { duration: 380, easing: Easing.out(Easing.quad) }), withTiming(0, { duration: 380 })), -1)
     );
-  }, [p, i]);
+  }, [p, i, reduced]);
   const style = useAnimatedStyle(() => ({ opacity: 0.35 + 0.65 * p.value, transform: [{ translateY: -3 * p.value }] }));
   return <Animated.View style={[styles.dot, style]} />;
 }

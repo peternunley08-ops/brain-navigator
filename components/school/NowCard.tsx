@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { clock, nowState, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { Card } from '../ui/Card';
@@ -26,9 +26,10 @@ export function NowCard() {
   const now = nowState(classes);
 
   const pulse = useSharedValue(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
-    pulse.value = withRepeat(withTiming(1, { duration: 1400 }), -1, true);
-  }, [pulse]);
+    pulse.value = reduced ? 1 : withRepeat(withTiming(1, { duration: 1400 }), -1, true);
+  }, [pulse, reduced]);
   const live = useAnimatedStyle(() => ({ opacity: 0.4 + 0.6 * pulse.value, transform: [{ scale: 0.8 + 0.3 * pulse.value }] }));
 
   if (now.kind === 'none' || now.kind === 'unscheduled') {
