@@ -11,6 +11,8 @@ const TICK_MS = 30;
 export function AmbientAudioEngine() {
   const clearPlayer = useAudioPlayer(require('../assets/audio/ambient-clear.wav'));
   const muffledPlayer = useAudioPlayer(require('../assets/audio/ambient-muffled.wav'));
+  const cracklePlayer = useAudioPlayer(require('../assets/audio/crackle.wav'));
+  const crackleOn = useAudioStore((s) => !!s.crackle && !!s.crackleLive);
   const mood = useAudioStore((s) => s.mood);
   const transitionMs = useAudioStore((s) => s.transitionMs);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -23,6 +25,18 @@ export function AmbientAudioEngine() {
     clearPlayer.play();
     muffledPlayer.play();
   }, [clearPlayer, muffledPlayer]);
+
+  // Soft fire crackle: only while a focus session runs and the student has it on.
+  useEffect(() => {
+    cracklePlayer.loop = true;
+    cracklePlayer.volume = 0.35;
+    try {
+      if (crackleOn) cracklePlayer.play();
+      else cracklePlayer.pause();
+    } catch {
+      // A player that's gone is already silent.
+    }
+  }, [crackleOn, cracklePlayer]);
 
   useEffect(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);

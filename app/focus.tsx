@@ -8,6 +8,7 @@ import { cheerLine } from '../core/about';
 import { celebrate } from '../core/celebrateStore';
 import { EmberSprite } from '../components/ember/EmberSprite';
 import { Sparks } from '../components/ember/Sparks';
+import { useAudioStore } from '../core/audioStore';
 import { useEmberStore } from '../core/emberStore';
 import { useEmberRig } from '../components/ember/useEmberRig';
 import { Button } from '../components/ui/Button';
@@ -186,6 +187,13 @@ export default function FocusScreen() {
   }, [phase, rig]);
 
   useEffect(() => () => useEmberStore.getState().setProp(null), []);
+
+  // The fire crackle (if they've turned it on) plays only while the candle's burning.
+  const crackle = useAudioStore((s) => !!s.crackle);
+  useEffect(() => {
+    useAudioStore.getState().setCrackleLive(phase === 'running');
+  }, [phase]);
+  useEffect(() => () => useAudioStore.getState().setCrackleLive(false), []);
 
   const start = () => {
     peeked.current = false;
@@ -404,6 +412,7 @@ export default function FocusScreen() {
                     }}
                   />
                 ))}
+                <Chip label={crackle ? 'Fire crackle on' : 'Fire crackle'} icon="music" selected={crackle} onPress={() => useAudioStore.getState().setCrackle(!crackle)} />
                 <Chip label={autoCycle ? `Cycling, round ${round + 1} of 4` : 'Keep cycling'} icon="repeat" selected={autoCycle} onPress={() => setAutoCycle((v) => !v)} />
               </ChipRow>
             </Section>
@@ -450,6 +459,16 @@ export default function FocusScreen() {
         </>
       ) : null}
 
+      {phase === 'running' || phase === 'paused' ? (
+        <ChipRow>
+          <Chip
+            label={crackle ? 'Fire crackle on' : 'Fire crackle'}
+            icon="music"
+            selected={crackle}
+            onPress={() => useAudioStore.getState().setCrackle(!crackle)}
+          />
+        </ChipRow>
+      ) : null}
       {phase === 'running' || phase === 'paused' ? (
         <View style={styles.strayRow}>
           <Field
