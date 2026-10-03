@@ -37,7 +37,7 @@ Listed in `ACCEPTED` in security.mjs. Changing that list is Peter's call.
   `ember` caps the request body and is POST only. `notion` honours an
   optional `NOTION_DATABASES` allowlist. Canvas addresses are forced to
   https. The one-kind-thing text link keeps only digits and +. New scanner
-  rules: `fn-error-leak`, `http-token`. Open: undeploy `chat`; set
-  `NOTION_DATABASES`; Canvas token and Google sign-in live in plain app
+  rules: `fn-error-leak`, `http-token`. Done 2026-10-03 from the Mac: `chat` deleted, `ember` and
+  `notion` redeployed. Open: set `NOTION_DATABASES`; Canvas token and Google sign-in live in plain app
   files (move to expo-secure-store in the Round 7 native batch).
 
