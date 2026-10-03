@@ -2,7 +2,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useState } from 'react';
 import { goBack } from '../core/chrome';
 import { plural } from '../core/words';
-import { aiFailLine, askJob } from '../core/emberAI';
+import { aiFailLine, askJob, soundsLikeCrisis } from '../core/emberAI';
+import { HelpCard } from '../components/ember/HelpCard';
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, FadeIn, FadeInDown, useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { recognizeText, textRecognitionAvailable } from '../modules/text-recognition';
@@ -320,6 +321,7 @@ export default function ScanScreen() {
       {stage === 'review' && result ? (
         result.assignments.length + result.classes.length === 0 ? (
           <EmptyState title="I couldn’t find classes or due dates in that one." body="Try your Classroom home screen or To-do list, zoomed so the text is clear.">
+            {soundsLikeCrisis(rawText) ? <HelpCard /> : null}
             {rawText.trim() ? <AITidyButton busy={tidy.busy} line={tidy.line} onPress={tidyWithAI} /> : null}
             <Button label="Try another" icon="image" variant="secondary" onPress={() => setStage(textRecognitionAvailable ? 'intro' : 'paste')} />
           </EmptyState>
@@ -331,6 +333,7 @@ export default function ScanScreen() {
               {shots.length > 1 ? `From ${shots.length} screenshots. ` : ''}Here’s what I found. Uncheck anything that’s wrong{result.assignments.some((a) => !a.due) ? ', and pick dates where I couldn’t read one' : ''}.
             </Text>
 
+            {soundsLikeCrisis(rawText) ? <HelpCard /> : null}
             {rawText.trim() && !tidy.line?.startsWith('Claude found') ? <AITidyButton busy={tidy.busy} line={tidy.line} onPress={tidyWithAI} /> : null}
             {tidy.line?.startsWith('Claude found') ? <Text style={styles.found}>{tidy.line}</Text> : null}
 
