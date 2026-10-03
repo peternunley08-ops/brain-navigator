@@ -37,7 +37,7 @@ try everything without real data. Nothing saves while showing.
 
 ## How work flows
 
-1. **Branch from `main`**: `git checkout -b yourname/short-topic`. Never push to `main`.
+1. **Branch from `main`**: `git checkout -b yourname/short-topic`. Never push to `main`; a pre-push hook (`.githooks/pre-push`, turned on by `npm install`) stops it.
 2. **Pick something** from the current round: [`docs/rounds/round-7.md`](docs/rounds/round-7.md). Each item has a number; mention it in your commit (`Ideas: R7-11`).
 3. **Follow the house rules** in [`CLAUDE.md`](CLAUDE.md) (short). The biggest ones:
    - Build screens with the kit in `components/ui/` (`Screen`, `Card`, `Pressy`, …).
