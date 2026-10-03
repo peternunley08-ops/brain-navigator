@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { useLifeStore } from './lifeStore';
 import { isNight, minutesOf, nightNow, nightStart } from './night';
 import { nowState, useSchoolStore } from './schoolStore';
+import { isShowing } from './showMode';
 import { useUndoStore } from './undoStore';
 
 /** True while a class is in session and Ember has been asked to stay quiet then. */
@@ -73,6 +74,8 @@ function prefsFile() {
 }
 
 function persist(p: EmberPrefs) {
+  // Nothing saves while showing someone the app (a goodnight as Riley used to put the real Ember to sleep).
+  if (isShowing()) return;
   try {
     const f = prefsFile();
     if (!f.exists) f.create();
@@ -97,20 +100,22 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
   peeks: 0,
 
   load: async () => {
+    // Read again after showing someone the app, so it also drops anything unsaved.
+    let prefs = DEFAULTS;
     try {
       const f = prefsFile();
       if (f.exists) {
         const p = JSON.parse(await f.text()) as Partial<EmberPrefs>;
-        set({
+        prefs = {
           side: p.side === 'left' ? 'left' : 'right',
           y: typeof p.y === 'number' ? Math.min(1, Math.max(0, p.y)) : DEFAULTS.y,
           napping: !!p.napping,
-        });
+        };
       }
     } catch {
       // Fall back to the defaults.
     }
-    set({ loaded: true });
+    set({ ...prefs, loaded: true });
   },
 
   setPerch: (side, y) => {

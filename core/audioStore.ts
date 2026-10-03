@@ -1,5 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
+import { isShowing } from './showMode';
 
 export type AmbientMood = 'clear' | 'muffled';
 
@@ -18,6 +19,8 @@ interface AudioStore {
 const FILE = 'audio.json';
 
 function persist(crackle: boolean) {
+  // Nothing saves while showing someone the app.
+  if (isShowing()) return;
   try {
     const f = new File(Paths.document, FILE);
     if (!f.exists) f.create();
@@ -44,14 +47,19 @@ export const useAudioStore = create<AudioStore>((set) => ({
   setCrackleLive: (live) => set({ crackleLive: live }),
 }));
 
-(async () => {
+/** Reads the saved crackle choice (at launch, and again after showing someone the app). */
+export async function loadCrackle() {
+  let crackle = false;
   try {
     const f = new File(Paths.document, FILE);
     if (f.exists) {
       const p = JSON.parse(await f.text()) as { crackle?: boolean };
-      useAudioStore.setState({ crackle: !!p.crackle });
+      crackle = !!p.crackle;
     }
   } catch {
     // Default: off.
   }
-})();
+  useAudioStore.setState({ crackle });
+}
+
+loadCrackle();
