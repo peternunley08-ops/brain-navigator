@@ -261,10 +261,6 @@ export function followUpTopic(followUp: string) {
   return t || followUp;
 }
 
-/** The note as text (older callers). */
-export function emberContext(screen: string, now = new Date()) {
-  return buildNote(screen, {}, now).text;
-}
 
 async function readError(error: unknown): Promise<{ status: number; body: Record<string, unknown> | null } | null> {
   if (error instanceof FunctionsHttpError) {
