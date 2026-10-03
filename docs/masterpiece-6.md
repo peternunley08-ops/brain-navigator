@@ -275,3 +275,13 @@ tiny wins radar).
   gained the night clock, show mode, Ember lines and gate rules (R6-97).
   Shield scan: no secrets, 0 high; 22 medium are dependency flaws waiting
   on an Expo SDK 57 patch. All of it is [~] until checked on the Mac.
+- 2026-10-03 (cloud, waves 5–7): Keep it for tomorrow in Let it out (R6-27),
+  night folds (R6-33), the good mail with sealed text hidden everywhere
+  (R6-71), one kind thing (R6-66), swipe between days (R6-87), streak of
+  light (R6-65), study buddy (R6-64), birthday morning (R6-68), sparks to
+  the Desk candles (R6-59), weather in the window (R6-61), pick up where
+  you left off (R6-75), gold dot for new Drawer pages (R6-52). Copy pass
+  removed exclamation marks from Ember's own voice. Release build of
+  34e22ba sent to the iPhone from the Mac (pods need LANG=en_US.UTF-8;
+  device UDID 00008150-001C4CE12110C01C). All [~] until checked live.
+
