@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { EmberGlyph } from '../components/ember/EmberSprite';
@@ -41,7 +41,9 @@ function weekWords(start: string, end: string) {
 function WeekCandle({ selected, dim, label, onPress, children }: { selected: boolean; dim: boolean; label: string; onPress: () => void; children: React.ReactNode }) {
   const reduce = useReducedMotion();
   const sel = useSharedValue(0);
-  sel.value = withTiming(selected ? 1 : 0, { duration: reduce ? 0 : 220 });
+  useEffect(() => {
+    sel.value = withTiming(selected ? 1 : 0, { duration: reduce ? 0 : 220 });
+  }, [selected, reduce, sel]);
   const lift = useAnimatedStyle(() => ({
     transform: [{ translateY: reduce ? 0 : -3 * sel.value }],
     shadowOpacity: 0.7 * sel.value,
