@@ -4,6 +4,7 @@ import { Fragment, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
+import { HelpCard } from '../components/ember/HelpCard';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
@@ -16,6 +17,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { cheerLine } from '../core/about';
 import { dateKey } from '../core/dates';
+import { soundsLikeCrisis } from '../core/emberAI';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts } from '../core/theme';
 
@@ -309,6 +311,46 @@ const TRAPS = [
   { key: 'Discounting the good', ask: 'What went right that I’m skipping over?' },
 ];
 
+// Offline starting points for a kinder version of the thought: nothing is
+// sent anywhere, and tapping one fills the box so it can be edited.
+const KINDER: Record<string, string[]> = {
+  Catastrophizing: [
+    'This feels huge right now, and the most likely outcome is much smaller.',
+    'I can’t see how this ends yet. I can handle the next small step.',
+    'Worst case is one possibility, not the only one.',
+  ],
+  'All-or-nothing': [
+    'It was not perfect, and it was not a failure. Most of it is somewhere in between.',
+    'Part of this went well and part needs work. Both are true.',
+    'I can aim for good enough today.',
+  ],
+  'Mind reading': [
+    'I don’t actually know what they think. I can ask, or let it be.',
+    'It might be about them or their day, not about me.',
+    'I’m guessing, and guesses are not facts.',
+  ],
+  'Fortune telling': [
+    'I can’t know how it will go. I can get ready and see.',
+    'Last time I worried like this, it went better than I feared.',
+    'I’m allowed to be nervous and still try.',
+  ],
+  'Should statements': [
+    'I’d like to, and it’s okay if I can’t do everything.',
+    'I’d tell a friend this was plenty. I can say it to myself too.',
+    'What matters most today? I can start there.',
+  ],
+  Labeling: [
+    'I did one thing badly. That does not make me bad at everything.',
+    'I’m a person who is still learning this.',
+    'A hard moment is not who I am.',
+  ],
+  'Discounting the good': [
+    'Some things went right, and they count too.',
+    'I’m allowed to notice what I did well, even when it feels small.',
+    'Both the hard part and the good part are real.',
+  ],
+};
+
 function Reframe({ color }: { color: string }) {
   const [thought, setThought] = useState('');
   const [trap, setTrap] = useState<string | null>(null);
@@ -316,9 +358,11 @@ function Reframe({ color }: { color: string }) {
   const [kept, setKept] = useState(false);
   const addWin = useLifeStore((s) => s.addWin);
   const t = TRAPS.find((x) => x.key === trap);
+  const help = soundsLikeCrisis(thought) || soundsLikeCrisis(kinder);
   return (
     <>
       <Field value={thought} onChangeText={setThought} placeholder="The thought, word for word. e.g. “I’m going to fail this class.”" multiline />
+      {help ? <HelpCard /> : null}
       {thought.trim() ? (
         <Animated.View entering={FadeInDown.duration(220)}>
           <Text style={styles.step}>Which trap is it?</Text>
@@ -334,6 +378,22 @@ function Reframe({ color }: { color: string }) {
           <View style={[styles.quote, { borderColor: alpha(color, 0.5) }]}>
             <Text style={styles.quoteText}>{t.ask}</Text>
           </View>
+          <Text style={styles.step}>Some kinder ways to say it</Text>
+          {(KINDER[t.key] ?? []).map((line) => (
+            <Card
+              key={line}
+              tint={color}
+              onPress={() => {
+                Haptics.selectionAsync();
+                setKinder(line);
+                setKept(false);
+              }}
+              accessibilityLabel={`Use: ${line}`}
+              style={styles.inline}
+            >
+              <Text style={styles.quoteText}>{line}</Text>
+            </Card>
+          ))}
           <Field value={kinder} onChangeText={setKinder} placeholder="A truer, kinder version of the thought" multiline containerStyle={styles.inline} />
           {kinder.trim() && !kept ? (
             <Button

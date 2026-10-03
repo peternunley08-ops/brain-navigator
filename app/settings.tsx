@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Share, StyleSheet, Text, View } from 'react-native';
+import { Alert, Share, StyleSheet, Switch, Text, View } from 'react-native';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { EmberGlyph } from '../components/ember/EmberSprite';
 import { Button } from '../components/ui/Button';
@@ -465,6 +465,17 @@ export default function SettingsScreen() {
             <ProgressBar value={ai.used / ai.limit} color={ai.left <= 3 ? colors.unlocked : colors.flame} style={styles.gap} />
           </Card>
           <Button label="How AI works here" icon="help" variant="ghost" size="sm" onPress={() => router.push('/ai')} style={styles.restoreToggle} />
+        </Section>
+        <Section title="Privacy" icon="star" note="Everything stays on this phone.">
+          <Card>
+            <View style={styles.row}>
+              <View style={styles.flex}>
+                <Text style={styles.rowLabel}>Hide the app in the app switcher</Text>
+                <Text style={styles.hint}>A candle covers the screen when you swipe away, so private pages don’t show.</Text>
+              </View>
+              <Switch value={!settings.veilOff} onValueChange={(v) => useLifeStore.getState().setSettings({ veilOff: !v })} trackColor={{ true: colors.flame }} accessibilityLabel="Hide the app in the app switcher" />
+            </View>
+          </Card>
         </Section>
       </Reveal>
 

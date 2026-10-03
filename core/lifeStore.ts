@@ -167,6 +167,10 @@ export interface LifeSettings {
   aiOff?: boolean;
   /** Ember's memory: off means nothing from past chats is kept or sent. */
   memoryOff?: boolean;
+  /** Opt out of the calm veil over the app in the app switcher (default on). */
+  veilOff?: boolean;
+  /** The person (from Your people) shown as a one-tap text on Steady. */
+  trustedAdultId?: string;
   /** A class name as it appears in screenshots (lowercase) → your class's id. */
   classAliases?: Record<string, string>;
   /** Days (YYYY-MM-DD) a breathing tool was finished; the last 90 are kept. */
