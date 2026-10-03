@@ -1,7 +1,9 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -13,7 +15,8 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { TimeField } from '../components/ui/TimeField';
-import { clock, dateKey, daysUntil, isoDay } from '../core/dates';
+import { addDays, clock, dateKey, isoDay } from '../core/dates';
+import { selectionAsync } from '../core/haptics';
 import { plural } from '../core/words';
 import { useGoogleCalendarStore } from '../core/googleCalendarStore';
 import { useHubStore } from '../core/hubStore';
@@ -36,6 +39,18 @@ interface Item {
 
 const LENGTHS = [15, 30, 45, 60, 90];
 const BLOCK_COLORS = ['#F5B45C', '#8FB4E8', '#8CC0A8', '#AFA2DE', '#F0845A'];
+
+function parseKey(key: string) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function dayWords(sel: string, today: string) {
+  if (sel === today) return 'Today';
+  if (sel === addDays(today, 1)) return 'Tomorrow';
+  if (sel === addDays(today, -1)) return 'Yesterday';
+  return parseKey(sel).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+}
 
 function minsOf(iso: string) {
   const d = new Date(iso);
@@ -64,6 +79,38 @@ export default function TodayScreen() {
   const [length, setLength] = useState(30);
   const [color, setColor] = useState(BLOCK_COLORS[0]);
   const [, tick] = useState(0);
+  const today = dateKey();
+  const [sel, setSel] = useState(today);
+  const reduce = useReducedMotion();
+  const slide = useSharedValue(0);
+  const fade = useSharedValue(1);
+  const isToday = sel === today;
+
+  const go = (to: string, dir: number) => {
+    if (to === sel) return;
+    selectionAsync();
+    if (!reduce) {
+      slide.value = dir * 36;
+      fade.value = 0;
+      slide.value = withTiming(0, { duration: 220 });
+      fade.value = withTiming(1, { duration: 220 });
+    }
+    setSel(to);
+  };
+  const step = (dir: number) => go(addDays(sel, dir), dir);
+  const pan = usePanGesture({
+    activeOffsetX: [-20, 20],
+    failOffsetY: [-12, 12],
+    onDeactivate: (e) => {
+      'worklet';
+      if (e.translationX < -50) scheduleOnRN(step, 1);
+      else if (e.translationX > 50) scheduleOnRN(step, -1);
+    },
+  });
+  const slideStyle = useAnimatedStyle(() => {
+    'worklet';
+    return { opacity: fade.value, transform: [{ translateX: slide.value }] };
+  });
 
   useEffect(() => {
     restoreSession();
@@ -71,37 +118,36 @@ export default function TodayScreen() {
     return () => clearInterval(t);
   }, [restoreSession]);
 
-  const today = dateKey();
-  const day = isoDay();
+  const day = isoDay(parseKey(sel));
   const items = useMemo(() => {
     const list: Item[] = [];
     for (const c of classes) {
       if (!c.days.includes(day)) continue;
       list.push({ key: `c${c.id}`, start: c.start, end: c.end, title: c.name, sub: c.room ? `Room ${c.room}` : c.kind === 'activity' ? 'Activity' : 'Class', color: c.color, icon: c.kind === 'activity' ? 'flag' : 'book', kind: 'class' });
     }
-    for (const b of plan.filter((p) => p.date === today)) {
+    for (const b of plan.filter((p) => p.date === sel)) {
       list.push({ key: `b${b.id}`, start: b.start, end: b.end, title: b.title, sub: 'Planned', color: b.color, icon: 'timer', kind: 'block', done: b.done, blockId: b.id });
     }
     if (signedIn) {
       for (const e of events) {
-        if (!e.start.includes('T')) continue;
+        if (!e.start.includes('T') || dateKey(new Date(e.start)) !== sel) continue;
         list.push({ key: `e${e.id}`, start: minsOf(e.start), end: minsOf(e.end), title: e.title, sub: 'Google Calendar', color: '#D99A6C', icon: 'calendar', kind: 'event' });
       }
     }
-    for (const f of focus.filter((x) => dateKey(new Date(x.at)) === today)) {
+    for (const f of focus.filter((x) => dateKey(new Date(x.at)) === sel)) {
       const end = minsOf(f.at);
       const a = assignments.find((x) => x.id === f.assignmentId);
       list.push({ key: `f${f.id}`, start: Math.max(0, end - f.minutes), end, title: a ? a.title : 'Focus session', sub: `${f.minutes} min of focus`, color: '#F5B45C', icon: 'flame', kind: 'focus', done: true });
     }
     return list.sort((a, b) => a.start - b.start);
-  }, [classes, plan, events, signedIn, focus, assignments, today, day]);
+  }, [classes, plan, events, signedIn, focus, assignments, sel, day]);
 
-  const dueToday = assignments.filter((a) => !a.done && daysUntil(a.due) <= 0);
-  const nowIndex = items.findIndex((i) => i.start > nowMins);
+  const dueToday = assignments.filter((a) => !a.done && (isToday ? a.due <= today : a.due === sel));
+  const nowIndex = isToday ? items.findIndex((i) => i.start > nowMins) : -1;
 
   const save = () => {
     if (!title.trim()) return;
-    addBlock({ date: today, title: title.trim(), start, end: start + length, color });
+    addBlock({ date: sel, title: title.trim(), start, end: start + length, color });
     setTitle('');
     setAdding(false);
     emberSay(`${title.trim()} at ${clock(start)}. I’ll keep it on your day.`, 'happy');
@@ -109,10 +155,17 @@ export default function TodayScreen() {
 
   return (
     <Screen
-      kicker={new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+      kicker={dayWords(sel, today)}
       title="Your day"
       subtitle={items.length ? `${plural(items.length, 'thing')} on the timeline.` : 'An open day. Plan a block or two.'}
     >
+      {!isToday ? (
+        <Pressy onPress={() => go(today, sel > today ? -1 : 1)} style={styles.backChip} accessibilityLabel="Back to today">
+          <Icon name="calendar" size={13} color={colors.flame} />
+          <Text style={styles.backText}>Back to today</Text>
+        </Pressy>
+      ) : null}
+
       {dueToday.length ? (
         <Reveal index={0}>
           <View style={styles.dueRow}>
@@ -129,7 +182,8 @@ export default function TodayScreen() {
       ) : null}
 
       <Reveal index={1}>
-        <View style={styles.timeline}>
+        <GestureDetector gesture={pan}>
+        <Animated.View style={[styles.timeline, slideStyle]}>
           {items.map((it, i) => (
             <View key={it.key}>
               {i === nowIndex ? <NowLine mins={nowMins} /> : null}
@@ -149,9 +203,10 @@ export default function TodayScreen() {
               />
             </View>
           ))}
-          {items.length && nowIndex === -1 ? <NowLine mins={nowMins} /> : null}
-          {!items.length ? <Text style={styles.empty}>Nothing scheduled yet today.</Text> : null}
-        </View>
+          {isToday && items.length && nowIndex === -1 ? <NowLine mins={nowMins} /> : null}
+          {!items.length ? <Text style={styles.empty}>{isToday ? 'Nothing scheduled yet today.' : 'Nothing scheduled this day.'}</Text> : null}
+        </Animated.View>
+        </GestureDetector>
       </Reveal>
 
       <Reveal index={2}>
@@ -233,6 +288,24 @@ function TimelineItem({ it, past, onToggle, onDelete }: { it: Item; past: boolea
 }
 
 const styles = StyleSheet.create({
+  backChip: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 14,
+    paddingHorizontal: 12,
+    height: 32,
+    borderRadius: radii.pill,
+    backgroundColor: alpha(colors.flame, 0.12),
+    borderWidth: 1,
+    borderColor: alpha(colors.flame, 0.3),
+  },
+  backText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.text,
+  },
   dueRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

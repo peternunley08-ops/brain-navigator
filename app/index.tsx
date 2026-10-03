@@ -9,6 +9,7 @@ import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { AboutCards } from '../components/desk/AboutCards';
 import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
+import { StreakOfLight } from '../components/desk/StreakOfLight';
 import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
@@ -479,6 +480,9 @@ show('line') ? (
         <NightDesk onShowAll={() => setShowAll(true)} />
       ) : (
         <>
+          <View style={styles.streak}>
+            <StreakOfLight />
+          </View>
           <FirstLight seen={firstLightSeen} onSeen={(k) => useLifeStore.getState().setSettings({ firstLightSeen: k })} />
           <Reveal index={0}>
             {beforeNight(nowMin, startMin) ? (
@@ -627,6 +631,7 @@ function DeskCandle({
 }
 
 const styles = StyleSheet.create({
+  streak: { marginBottom: 14 },
   headerBtns: {
     flexDirection: 'row',
     gap: 8,

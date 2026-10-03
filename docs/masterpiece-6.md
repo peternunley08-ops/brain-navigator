@@ -125,7 +125,7 @@ checked · [–] decided against (with why)
 62. [~] **Hold the flame**: holding Ember for a long breath starts a 3-breath calm right there, anywhere in the app
 63. [ ] **Pocket worry**: shake the phone to drop a worry into the box from anywhere (with Undo)
 64. [ ] **Study buddy**: during Focus, Ember studies too (a tiny book), and peeks up when time's half done
-65. [ ] **Streak of light**: the days you showed up glow as a thin line under the Desk title (no numbers, no guilt)
+65. [~] **Streak of light**: the days you showed up glow as a thin line under the Desk title (no numbers, no guilt)
 66. [~] **One kind thing**: once a week, Ember suggests texting one person from Your people something kind (a ready line, they tap send)
 67. [ ] **Exam season mode**: when 3+ tests are within a week, the Desk turns into a study plan view with a countdown ring per test
 68. [ ] **Birthday morning**: the room has confetti sparks and Ember a party hat (once)
@@ -149,7 +149,7 @@ checked · [–] decided against (with why)
 84. [ ] Sheets snap to a half height when their content is short
 85. [ ] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
 86. [~] Haptic texture on sliders (a tick per step)
-87. [ ] Swipe between days in Your day
+87. [~] Swipe between days in Your day
 88. [ ] Ember's drag follows the finger with a slight lag (weight)
 89. [~] Toasts and the Undo bar never overlap (a single queue)
 90. [ ] Everything at 120 Hz: no JavaScript per frame during scroll or drag (audit with the perf monitor)
