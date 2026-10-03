@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOutDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from '../core/haptics';
 import { dismissTour, setTourStep, TOUR_PATHS, useShowMode, useTour } from '../core/showMode';
@@ -24,6 +24,7 @@ export function ShowTour() {
   const step = useTour((s) => s.step);
   const dismissed = useTour((s) => s.dismissed);
   const insets = useSafeAreaInsets();
+  const reduced = useReducedMotion();
 
   const go = (i: number) => {
     setTourStep(i);
@@ -42,7 +43,7 @@ export function ShowTour() {
   if (step < 0) {
     if (dismissed) return null;
     return (
-      <Animated.View entering={FadeInDown.duration(260)} exiting={FadeOutDown.duration(180)} style={[styles.wrap, { bottom }]} pointerEvents="box-none">
+      <Animated.View entering={reduced ? undefined : FadeInDown.duration(260)} exiting={reduced ? undefined : FadeOutDown.duration(180)} style={[styles.wrap, { bottom }]} pointerEvents="box-none">
         <View style={styles.row}>
           <Pressy onPress={() => { Haptics.selectionAsync().catch(() => {}); go(0); }} style={styles.gold} accessibilityRole="button" accessibilityLabel="Take the tour of Riley's pages">
             <Text style={styles.goldText} maxFontSizeMultiplier={1.2}>Take the tour</Text>
@@ -57,7 +58,7 @@ export function ShowTour() {
 
   const last = step >= TOUR_PATHS.length - 1;
   return (
-    <Animated.View entering={FadeInDown.duration(260)} exiting={FadeOutDown.duration(180)} style={[styles.wrap, { bottom }]} pointerEvents="box-none">
+    <Animated.View entering={reduced ? undefined : FadeInDown.duration(260)} exiting={reduced ? undefined : FadeOutDown.duration(180)} style={[styles.wrap, { bottom }]} pointerEvents="box-none">
       <View style={styles.row}>
         <Pressy
           onPress={() => { Haptics.selectionAsync().catch(() => {}); if (last) dismissTour(); else go(step + 1); }}

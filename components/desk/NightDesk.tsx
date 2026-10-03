@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
   quiet: {
     alignItems: 'center',
     gap: 12,
-    marginTop: 40,
+    marginTop: 24,
     paddingHorizontal: 12,
     paddingVertical: 24,
     borderRadius: radii.lg,

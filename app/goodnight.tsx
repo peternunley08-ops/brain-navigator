@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeIn } from 'react-native-reanimated';
+import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { HelpCard } from '../components/ember/HelpCard';
 import { Button } from '../components/ui/Button';
@@ -29,6 +29,7 @@ const NAP_AFTER_MS = 3800;
 // Put the day down: what got done, one place to leave whatever is still
 // on your mind, what tomorrow starts with, and then goodnight.
 export default function GoodnightScreen() {
+  const reduced = useReducedMotion();
   const assignments = useSchoolStore((s) => s.assignments);
   const classes = useSchoolStore((s) => s.classes);
   const focus = useSchoolStore((s) => s.focus);
@@ -137,7 +138,7 @@ export default function GoodnightScreen() {
             />
             <Button label="Put it in the worry box" icon="feather" variant="secondary" onPress={keep} disabled={!text.trim()} style={styles.gap} />
             {kept ? (
-              <Animated.Text entering={FadeIn.duration(300)} style={[styles.soft, styles.gap]}>
+              <Animated.Text entering={reduced ? undefined : FadeIn.duration(300)} style={[styles.soft, styles.gap]}>
                 In the worry box. It’ll keep.
               </Animated.Text>
             ) : null}
@@ -233,6 +234,6 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   primary: {
-    marginTop: 28,
+    marginTop: 24,
   },
 });

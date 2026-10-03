@@ -103,7 +103,7 @@ checked · [–] decided against (with why)
 42. [x] First run: the welcome flow ends with the five This-or-that cards, so the app knows you from minute one
 43. [x] Every empty page has an Ember drawing and one clear next step (consistent art, not just text) (EmptyState draws Ember by default; the plain lines left are in-section notes, by design)
 44. [~] Cards share one shadow and one corner radius scale (audit the stragglers)
-45. [ ] Section headings breathe the same everywhere (spacing audit)
+45. [~] Section headings breathe the same everywhere (spacing audit)
 46. [~] Every number in the app uses tabular figures so columns line up
 47. [~] Icons in the Drawer get a soft inner glow in their color
 48. [~] The + sheet's options get small illustrations
@@ -157,8 +157,8 @@ checked · [–] decided against (with why)
 ### F. Quality and wrap-up (91–100)
 91. [ ] Every new piece checked live in the Simulator, with screenshots
 92. [ ] Every new piece at the largest text size
-93. [ ] Every new piece with VoiceOver labels
-94. [ ] Every new piece with Reduce Motion
+93. [~] Every new piece with VoiceOver labels
+94. [~] Every new piece with Reduce Motion
 95. [x] Show-someone mode can't save over real data (tested by checking the files before and after) — checked: file fingerprints identical after checking things off as Riley; only your own Settings visits changed, no Riley data in your files
 96. [ ] The app opens to the Desk in under a second on the phone (measure)
 97. [x] CLAUDE.md: night Desk, show mode, the shelf, and their rules

@@ -1,7 +1,7 @@
 import * as Haptics from '../core/haptics';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedProps, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedProps, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -52,6 +52,7 @@ const PROMPTS = [
 ];
 
 export default function WinsScreen() {
+  const reduced = useReducedMotion();
   const wins = useLifeStore((s) => s.wins);
   const addWin = useLifeStore((s) => s.addWin);
   const deleteWin = useLifeStore((s) => s.deleteWin);
@@ -103,7 +104,7 @@ export default function WinsScreen() {
     <Screen title="Wins" subtitle="The good stuff, kept where you can see it.">
       <Reveal index={0}>
         <View style={styles.jarWrap}>
-          <Jar count={wins.length} />
+          <Jar count={wins.length} reduced={reduced} />
           <Text style={styles.jarCount}>{wins.length}</Text>
           <Text style={styles.jarLabel}>{wins.length === 1 ? 'win in the jar' : 'wins in the jar'}</Text>
         </View>
@@ -183,7 +184,7 @@ export default function WinsScreen() {
           <Section title="In the jar">
             <View style={styles.list}>
               {wins.slice(0, 30).map((w, i) => (
-                <Animated.View key={w.id} entering={FadeInDown.duration(220)} exiting={FadeOut.duration(150)} layout={LinearTransition}>
+                <Animated.View key={w.id} entering={reduced ? undefined : FadeInDown.duration(220)} exiting={reduced ? undefined : FadeOut.duration(150)} layout={reduced ? undefined : LinearTransition}>
                   <Card style={styles.winRow}>
                     {w.sealedUntil && w.sealedUntil > today ? (
                       <Icon name="message" size={16} color={GOLD} />
@@ -222,13 +223,13 @@ export default function WinsScreen() {
 
 // A glass jar that fills with colored marbles, one per win. The newest one
 // drops in with a little bounce.
-function Jar({ count }: { count: number }) {
+function Jar({ count, reduced }: { count: number; reduced: boolean }) {
   const shown = Math.min(count, 48);
   const drop = useSharedValue(0);
   useEffect(() => {
     drop.value = -60;
-    drop.value = withSpring(0, { damping: 9, stiffness: 140 });
-  }, [count, drop]);
+    drop.value = reduced ? 0 : withSpring(0, { damping: 9, stiffness: 140 });
+  }, [count, drop, reduced]);
 
   // Pack marbles in rows from the bottom of the jar.
   const R = 7;
