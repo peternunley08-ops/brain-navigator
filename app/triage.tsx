@@ -158,7 +158,7 @@ export default function TriageScreen() {
               </ChipRow>
               {asking === a.id ? (
                 <Animated.View entering={FadeInDown.duration(240)} style={styles.note}>
-                  <Text style={styles.noteText} selectable>
+                  <Text style={styles.noteText} selectable accessibilityLabel={`Note for the teacher: ${noteFor(a)}`}>
                     {noteFor(a)}
                   </Text>
                   <View style={styles.noteBtns}>

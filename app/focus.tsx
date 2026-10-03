@@ -358,6 +358,7 @@ export default function FocusScreen() {
                   <Chip
                     label={`Start with ${smartStart.title.length > 22 ? `${smartStart.title.slice(0, 21)}…` : smartStart.title}?`}
                     icon="flag"
+                    accessibilityLabel={`Start focus on ${smartStart.title}`}
                     onPress={() => setTarget(smartStart.id)}
                   />
                   <Text style={styles.smartNote}>

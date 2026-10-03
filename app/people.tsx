@@ -100,16 +100,28 @@ export default function PeopleScreen() {
                   deletePerson(p.id);
                   offerUndo(`Removed ${snap.name}`, () => savePerson(snap));
                 }}
-                accessibilityHint="Hold to remove"
+                accessible={false}
                 style={styles.who}
               >
                 <View style={[styles.avatar, { backgroundColor: alpha(PINK, 0.18) }]}>
                   <Text style={styles.initial}>{p.name.charAt(0).toUpperCase()}</Text>
                 </View>
                 <View style={styles.flex}>
-                  <Text style={styles.name}>{p.name}</Text>
-                  <Text style={styles.note}>{p.note || p.phone}</Text>
-                  {p.reachedAt ? <Text style={styles.reached}>{sinceLine(p.reachedAt)}</Text> : null}
+                  <View
+                    accessible
+                    accessibilityLabel={[p.name, p.note || p.phone, p.reachedAt ? sinceLine(p.reachedAt) : ''].filter(Boolean).join(', ')}
+                    accessibilityHint="Swipe up or down for the remove action"
+                    accessibilityActions={[{ name: 'remove', label: `Remove ${p.name}` }]}
+                    onAccessibilityAction={() => {
+                      const snap = p;
+                      deletePerson(p.id);
+                      offerUndo(`Removed ${snap.name}`, () => savePerson(snap));
+                    }}
+                  >
+                    <Text style={styles.name}>{p.name}</Text>
+                    <Text style={styles.note}>{p.note || p.phone}</Text>
+                    {p.reachedAt ? <Text style={styles.reached}>{sinceLine(p.reachedAt)}</Text> : null}
+                  </View>
                   <Pressy
                     onPress={() => {
                       reached(p);

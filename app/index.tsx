@@ -382,7 +382,7 @@ show('checkin') ? (
             </Card>
           ) : (
             <Card tint={colors.flame}>
-              <Text style={styles.promptTitle}>How’s today feeling?</Text>
+              <Text style={styles.promptTitle} accessibilityRole="header">How’s today feeling?</Text>
               <Text style={styles.promptBody}>Tap a face. Hold one for the full check-in.</Text>
               <View style={styles.moodRow}>
                 <MoodPicker value={null} onChange={logMood} onLongPress={() => router.push('/checkin')} />

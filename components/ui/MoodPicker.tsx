@@ -63,7 +63,7 @@ function Face({
     opacity: withSpring(dimmed ? 0.45 : 1),
   }));
   return (
-    <Pressy onPress={onPress} onLongPress={onLongPress} depth={0.9} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={mood.label} style={styles.cell}>
+    <Pressy onPress={onPress} onLongPress={onLongPress} depth={0.9} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={mood.label} accessibilityHint={onLongPress ? 'Double tap and hold for the full check-in' : undefined} style={styles.cell}>
       <Animated.View
         style={[
           styles.face,

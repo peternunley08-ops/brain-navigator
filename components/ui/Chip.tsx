@@ -15,9 +15,11 @@ interface ChipProps {
   dot?: boolean;
   icon?: IconName;
   style?: StyleProp<ViewStyle>;
+  /** Spoken label when it should differ from the visible text (e.g. a truncated title). */
+  accessibilityLabel?: string;
 }
 
-export function Chip({ label, selected, onPress, color = colors.flame, dot, icon, style }: ChipProps) {
+export function Chip({ label, selected, onPress, color = colors.flame, dot, icon, style, accessibilityLabel }: ChipProps) {
   // Choosing a chip gives its contents a small springy swell, a beat after the sink.
   const swell = useSharedValue(1);
   const reduced = useReducedMotion();
@@ -35,6 +37,7 @@ export function Chip({ label, selected, onPress, color = colors.flame, dot, icon
       depth={0.94}
       hitSlop={6}
       accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
       accessibilityState={{ selected: !!selected }}
       style={[
         styles.chip,
