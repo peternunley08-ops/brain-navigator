@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { memo, useEffect, useSyncExternalStore } from 'react';
+import { memo, useEffect, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
@@ -38,6 +38,8 @@ export function weatherKind(code: number | null | undefined): WeatherKind {
   return code <= 3 ? 'clear' : null;
 }
 
+const TICK_MS = 5 * 60 * 1000;
+
 // The room behind every screen: a night gradient, a pool of candlelight
 // falling from above, and (on the calmer screens) dust turning in it.
 // Late in the evening the room dims a little more with each hour, and a
@@ -53,6 +55,13 @@ export const Backdrop = memo(function Backdrop({
   const windDown = useLifeStore((s) => s.settings.windDown);
   const nightOwl = useLifeStore((s) => s.about.picks.time === 'b');
   useSyncExternalStore(subscribeNightClock, nightClockVersion);
+  // Look at the clock every few minutes too, so the veil deepens and the
+  // stars come out on the real clock while a page sits open.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setTick((n) => n + 1), TICK_MS);
+    return () => clearInterval(t);
+  }, []);
   const now = minutesOf(nightNow());
   const start = nightStart(windDown, nightOwl);
   const night = isNight(now, start);
@@ -201,6 +210,8 @@ function Drop({
 }
 
 // A few stars in the top of the room, in fixed places so they never jump.
+// They come out one by one and breathe slower than the motes drift.
+const STAR_SLOW = 3;
 const STARS = [
   { x: 0.08, y: 0.06, r: 1.2, d: 4200, delay: 0 },
   { x: 0.21, y: 0.17, r: 1.0, d: 5600, delay: 900 },
@@ -241,7 +252,7 @@ function Star({
   const p = useSharedValue(0);
   useEffect(() => {
     if (still) return;
-    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: d, easing: Easing.inOut(Easing.sin) }), -1, true));
+    p.value = withDelay(delay * STAR_SLOW, withRepeat(withTiming(1, { duration: d * STAR_SLOW, easing: Easing.inOut(Easing.sin) }), -1, true));
   }, [p, d, delay, still]);
   const style = useAnimatedStyle(() => ({
     opacity: still ? 0.3 : 0.12 + 0.38 * p.value,

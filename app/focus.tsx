@@ -29,7 +29,8 @@ import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
 import { addDays, clock, dateKey, daysUntil, focusMinutesOn, minutesOn, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
-import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
+import { alpha, colors, fonts, layout, radii } from '../core/theme';
+import { useSkyGlow } from '../core/hooks/useSkyGlow';
 
 type Phase = 'setup' | 'running' | 'paused' | 'done' | 'break';
 
@@ -59,6 +60,7 @@ function mmss(ms: number) {
 // Ember sits beside it with its reading glasses on. Time comes from real
 // timestamps, so it stays right if you lock the phone mid-session.
 export default function FocusScreen() {
+  const sky = useSkyGlow();
   const { width: winW } = useWindowDimensions();
   const { assignment: assignmentParam, quick, topic, mins } = useLocalSearchParams<{ assignment?: string; quick?: string; topic?: string; mins?: string }>();
   const assignments = useSchoolStore((s) => s.assignments);
@@ -329,7 +331,7 @@ export default function FocusScreen() {
       : null;
 
   return (
-    <Screen back={false} tone="ember" glowColor={skyGlow()} motes={phase !== 'running'} title="Focus" subtitle="One thing. One candle.">
+    <Screen back={false} tone="ember" glowColor={sky} motes={phase !== 'running'} title="Focus" subtitle="One thing. One candle.">
       <View style={styles.stage}>
         <View style={styles.candle}>
           <Candle width={132} time={time} intensity={0.55} remaining={remaining} seed={5.5} state={candleState} reducedMotion={reduced} />

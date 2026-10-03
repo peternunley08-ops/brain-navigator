@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { cheerLine } from '../../core/about';
 import { clock } from '../../core/dates';
 import { useLifeStore, weekOf } from '../../core/lifeStore';
-import { dueOn, firstClassOn, lightsOutMinutes, minutesOf, morningKey, nightNow, pastLightsOut, tonightKey } from '../../core/night';
+import { dueOn, firstClassOn, lightsOutMinutes, minutesOf, morningKey, nightNow, pastLightsOut, tonightKey, tonightWeekday } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, dimensionColor, fonts, radii } from '../../core/theme';
 import { plural } from '../../core/words';
@@ -15,7 +15,7 @@ import { Pressy } from '../ui/Pressy';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Reveal } from '../ui/Reveal';
 import { Section } from '../ui/Section';
-import { AboutCards } from './AboutCards';
+import { WeekSentenceCard } from './AboutCards';
 
 const MOON = dimensionColor.intellectual;
 const MAX_DUE = 4;
@@ -28,8 +28,8 @@ export function NightDesk({ onShowAll }: { onShowAll: () => void }) {
 }
 
 function Stack({ onShowAll }: { onShowAll: () => void }) {
-  // Sunday night, the week's sentence comes first (AboutCards shows it on Sundays).
-  const sunday = nightNow().getDay() === 0;
+  // Sunday night (past midnight too), the week's sentence comes first.
+  const sunday = tonightWeekday() === 0;
   return (
     <>
       {sunday ? (
@@ -73,7 +73,7 @@ function WeekCard() {
   const review = reviews.find((r) => r.weekOf === week);
   const line = (review?.well || review?.next || '').trim();
   // No review yet: the week-in-a-sentence card (About you) leads instead.
-  if (!line) return <AboutCards />;
+  if (!line) return <WeekSentenceCard />;
   return (
     <Card tint={MOON} onPress={() => router.push('/review')} style={styles.hero}>
       <Icon name="book" size={24} color={MOON} />

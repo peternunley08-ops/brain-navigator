@@ -5,7 +5,8 @@ import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { aboutFilled, pickLabel, questionOfTheDay, THIS_OR_THAT } from '../../core/about';
 import { dateKey } from '../../core/dates';
 import { learnedNotes } from '../../core/learned';
-import { useLifeStore, weekOf } from '../../core/lifeStore';
+import { useLifeStore, weekOf, type AboutMe } from '../../core/lifeStore';
+import { tonightKey, tonightWeekday } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
 import { colors, fonts } from '../../core/theme';
 import { ThisOrThatDeck } from '../about/ThisOrThatDeck';
@@ -42,8 +43,7 @@ export function AboutCards() {
   if (needIntro) return <GetToKnowYou />;
   const recheck = stillTrue(about, today);
   if (recheck) return <StillTrue {...recheck} />;
-  // Sundays: the week in a sentence, kept in About you as their story.
-  if (new Date().getDay() === 0 && !about.weeks.some((w) => w.week === weekOf(today)) && !about.askedOn.includes(`week-${today}`)) return <WeekSentence />;
+  if (weekSentenceDue(about)) return <WeekSentence />;
   const q = questionOfTheDay(about, today);
   if (q) return <Question q={q} />;
   return about.noticedOn === today ? null : <Noticed />;
@@ -148,9 +148,23 @@ function Question({ q }: { q: string }) {
   );
 }
 
+// Sundays: the week in a sentence, kept in About you as their story. Sunday
+// night runs past midnight, so it reads the night's day, not the calendar's.
+function weekSentenceDue(about: AboutMe) {
+  const sunday = tonightKey();
+  return tonightWeekday() === 0 && !about.weeks.some((w) => w.week === weekOf(sunday)) && !about.askedOn.includes(`week-${sunday}`);
+}
+
+// The night stack leads with it on Sunday nights, ahead of the other About-you cards.
+export function WeekSentenceCard() {
+  const about = useLifeStore((s) => s.about);
+  const onboarded = useSchoolStore((s) => s.profile.onboarded);
+  return onboarded && weekSentenceDue(about) ? <WeekSentence /> : null;
+}
+
 function WeekSentence() {
   const [text, setText] = useState('');
-  const today = dateKey();
+  const today = tonightKey();
   const done = (line?: string) => {
     const { about, setAbout } = useLifeStore.getState();
     if (line) setAbout({ weeks: [...about.weeks, { week: weekOf(today), text: line.slice(0, 160) }] });
