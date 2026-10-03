@@ -60,7 +60,7 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
   "Most used").
   `core/motion.ts` — every spring and timing (`springs`, `timings`).
 - `core/about.ts`, `core/learned.ts`, `app/about.tsx`,
-  `components/about/` — About you (Round 5, `docs/masterpiece-5.md`):
+  `components/about/` — About you (Round 5, `docs/rounds/round-5.md`):
   what the student tells the app and what it notices, kept on the phone
   in `life.json` under `about`; goes to the AI only if `about.shareWithAI`.
 - `core/hooks/` — shared hooks: `useClearOnSend` (chat boxes), `useRealtimeRefetch`, `useOpenLoops`
@@ -86,7 +86,7 @@ anywhere** — every table uses wide-open `anon` RLS policies. Never introduce
 ### The Masterpiece (2026-09-30)
 
 The user asked for "100 plus ideas, execute all of them." The plan and
-per-idea status live in **`docs/masterpiece.md`** (120 ideas, all built;
+per-idea status live in **`docs/rounds/round-1.md`** (120 ideas, all built;
 most verified live). What that added:
 
 - **Data** — `schoolStore`: assignment `starred`, `subtasks` (with `on`
@@ -117,7 +117,7 @@ most verified live). What that added:
   weekly-review prompt, tonight's load bar, a line for the day, a glow
   that follows the time of day, search in the header, one-time What's New.
 
-**Round 2 (2026-09-30, `docs/masterpiece-2.md`):** the helper crew
+**Round 2 (2026-09-30, `docs/rounds/round-2.md`):** the helper crew
 (`core/helpers.ts`, `core/helperOffline.ts`, `app/helpers.tsx`,
 `app/helper/[id].tsx`, `components/helpers/*`), the AI allowance and Plus
 (`core/aiQuota.ts`, `app/plus.tsx` — 20 AI replies/week free, 250/month
@@ -130,7 +130,7 @@ quick capture (`core/quickParse.ts`), Desk cards (`components/desk/*`),
 `app/_layout.tsx`. The Edge Function `ember` takes an `agent` id for the
 helpers' personas (still not deployed).
 
-**Round 3 (2026-09-30 → 10-01, `docs/masterpiece-3.md`):** improvements on
+**Round 3 (2026-09-30 → 10-01, `docs/rounds/round-3.md`):** improvements on
 rounds 1 and 2. New pieces: `core/celebrateStore.ts` + `components/Celebration.tsx`
 (`celebrate(title, body, color, { key, win })`: once per key, optional
 wins-jar entry, "Just Ember" setting), `core/haptics.ts` (every vibration goes
@@ -172,7 +172,7 @@ Gotchas found while verifying:
   space; fast-typing races there aren't real-world bugs, but they did
   expose the two real ones above.
 
-### Round 5: smooth, and knows you (2026-10-01 → 10-02, `docs/masterpiece-5.md`)
+### Round 5: smooth, and knows you (2026-10-01 → 10-02, `docs/rounds/round-5.md`)
 
 **The frame** (`components/ui/Screen.tsx`, `core/chrome.ts`, `core/motion.ts`):
 one BottomNav drawn in `app/_layout.tsx` that tucks while reading down and
@@ -400,7 +400,7 @@ only after the save succeeds.
 
 ### Ember's AI brain (built 2026-09-29, live since 2026-10-01)
 
-**Round 4 (2026-10-01, `docs/masterpiece-4.md`): the AI design.** The
+**Round 4 (2026-10-01, `docs/rounds/round-4.md`): the AI design.** The
 `ember` function is now a job router (prompt v4.1, now v4.4): `kind` = talk, helper,
 summary, title, steps, plan, scan, cards, points, practice, pick, reflect,
 ping. Sonnet 5.5 (adaptive thinking, effort per job) for most, Haiku 4.5

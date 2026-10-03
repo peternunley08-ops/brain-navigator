@@ -21,6 +21,10 @@ interface WeatherStore {
   swellHeightFt: number | null;
   swellPeriodS: number | null;
 
+  /** Today's sunrise and sunset, ISO local time. */
+  sunrise?: string;
+  sunset?: string;
+
   connect: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -71,7 +75,7 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
       const [places, weatherRes, marineRes] = await Promise.all([
         Location.reverseGeocodeAsync({ latitude, longitude }).catch(() => []),
         fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
+          `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=sunrise,sunset&temperature_unit=fahrenheit&wind_speed_unit=mph&timezone=auto`
         ),
         fetch(
           `https://marine-api.open-meteo.com/v1/marine?latitude=${latitude}&longitude=${longitude}&current=wave_height,wave_period,wave_direction,swell_wave_height,swell_wave_period&length_unit=imperial&timezone=auto`
@@ -112,6 +116,8 @@ export const useWeatherStore = create<WeatherStore>((set, get) => ({
         weatherCode: current.weather_code ?? null,
         windMph: current.wind_speed_10m ?? null,
         humidityPct: current.relative_humidity_2m ?? null,
+        sunrise: weatherJson.daily?.sunrise?.[0],
+        sunset: weatherJson.daily?.sunset?.[0],
         hasMarineData,
         waveHeightFt,
         wavePeriodS,

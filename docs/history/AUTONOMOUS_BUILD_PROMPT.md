@@ -30,7 +30,7 @@ project's actual, tested pivots — use these, not generic web-deploy advice:
 | `xcodebuild` fails with a React Native codegen "module not found" error | The default DerivedData path under `~/Library/Application Support/...` has a space in it and breaks some CocoaPods scripts — build with an explicit `-derivedDataPath` under `/tmp` instead |
 | Codesign fails with "resource fork, Finder information, or similar detritus not allowed" | `xattr -cr` on `node_modules` and `ios` |
 | MCP Simulator `launch` action fails repeatedly (`disclaimer exited with code 143`) | Bypass it: `xcrun simctl install <udid> <path-to-.app>` then `xcrun simctl launch <udid> <bundle-id>` directly |
-| A feature needs a real Apple Watch, physical device, real Apple Developer paid signing, or copyrighted audio assets | Cannot be done headlessly. Stub it as a documented plan (see `docs/apple-watch-plan.md` for the pattern) instead of attempting a real build. Note it as a limitation. |
+| A feature needs a real Apple Watch, physical device, real Apple Developer paid signing, or copyrighted audio assets | Cannot be done headlessly. Stub it as a documented plan (see `docs/plans/apple-watch.md` for the pattern) instead of attempting a real build. Note it as a limitation. |
 | A feature needs a third-party account/API key you don't have (Google Cloud OAuth client, Notion integration secret, etc.) | Stop and hand back to the user with exact numbered setup steps — this project's pattern all session has been: agent does everything that doesn't require the user's own login, user does the few clicks that do, agent resumes once given the resulting (non-secret) values. Do not try to work around this by skipping the feature. |
 | Any Supabase or Notion write during testing | Must be cleaned up afterward — delete test rows in Supabase, archive test pages in Notion — with a final check confirming the touched tables are back to their pre-session real-data-only state. This has been done after every single phase this session; do not break the streak. |
 | Dev server / Metro port in use, or app shows a stale/blank screen | Check `curl -s -o /dev/null -w "%{http_code}" http://localhost:8081/status`; if Metro's alive but the simulator's blank, it's usually just idle-timeout back at the Entry Threshold hold-to-enter gate — pass through it, don't restart anything |
@@ -80,7 +80,7 @@ build — never distributed, no App Store submission planned.
 a real native iOS project for Xcode builds), TypeScript, expo-router
 (file-based routing), Zustand (one store per domain in `core/`), Supabase
 (Postgres + supabase-js, RLS wide-open on the anon key — a documented,
-accepted single-user MVP tradeoff, see `docs/encryption-plan.md`),
+accepted single-user MVP tradeoff, see `docs/plans/encryption.md`),
 react-native-svg for all custom visualizations (no charting library),
 `@react-native-google-signin/google-signin` for Calendar OAuth,
 `@kingstinct/react-native-healthkit` + `react-native-nitro-modules` for
@@ -166,10 +166,10 @@ about tradeoffs — including "known limitation" callouts, not just successes.
 
 ### Backlog items already named as future work in `todo.md`
 6. Real Supabase Auth, to replace the wide-open anon-key RLS policies —
-   `docs/encryption-plan.md` explicitly says this should land before any
+   `docs/plans/encryption.md` explicitly says this should land before any
    real encryption work.
 7. Local-first encryption (blocked on #6).
-8. Apple Watch companion — `docs/apple-watch-plan.md` has the plan; needs
+8. Apple Watch companion — `docs/plans/apple-watch.md` has the plan; needs
    real Xcode/signing/a paired device done together with the user, not
    headlessly.
 9. Topography's graph layout is a simple two-ring placement, not

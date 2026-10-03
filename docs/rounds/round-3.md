@@ -1,6 +1,6 @@
 # The Masterpiece, round 3
 
-Started 2026-09-30, after round 2 (`docs/masterpiece-2.md`).
+Started 2026-09-30, after round 2 (`docs/rounds/round-2.md`).
 
 The user asked: "come up with a 100 more ideas to improve on any ideas you
 had and create more improving on those I trust you with orchastrating this".

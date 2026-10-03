@@ -185,6 +185,8 @@ export default function DeskScreen() {
   const windDown = useLifeStore((s) => s.settings.windDown);
   const firstLightSeen = useLifeStore((s) => s.settings.firstLightSeen);
   const weatherCode = useWeatherStore((s) => s.weatherCode);
+  const sunrise = useWeatherStore((s) => s.sunrise);
+  const sunset = useWeatherStore((s) => s.sunset);
   const nowMin = minutesOf(nightNow());
   const startMin = nightStart(windDown, timePick === 'b');
   const night = isNight(nowMin, startMin);
@@ -448,7 +450,7 @@ show('line') ? (
     <Screen
       back={false}
       tone="ember"
-      glowColor={skyGlow(nightNow())}
+      glowColor={skyGlow(nightNow(), { sunrise, sunset })}
       onRefresh={() =>
         Promise.all([
           fetchCheckins(),

@@ -178,7 +178,7 @@ checked · [–] decided against (with why)
 **Round 5 is finished** (93 done, 6 decided against with reasons, 1 built
 but not seeable live: #65's "Still a night owl?" needs answers 60+ days
 old). Committed and pushed. The next round's plan is
-`docs/masterpiece-6.md`; its RESUME HERE is the place to start.
+`docs/rounds/round-6.md`; its RESUME HERE is the place to start.
 
 The user's standing instructions (2026-10-02): keep going round after
 round; if stuck, go with the best answer; after each round write the next

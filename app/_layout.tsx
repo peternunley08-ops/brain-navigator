@@ -24,6 +24,7 @@ import { ErrorScreen } from '../components/ErrorScreen';
 import { PrivacyVeil } from '../components/PrivacyVeil';
 import { OpenWatcher } from '../components/OpenWatcher';
 import { ShowBanner } from '../components/ShowBanner';
+import { ShowTour } from '../components/ShowTour';
 import { UndoBar } from '../components/UndoBar';
 import { Celebration } from '../components/Celebration';
 import { useHubStore } from '../core/hubStore';
@@ -113,6 +114,7 @@ export default function RootLayout() {
             <OpenWatcher />
             <Celebration />
             <ShowBanner />
+            <ShowTour />
           </>
         ) : (
           <EntryThreshold onEnter={() => setEntered(true)} />

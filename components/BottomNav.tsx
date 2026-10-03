@@ -12,6 +12,7 @@ import { springs, timings } from '../core/motion';
 import { dateKey, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, gradients, radii } from '../core/theme';
 import { Icon, type IconName } from './ui/Icon';
+import { PlusArt, hasPlusArt } from './plus/PlusArt';
 import { Pressy } from './ui/Pressy';
 
 type NavPath = '/' | '/school' | '/focus' | '/steady';
@@ -237,7 +238,7 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
                   accessibilityLabel={o.title}
                 >
                   <View style={[styles.optionIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
-                    <Icon name={o.icon} size={22} color={o.color} />
+                    {hasPlusArt(o.href) ? <PlusArt href={o.href} size={34} /> : <Icon name={o.icon} size={22} color={o.color} />}
                   </View>
                   <View style={styles.optionText}>
                     <Text style={styles.optionTitle}>{o.title}</Text>

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, type LayoutChangeEvent, ScrollView, Share, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { Constellation } from '../components/about/Constellation';
 import { ThisOrThatDeck } from '../components/about/ThisOrThatDeck';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -131,6 +132,7 @@ export default function AboutScreen() {
           <Chip key={j.key} label={j.label} icon={j.icon} onPress={() => jump(j.key)} />
         ))}
       </ScrollView>
+      <Constellation picks={about.picks} />
       <View onLayout={mark('cards')} />
       <Reveal index={n++}>
         <Section title="This or that" note={unpicked ? `${picked.length} answered` : 'All answered'} action={picked.length && !unpicked ? { label: replay ? 'Close' : 'Play again', onPress: () => setReplay((v) => !v) } : undefined}>

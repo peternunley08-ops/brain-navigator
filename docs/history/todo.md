@@ -309,9 +309,9 @@ continuous vertical scroll (Root Map / Lantern Desk / Sanctuary). Staying with t
 - [x] 5.5 — Personal Trove Drawer: `cognitive_state.in_trove` column added via live migration (appended to `core/schema.sql`, run against Supabase). Toggle button on entry detail (works regardless of entry state); new `app/trove.tsx` lists kept entries; entry point from Sanctuary. Verified fully live: toggled a real entry, confirmed `in_trove=true` in DB, appeared in `/trove`.
 
 ## Phase 6 — Multi-Device
-- [x] 6.1 — Apple Watch companion: descoped to a written plan (`docs/apple-watch-plan.md`) rather than attempting unverifiable native watchOS code — a real target needs Xcode/signing/a paired device not available in this session.
+- [x] 6.1 — Apple Watch companion: descoped to a written plan (`docs/plans/apple-watch.md`) rather than attempting unverifiable native watchOS code — a real target needs Xcode/signing/a paired device not available in this session.
 - [x] 6.2 — Topography (reframed from "desktop build" — a separate Electron/Tauri app was out of scope; the achievable, valuable part was a full-history view): new `app/topography.tsx`, all entries with All/Secured/Shelved/Unlocked filter chips, max-width container for wider viewports. Entry point ("View Full Map") from Root Map. Verified live: filters narrow correctly, empty-filter state renders, rows navigate to detail. Known limitation: still reads from the store's existing `fetchHistory` 50-row cap, not truly unbounded.
-- [x] 6.3 — Polish pass: audited every screen for loading/empty/error state coverage (all already adequate from prior phases); fixed one real bug found in the audit — the entry detail screen's state label was hardcoded to the "unlocked" color regardless of actual state, now uses `stateColor(entry.state)`. "Local-first encryption" deliberately NOT implemented — too security-sensitive to rush; `docs/encryption-plan.md` written instead, recommending real Supabase Auth land first (current RLS is fully open on the anon key, a known MVP tradeoff, not something to paper over with encryption alone).
+- [x] 6.3 — Polish pass: audited every screen for loading/empty/error state coverage (all already adequate from prior phases); fixed one real bug found in the audit — the entry detail screen's state label was hardcoded to the "unlocked" color regardless of actual state, now uses `stateColor(entry.state)`. "Local-first encryption" deliberately NOT implemented — too security-sensitive to rush; `docs/plans/encryption.md` written instead, recommending real Supabase Auth land first (current RLS is fully open on the anon key, a known MVP tradeoff, not something to paper over with encryption alone).
 
 ## Autonomous session notes (Phases 5.3–6.3)
 Run per `AUTONOMOUS_BUILD_PROMPT.md` with no check-ins per its Rule 7. Every
@@ -631,7 +631,7 @@ on Anthropic billing. **Do not build until the user approves.**
 
 ## Phase 31 — The Masterpiece (2026-09-30)
 
-120 ideas — plan, status, and where each lives: `docs/masterpiece.md`.
+120 ideas — plan, status, and where each lives: `docs/rounds/round-1.md`.
 
 - [x] All 120 built (school, grades, study, Ember, wellness, notebook,
   college, student life, motivation, design, settings/data)
@@ -645,7 +645,7 @@ on Anthropic billing. **Do not build until the user approves.**
 
 ## Phase 32 — Masterpiece round 2 (2026-09-30)
 
-Plan and status: `docs/masterpiece-2.md` (100 ideas, all built).
+Plan and status: `docs/rounds/round-2.md` (100 ideas, all built).
 - [x] Helper crew, AI allowance + Plus screen, multi-screenshot scan
 - [x] Committed and pushed as c454311 (2026-10-01)
 - [x] Ember's AI and the helpers' AI chat: credit added and `ember`
@@ -655,6 +655,6 @@ Plan and status: `docs/masterpiece-2.md` (100 ideas, all built).
 
 ## Phase 33 — Masterpiece round 3 (2026-09-30 → 10-01)
 
-Plan and status: `docs/masterpiece-3.md` (100 ideas, groups A–J).
+Plan and status: `docs/rounds/round-3.md` (100 ideas, groups A–J).
 - [x] A–F committed in c454311; G–J committed and pushed 2026-10-01
 

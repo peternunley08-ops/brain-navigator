@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card } from '../components/ui/Card';
 import { Chip } from '../components/ui/Chip';
@@ -9,6 +10,22 @@ import { Screen } from '../components/ui/Screen';
 import { alpha, colors, fonts } from '../core/theme';
 import { useLifeStore } from '../core/lifeStore';
 import { GROUPS, type Tool, toolFor, TOOLS } from '../core/tools';
+
+// A soft glow behind the icon in its own colour. Static.
+function IconGlow({ color, id }: { color: string; id: string }) {
+  const gid = `glow${id.replace(/[^a-z0-9]/gi, '')}`;
+  return (
+    <Svg width={44} height={44} style={StyleSheet.absoluteFill} pointerEvents="none">
+      <Defs>
+        <RadialGradient id={gid} cx="50%" cy="50%" r="50%">
+          <Stop offset="0" stopColor={color} stopOpacity={0.25} />
+          <Stop offset="1" stopColor={color} stopOpacity={0} />
+        </RadialGradient>
+      </Defs>
+      <Circle cx={22} cy={22} r={22} fill={`url(#${gid})`} />
+    </Svg>
+  );
+}
 
 export default function DrawerScreen() {
   const opened = useLifeStore((s) => s.about.opened);
@@ -62,6 +79,7 @@ export default function DrawerScreen() {
                   style={styles.tile}
                 >
                   <View style={[styles.icon, { backgroundColor: alpha(tool.color, 0.14), borderColor: alpha(tool.color, 0.3) }]}>
+                    <IconGlow color={tool.color} id={tool.path} />
                     <Icon name={tool.icon} size={22} color={tool.color} />
                   </View>
                   {tool.isNew && !(seenNew ?? []).includes(tool.path) ? <View style={styles.dot} /> : null}

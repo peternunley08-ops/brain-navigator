@@ -4,7 +4,7 @@
 
 Expo Router (SDK 57) + React Native 0.86 (iOS). Single-user MVP: wide-open `anon` Supabase RLS. Never introduce `auth.users` or per-user RLS.
 
-For detailed session history, past roadmaps, and full changelogs, see `docs/SESSION_LOG.md` and `docs/ARCHIVE_CLAUDE_FULL.md`.
+For detailed session history, past roadmaps, and full changelogs, see `docs/history/SESSION_LOG.md` and `docs/history/ARCHIVE_CLAUDE_FULL.md`.
 
 ## Core Structure
 - `app/` — Expo Router file-based screens: Desk (`/`), School (`/school`), Focus (`/focus`), Steady (`/steady`), Drawer (`/drawer`).
@@ -12,7 +12,7 @@ For detailed session history, past roadmaps, and full changelogs, see `docs/SESS
 - `components/ui/` — Design kit (`Screen`, `Card`, `Section`, `Button`, `Pressy`, `Chip`, `Candle`, etc.). Build screens using this kit.
 - `components/ember/` — Mascot rig (`EmberBuddy.tsx`, `EmberSprite.tsx`).
 - `supabase/functions/` — Deno Edge Functions (`ember/index.ts` is the Claude job router).
-- `docs/` — Reference docs and planning.
+- `docs/` — `WHAT-THIS-IS.md`, `rounds/` (every round's plan and status), `plans/`, `history/` (long logs). Index: `docs/README.md`.
 
 ## Key Rules & Gotchas
 - **UI & Design**: "Candlelight" palette (`core/theme.ts`). Gold (`flame`) is the only action color. Fonts: Fraunces (headings, Ember voice) and Figtree (body/numbers). Calm, sentence-case copy. No uppercase eyebrow labels.
@@ -24,5 +24,5 @@ For detailed session history, past roadmaps, and full changelogs, see `docs/SESS
 - **Night & clock**: Read time through `nightNow()` (`core/night.ts`), never `new Date()`, in anything night- or morning-aware, so the dev clock works (`brainnavigator://?night=23:30`, `?night=off`; a chip on the Desk shows it). Night belongs to `tonightKey()` (rolls over at 5 AM).
 - **Show mode**: `isShowing()` (`core/showMode.ts`) swaps in sample student Riley; nothing saves, and firsts, wins radar and celebrations stay silent.
 - **Ember lines**: `emberSay(text, mood)`; pass `asked = true` to `say` only when the student reached for Ember (hold, breath), which lets it through quiet modes. Lines wait while the Undo bar is up (one queue in `core/emberStore.ts`).
-- **Agents & gate**: Team workflow in `tools/hub/BRIEFING.md`. Every commit passes `node tools/hub/check.mjs --agent <name>`. Round status lives in `docs/masterpiece-6.md` ([~] built, [x] checked live), read it instead of searching code.
-- **Token Efficiency**: Inspect code using targeted line ranges or `grep`. Do not ingest `docs/SESSION_LOG.md` or `package-lock.json` unless specifically requested.
+- **Agents & gate**: Team workflow in `tools/hub/BRIEFING.md`. Every commit passes `node tools/hub/check.mjs --agent <name>`. Round status lives in `docs/rounds/round-6.md` (next: `round-7.md`) ([~] built, [x] checked live), read it instead of searching code.
+- **Token Efficiency**: Inspect code using targeted line ranges or `grep`. Do not ingest `docs/history/SESSION_LOG.md` or `package-lock.json` unless specifically requested.

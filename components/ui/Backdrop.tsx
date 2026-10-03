@@ -88,13 +88,33 @@ const MOTES = [
   { x: 0.1, y: 0.7, r: 1.2, d: 10500, delay: 4200 },
 ];
 
+export type Season = 'autumn' | 'winter' | 'spring' | 'summer';
+
+/** Northern-hemisphere season by date: autumn Sep 22, winter Dec 21, spring Mar 20, summer Jun 21. */
+export function seasonOf(date: Date = new Date()): Season {
+  const md = (date.getMonth() + 1) * 100 + date.getDate();
+  if (md >= 1221 || md < 320) return 'winter';
+  if (md < 621) return 'spring';
+  if (md < 922) return 'summer';
+  return 'autumn';
+}
+
+// Colour, shape (w/h scale of the mote's radius), sideways drift and pace per season.
+const SEASON_LOOK: Record<Season, { color: string; w: number; h: number; drift: number; slow: number; tilt: string }> = {
+  summer: { color: '#FFE2B0', w: 1, h: 1, drift: 13, slow: 1, tilt: '0deg' },
+  autumn: { color: '#E2994F', w: 1.7, h: 0.9, drift: 30, slow: 1, tilt: '28deg' },
+  winter: { color: '#E8F0FA', w: 1, h: 1, drift: 8, slow: 1.5, tilt: '0deg' },
+  spring: { color: '#F2B8C6', w: 1.5, h: 0.9, drift: 16, slow: 1.1, tilt: '-20deg' },
+};
+
 function Motes({ width, height }: { width: number; height: number }) {
   const reduced = useReducedMotion();
   if (reduced) return null;
+  const look = SEASON_LOOK[seasonOf()];
   return (
     <>
       {MOTES.map((m, i) => (
-        <Mote key={i} {...m} width={width} height={height} />
+        <Mote key={i} {...m} look={look} width={width} height={height} />
       ))}
     </>
   );
@@ -106,22 +126,24 @@ function Mote({
   r,
   d,
   delay,
+  look,
   width,
   height,
-}: (typeof MOTES)[number] & { width: number; height: number }) {
+}: (typeof MOTES)[number] & { look: (typeof SEASON_LOOK)[Season]; width: number; height: number }) {
   const p = useSharedValue(0);
+  const dur = d * look.slow;
   useEffect(() => {
-    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: d, easing: Easing.inOut(Easing.sin) }), -1, true));
-  }, [p, d, delay]);
+    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: dur, easing: Easing.inOut(Easing.sin) }), -1, true));
+  }, [p, dur, delay]);
   const style = useAnimatedStyle(() => ({
     opacity: 0.15 + 0.5 * Math.sin(p.value * Math.PI),
-    transform: [{ translateX: p.value * 26 - 13 }, { translateY: -p.value * 60 }],
+    transform: [{ translateX: (p.value * 2 - 1) * look.drift }, { translateY: -p.value * 60 }, { rotate: look.tilt }],
   }));
   return (
     <Animated.View
       style={[
         styles.mote,
-        { left: x * width, top: y * height, width: r * 2, height: r * 2, borderRadius: r },
+        { left: x * width, top: y * height, width: r * 2 * look.w, height: r * 2 * look.h, borderRadius: r, backgroundColor: look.color },
         style,
       ]}
     />
