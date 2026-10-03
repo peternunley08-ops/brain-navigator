@@ -79,6 +79,11 @@ export const type = {
 
 export const spacing = { xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48 } as const;
 
+// How far text may grow with the phone's text size (maxFontSizeMultiplier).
+// Body text grows freely; big display words, headings and one-line controls
+// stop before a word has to break in the middle ("Settin/gs").
+export const textGrow = { display: 1.6, heading: 1.8, control: 1.6, bar: 1.3 } as const;
+
 export const radii = { sm: 8, md: 14, lg: 22, xl: 30, pill: 999 } as const;
 
 // Screen side gutter, and the room left under scroll content for the nav.

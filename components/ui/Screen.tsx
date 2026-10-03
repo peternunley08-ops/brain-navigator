@@ -20,7 +20,7 @@ import { clearScrollToTop, emberHop, firstOpen, goBack, goHome, keepScroll, kept
 import { useEmberStore } from '../../core/emberStore';
 import { timings } from '../../core/motion';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
-import { colors, fonts, layout } from '../../core/theme';
+import { colors, fonts, layout, textGrow } from '../../core/theme';
 import { Backdrop, type WeatherKind } from './Backdrop';
 import { IconButton } from './IconButton';
 import { RevealContext } from './Reveal';
@@ -272,7 +272,7 @@ export function Screen({
         >
           <Animated.View style={[centered && styles.centered, scroll && titleStyle]}>
             {kicker ? <Text style={[styles.kicker, centered && styles.textCenter]}>{kicker}</Text> : null}
-            <Text style={[styles.title, centered && styles.textCenter]} accessibilityRole="header" numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7}>
+            <Text style={[styles.title, centered && styles.textCenter]} accessibilityRole="header" numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.display}>
               {title}
             </Text>
             {subtitle ? <Text style={[styles.subtitle, centered && styles.textCenter]}>{subtitle}</Text> : null}
@@ -346,7 +346,7 @@ export function Screen({
               <Pressable onPress={toTop} style={styles.barTitleWrap} accessibilityRole="button" accessibilityLabel={label ? `${label}, back to top` : 'Back to top'}>
                 {label ? (
                   <Animated.View style={barSlide}>
-                    <Text style={styles.barTitle} numberOfLines={1}>
+                    <Text style={styles.barTitle} numberOfLines={1} maxFontSizeMultiplier={textGrow.bar}>
                       {label}
                     </Text>
                   </Animated.View>

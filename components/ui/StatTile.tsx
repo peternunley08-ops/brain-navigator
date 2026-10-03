@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useCountUp } from '../../core/hooks/useCountUp';
-import { colors, fonts, radii } from '../../core/theme';
+import { colors, fonts, radii, textGrow } from '../../core/theme';
 
 interface StatTileProps {
   label: string;
@@ -19,7 +19,7 @@ export function StatTile({ label, value, unit, color = colors.text, style }: Sta
         {shown}
         {unit ? <Text style={styles.unit}> {unit}</Text> : null}
       </Text>
-      <Text style={styles.label} numberOfLines={1}>
+      <Text style={styles.label} numberOfLines={1} maxFontSizeMultiplier={textGrow.control}>
         {label}
       </Text>
     </View>

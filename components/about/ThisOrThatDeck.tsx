@@ -42,7 +42,7 @@ export function ThisOrThatDeck({
     return (
       <Animated.View entering={FadeIn.duration(260)} style={styles.done}>
         <Icon name="sparkle" size={20} color={colors.flame} />
-        <Text style={styles.doneText}>{doneText}</Text>
+        <Text style={styles.doneText} maxFontSizeMultiplier={DECK_TEXT}>{doneText}</Text>
         {onDone ? <Button label="Done" size="sm" variant="secondary" onPress={onDone} /> : null}
       </Animated.View>
     );
@@ -59,7 +59,7 @@ export function ThisOrThatDeck({
         {next ? <Face key={`under-${next.id}`} card={next} under /> : null}
         <SwipeCard key={card.id} card={card} onAnswer={answer} />
       </View>
-      <Text style={styles.count}>
+      <Text style={styles.count} maxFontSizeMultiplier={DECK_TEXT}>
         {cards.length - left.length + 1} of {cards.length}
       </Text>
     </View>
@@ -126,7 +126,7 @@ function SwipeCard({ card, onAnswer }: { card: ThisOrThat; onAnswer: (side: 'a' 
       <Animated.View style={[styles.card, style]}>
         <Animated.View pointerEvents="none" style={[styles.glow, { backgroundColor: alpha(A, 0.18), borderColor: A }, leanA]} />
         <Animated.View pointerEvents="none" style={[styles.glow, { backgroundColor: alpha(B, 0.18), borderColor: B }, leanB]} />
-        <Text style={styles.ask}>This or that?</Text>
+        <Text style={styles.ask} maxFontSizeMultiplier={DECK_TEXT}>This or that?</Text>
         <View style={styles.sides}>
           <Pressy
             style={[styles.side, { borderColor: alpha(A, 0.45), backgroundColor: alpha(A, 0.1) }]}
@@ -135,9 +135,9 @@ function SwipeCard({ card, onAnswer }: { card: ThisOrThat; onAnswer: (side: 'a' 
             accessibilityLabel={card.a.label}
           >
             <Icon name={card.a.icon} size={30} color={A} />
-            <Text style={styles.sideText}>{card.a.label}</Text>
+            <Text style={styles.sideText} maxFontSizeMultiplier={DECK_TEXT}>{card.a.label}</Text>
           </Pressy>
-          <Text style={styles.or}>or</Text>
+          <Text style={styles.or} maxFontSizeMultiplier={DECK_TEXT}>or</Text>
           <Pressy
             style={[styles.side, { borderColor: alpha(B, 0.45), backgroundColor: alpha(B, 0.1) }]}
             onPress={() => fly('b')}
@@ -145,11 +145,11 @@ function SwipeCard({ card, onAnswer }: { card: ThisOrThat; onAnswer: (side: 'a' 
             accessibilityLabel={card.b.label}
           >
             <Icon name={card.b.icon} size={30} color={B} />
-            <Text style={styles.sideText}>{card.b.label}</Text>
+            <Text style={styles.sideText} maxFontSizeMultiplier={DECK_TEXT}>{card.b.label}</Text>
           </Pressy>
         </View>
         <Pressy onPress={() => onAnswer('skip')} style={styles.skip} haptic="none" accessibilityRole="button">
-          <Text style={styles.skipText}>Both, or neither</Text>
+          <Text style={styles.skipText} maxFontSizeMultiplier={DECK_TEXT}>Both, or neither</Text>
         </Pressy>
       </Animated.View>
     </GestureDetector>
@@ -160,21 +160,25 @@ function SwipeCard({ card, onAnswer }: { card: ThisOrThat; onAnswer: (side: 'a' 
 function Face({ card, under }: { card: ThisOrThat; under?: boolean }) {
   return (
     <View style={[styles.card, under && styles.under]} pointerEvents="none">
-      <Text style={styles.ask}>This or that?</Text>
+      <Text style={styles.ask} maxFontSizeMultiplier={DECK_TEXT}>This or that?</Text>
       <View style={styles.sides}>
         <View style={[styles.side, { borderColor: alpha(A, 0.3) }]}>
           <Icon name={card.a.icon} size={30} color={alpha(A, 0.6)} />
-          <Text style={[styles.sideText, styles.dim]}>{card.a.label}</Text>
+          <Text style={[styles.sideText, styles.dim]} maxFontSizeMultiplier={DECK_TEXT}>{card.a.label}</Text>
         </View>
-        <Text style={styles.or}>or</Text>
+        <Text style={styles.or} maxFontSizeMultiplier={DECK_TEXT}>or</Text>
         <View style={[styles.side, { borderColor: alpha(B, 0.3) }]}>
           <Icon name={card.b.icon} size={30} color={alpha(B, 0.6)} />
-          <Text style={[styles.sideText, styles.dim]}>{card.b.label}</Text>
+          <Text style={[styles.sideText, styles.dim]} maxFontSizeMultiplier={DECK_TEXT}>{card.b.label}</Text>
         </View>
       </View>
     </View>
   );
 }
+
+// The cards are fixed-size (they stack and swipe), so their text grows only
+// a little with the phone's text size, or the two sides would overlap.
+const DECK_TEXT = 1.3;
 
 const styles = StyleSheet.create({
   stack: {

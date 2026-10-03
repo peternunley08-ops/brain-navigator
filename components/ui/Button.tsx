@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, type PressableProps, type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
-import { alpha, colors, fonts, gradients, radii } from '../../core/theme';
+import { alpha, colors, fonts, gradients, radii, textGrow } from '../../core/theme';
 import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
 
@@ -45,7 +45,7 @@ export function Button({
       ) : icon ? (
         <Icon name={icon} size={small ? 16 : 19} color={fg} strokeWidth={2} />
       ) : null}
-      <Text style={[styles.text, small && styles.textSmall, { color: fg }]} numberOfLines={1}>
+      <Text style={[styles.text, small && styles.textSmall, { color: fg }]} numberOfLines={1} maxFontSizeMultiplier={textGrow.control}>
         {label}
       </Text>
     </View>

@@ -15,7 +15,7 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { dayPhaseFor } from '../core/adaptiveLight';
 import { lineForToday } from '../core/dayLines';
-import { colors, fonts } from '../core/theme';
+import { colors, fonts, textGrow } from '../core/theme';
 import { EmberSprite } from './ember/EmberSprite';
 import { Sparks } from './ember/Sparks';
 import { useEmberRig } from './ember/useEmberRig';
@@ -107,8 +107,8 @@ export function EntryThreshold({ onEnter }: EntryThresholdProps) {
       <Backdrop tone="ember" glowAt={0.52} motes />
 
       <Animated.View entering={FadeIn.duration(900)} style={styles.quoteBlock}>
-        <Text style={styles.quoteText}>“{quote.text}”</Text>
-        <Text style={styles.author}>{quote.author}</Text>
+        <Text style={styles.quoteText} maxFontSizeMultiplier={textGrow.display}>“{quote.text}”</Text>
+        <Text style={styles.author} maxFontSizeMultiplier={textGrow.control}>{quote.author}</Text>
       </Animated.View>
 
       <Pressable
@@ -137,8 +137,8 @@ export function EntryThreshold({ onEnter }: EntryThresholdProps) {
       </Pressable>
 
       <View style={styles.bottom}>
-        <Text style={styles.cue}>{awake ? HELLO[phase] : 'Hold Ember to wake it'}</Text>
-        {!awake ? <Text style={styles.sub}>Ember is the little flame who helps you find your way.</Text> : null}
+        <Text style={styles.cue} maxFontSizeMultiplier={textGrow.display}>{awake ? HELLO[phase] : 'Hold Ember to wake it'}</Text>
+        {!awake ? <Text style={styles.sub} maxFontSizeMultiplier={textGrow.control}>Ember is the little flame who helps you find your way.</Text> : null}
       </View>
     </Animated.View>
   );
