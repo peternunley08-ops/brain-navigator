@@ -13,7 +13,7 @@ checked · `[–]` decided against (with why)
 ## A. See Round 6 live (on the Mac)
 
 1. [ ] Fix the phone install: Xcode said "the developer disk image could not be mounted". Unlock the phone, let Xcode prepare it (Window → Devices and Simulators), update Xcode if iOS 27.2 isn't supported
-2. [ ] Release build on the phone from `main` (README has the command; `LANG=en_US.UTF-8` is required)
+2. [ ] Release build on the phone: `./scripts/build-phone.sh --main`
 3. [ ] Walk every `[~]` item in Round 6 with real taps; flip it to `[x]` or file the bug here
 4. [ ] Night: `?night=21:30`, `?night=00:30`, Sunday night, `?night=08:00` for First light
 5. [ ] Ember: hold to breathe, drag weight, night candle, study buddy book, birthday hat
@@ -30,7 +30,7 @@ checked · `[–]` decided against (with why)
 ## C. Easy to update the phone
 
 12. [ ] Over-the-air updates: add `expo-updates` (one native build), so JS-only rounds reach the phone without the Mac
-13. [ ] A one-command build script (`scripts/build-phone.sh`) wrapping the Release command, UTF-8 and the device ID
+13. [~] A one-command build script (`scripts/build-phone.sh`) wrapping the Release command, UTF-8 and the device ID
 
 ## D. Native batch (one rebuild, done together)
 
