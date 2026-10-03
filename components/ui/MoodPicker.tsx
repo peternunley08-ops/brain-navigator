@@ -16,14 +16,16 @@ const MOODS = [
 interface MoodPickerProps {
   value: number | null;
   onChange: (v: number) => void;
+  /** Optional: a long press on a face (the Desk uses it to open the full check-in). */
+  onLongPress?: () => void;
 }
 
 // Five little Embers, from a low flicker to a bright grin. The chosen one lifts and glows.
-export function MoodPicker({ value, onChange }: MoodPickerProps) {
+export function MoodPicker({ value, onChange, onLongPress }: MoodPickerProps) {
   return (
     <View style={styles.row} accessibilityRole="radiogroup">
       {MOODS.map((m) => (
-        <Face key={m.v} mood={m} selected={value === m.v} dimmed={value != null && value !== m.v} onPress={() => onChange(m.v)} />
+        <Face key={m.v} mood={m} selected={value === m.v} dimmed={value != null && value !== m.v} onPress={() => onChange(m.v)} onLongPress={onLongPress} />
       ))}
     </View>
   );
@@ -34,11 +36,13 @@ function Face({
   selected,
   dimmed,
   onPress,
+  onLongPress,
 }: {
   mood: (typeof MOODS)[number];
   selected: boolean;
   dimmed: boolean;
   onPress: () => void;
+  onLongPress?: () => void;
 }) {
   const S = 44;
   // The chosen Ember bobs gently, like it's glad you picked it. Still under Reduce Motion.
@@ -59,7 +63,7 @@ function Face({
     opacity: withSpring(dimmed ? 0.45 : 1),
   }));
   return (
-    <Pressy onPress={onPress} depth={0.9} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={mood.label} style={styles.cell}>
+    <Pressy onPress={onPress} onLongPress={onLongPress} depth={0.9} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={mood.label} style={styles.cell}>
       <Animated.View
         style={[
           styles.face,

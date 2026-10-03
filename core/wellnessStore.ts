@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { createNotionPage, NOTION_DB, notionProp, updateNotionPage } from './notion';
+import { archiveNotionPage, createNotionPage, NOTION_DB, notionProp, updateNotionPage } from './notion';
 import { supabase } from './supabase';
 
 export interface DailyCheckin {
@@ -39,6 +39,8 @@ interface WellnessStore {
   todaysCheckin: () => DailyCheckin | null;
   fetchCheckins: () => Promise<void>;
   saveTodayCheckin: (input: CheckinInput) => Promise<boolean>;
+  /** One-tap mood from the Desk: logs today's mood and keeps any other answers. Returns an undo, or null if it did not save. */
+  quickMood: (mood: number) => Promise<(() => Promise<void>) | null>;
 }
 
 export const useWellnessStore = create<WellnessStore>((set, get) => ({
@@ -117,5 +119,33 @@ export const useWellnessStore = create<WellnessStore>((set, get) => ({
     }
 
     return true;
+  },
+
+  quickMood: async (mood) => {
+    const prev = get().todaysCheckin();
+    const ok = await get().saveTodayCheckin({
+      mood,
+      sleepHours: prev?.sleep_hours ?? null,
+      sleepQuality: prev?.sleep_quality ?? null,
+      stressLevel: prev?.stress_level ?? null,
+      notes: prev?.notes ?? '',
+    });
+    if (!ok) return null;
+    return async () => {
+      if (prev) {
+        await get().saveTodayCheckin({
+          mood: prev.mood,
+          sleepHours: prev.sleep_hours,
+          sleepQuality: prev.sleep_quality,
+          stressLevel: prev.stress_level,
+          notes: prev.notes ?? '',
+        });
+        return;
+      }
+      const row = get().todaysCheckin();
+      await supabase.from('daily_checkins').delete().eq('checkin_date', todayDateString());
+      await archiveNotionPage(row?.notion_page_id);
+      await get().fetchCheckins();
+    };
   },
 }));
