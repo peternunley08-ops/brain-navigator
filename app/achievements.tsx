@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Share, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { InteractionManager, Share, StyleSheet, Text, View } from 'react-native';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Icon } from '../components/ui/Icon';
@@ -23,6 +23,13 @@ export default function AchievementsScreen() {
   const got = useLifeStore((s) => s.achievements);
   const earnedCount = ALL_ACHIEVEMENTS.filter((a) => got[a.key]).length;
   const [open, setOpen] = useState<string | null>(null);
+
+  // The still-to-earn tiles beyond the first few arrive once the page settles.
+  const [rest, setRest] = useState(false);
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => setRest(true));
+    return () => task.cancel();
+  }, []);
 
   let n = 0;
   return (
@@ -65,7 +72,7 @@ export default function AchievementsScreen() {
                     </Card>
                   </View>
                 ))}
-                {waiting.map(({ a, p }) => (
+                {(rest ? waiting : waiting.slice(0, 6)).map(({ a, p }) => (
                   <View key={a.key} style={styles.cell}>
                     <Card style={[styles.tile, styles.locked]}>
                       <View style={[styles.medal, styles.medalLocked]}>

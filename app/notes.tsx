@@ -1,7 +1,8 @@
-import { router, useLocalSearchParams } from 'expo-router';
+import { Link, useLocalSearchParams } from 'expo-router';
+import { router } from 'expo-router';
 import { plural } from '../core/words';
-import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { InteractionManager, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Chip } from '../components/ui/Chip';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Field } from '../components/ui/Field';
@@ -46,6 +47,15 @@ export default function NotesScreen() {
     .filter((n) => !fromHelpers || n.icon === 'sparkle')
     .filter((n) => !term || n.title.toLowerCase().includes(term) || n.blocks.some((b) => b.text.toLowerCase().includes(term)))
     .sort((a, b) => Number(b.pinned) - Number(a.pinned) || b.updatedAt.localeCompare(a.updatedAt));
+
+  // Long notebooks paint the first screenful at once and the rest once the
+  // page has settled, so opening it stays quick.
+  const [showAll, setShowAll] = useState(false);
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => setShowAll(true));
+    return () => task.cancel();
+  }, []);
+  const visible = showAll ? sorted : sorted.slice(0, 30);
 
   const start = (key: string) => {
     const t = NOTE_TEMPLATES.find((x) => x.key === key)!;
@@ -102,7 +112,7 @@ export default function NotesScreen() {
             )
           ) : (
             <View style={styles.list}>
-              {sorted.map((n, i) => (
+              {visible.map((n, i) => (
                 <NoteCard key={n.id} n={n} i={i} className={classes.find((c) => c.id === n.classId)?.name} />
               ))}
             </View>
@@ -120,8 +130,10 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
   const goal = wordGoalFor(n);
   const words = goal ? essayWords(n.blocks) : 0;
   return (
-    <Animated.View entering={FadeInDown.delay(i * 40).duration(320)}>
-      <Card onPress={() => router.push(`/note/${n.id}`)} style={styles.card}>
+    <Animated.View entering={FadeInDown.delay(Math.min(i, 8) * 40).duration(320)}>
+      <Link href={`/note/${n.id}`} asChild>
+        <Link.AppleZoom>
+          <Card style={styles.card}>
         <View style={[styles.icon, { backgroundColor: alpha(n.color, 0.16), borderColor: alpha(n.color, 0.3) }]}>
           <Icon name={n.icon as IconName} size={20} color={n.color} />
         </View>
@@ -145,7 +157,9 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
           </Text>
           {goal ? <ProgressBar value={Math.min(1, words / goal)} color={words > goal ? colors.danger : n.color} height={3} style={styles.wordBar} /> : null}
         </View>
-      </Card>
+          </Card>
+        </Link.AppleZoom>
+      </Link>
     </Animated.View>
   );
 }

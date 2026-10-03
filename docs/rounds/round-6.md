@@ -141,13 +141,13 @@ checked · [–] decided against (with why)
 76. [~] Numbers animate when they change, not only on first open (useCountUp counts from the old value to the new one, wave 2)
 77. [x] Rows that move between groups (Today → Done) glide instead of jumping
 78. [~] The tab pill stretches slightly as it slides (a liquid feel)
-79. [ ] Pages pushed from a card grow from that card (a zoom-from-card transition where supported)
+79. [~] Pages pushed from a card grow from that card (a zoom-from-card transition where supported)
 80. [~] The compact bar's title slides up from where the big title was
 81. [~] Chips press with a springy sink like cards
 82. [~] Pull-to-refresh on School and Steady too, with Ember's hop
 83. [~] The keyboard and the page move together (fields slide, never jump) (Screen already uses automaticallyAdjustKeyboardInsets and interactive dismiss)
-84. [ ] Sheets snap to a half height when their content is short
-85. [ ] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
+84. [–] Sheets snap to a half height when their content is short (every sheet holds a long scrolling form; fitting to content would squash them, so they stay full height)
+85. [~] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
 86. [~] Haptic texture on sliders (a tick per step)
 87. [~] Swipe between days in Your day
 88. [~] Ember's drag follows the finger with a slight lag (weight)
