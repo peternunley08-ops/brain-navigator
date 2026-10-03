@@ -123,7 +123,7 @@ export default function CountdownsScreen() {
                     <View style={styles.flex}>
                       <View style={styles.titleRow}>
                         <Icon name={countdownIcon(c)} size={16} color={c.color} />
-                        <Text style={[styles.title, styles.flex]}>{d === 0 ? `${c.title} is today!` : c.title}</Text>
+                        <Text style={[styles.title, styles.flex]}>{d === 0 ? `${c.title} is today` : c.title}</Text>
                       </View>
                       <Text style={styles.sub}>{new Date(`${c.date}T12:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
                     </View>

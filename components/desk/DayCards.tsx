@@ -207,7 +207,7 @@ export function Birthday() {
   const today = dateKey();
   const isToday = !!birthday && today.slice(5) === birthday;
   useEffect(() => {
-    if (isToday) celebrate(`Happy birthday${name ? `, ${name}` : ''}!`, 'Go easy on yourself today. The list can wait a little.', '#E89AB8', { key: `birthday-${today.slice(0, 4)}` });
+    if (isToday) celebrate(`Happy birthday${name ? `, ${name}` : ''}`, 'Go easy on yourself today. The list can wait a little.', '#E89AB8', { key: `birthday-${today.slice(0, 4)}` });
   }, [isToday, name, today]);
   if (!isToday) return null;
   return <Row icon="gift" color="#E89AB8" title={`Happy birthday${name ? `, ${name}` : ''}`} body="Ember says the candles today are all yours." onPress={() => router.push('/wins')} />;

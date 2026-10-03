@@ -430,7 +430,7 @@ export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
 
   const todayCd = life.countdowns.find((c) => daysUntil(c.date) === 0);
   if (todayCd) {
-    tips.push({ id: `cd-${todayCd.id}`, line: `${todayCd.title} is today!`, priority: 2, mood: 'cheer' });
+    tips.push({ id: `cd-${todayCd.id}`, line: `${todayCd.title} is today. You’ve been counting down to this.`, priority: 2, mood: 'cheer' });
   }
 
   const svcGoal = life.settings.serviceGoal;

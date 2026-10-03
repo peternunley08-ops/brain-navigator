@@ -158,7 +158,7 @@ export function QuizGame({
         <Icon name="trophy" size={46} color={VIOLET} />
         <Text style={styles.endScore}>{score}</Text>
         <Text style={styles.endLine}>
-          {right} of {qs.length} right{score >= best && score > 0 ? '. New best!' : ''}
+          {right} of {qs.length} right{score >= best && score > 0 ? '. A new best.' : ''}
         </Text>
         <Text style={styles.endQuip}>
           {pct === 1 ? 'Flawless. Quizzo is speechless. (Quizzo is never speechless.)' : pct >= 0.7 ? 'Big brain energy. The misses come back tomorrow.' : 'Every miss is a card you’ll know next time. That’s the whole trick.'}
@@ -276,7 +276,7 @@ export function QuizGame({
           <Text style={styles.feedback}>
             {chosen === q.answer
               ? streak >= 3
-                ? `${streak} in a row!`
+                ? `${streak} in a row`
                 : 'Nailed it.'
               : q.trueFalse
                 ? `${chosen === -1 ? 'Time! ' : ''}${q.answer === 0 ? 'That one was true.' : `False: it’s “${q.card.back}”.`} It’ll come back tomorrow.`

@@ -98,7 +98,7 @@ export default function HoursScreen() {
     setDriveTags([]);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const after = before + minutes / 60;
-    if (goal && before < goal && after >= goal) emberSay(`${goal} hours of ${m.noun}. Goal reached!`, 'cheer');
+    if (goal && before < goal && after >= goal) emberSay(`${goal} hours of ${m.noun}. You reached your goal.`, 'cheer');
     else emberSay(`${h(minutes / 60)} hour${minutes === 60 ? '' : 's'} logged.`, 'happy');
     setNote('');
   };
