@@ -36,7 +36,7 @@ checked · `[–]` decided against (with why)
 
 14. [ ] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63)
 15. [ ] Home screen widget: tonight's first class and what's due
-16. [ ] A speaker icon in the kit for Fire crackle (it borrows `music` today)
+16. [~] A speaker icon in the kit for Fire crackle (drawn in code, no rebuild needed)
 
 ## E. Show it well
 

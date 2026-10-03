@@ -412,7 +412,7 @@ export default function FocusScreen() {
                     }}
                   />
                 ))}
-                <Chip label={crackle ? 'Fire crackle on' : 'Fire crackle'} icon="music" selected={crackle} onPress={() => useAudioStore.getState().setCrackle(!crackle)} />
+                <Chip label={crackle ? 'Fire crackle on' : 'Fire crackle'} icon={crackle ? 'speaker' : 'speakerOff'} selected={crackle} onPress={() => useAudioStore.getState().setCrackle(!crackle)} />
                 <Chip label={autoCycle ? `Cycling, round ${round + 1} of 4` : 'Keep cycling'} icon="repeat" selected={autoCycle} onPress={() => setAutoCycle((v) => !v)} />
               </ChipRow>
             </Section>
@@ -463,7 +463,7 @@ export default function FocusScreen() {
         <ChipRow>
           <Chip
             label={crackle ? 'Fire crackle on' : 'Fire crackle'}
-            icon="music"
+            icon={crackle ? 'speaker' : 'speakerOff'}
             selected={crackle}
             onPress={() => useAudioStore.getState().setCrackle(!crackle)}
           />
