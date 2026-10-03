@@ -295,7 +295,8 @@ export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
 
   // One small, true good thing from the data, said on the Desk (never late at night).
   const win = route === '/' && !lateNight ? tinyWin(now) : null;
-  if (win) tips.push({ id: win.id, line: win.line, actions: [], priority: 1, mood: 'happy' });
+  // Priority 2, so Ember offers it once (a nudge) instead of waiting behind every other tip.
+  if (win) tips.push({ id: win.id, line: win.line, actions: [], priority: 2, mood: 'happy' });
 
   // Past midnight, sleep outranks everything, homework included.
   const pastMidnight = hour * 60 + now.getMinutes() < NIGHT_END;
@@ -370,7 +371,7 @@ export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
   const mmdd = `${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   if (life.settings.birthday === mmdd) {
     const name = life.about.nickname.trim() || useSchoolStore.getState().profile.name;
-    tips.push({ id: `bday-${todayKey(now)}`, line: `Happy birthday${name ? `, ${name}` : ''}! Nothing on this app matters more than you having a good day.`, priority: 3, mood: 'cheer' });
+    tips.push({ id: `bday-${todayKey(now)}`, line: `Happy birthday${name ? `, ${name}` : ''}. Nothing on this app matters more than you having a good day.`, priority: 3, mood: 'cheer' });
   }
 
   // Past the wind-down time (and before the small hours), nudge toward bed.

@@ -28,7 +28,7 @@ import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
 import { colors, fonts } from '../../core/theme';
 import { dateKey } from '../../core/dates';
-import { isShowing } from '../../core/showMode';
+import { isShowing, useShowMode } from '../../core/showMode';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { EmberBubble } from './EmberBubble';
 import { autoAccessory } from '../../core/emberLook';
@@ -115,7 +115,12 @@ export function EmberBuddy() {
     const sub = AppState.addEventListener('change', (st) => {
       if (st === 'active') check();
     });
-    return () => sub.remove();
+    // Riley has no birthday: the hat comes off while showing and back after.
+    const unsubscribeShow = useShowMode.subscribe(check);
+    return () => {
+      sub.remove();
+      unsubscribeShow();
+    };
   }, [reducedMotion]);
   const [mode, setMode] = useState<'tips' | 'about'>('tips');
   const [tipIndex, setTipIndex] = useState(0);
@@ -330,10 +335,14 @@ export function EmberBuddy() {
   useEffect(() => () => breathTimers.current.forEach(clearTimeout), []);
 
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // This press started the calm, so letting go is the end of the hold, not a tap.
+  const holdStartedBreath = useRef(false);
   const startHold = useCallback(() => {
     if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdStartedBreath.current = false;
     holdTimer.current = setTimeout(() => {
       holdTimer.current = null;
+      holdStartedBreath.current = !breathing.current;
       startBreath();
     }, 800);
   }, [startBreath]);
@@ -360,6 +369,11 @@ export function EmberBuddy() {
 
   const lastTap = useRef(0);
   const tapOrHoldEnd = useCallback(() => {
+    // Letting go of the hold that started the calm keeps it going (three breaths, about 30 s).
+    if (holdStartedBreath.current) {
+      holdStartedBreath.current = false;
+      return;
+    }
     // A tap while breathing ends the calm.
     if (breathing.current) {
       cancelHold();
