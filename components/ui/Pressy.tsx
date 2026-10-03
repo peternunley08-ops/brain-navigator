@@ -31,6 +31,7 @@ export function Pressy({
 
   return (
     <AnimatedPressable
+      accessibilityRole={onPress ? 'button' : undefined}
       {...rest}
       disabled={disabled}
       style={[style, anim]}

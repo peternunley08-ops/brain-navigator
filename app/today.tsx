@@ -208,6 +208,7 @@ function TimelineItem({ it, past, onToggle, onDelete }: { it: Item; past: boolea
           disabled={!onToggle}
           depth={0.9}
           style={[styles.capsule, { height, backgroundColor: it.done ? it.color : alpha(it.color, 0.18), borderColor: alpha(it.color, 0.6) }]}
+          accessibilityLabel={onToggle ? it.title : undefined}
           accessibilityRole={onToggle ? 'checkbox' : undefined}
           accessibilityState={onToggle ? { checked: !!it.done } : undefined}
         >

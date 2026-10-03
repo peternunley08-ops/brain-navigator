@@ -334,7 +334,7 @@ export default function NoteScreen() {
             {blk.type === 'numbered' ? (
               <Text style={styles.number}>{numbered}.</Text>
             ) : blk.type === 'todo' ? (
-              <Pressy onPress={() => check(i)} depth={0.85} hitSlop={8} style={[styles.box, blk.checked && styles.boxOn]} accessibilityRole="checkbox" accessibilityState={{ checked: !!blk.checked }}>
+              <Pressy onPress={() => check(i)} depth={0.85} hitSlop={8} style={[styles.box, blk.checked && styles.boxOn]} accessibilityRole="checkbox" accessibilityLabel={blk.text.trim() ? blk.text : 'To-do'} accessibilityState={{ checked: !!blk.checked }}>
                 {blk.checked ? <Icon name="check" size={13} color={colors.flameInk} strokeWidth={3} /> : null}
               </Pressy>
             ) : blk.type === 'bullet' ? (
