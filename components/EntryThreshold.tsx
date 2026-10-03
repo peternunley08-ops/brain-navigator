@@ -9,6 +9,7 @@ import Animated, {
   useSharedValue,
   withDelay,
   withTiming,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -45,9 +46,18 @@ export function EntryThreshold({ onEnter }: EntryThresholdProps) {
   const warmth = useSharedValue(0);
   const leave = useSharedValue(0);
 
+  // One breath after the screen opens, Ember yawns and stretches a little on its own.
+  const reduced = useReducedMotion();
   useEffect(() => {
     rig.setMood('sleepy');
-  }, [rig]);
+    if (reduced) return;
+    const yawn = setTimeout(() => rig.yawn(), 900);
+    const stretch = setTimeout(() => rig.hopUp(6), 1700);
+    return () => {
+      clearTimeout(yawn);
+      clearTimeout(stretch);
+    };
+  }, [rig, reduced]);
 
   const wake = () => {
     setAwake(true);

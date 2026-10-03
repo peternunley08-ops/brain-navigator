@@ -98,15 +98,15 @@ checked · [–] decided against (with why)
 37. [x] Sample data covers every page (classes, homework, notes, decks, wins, moods, colleges) so every page looks lived-in — core/sampleData.ts: classes, homework with steps, focus, grades, notes, colleges, decks, wins, people (555 numbers), hours, About you, 14 check-ins, habits, entries, journal
 38. [x] While showing, AI calls are off and Ember says so (no cost, nothing sent) — AI off (aiOff in the sample settings and the client refuses), Notion, Calendar, Health, weather cut off
 39. [x] While showing, nothing from the real journal, check-ins, or About you can appear — the online database is replaced by an in-memory stand-in (core/sampleDb.ts); your files are never written while showing
-40. [ ] A guided tour in show mode: Ember walks through five pages with one line each
-41. [ ] The wake screen: Ember yawns, stretches, and the quote fades in (one breath long)
+40. [~] A guided tour in show mode: Ember walks through five pages with one line each
+41. [~] The wake screen: Ember yawns, stretches, and the quote fades in (one breath long)
 42. [x] First run: the welcome flow ends with the five This-or-that cards, so the app knows you from minute one
 43. [x] Every empty page has an Ember drawing and one clear next step (consistent art, not just text) (EmptyState draws Ember by default; the plain lines left are in-section notes, by design)
 44. [~] Cards share one shadow and one corner radius scale (audit the stragglers)
 45. [ ] Section headings breathe the same everywhere (spacing audit)
 46. [~] Every number in the app uses tabular figures so columns line up
-47. [ ] Icons in the Drawer get a soft inner glow in their color
-48. [ ] The + sheet's options get small illustrations
+47. [~] Icons in the Drawer get a soft inner glow in their color
+48. [~] The + sheet's options get small illustrations
 49. [~] What's New gets a Round 5–6 entry with the best changes
 50. [x] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
 51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
