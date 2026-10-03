@@ -112,7 +112,7 @@ checked · [–] decided against (with why)
 51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
 52. [~] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen
 53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/)
-54. [ ] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots
+54. [~] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots (docs/WHAT-THIS-IS.md covers it; screenshots wait on R6-53, which needs the Mac)
 55. [ ] The phone gets a fresh Release build with everything (free signing renews)
 
 ### D. Surprise: things that make it feel like nothing else (56–75)
@@ -123,7 +123,7 @@ checked · [–] decided against (with why)
 60. [~] The Desk's candle burns brighter with the day's progress (done vs due)
 61. [~] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop
 62. [~] **Hold the flame**: holding Ember for a long breath starts a 3-breath calm right there, anywhere in the app
-63. [ ] **Pocket worry**: shake the phone to drop a worry into the box from anywhere (with Undo)
+63. [–] **Pocket worry**: shake the phone to drop a worry into the box from anywhere (with Undo) (needs expo-sensors, a new native package; moved to Round 7 with the next native build)
 64. [~] **Study buddy**: during Focus, Ember studies too (a tiny book), and peeks up when time's half done
 65. [~] **Streak of light**: the days you showed up glow as a thin line under the Desk title (no numbers, no guilt)
 66. [~] **One kind thing**: once a week, Ember suggests texting one person from Your people something kind (a ready line, they tap send)
@@ -138,14 +138,14 @@ checked · [–] decided against (with why)
 75. [~] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk
 
 ### E. Smoothness, the second pass (76–90)
-76. [ ] Numbers animate when they change, not only on first open
+76. [~] Numbers animate when they change, not only on first open (useCountUp counts from the old value to the new one, wave 2)
 77. [x] Rows that move between groups (Today → Done) glide instead of jumping
 78. [~] The tab pill stretches slightly as it slides (a liquid feel)
 79. [ ] Pages pushed from a card grow from that card (a zoom-from-card transition where supported)
 80. [~] The compact bar's title slides up from where the big title was
 81. [~] Chips press with a springy sink like cards
 82. [~] Pull-to-refresh on School and Steady too, with Ember's hop
-83. [ ] The keyboard and the page move together (fields slide, never jump)
+83. [~] The keyboard and the page move together (fields slide, never jump) (Screen already uses automaticallyAdjustKeyboardInsets and interactive dismiss)
 84. [ ] Sheets snap to a half height when their content is short
 85. [ ] Long lists render lazily (Notebook, Search, Badges) so pages open instantly
 86. [~] Haptic texture on sliders (a tick per step)
