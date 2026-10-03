@@ -118,7 +118,7 @@ checked · [–] decided against (with why)
 ### D. Surprise: things that make it feel like nothing else (56–75)
 56. [x] **Candle of the week**: every Sunday, the week's focus minutes, wins, and check-ins become one candle on a shelf; the shelf fills over the semester (Your year)
 57. [ ] The shelf is touchable: tap a week's candle to see its sentence and best moment
-58. [ ] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm
+58. [~] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm
 59. [ ] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day
 60. [~] The Desk's candle burns brighter with the day's progress (done vs due)
 61. [ ] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop
@@ -134,7 +134,7 @@ checked · [–] decided against (with why)
 71. [ ] **The good mail**: a note you write to yourself in Wins can be "sealed" until a date, and opens then
 72. [ ] **Your constellation**: About you drawn as stars (each pick a star), joined as more is known
 73. [ ] **Ember's journal**: Ember writes one line a week about your week (on the phone, no AI)
-74. [ ] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it
+74. [~] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it
 75. [ ] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk
 
 ### E. Smoothness, the second pass (76–90)

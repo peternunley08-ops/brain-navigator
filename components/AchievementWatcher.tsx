@@ -5,6 +5,7 @@ import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { isShowing } from '../core/showMode';
 import { celebrate } from '../core/celebrateStore';
+import { nextFirst, rememberFirst } from '../core/firsts';
 import { emberSay } from './ember/EmberBuddy';
 
 // The badges that take real time get the whole-screen moment.
@@ -16,6 +17,7 @@ const RARE = new Set(['done_50', 'showed_30', 'focus_600', 'cards_100', 'quiz_wh
 export function AchievementWatcher() {
   useEffect(() => {
     let ready = false;
+    let saidFirst = false;
     let timer: ReturnType<typeof setTimeout> | null = null;
 
     const run = () => {
@@ -26,6 +28,15 @@ export function AchievementWatcher() {
         const a = earned[earned.length - 1];
         if (RARE.has(a.key)) celebrate(a.title, a.body, a.color, { key: `badge-${a.key}` });
         else emberSay(`New badge: ${a.title}. ${a.body}`, 'cheer');
+      }
+      // One quiet first per app session, in Ember's voice, remembered forever.
+      if (ready && !earned.length && !saidFirst && !isShowing()) {
+        const f = nextFirst();
+        if (f) {
+          saidFirst = true;
+          rememberFirst(f.key);
+          emberSay(f.line, 'happy');
+        }
       }
       ready = true;
     };

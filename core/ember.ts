@@ -12,6 +12,7 @@ import { callName, cheerLine } from './about';
 import { usualCheckinHour } from './learned';
 import { dueCards, hoursTotal, useLifeStore, weekOf } from './lifeStore';
 import { lightsOutMinutes, NIGHT_END, nightNow, pastLightsOut } from './night';
+import { tinyWin } from './radar';
 import { classAverage, clock, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
 import { useTasksStore } from './tasksStore';
@@ -291,6 +292,10 @@ export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
       mood: 'concerned',
     });
   }
+
+  // One small, true good thing from the data, said on the Desk (never late at night).
+  const win = route === '/' && !lateNight ? tinyWin(now) : null;
+  if (win) tips.push({ id: win.id, line: win.line, actions: [], priority: 1, mood: 'happy' });
 
   // Past midnight, sleep outranks everything, homework included.
   const pastMidnight = hour * 60 + now.getMinutes() < NIGHT_END;
