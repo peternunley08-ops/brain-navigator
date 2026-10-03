@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
 import { useLifeStore } from './lifeStore';
+import { isNight, minutesOf, nightNow, nightStart } from './night';
 import { nowState, useSchoolStore } from './schoolStore';
 import { useUndoStore } from './undoStore';
 
@@ -142,6 +143,14 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
     if (useUndoStore.getState().item) {
       waiting = { text, mood, asked };
       return;
+    }
+    // At night Ember speaks softer: just the first sentence (asked lines stay whole).
+    if (!asked) {
+      const life = useLifeStore.getState();
+      if (isNight(minutesOf(nightNow()), nightStart(life.settings.windDown, life.about.picks.time === 'b'))) {
+        const i = text.indexOf('. ');
+        if (i > 0) text = text.slice(0, i + 1);
+      }
     }
     toastSeq += 1;
     set({ toast: { id: toastSeq, text, mood } });

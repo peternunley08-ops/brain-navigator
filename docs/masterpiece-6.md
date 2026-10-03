@@ -80,13 +80,13 @@ checked · [–] decided against (with why)
 21. [~] **Night Desk**: after wind-down, the Desk becomes one quiet card stack: tomorrow's first class, what's due tomorrow, the pack list, and "lights out by"
 22. [~] Everything else on the Desk folds away at night (one tap shows it all)
 23. [~] The room dims a little more each hour after wind-down
-24. [ ] Ember holds a tiny candle at night and speaks softer (shorter lines)
+24. [~] Ember holds a tiny candle at night and speaks softer (shorter lines)
 25. [~] "Put the day down": one tap at night lists what got done, sets down what's left for tomorrow, and says goodnight
 26. [~] A goodnight line from Ember that names one real thing from the day
 27. [~] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now
 28. [~] After midnight, Ember's first line is about sleep, never homework
 29. [~] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk
-30. [ ] The sky outside the room follows the real sunset time (from the weather store's location, if it has one)
+30. [~] The sky outside the room follows the real sunset time (from the weather store's location, if it has one)
 31. [~] Stars appear in the night backdrop, a few at a time, slower than the motes
 32. [~] Night mode respects Reduce Motion (stars stay still)
 33. [~] The night stack works with the Desk's fold choices (folded stays folded)

@@ -1,11 +1,12 @@
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useSyncExternalStore } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedProps, useAnimatedStyle, useReducedMotion, withDelay, withSequence, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedProps, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Stop } from 'react-native-svg';
 import { useEmberStore } from '../../core/emberStore';
-import { colors } from '../../core/theme';
+import { alpha, colors } from '../../core/theme';
 import { EMBER_THEMES, type Worn } from '../../core/emberLook';
 import { flamePath } from '../../core/flame';
+import { isNight, minutesOf, nightClockVersion, nightNow, nightStart, subscribeNightClock } from '../../core/night';
 import { type EmberTheme, useLifeStore } from '../../core/lifeStore';
 import type { EmberRig } from './useEmberRig';
 
@@ -47,6 +48,22 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
   const peeks = useEmberStore((s) => s.peeks);
   const prop = held ?? (hat ? 'hat' : null);
   const reading = prop === 'book';
+
+  // Night: a tiny candle (the book wins during Focus).
+  const windDown = useLifeStore((s) => s.settings.windDown);
+  const nightOwl = useLifeStore((s) => s.about.picks.time === 'b');
+  useSyncExternalStore(subscribeNightClock, nightClockVersion);
+  const candle = !reading && isNight(minutesOf(nightNow()), nightStart(windDown, nightOwl));
+  const flick = useSharedValue(1);
+  useEffect(() => {
+    if (!candle || reduced) {
+      flick.value = 1;
+      return;
+    }
+    flick.value = withRepeat(withSequence(withTiming(0.8, { duration: 330 }), withTiming(1.08, { duration: 470 }), withTiming(0.92, { duration: 260 })), -1, true);
+  }, [candle, reduced, flick]);
+  const candleFlame = useAnimatedProps(() => ({ ry: 3.4 * flick.value, opacity: 0.75 + 0.25 * flick.value }));
+  const candleGlow = useAnimatedProps(() => ({ opacity: 0.12 + 0.1 * flick.value }));
 
   // With a book out Ember looks down at it; once in a while it glances up.
   useEffect(() => {
@@ -317,6 +334,14 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
             <AnimatedPath fill="#E89AB8" stroke={colors.flameInk} strokeWidth={0.6} strokeLinejoin="round" animatedProps={hatCone} />
             <AnimatedPath stroke={P.core[0]} strokeWidth={1.6} strokeLinecap="round" fill="none" animatedProps={hatStripe} />
             <AnimatedCircle r={3} fill={P.core[0]} animatedProps={hatPom} />
+          </>
+        ) : null}
+        {candle ? (
+          <>
+            <AnimatedCircle cx={79} cy={103} r={7} fill={alpha(colors.flameHot, 1)} animatedProps={candleGlow} />
+            <Path d="M76.8,105 L81.2,105 L81.2,114 L76.8,114 Z" fill={colors.text} fillOpacity={0.85} />
+            <Path d="M79,105 L79,103.6" stroke={colors.flameInk} strokeWidth={0.6} strokeLinecap="round" />
+            <AnimatedEllipse cx={79} cy={101} rx={1.7} ry={3.4} fill={colors.flameHot} animatedProps={candleFlame} />
           </>
         ) : null}
         {prop === 'book' ? (

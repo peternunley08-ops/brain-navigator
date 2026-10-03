@@ -108,11 +108,22 @@ export const dimensionColor: Record<string, string> = {
 
 // The room's glow follows the sky: peach at dawn, gold by day, ember at
 // dusk, moonlight blue at night. Used by the Desk, School, and Focus.
-export function skyGlow(d = new Date()) {
-  const h = d.getHours();
-  if (h >= 5 && h < 8) return '#F5A36B';
-  if (h >= 8 && h < 17) return '#F5C46A';
-  if (h >= 17 && h < 20) return '#E8795A';
+// With real sunrise/sunset (ISO local) the dawn and dusk bands follow them.
+export function skyGlow(d = new Date(), sun?: { sunrise?: string; sunset?: string }) {
+  const at = (iso?: string) => {
+    const m = iso && /T(\d\d):(\d\d)/.exec(iso);
+    return m ? Number(m[1]) + Number(m[2]) / 60 : null;
+  };
+  const rise = at(sun?.sunrise);
+  const set = at(sun?.sunset);
+  const h = d.getHours() + d.getMinutes() / 60;
+  const dawn = rise != null ? rise - 0.5 : 5;
+  const day = rise != null ? rise + 1.5 : 8;
+  const dusk = set != null ? set - 1 : 17;
+  const dark = set != null ? set + 1 : 20;
+  if (h >= dawn && h < day) return '#F5A36B';
+  if (h >= day && h < dusk) return '#F5C46A';
+  if (h >= dusk && h < dark) return '#E8795A';
   return '#8FB4E8';
 }
 
