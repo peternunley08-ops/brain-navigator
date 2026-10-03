@@ -151,7 +151,7 @@ checked · [–] decided against (with why)
 86. [ ] Haptic texture on sliders (a tick per step)
 87. [ ] Swipe between days in Your day
 88. [ ] Ember's drag follows the finger with a slight lag (weight)
-89. [ ] Toasts and the Undo bar never overlap (a single queue)
+89. [~] Toasts and the Undo bar never overlap (a single queue)
 90. [ ] Everything at 120 Hz: no JavaScript per frame during scroll or drag (audit with the perf monitor)
 
 ### F. Quality and wrap-up (91–100)

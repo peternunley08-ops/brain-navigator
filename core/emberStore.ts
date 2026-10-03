@@ -2,6 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
 import { useLifeStore } from './lifeStore';
 import { nowState, useSchoolStore } from './schoolStore';
+import { useUndoStore } from './undoStore';
 
 /** True while a class is in session and Ember has been asked to stay quiet then. */
 export function inClassQuiet() {
@@ -71,6 +72,8 @@ function persist(p: EmberPrefs) {
 }
 
 let toastSeq = 0;
+/** The latest line held back while the Undo bar is up. */
+let waiting: { text: string; mood: EmberMood } | null = null;
 
 export const useEmberStore = create<EmberStore>((set, get) => ({
   ...DEFAULTS,
@@ -118,6 +121,11 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
     // Quiet mode keeps only the big moments; class time keeps nothing.
     if (inClassQuiet()) return;
     if (useLifeStore.getState().settings.emberQuiet && mood !== 'cheer') return;
+    // The Undo bar and Ember's line share the bottom of the screen: one at a time.
+    if (useUndoStore.getState().item) {
+      waiting = { text, mood };
+      return;
+    }
     toastSeq += 1;
     set({ toast: { id: toastSeq, text, mood } });
   },
@@ -126,3 +134,20 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
     if (get().toast?.id === id) set({ toast: null });
   },
 }));
+
+// One queue for the bottom of the screen. When Undo appears, a line Ember is
+// saying steps aside and comes back after; when Undo goes, the held line plays.
+useUndoStore.subscribe((state, prev) => {
+  const ember = useEmberStore.getState();
+  if (state.item && !prev.item && ember.toast) {
+    waiting = { text: ember.toast.text, mood: ember.toast.mood };
+    useEmberStore.setState({ toast: null });
+  } else if (!state.item && prev.item && waiting) {
+    const next = waiting;
+    waiting = null;
+    setTimeout(() => {
+      if (!useUndoStore.getState().item) useEmberStore.getState().say(next.text, next.mood);
+      else waiting = next;
+    }, 350);
+  }
+});
