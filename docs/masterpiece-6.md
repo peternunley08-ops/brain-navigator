@@ -127,13 +127,13 @@ checked · [–] decided against (with why)
 64. [~] **Study buddy**: during Focus, Ember studies too (a tiny book), and peeks up when time's half done
 65. [~] **Streak of light**: the days you showed up glow as a thin line under the Desk title (no numbers, no guilt)
 66. [~] **One kind thing**: once a week, Ember suggests texting one person from Your people something kind (a ready line, they tap send)
-67. [ ] **Exam season mode**: when 3+ tests are within a week, the Desk turns into a study plan view with a countdown ring per test
+67. [~] **Exam season mode**: when 3+ tests are within a week, the Desk turns into a study plan view with a countdown ring per test
 68. [~] **Birthday morning**: the room has confetti sparks and Ember a party hat (once)
 69. [ ] **Seasons**: autumn leaves, winter frost, spring blossoms drift as the motes, by date
 70. [ ] **Soundscape** (opt-in, with a real mute): soft fire crackle during Focus
 71. [~] **The good mail**: a note you write to yourself in Wins can be "sealed" until a date, and opens then
 72. [ ] **Your constellation**: About you drawn as stars (each pick a star), joined as more is known
-73. [ ] **Ember's journal**: Ember writes one line a week about your week (on the phone, no AI)
+73. [~] **Ember's journal**: Ember writes one line a week about your week (on the phone, no AI)
 74. [~] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it
 75. [~] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk
 

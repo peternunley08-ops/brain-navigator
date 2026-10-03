@@ -7,6 +7,7 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { AboutCards } from '../components/desk/AboutCards';
+import { ExamSeason } from '../components/desk/ExamSeason';
 import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
 import { SparkFlight } from '../components/ember/Sparks';
@@ -489,6 +490,7 @@ show('line') ? (
           <View style={styles.streak}>
             <StreakOfLight />
           </View>
+          <ExamSeason />
           <FirstLight seen={firstLightSeen} onSeen={(k) => useLifeStore.getState().setSettings({ firstLightSeen: k })} />
           <Reveal index={0}>
             {beforeNight(nowMin, startMin) ? (

@@ -38,7 +38,7 @@ function Row({ icon, color, title, body, onPress, onClose }: { icon: IconName; c
 
 // A card closed with × stays closed for the rest of the day, even after the
 // app restarts (kept in settings; it comes back tomorrow).
-function useClosedToday(id: string): [boolean, () => void] {
+export function useClosedToday(id: string): [boolean, () => void] {
   const today = dateKey();
   const closed = useLifeStore((st) => st.settings.deskClosed);
   const hidden = closed?.day === today && closed.ids.includes(id);

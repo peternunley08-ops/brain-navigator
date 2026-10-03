@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { EmberGlyph } from '../components/ember/EmberSprite';
@@ -11,6 +11,8 @@ import { type Jump, JumpChips, useJumps } from '../components/ui/JumpChips';
 import { Section } from '../components/ui/Section';
 import { Segmented } from '../components/ui/Segmented';
 import { StatTile } from '../components/ui/StatTile';
+import { journalWeeks } from '../core/journal';
+import { useWellnessStore } from '../core/wellnessStore';
 import { daysShowedUp } from '../core/achievements';
 import { plural } from '../core/words';
 import { addDays, dateKey } from '../core/dates';
@@ -113,6 +115,8 @@ export default function YearScreen() {
     const bestMoment = win ? win.text : biggest ? biggest.title : null;
     return { start, end, count: finished.length, mins, bestMoment };
   });
+  const checkins = useWellnessStore((s) => s.checkins);
+  const journal = useMemo(() => journalWeeks(8), [assignments, focus, checkins]);
   const [openWeek, setOpenWeek] = useState<string | null>(null);
   const openW = weeks.find((w) => w.start === openWeek) ?? null;
   const weekPeak = Math.max(1, ...weeks.map((w) => w.count));
@@ -245,6 +249,19 @@ export default function YearScreen() {
         </Section>
       </Reveal>
 
+      {journal.length ? (
+        <Reveal index={n++}>
+          <Section title="Ember’s journal">
+            {journal.map((j) => (
+              <View key={j.weekStart} style={styles.journalRow}>
+                <Text style={styles.journalDate}>Week of {dayWords(j.weekStart)}</Text>
+                <Text style={styles.journalLine}>{j.line}</Text>
+              </View>
+            ))}
+          </Section>
+        </Reveal>
+      ) : null}
+
       <Reveal index={n++}>
         <Section title="You">
           <View style={styles.row}>
@@ -319,6 +336,9 @@ const styles = StyleSheet.create({
   weekCard: { marginTop: 10 },
   weekDates: { fontFamily: fonts.display, fontSize: 16, color: colors.text },
   weekLine: { marginTop: 4, fontFamily: fonts.body, fontSize: 15, lineHeight: 22, color: colors.textMuted },
+  journalRow: { marginBottom: 12 },
+  journalDate: { fontFamily: fonts.body, fontSize: 12, color: colors.textFaint },
+  journalLine: { marginTop: 2, fontFamily: fonts.displaySoft, fontSize: 16, lineHeight: 23, color: colors.text },
   weekBest: { marginTop: 6, fontFamily: fonts.displaySoft, fontSize: 14, lineHeight: 20, color: colors.textMuted },
   shelfBoard: { height: 6, marginTop: 2, marginHorizontal: -16, backgroundColor: alpha(colors.flame, 0.22) },
   barTrack: {
