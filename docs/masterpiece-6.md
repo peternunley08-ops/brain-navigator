@@ -90,7 +90,7 @@ checked · [–] decided against (with why)
 31. [~] Stars appear in the night backdrop, a few at a time, slower than the motes
 32. [~] Night mode respects Reduce Motion (stars stay still)
 33. [ ] The night stack works with the Desk's fold choices (folded stays folded)
-34. [ ] Night is learned: if they're a night owl, the night layout starts later
+34. [~] Night is learned: if they're a night owl, the night layout starts later
 35. [~] Sunday night: the week sentence card leads the night stack
 
 ### C. Presentable (36–55)
@@ -162,8 +162,8 @@ checked · [–] decided against (with why)
 95. [x] Show-someone mode can't save over real data (tested by checking the files before and after) — checked: file fingerprints identical after checking things off as Riley; only your own Settings visits changed, no Riley data in your files
 96. [ ] The app opens to the Desk in under a second on the phone (measure)
 97. [x] CLAUDE.md: night Desk, show mode, the shelf, and their rules
-98. [ ] SESSION_LOG and this file's progress log
-99. [ ] Secret scan, commit, push
+98. [x] SESSION_LOG and this file's progress log
+99. [x] Secret scan, commit, push
 100. [ ] Write Round 7's plan from what's left and what the user says
 
 ## Build order
@@ -266,3 +266,12 @@ tiny wins radar).
   counts the check-in from the day being put down. What's New gets the
   Round 5–6 entry (card returns once, version 3). Gate scripts now find the
   repo from their own path, so they run on the Mac and in the cloud.
+- 2026-10-03 (cloud, wave 4): First light (R6-29), Sunday night leads with
+  the week's review or the sentence card (R6-35), touchable candle shelf
+  (R6-57), hold Ember for three breaths (R6-62), Ember's lines wait for the
+  Undo bar (R6-89). Lines the student asked for (hold, breath) come through
+  quiet modes. Sentinel moved off-scale corners onto `radii` (R6-44); its
+  first pass flattened pills, so pills now use `radii.pill`. CLAUDE.md
+  gained the night clock, show mode, Ember lines and gate rules (R6-97).
+  Shield scan: no secrets, 0 high; 22 medium are dependency flaws waiting
+  on an Expo SDK 57 patch. All of it is [~] until checked on the Mac.
