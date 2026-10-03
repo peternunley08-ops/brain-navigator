@@ -15,7 +15,7 @@ import { clock } from '../core/dates';
 import { soundsLikeCrisis } from '../core/emberAI';
 import { useEmberStore } from '../core/emberStore';
 import * as Haptics from '../core/haptics';
-import { useLifeStore } from '../core/lifeStore';
+import { useLifeStore, isSealed } from '../core/lifeStore';
 import { dueOn, firstClassOn, morningKey, tonightKey } from '../core/night';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, dimensionColor, fonts } from '../core/theme';
@@ -33,20 +33,22 @@ export default function GoodnightScreen() {
   const classes = useSchoolStore((s) => s.classes);
   const focus = useSchoolStore((s) => s.focus);
   const wins = useLifeStore((s) => s.wins);
-  const checkedIn = useWellnessStore((s) => s.todaysCheckin() != null);
+  const checkins = useWellnessStore((s) => s.checkins);
   const addWorry = useLifeStore((s) => s.addWorry);
   const [text, setText] = useState('');
   const [kept, setKept] = useState(false);
   const [help, setHelp] = useState(false);
 
   const key = tonightKey();
+  // After midnight the check-in that counts is the one from the day being put down.
+  const checkedIn = checkins.some((c) => c.checkin_date === key);
   // Today runs 5 AM to 5 AM, like tonight does.
   const today = useMemo(() => {
     const done = assignments
       .filter((a) => a.doneAt && tonightKey(new Date(a.doneAt)) === key)
       .sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
     const minutes = focus.filter((f) => tonightKey(new Date(f.at)) === key).reduce((sum, f) => sum + f.minutes, 0);
-    const won = wins.filter((w) => tonightKey(new Date(w.at)) === key);
+    const won = wins.filter((w) => tonightKey(new Date(w.at)) === key && !isSealed(w));
     return { done, minutes, won };
   }, [assignments, focus, wins, key]);
 
@@ -91,6 +93,8 @@ export default function GoodnightScreen() {
           ? `${plural(today.minutes, 'minute')} of focus today. Goodnight.`
           : today.won.length
             ? 'You wrote down a win today. Goodnight.'
+            : checkedIn
+              ? 'You checked in with yourself today. Goodnight.'
             : 'You made it through today. Goodnight.',
       'happy'
     );

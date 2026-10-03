@@ -1,7 +1,7 @@
 import * as Haptics from '../../core/haptics';
 import { router, usePathname } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Keyboard, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { AppState, Keyboard, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
   withDelay,
   withRepeat,
+  withSequence,
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
@@ -26,13 +27,15 @@ import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
 import { colors, fonts } from '../../core/theme';
+import { dateKey } from '../../core/dates';
+import { isShowing } from '../../core/showMode';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { EmberBubble } from './EmberBubble';
 import { autoAccessory } from '../../core/emberLook';
 import { useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
 import { EmberSprite } from './EmberSprite';
-import { Sparks } from './Sparks';
+import { Confetti, Sparks } from './Sparks';
 import { useEmberRig } from './useEmberRig';
 
 // Ember lives on top of every screen. Drag it anywhere and it swings back
@@ -91,6 +94,29 @@ export function EmberBuddy() {
 
   const [keyboardUp, setKeyboardUp] = useState(false);
   const [burst, setBurst] = useState(0);
+  const [confetti, setConfetti] = useState(0);
+
+  // Birthday: a party hat all day, and confetti the first time the app opens that day.
+  useEffect(() => {
+    const check = () => {
+      const life = useLifeStore.getState();
+      const today = dateKey();
+      const birthday = life.settings.birthday;
+      const on = !!birthday && today.slice(5) === birthday && !isShowing();
+      useEmberStore.getState().setHat(on);
+      if (!on) return;
+      const key = `birthday-sparks-${today.slice(0, 4)}`;
+      const done = life.settings.celebrated ?? [];
+      if (done.includes(key) || reducedMotion) return;
+      life.setSettings({ celebrated: [...done, key].slice(-200) });
+      setConfetti((c) => c + 1);
+    };
+    check();
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st === 'active') check();
+    });
+    return () => sub.remove();
+  }, [reducedMotion]);
   const [mode, setMode] = useState<'tips' | 'about'>('tips');
   const [tipIndex, setTipIndex] = useState(0);
 
@@ -225,7 +251,7 @@ export function EmberBuddy() {
     rig.wiggle();
     setBurst((b) => b + 1);
     useEmberStore.getState().setBubbleOpen(false);
-    useEmberStore.getState().say(COMFORT[Math.floor(Math.random() * COMFORT.length)], 'happy');
+    useEmberStore.getState().say(COMFORT[Math.floor(Math.random() * COMFORT.length)], 'happy', true);
   }, [rig]);
 
   const dizzy = useCallback(() => {
@@ -258,15 +284,59 @@ export function EmberBuddy() {
     [rig]
   );
 
-  // Holding still on Ember for a moment = comfort.
+  // Holding on Ember for a moment = three calm breaths together.
+  const swell = useSharedValue(0);
+  const breathTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const breathing = useRef(false);
+  const stopBreath = useCallback(
+    (closing: boolean) => {
+      if (!breathing.current) return;
+      breathing.current = false;
+      breathTimers.current.forEach(clearTimeout);
+      breathTimers.current = [];
+      swell.value = withTiming(0, { duration: reducedMotion ? 0 : 900 });
+      rig.setMood('idle');
+      if (closing) useEmberStore.getState().say('That was a good one. Thank you for breathing with me.', 'happy', true);
+    },
+    [rig, reducedMotion, swell]
+  );
+  const startBreath = useCallback(() => {
+    const st = useEmberStore.getState();
+    if (st.napping || breathing.current) return;
+    breathing.current = true;
+    st.setBubbleOpen(false);
+    rig.setMood('happy');
+    const at = (ms: number, fn: () => void) => breathTimers.current.push(setTimeout(fn, ms));
+    const turn = (text: string) => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
+      useEmberStore.getState().say(text, 'happy', true);
+    };
+    for (let i = 0; i < 3; i++) {
+      at(i * 10000, () => turn('Breathe in with me.'));
+      at(i * 10000 + 4000, () => turn('And out.'));
+    }
+    at(30000, () => stopBreath(true));
+    if (!reducedMotion) {
+      swell.value = withRepeat(
+        withSequence(
+          withTiming(1, { duration: 4000, easing: Easing.inOut(Easing.sin) }),
+          withTiming(0, { duration: 6000, easing: Easing.inOut(Easing.sin) })
+        ),
+        3,
+        false
+      );
+    }
+  }, [rig, reducedMotion, swell, stopBreath]);
+  useEffect(() => () => breathTimers.current.forEach(clearTimeout), []);
+
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startHold = useCallback(() => {
     if (holdTimer.current) clearTimeout(holdTimer.current);
     holdTimer.current = setTimeout(() => {
       holdTimer.current = null;
-      comfort();
-    }, 560);
-  }, [comfort]);
+      startBreath();
+    }, 800);
+  }, [startBreath]);
   const cancelHold = useCallback((): boolean => {
     if (holdTimer.current) {
       clearTimeout(holdTimer.current);
@@ -290,6 +360,12 @@ export function EmberBuddy() {
 
   const lastTap = useRef(0);
   const tapOrHoldEnd = useCallback(() => {
+    // A tap while breathing ends the calm.
+    if (breathing.current) {
+      cancelHold();
+      stopBreath(true);
+      return;
+    }
     // If the hold already fired, releasing is the end of it, not a tap.
     if (!cancelHold()) return;
     const now = Date.now();
@@ -300,7 +376,7 @@ export function EmberBuddy() {
     }
     lastTap.current = now;
     openBubble();
-  }, [cancelHold, openBubble, pet]);
+  }, [cancelHold, openBubble, pet, stopBreath]);
 
   // Something happened elsewhere in the app — react to it.
   useEffect(() => {
@@ -495,6 +571,7 @@ export function EmberBuddy() {
     };
   });
 
+  const breathGlow = useAnimatedStyle(() => ({ opacity: swell.value * 0.9, transform: [{ scale: 0.8 + 0.6 * swell.value }] }));
   const napGlow = useAnimatedStyle(() => ({ opacity: nap.value * show.value }));
 
   // ---- Bubble placement ---------------------------------------------------
@@ -529,6 +606,7 @@ export function EmberBuddy() {
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+      <Confetti run={confetti} width={W} height={H} colors={[colors.flame, colors.flameHot, '#E89AB8', colors.text]} />
       {bubbleOpen && !hidden ? (
         <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(160)} style={StyleSheet.absoluteFill}>
           <Pressable style={styles.scrim} onPress={closeBubble} accessibilityLabel="Close Ember" />
@@ -591,6 +669,17 @@ export function EmberBuddy() {
                 </RadialGradient>
               </Defs>
               <Circle cx={S * 0.75} cy={S * 0.75} r={S * 0.75} fill="url(#napGlow)" />
+            </Svg>
+          </Animated.View>
+          <Animated.View style={[styles.napGlow, breathGlow]} pointerEvents="none">
+            <Svg width={S * 1.5} height={S * 1.5}>
+              <Defs>
+                <RadialGradient id="breathGlow" cx="50%" cy="50%" r="50%">
+                  <Stop offset="0" stopColor={colors.flame} stopOpacity={0.55} />
+                  <Stop offset="1" stopColor={colors.flame} stopOpacity={0} />
+                </RadialGradient>
+              </Defs>
+              <Circle cx={S * 0.75} cy={S * 0.75} r={S * 0.75} fill="url(#breathGlow)" />
             </Svg>
           </Animated.View>
           <Sparks burst={burst} reach={52} />

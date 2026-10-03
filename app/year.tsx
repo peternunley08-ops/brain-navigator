@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { EmberGlyph } from '../components/ember/EmberSprite';
 import { Card } from '../components/ui/Card';
 import { CandleGlyph } from '../components/ui/CandleGlyph';
@@ -14,7 +15,7 @@ import { daysShowedUp } from '../core/achievements';
 import { plural } from '../core/words';
 import { addDays, dateKey } from '../core/dates';
 import { useHubStore } from '../core/hubStore';
-import { hoursTotal, useLifeStore } from '../core/lifeStore';
+import { hoursTotal, useLifeStore, isSealed } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts } from '../core/theme';
 
@@ -24,6 +25,38 @@ const MEASURE: Record<Measure, { label: string; color: string; unit: string }> =
   focus: { label: 'Focus', color: colors.flame, unit: 'hours of focus' },
   days: { label: 'Days', color: '#8FB4E8', unit: 'days showed up' },
 };
+
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+function dayWords(key: string) {
+  const [, m, d] = key.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${d}`;
+}
+function weekWords(start: string, end: string) {
+  return `${dayWords(start)} to ${dayWords(end)}`;
+}
+
+// One tappable candle; the picked one lifts and glows.
+function WeekCandle({ selected, dim, label, onPress, children }: { selected: boolean; dim: boolean; label: string; onPress: () => void; children: React.ReactNode }) {
+  const reduce = useReducedMotion();
+  const sel = useSharedValue(0);
+  sel.value = withTiming(selected ? 1 : 0, { duration: reduce ? 0 : 220 });
+  const lift = useAnimatedStyle(() => ({
+    transform: [{ translateY: reduce ? 0 : -3 * sel.value }],
+    shadowOpacity: 0.7 * sel.value,
+  }));
+  return (
+    <Pressy
+      onPress={onPress}
+      style={[styles.shelfCell, dim && !selected && { opacity: 0.35 }]}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+      accessibilityLabel={label}
+      accessibilityHint="Shows what happened that week"
+    >
+      <Animated.View style={[styles.glow, lift]}>{children}</Animated.View>
+    </Pressy>
+  );
+}
 
 // Everything you've done, added up. Counts, never streaks.
 export default function YearScreen() {
@@ -69,13 +102,19 @@ export default function YearScreen() {
   const weeks = Array.from({ length: 12 }, (_, i) => {
     const start = addDays(monday, (i - 11) * 7);
     const end = addDays(start, 6);
-    const count = assignments.filter((a) => {
-      if (!a.doneAt) return false;
-      const k = dateKey(new Date(a.doneAt));
+    const inWeek = (iso: string) => {
+      const k = dateKey(new Date(iso));
       return k >= start && k <= end;
-    }).length;
-    return { start, count };
+    };
+    const finished = assignments.filter((a) => a.doneAt && inWeek(a.doneAt));
+    const mins = focus.filter((f) => inWeek(f.at)).reduce((t, f) => t + f.minutes, 0);
+    const win = life.wins.find((x) => inWeek(x.at) && !isSealed(x));
+    const biggest = finished.reduce<(typeof finished)[number] | null>((b, a) => (!b || (a.minutes ?? 0) > (b.minutes ?? 0) ? a : b), null);
+    const bestMoment = win ? win.text : biggest ? biggest.title : null;
+    return { start, end, count: finished.length, mins, bestMoment };
   });
+  const [openWeek, setOpenWeek] = useState<string | null>(null);
+  const openW = weeks.find((w) => w.start === openWeek) ?? null;
   const weekPeak = Math.max(1, ...weeks.map((w) => w.count));
   const peak = Math.max(...values);
   const best = peak > 0 ? months[values.indexOf(peak)] : null;
@@ -172,23 +211,37 @@ export default function YearScreen() {
         <Section title="Candle of the week" note="One candle for each week. The more you finished, the taller and brighter it burns.">
           <Card style={styles.shelf}>
             <View style={styles.shelfRow}>
-              {weeks.map((w, i) => (
-                <View
+              {weeks.map((w) => (
+                <WeekCandle
                   key={w.start}
-                  style={[styles.shelfCell, w.count === 0 && { opacity: 0.35 }]}
-                  accessible
-                  accessibilityLabel={`Week of ${w.start}: ${plural(w.count, 'thing')} finished`}
+                  selected={openWeek === w.start}
+                  dim={w.count === 0}
+                  label={`Week of ${weekWords(w.start, w.end)}: ${plural(w.count, 'thing')} finished`}
+                  onPress={() => setOpenWeek(openWeek === w.start ? null : w.start)}
                 >
                   <CandleGlyph
                     size={20}
                     intensity={0.2 + 0.8 * (w.count / weekPeak)}
                     remaining={0.35 + 0.65 * (w.count / weekPeak)}
                   />
-                </View>
+                </WeekCandle>
               ))}
             </View>
             <View style={styles.shelfBoard} />
           </Card>
+          {openW ? (
+            <Pressy onPress={() => setOpenWeek(null)} accessibilityRole="button" accessibilityLabel="Close week details" accessibilityHint="Closes this card">
+              <Card style={styles.weekCard}>
+                <Text style={styles.weekDates}>{weekWords(openW.start, openW.end)}</Text>
+                <Text style={styles.weekLine}>
+                  {openW.count === 0 && openW.mins === 0
+                    ? 'A quiet week. Rest counts too.'
+                    : `You finished ${plural(openW.count, 'thing')} and focused for ${plural(openW.mins, 'minute')}.`}
+                </Text>
+                {openW.bestMoment ? <Text style={styles.weekBest}>Best moment: {openW.bestMoment}</Text> : null}
+              </Card>
+            </Pressy>
+          ) : null}
         </Section>
       </Reveal>
 
@@ -213,7 +266,7 @@ export default function YearScreen() {
         <Reveal index={n++}>
           <Section title="Latest wins">
             <Card>
-              {life.wins.slice(0, 5).map((w) => (
+              {life.wins.filter((w) => !isSealed(w)).slice(0, 5).map((w) => (
                 <Text key={w.id} style={styles.win}>
                   • {w.text}
                 </Text>
@@ -262,6 +315,11 @@ const styles = StyleSheet.create({
   shelf: { paddingTop: 14, paddingBottom: 0, overflow: 'hidden' },
   shelfRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
   shelfCell: { alignItems: 'center' },
+  glow: { shadowColor: colors.flame, shadowRadius: 10, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0 },
+  weekCard: { marginTop: 10 },
+  weekDates: { fontFamily: fonts.display, fontSize: 16, color: colors.text },
+  weekLine: { marginTop: 4, fontFamily: fonts.body, fontSize: 15, lineHeight: 22, color: colors.textMuted },
+  weekBest: { marginTop: 6, fontFamily: fonts.displaySoft, fontSize: 14, lineHeight: 20, color: colors.textMuted },
   shelfBoard: { height: 6, marginTop: 2, marginHorizontal: -16, backgroundColor: alpha(colors.flame, 0.22) },
   barTrack: {
     height: 110,

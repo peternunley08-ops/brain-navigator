@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   len: {
     minWidth: 40,
     height: 30,
-    borderRadius: 15,
+    borderRadius: radii.pill,
     borderWidth: 1,
     borderColor: colors.line,
     alignItems: 'center',

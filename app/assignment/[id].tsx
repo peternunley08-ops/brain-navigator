@@ -21,7 +21,7 @@ import { Section } from '../../components/ui/Section';
 import { goBack } from '../../core/chrome';
 import { cheerLine } from '../../core/about';
 import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, planBackward, spreadSteps, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, radii } from '../../core/theme';
 import { helperById, type HelperId } from '../../core/helpers';
 import { useLifeStore } from '../../core/lifeStore';
 import { celebrate } from '../../core/celebrateStore';
@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
     paddingVertical: 12,
-    borderRadius: 16,
+    borderRadius: radii.md,
     borderWidth: 1,
   },
   helperName: {

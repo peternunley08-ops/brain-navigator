@@ -11,7 +11,8 @@ import { aiStatus } from './aiQuota';
 import { callName, cheerLine } from './about';
 import { usualCheckinHour } from './learned';
 import { dueCards, hoursTotal, useLifeStore, weekOf } from './lifeStore';
-import { lightsOutMinutes, NIGHT_END, nightNow } from './night';
+import { lightsOutMinutes, NIGHT_END, nightNow, pastLightsOut } from './night';
+import { tinyWin } from './radar';
 import { classAverage, clock, daysUntil, dueLabel, KIND_LABEL, nowState, tonightsLoad, useSchoolStore } from './schoolStore';
 import { useBrainNavigatorStore } from './store';
 import { useTasksStore } from './tasksStore';
@@ -292,13 +293,19 @@ export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
     });
   }
 
+  // One small, true good thing from the data, said on the Desk (never late at night).
+  const win = route === '/' && !lateNight ? tinyWin(now) : null;
+  if (win) tips.push({ id: win.id, line: win.line, actions: [], priority: 1, mood: 'happy' });
+
   // Past midnight, sleep outranks everything, homework included.
   const pastMidnight = hour * 60 + now.getMinutes() < NIGHT_END;
   if (pastMidnight) {
     const out = lightsOutMinutes(useLifeStore.getState().settings.wake, useSchoolStore.getState().profile.sleepGoal);
     tips.push({
       id: `past-midnight-${todayKey(now)}`,
-      line: `It’s past midnight. Homework can wait for morning-you. Your lights-out time was ${clock(out)}, and bed is the best next step.`,
+      line: pastLightsOut(hour * 60 + now.getMinutes(), out)
+        ? `It’s past midnight. Homework can wait for morning-you. Your lights-out time was ${clock(out)}, and bed is the best next step.`
+        : `It’s past midnight. Homework can wait for morning-you. Lights out by ${clock(out)} keeps tomorrow kind.`,
       actions: [A.breathe, A.sleep],
       priority: 4,
       mood: 'sleepy',
@@ -423,7 +430,7 @@ export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
 
   const todayCd = life.countdowns.find((c) => daysUntil(c.date) === 0);
   if (todayCd) {
-    tips.push({ id: `cd-${todayCd.id}`, line: `${todayCd.title} is today!`, priority: 2, mood: 'cheer' });
+    tips.push({ id: `cd-${todayCd.id}`, line: `${todayCd.title} is today. You’ve been counting down to this.`, priority: 2, mood: 'cheer' });
   }
 
   const svcGoal = life.settings.serviceGoal;

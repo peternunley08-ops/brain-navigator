@@ -1,7 +1,7 @@
 import * as Haptics from '../../core/haptics';
 import { plural } from '../../core/words';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 import { AIPicker, type PickItem } from '../../components/ember/AIPicker';
 import { emberSay } from '../../components/ember/EmberBuddy';
@@ -21,7 +21,7 @@ import { parseCards, useLifeStore } from '../../core/lifeStore';
 import { essayWords, wordGoalFor } from '../../core/words';
 import { askJob } from '../../core/emberAI';
 import { useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, radii } from '../../core/theme';
 
 const ADDERS: { type: BlockType; label: string; icon: IconName }[] = [
   { type: 'text', label: 'Text', icon: 'pen' },
@@ -86,6 +86,16 @@ export default function NoteScreen() {
   const aiOff = useLifeStore((s) => !!s.settings.aiOff);
   // Which AI study help is picked under the page.
   const [aiMode, setAiMode] = useState<'cards' | 'points' | 'practice'>('cards');
+
+  // On leaving, remember this page so the Desk can offer to pick it back up.
+  const openedAt = useRef(note?.updatedAt);
+  useEffect(
+    () => () => {
+      const cur = useHubStore.getState().notes.find((n) => n.id === id);
+      if (cur && id && cur.updatedAt !== openedAt.current) useLifeStore.getState().setSettings({ lastNote: { id, at: new Date().toISOString() } });
+    },
+    [id],
+  );
 
   if (!note) {
     return (
@@ -546,7 +556,7 @@ const styles = StyleSheet.create({
   limit: {
     paddingHorizontal: 9,
     height: 26,
-    borderRadius: 13,
+    borderRadius: radii.pill,
     borderWidth: 1,
     borderColor: colors.line,
     justifyContent: 'center',

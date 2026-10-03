@@ -8,6 +8,7 @@ import { cheerLine } from '../core/about';
 import { celebrate } from '../core/celebrateStore';
 import { EmberSprite } from '../components/ember/EmberSprite';
 import { Sparks } from '../components/ember/Sparks';
+import { useEmberStore } from '../core/emberStore';
 import { useEmberRig } from '../components/ember/useEmberRig';
 import { Button } from '../components/ui/Button';
 import { Candle, type CandleState } from '../components/ui/Candle';
@@ -27,7 +28,7 @@ import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
 import { addDays, clock, dateKey, daysUntil, focusMinutesOn, minutesOn, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
-import { alpha, colors, fonts, layout, skyGlow } from '../core/theme';
+import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 
 type Phase = 'setup' | 'running' | 'paused' | 'done' | 'break';
 
@@ -115,6 +116,7 @@ export default function FocusScreen() {
 
   // Timer: when it started, how much was banked before a pause.
   const startedAt = useRef(0);
+  const peeked = useRef(false);
   const banked = useRef(0);
   const [now, setNow] = useState(Date.now());
   const [breakEnds, setBreakEnds] = useState(0);
@@ -151,6 +153,11 @@ export default function FocusScreen() {
 
   // The session finishes itself when the candle's burned down.
   useEffect(() => {
+    // Past the halfway mark, Ember glances up from its book once.
+    if (phase === 'running' && !peeked.current && elapsed >= total / 2) {
+      peeked.current = true;
+      useEmberStore.getState().peek();
+    }
     if (phase === 'running' && elapsed >= total) finish(true);
     if (phase === 'break' && now >= breakEnds) {
       rig.setMood('happy');
@@ -164,6 +171,7 @@ export default function FocusScreen() {
   }, [now]);
 
   useEffect(() => {
+    useEmberStore.getState().setProp(phase === 'running' ? 'book' : null);
     if (phase === 'running') {
       rig.holdGaze(true);
       rig.setMood('listening');
@@ -177,7 +185,10 @@ export default function FocusScreen() {
     }
   }, [phase, rig]);
 
+  useEffect(() => () => useEmberStore.getState().setProp(null), []);
+
   const start = () => {
+    peeked.current = false;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     sessionStart.current = new Date().toISOString();
     setRated(null);
@@ -731,7 +742,7 @@ const styles = StyleSheet.create({
   strayCount: {
     minWidth: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: alpha(colors.flame, 0.18),

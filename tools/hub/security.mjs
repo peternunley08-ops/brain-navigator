@@ -7,8 +7,10 @@
 import { execFileSync, spawnSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const MAIN = '/Users/peternunley/Desktop/brain-navigator';
+// Main checkout: two levels up from this script (works on the Mac and in cloud sessions).
+const MAIN = process.env.BN_MAIN ?? fileURLToPath(new URL('../..', import.meta.url)).replace(/\/$/, '');
 const HUB = join(MAIN, 'tools/hub/hub.mjs');
 const args = process.argv.slice(2);
 const has = (k) => args.includes(`--${k}`);

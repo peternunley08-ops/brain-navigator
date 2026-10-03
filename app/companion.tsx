@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
     maxWidth: '86%',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 20,
+    borderRadius: radii.lg,
   },
   fromEmber: {
     alignSelf: 'flex-start',
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     height: 36,
     paddingHorizontal: 14,
-    borderRadius: 18,
+    borderRadius: radii.pill,
     backgroundColor: colors.flame,
   },
   suggestText: {

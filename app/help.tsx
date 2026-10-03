@@ -7,7 +7,7 @@ import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
-import { alpha, colors, fonts } from '../core/theme';
+import { alpha, colors, fonts, radii } from '../core/theme';
 
 const RED = '#F07060';
 
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
     gap: 6,
     height: 40,
     paddingHorizontal: 14,
-    borderRadius: 20,
+    borderRadius: radii.pill,
     backgroundColor: colors.flame,
   },
   actionText: {

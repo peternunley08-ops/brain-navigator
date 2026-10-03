@@ -1,4 +1,6 @@
 import { router } from 'expo-router';
+import { Linking } from 'react-native';
+import { isShowing } from '../../core/showMode';
 import { useEffect, useState } from 'react';
 import { celebrate } from '../../core/celebrateStore';
 import { plural } from '../../core/words';
@@ -8,7 +10,9 @@ import { addDays, dateKey, daysUntil } from '../../core/dates';
 import { nextBadge } from '../../core/achievements';
 import { dueFollowUp, followUpTopic } from '../../core/emberAI';
 import { helperById } from '../../core/helpers';
+import { useHubStore } from '../../core/hubStore';
 import { useLifeStore, weekOf } from '../../core/lifeStore';
+import { useWellnessStore } from '../../core/wellnessStore';
 import { clock, isoDay, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { Card } from '../ui/Card';
@@ -205,7 +209,7 @@ export function Birthday() {
   const today = dateKey();
   const isToday = !!birthday && today.slice(5) === birthday;
   useEffect(() => {
-    if (isToday) celebrate(`Happy birthday${name ? `, ${name}` : ''}!`, 'Go easy on yourself today. The list can wait a little.', '#E89AB8', { key: `birthday-${today.slice(0, 4)}` });
+    if (isToday) celebrate(`Happy birthday${name ? `, ${name}` : ''}`, 'Go easy on yourself today. The list can wait a little.', '#E89AB8', { key: `birthday-${today.slice(0, 4)}` });
   }, [isToday, name, today]);
   if (!isToday) return null;
   return <Row icon="gift" color="#E89AB8" title={`Happy birthday${name ? `, ${name}` : ''}`} body="Ember says the candles today are all yours." onPress={() => router.push('/wins')} />;
@@ -251,6 +255,32 @@ export function TryThisWeek() {
       onClose={setHidden}
     />
   );
+}
+
+// Pick up where you left off: an unsaved check-in, or the note last written.
+export function PickUp() {
+  const draft = useLifeStore((s) => s.settings.checkinDraft);
+  const lastNote = useLifeStore((s) => s.settings.lastNote);
+  const checkins = useWellnessStore((s) => s.checkins);
+  const notes = useHubStore((s) => s.notes);
+  const [hidden, setHidden] = useClosedToday('PickUp');
+  if (hidden || isShowing()) return null;
+  const today = dateKey();
+  const savedToday = checkins.some((c) => c.checkin_date === today);
+  let body = '';
+  let path = '';
+  if (draft === today && !savedToday) {
+    body = new Date().getHours() < 12 ? 'Your check-in from this morning' : 'Your check-in from earlier today';
+    path = '/checkin';
+  } else if (lastNote && Date.now() - new Date(lastNote.at).getTime() < 12 * 3600 * 1000) {
+    const note = notes.find((n) => n.id === lastNote.id);
+    if (note) {
+      body = `The note you were writing: ${note.title.trim() || 'Untitled'}`;
+      path = `/note/${note.id}`;
+    }
+  }
+  if (!path) return null;
+  return <Row icon="pen" color={colors.flame} title="Pick up where you left off" body={body} onPress={() => router.push(path as never)} onClose={setHidden} />;
 }
 
 // The badge you're closest to, as a small nudge with the number left.
@@ -366,3 +396,42 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 });
+
+// One kind thing, once a week (weekends, daytime): a ready line to text someone.
+// Nothing is sent for them; the message app opens with the line filled in.
+const KIND_LINES = [
+  'Thinking of you. Hope your week was good.',
+  'No reason, just glad you’re in my life.',
+  'Saw something that made me think of you.',
+  'Hope you’re having a gentle weekend.',
+];
+
+export function OneKindThing() {
+  const people = useLifeStore((s) => s.people);
+  const kindWeek = useLifeStore((s) => s.settings.kindWeek);
+  const setSettings = useLifeStore((s) => s.setSettings);
+  const [hidden, setHidden] = useClosedToday('OneKindThing');
+  if (isShowing() || hidden) return null;
+  const now = new Date();
+  const dow = now.getDay();
+  const week = weekOf();
+  if ((dow !== 6 && dow !== 0) || now.getHours() < 9 || now.getHours() >= 18 || kindWeek === week) return null;
+  const reachable = people.filter((p) => p.phone.trim());
+  if (!reachable.length) return null;
+  const n = Math.floor(Date.parse(week) / (7 * 86400000));
+  const person = reachable[n % reachable.length];
+  const line = KIND_LINES[n % KIND_LINES.length];
+  return (
+    <Row
+      icon="message"
+      color={colors.flame}
+      title={`One kind thing: text ${person.name}`}
+      body={`“${line}” Tap to open it in Messages. Nothing sends until you do.`}
+      onPress={() => {
+        setSettings({ kindWeek: week });
+        Linking.openURL('sms:' + person.phone.trim() + '&body=' + encodeURIComponent(line)).catch(() => {});
+      }}
+      onClose={setHidden}
+    />
+  );
+}

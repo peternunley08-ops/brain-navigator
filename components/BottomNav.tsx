@@ -10,7 +10,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { navTucked, navWanted, scrollFocusedToTop } from '../core/chrome';
 import { springs, timings } from '../core/motion';
 import { dateKey, useSchoolStore } from '../core/schoolStore';
-import { alpha, colors, fonts, gradients } from '../core/theme';
+import { alpha, colors, fonts, gradients, radii } from '../core/theme';
 import { Icon, type IconName } from './ui/Icon';
 import { Pressy } from './ui/Pressy';
 
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   iconWrap: {
     width: 44,
     height: 30,
-    borderRadius: 15,
+    borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     top: 11,
     width: PILL,
     height: 30,
-    borderRadius: 15,
+    borderRadius: radii.pill,
     backgroundColor: alpha(colors.flame, 0.14),
   },
   label: {

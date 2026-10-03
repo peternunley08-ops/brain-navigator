@@ -17,7 +17,7 @@ import { Section } from '../components/ui/Section';
 import { deckStats, dueCards, parseCards, useLifeStore } from '../core/lifeStore';
 import { plural } from '../core/words';
 import { CLASS_COLORS, useSchoolStore } from '../core/schoolStore';
-import { colors, fonts } from '../core/theme';
+import { colors, fonts, radii } from '../core/theme';
 
 // Flashcard decks — the most reliable way to study there is. Cards you
 // know come back less often; cards you miss come back tomorrow.
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
   due: {
     minWidth: 30,
     height: 26,
-    borderRadius: 13,
+    borderRadius: radii.pill,
     paddingHorizontal: 8,
     alignItems: 'center',
     justifyContent: 'center',

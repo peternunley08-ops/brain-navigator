@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: radii.pill,
     borderWidth: 1,
   },
   scoreText: {

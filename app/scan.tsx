@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
   dateBtn: {
     paddingHorizontal: 10,
     height: 30,
-    borderRadius: 15,
+    borderRadius: radii.pill,
     justifyContent: 'center',
     backgroundColor: colors.surfaceHigh,
   },
@@ -728,7 +728,7 @@ const styles = StyleSheet.create({
   preview: {
     width: 150,
     height: 220,
-    borderRadius: 18,
+    borderRadius: radii.lg,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: alpha('#AFA2DE', 0.5),

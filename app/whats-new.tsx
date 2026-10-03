@@ -9,6 +9,24 @@ import { colors, fonts } from '../core/theme';
 // Every update, newest first, with a way to jump to what changed.
 const RELEASES: { title: string; when: string; lines: string[]; links: { label: string; href: string }[] }[] = [
   {
+    title: 'The night room, and getting to know you',
+    when: 'October 2026',
+    lines: [
+      'After wind-down the Desk becomes one quiet stack: tomorrow’s first class, what’s due, and lights out by.',
+      'Put the day down: see what got done, leave what’s on your mind in the worry box, say goodnight.',
+      'The room dims a little each hour at night, and a few stars come out.',
+      'About you cards and This-or-that, so Ember knows how you like things.',
+      'Each week becomes a candle on a shelf in Your year.',
+      'Settings reads in order, long pages have jump chips, and every delete can be undone.',
+    ],
+    links: [
+      { label: 'Goodnight', href: '/goodnight' },
+      { label: 'Your year', href: '/year' },
+      { label: 'About you', href: '/about' },
+      { label: 'Settings', href: '/settings' },
+    ],
+  },
+  {
     title: 'Study crew, Plus, and a lot of polish',
     when: 'Fall 2026',
     lines: [

@@ -21,7 +21,7 @@ import { useEmberStore } from '../../core/emberStore';
 import { timings } from '../../core/motion';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { colors, fonts, layout } from '../../core/theme';
-import { Backdrop } from './Backdrop';
+import { Backdrop, type WeatherKind } from './Backdrop';
 import { IconButton } from './IconButton';
 import { RevealContext } from './Reveal';
 
@@ -44,6 +44,8 @@ interface ScreenProps {
   tone?: 'room' | 'ember' | 'dusk';
   glowColor?: string;
   motes?: boolean;
+  /** Faint rain or snow in the room's window. */
+  weather?: WeatherKind;
   /** Whether the app's bottom nav shows on this page. */
   nav?: boolean;
   scroll?: boolean;
@@ -77,6 +79,7 @@ export function Screen({
   tone = 'room',
   glowColor,
   motes,
+  weather,
   nav = true,
   scroll = true,
   children,
@@ -288,7 +291,7 @@ export function Screen({
     <RevealContext.Provider value={settle}>
       <View style={styles.root} onLayout={onRootLayout} collapsable={false}>
         <Animated.View style={[styles.backdrop, depth]} pointerEvents="none">
-          <Backdrop tone={tone} glowColor={glowColor} motes={motes} />
+          <Backdrop tone={tone} glowColor={glowColor} motes={motes} weather={weather} />
         </Animated.View>
         {scroll ? (
           <Animated.View style={[styles.pullGlow, pullGlow]} pointerEvents="none">

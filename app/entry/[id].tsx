@@ -359,7 +359,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     paddingHorizontal: 12,
     height: 30,
-    borderRadius: 15,
+    borderRadius: radii.pill,
     borderWidth: 1,
   },
   stateDot: {

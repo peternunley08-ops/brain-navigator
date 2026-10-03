@@ -26,7 +26,10 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { alpha, colors, fonts, radii } from '../core/theme';
+import * as Haptics from '../core/haptics';
 import { useLifeStore } from '../core/lifeStore';
+import { isNight, minutesOf, nightNow, nightStart } from '../core/night';
+import { offerUndo } from '../core/undoStore';
 import { chatTitleFrom, entryKey, useVentStore } from '../core/ventStore';
 
 type Mode = 'voice' | 'type';
@@ -121,6 +124,24 @@ export default function VentScreen() {
     }, reduced ? 220 : 920);
   };
 
+  // Late at night, lead with putting it in the worry box instead.
+  // Late means the same night the Desk keeps: from wind-down (an hour later for a night owl).
+  const windDown = useLifeStore((s) => s.settings.windDown);
+  const nightOwl = useLifeStore((s) => s.about.picks.time) === 'b';
+  const late = isNight(minutesOf(nightNow()), nightStart(windDown, nightOwl));
+  const handleKeep = () => {
+    const t = content.trim();
+    if (!t) return;
+    if (recognizing) ExpoSpeechRecognitionModule.stop();
+    const before = useLifeStore.getState().worries;
+    useLifeStore.getState().addWorry(t);
+    offerUndo('Added to the worry box', () => useLifeStore.getState().putBack({ worries: before }), 'trash');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft).catch(() => {});
+    setTranscript('');
+    setTypedText('');
+    emberSay('It’s in the box. It’ll keep till morning.', 'sleepy');
+  };
+
   const floatAway = useAnimatedStyle(() => ({
     opacity: 1 - lift.value,
     transform: [{ translateY: reduced ? 0 : -60 * lift.value }, { scale: 1 - 0.06 * lift.value }],
@@ -158,7 +179,8 @@ export default function VentScreen() {
 
           {content.trim() ? (
             <Animated.View entering={FadeInDown.duration(260)}>
-              <Button label="Let it go" icon="feather" loading={isSaving} onPress={handleRelease} style={styles.releaseButton} />
+              {late ? <Button label="Keep it for tomorrow" icon="moon" onPress={handleKeep} style={styles.releaseButton} /> : null}
+              <Button label="Let it go" icon="feather" variant={late ? 'secondary' : undefined} loading={isSaving} onPress={handleRelease} style={late ? styles.releaseButtonAfter : styles.releaseButton} />
             </Animated.View>
           ) : null}
         </Animated.View>
@@ -382,6 +404,9 @@ const styles = StyleSheet.create({
   },
   releaseButton: {
     marginTop: 22,
+  },
+  releaseButtonAfter: {
+    marginTop: 12,
   },
   releasedNote: {
     marginTop: 22,

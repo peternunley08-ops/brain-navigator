@@ -1,7 +1,9 @@
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { useAnimatedProps, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useAnimatedProps, useAnimatedStyle, useReducedMotion, withDelay, withSequence, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Defs, Ellipse, Path, RadialGradient, Stop } from 'react-native-svg';
+import { useEmberStore } from '../../core/emberStore';
+import { colors } from '../../core/theme';
 import { EMBER_THEMES, type Worn } from '../../core/emberLook';
 import { flamePath } from '../../core/flame';
 import { type EmberTheme, useLifeStore } from '../../core/lifeStore';
@@ -39,6 +41,23 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
   const P = EMBER_THEMES[theme ?? chosen] ?? EMBER_THEMES.gold;
   const INK = P.ink;
   const worn: Worn = accessory ?? (glasses ? 'glasses' : 'none');
+  const reduced = useReducedMotion();
+  const held = useEmberStore((s) => s.prop);
+  const hat = useEmberStore((s) => s.hat);
+  const peeks = useEmberStore((s) => s.peeks);
+  const prop = held ?? (hat ? 'hat' : null);
+  const reading = prop === 'book';
+
+  // With a book out Ember looks down at it; once in a while it glances up.
+  useEffect(() => {
+    if (!reading || reduced) return;
+    lookY.value = withTiming(0.6, { duration: 400 });
+  }, [reading, reduced, lookY]);
+  useEffect(() => {
+    if (peeks === 0 || !reading || reduced) return;
+    lookY.value = withSequence(withTiming(-0.5, { duration: 260 }), withDelay(900, withTiming(0.6, { duration: 340 })));
+    blink.value = withSequence(withDelay(700, withTiming(0.1, { duration: 90 })), withTiming(1, { duration: 140 }));
+  }, [peeks, reading, reduced, lookY, blink]);
 
   const body = useAnimatedProps(() => {
     const f = flare.value;
@@ -193,6 +212,21 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
     return { d: `M${x + 8},104 L${x + 16 + swing},118 L${x + 8 + swing},119 L${x + 3},106 Z` };
   });
 
+  const hatCone = useAnimatedProps(() => {
+    const x = CX + lookX.value * 2.2;
+    const y = 58 + lookY.value * 1.4;
+    return { d: `M${x - 10},${y} L${x + 1},${y - 20} L${x + 11},${y} Q${x},${y + 3} ${x - 10},${y} Z` };
+  });
+  const hatStripe = useAnimatedProps(() => {
+    const x = CX + lookX.value * 2.2;
+    const y = 58 + lookY.value * 1.4;
+    return { d: `M${x - 6.5},${y - 7} L${x + 7.5},${y - 7} M${x - 3.5},${y - 14} L${x + 4},${y - 14}` };
+  });
+  const hatPom = useAnimatedProps(() => ({
+    cx: CX + 1 + lookX.value * 2.2,
+    cy: 58 - 20 + lookY.value * 1.4,
+  }));
+
   const cheek = (side: -1 | 1) =>
     // eslint-disable-next-line react-hooks/rules-of-hooks
     useAnimatedProps(() => ({
@@ -276,6 +310,21 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
             <AnimatedCircle r={6.8} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={1.8} animatedProps={leftLens} />
             <AnimatedCircle r={6.8} fill="rgba(255,255,255,0.14)" stroke={INK} strokeWidth={1.8} animatedProps={rightLens} />
             <AnimatedPath stroke={INK} strokeWidth={1.8} strokeLinecap="round" fill="none" animatedProps={bridge} />
+          </>
+        ) : null}
+        {prop === 'hat' ? (
+          <>
+            <AnimatedPath fill="#E89AB8" stroke={colors.flameInk} strokeWidth={0.6} strokeLinejoin="round" animatedProps={hatCone} />
+            <AnimatedPath stroke={P.core[0]} strokeWidth={1.6} strokeLinecap="round" fill="none" animatedProps={hatStripe} />
+            <AnimatedCircle r={3} fill={P.core[0]} animatedProps={hatPom} />
+          </>
+        ) : null}
+        {prop === 'book' ? (
+          <>
+            <Path d="M33,107 Q42,102 50,106 Q58,102 67,107 L67,115 Q58,111 50,115 Q42,111 33,115 Z" fill={colors.flameDeep} />
+            <Path d="M35,106 Q42,101.5 49,105.5 L49,113 Q42,109.5 35,113 Z" fill={P.core[0]} />
+            <Path d="M51,105.5 Q58,101.5 65,106 L65,113 Q58,109.5 51,113 Z" fill={P.core[0]} />
+            <Path d="M38,108 Q42,106.5 46,108 M38,110.6 Q42,109.1 46,110.6 M54,108 Q58,106.5 62,108 M54,110.6 Q58,109.1 62,110.6" stroke={colors.flameDeep} strokeOpacity={0.5} strokeWidth={0.7} strokeLinecap="round" fill="none" />
           </>
         ) : null}
       </Svg>

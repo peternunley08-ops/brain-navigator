@@ -30,6 +30,11 @@ export function setNightClock(minutes: number | null) {
   listeners.forEach((l) => l());
 }
 
+/** The developer's pretend time (minutes after midnight), or null for the real clock. */
+export function nightClockOverride() {
+  return override;
+}
+
 /** Now, or today at the developer's pretend time. */
 export function nightNow(): Date {
   if (override == null) return new Date();
@@ -127,4 +132,10 @@ export function firstClassOn(classes: SchoolClass[], key: string): SchoolClass |
 /** What is still open and due on that date, starred first. */
 export function dueOn(assignments: Assignment[], key: string) {
   return assignments.filter((a) => !a.done && a.due === key).sort((a, b) => Number(!!b.starred) - Number(!!a.starred));
+}
+
+/** First light shows once a day, from wake time until noon. */
+export function firstLightOpen(now: Date, wake: number, seen: string | undefined) {
+  const m = minutesOf(now);
+  return m >= wake && m < 12 * 60 && seen !== dateKey(now);
 }
