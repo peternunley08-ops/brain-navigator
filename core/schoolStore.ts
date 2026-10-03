@@ -2,6 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
 import { saveAside } from './saveAside';
 import { isShowing } from './showMode';
+import { addSpark } from './sparks';
 
 // School life: classes, what's due, focus sessions, and a small profile.
 // Kept on the phone (a JSON file in the app's documents folder) rather
@@ -252,6 +253,8 @@ export const useSchoolStore = create<SchoolStore>((set, get) => {
     toggleAssignment: (id) => {
       const list = get().assignments;
       const target = list.find((a) => a.id === id);
+      // Finishing something sends a spark to the Desk's candles.
+      if (target && !target.done) addSpark();
       let next = list.map((a) =>
         a.id === id ? { ...a, done: !a.done, doneAt: a.done ? null : new Date().toISOString() } : a
       );

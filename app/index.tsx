@@ -9,6 +9,9 @@ import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { AboutCards } from '../components/desk/AboutCards';
 import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
+import { SparkFlight } from '../components/ember/Sparks';
+import { weatherKind } from '../components/ui/Backdrop';
+import { useWeatherStore } from '../core/weatherStore';
 import { StreakOfLight } from '../components/desk/StreakOfLight';
 import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
@@ -180,6 +183,7 @@ export default function DeskScreen() {
   }, []);
   const windDown = useLifeStore((s) => s.settings.windDown);
   const firstLightSeen = useLifeStore((s) => s.settings.firstLightSeen);
+  const weatherCode = useWeatherStore((s) => s.weatherCode);
   const nowMin = minutesOf(nightNow());
   const startMin = nightStart(windDown, timePick === 'b');
   const night = isNight(nowMin, startMin);
@@ -457,6 +461,8 @@ show('line') ? (
         })
       }
       motes
+      weather={weatherKind(weatherCode)}
+      overlay={<SparkFlight />}
       kicker={momentLabel(nightNow())}
       title={greetingFor(nickname || profile.name, timePick, nightNow())}
       subtitle={

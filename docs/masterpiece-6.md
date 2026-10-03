@@ -119,9 +119,9 @@ checked · [–] decided against (with why)
 56. [x] **Candle of the week**: every Sunday, the week's focus minutes, wins, and check-ins become one candle on a shelf; the shelf fills over the semester (Your year)
 57. [~] The shelf is touchable: tap a week's candle to see its sentence and best moment
 58. [~] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm
-59. [ ] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day
+59. [~] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day
 60. [~] The Desk's candle burns brighter with the day's progress (done vs due)
-61. [ ] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop
+61. [~] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop
 62. [~] **Hold the flame**: holding Ember for a long breath starts a 3-breath calm right there, anywhere in the app
 63. [ ] **Pocket worry**: shake the phone to drop a worry into the box from anywhere (with Undo)
 64. [~] **Study buddy**: during Focus, Ember studies too (a tiny book), and peeks up when time's half done

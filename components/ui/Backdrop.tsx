@@ -10,7 +10,7 @@ import Animated, {
   withRepeat,
   withTiming,
 } from 'react-native-reanimated';
-import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
+import Svg, { Defs, Ellipse, Line, RadialGradient, Stop } from 'react-native-svg';
 import { useLifeStore } from '../../core/lifeStore';
 import { hoursIntoNight, isNight, minutesOf, nightClockVersion, nightNow, nightStart, subscribeNightClock } from '../../core/night';
 import { colors, gradients } from '../../core/theme';
@@ -24,6 +24,18 @@ interface BackdropProps {
   glowColor?: string;
   /** A few slow specks of dust drifting through the light. */
   motes?: boolean;
+  /** Faint weather in the window. */
+  weather?: WeatherKind;
+}
+
+export type WeatherKind = 'rain' | 'snow' | 'clear' | null;
+
+/** Open-Meteo WMO code to a Backdrop weather kind. */
+export function weatherKind(code: number | null | undefined): WeatherKind {
+  if (code == null) return null;
+  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82) || code >= 95) return 'rain';
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) return 'snow';
+  return code <= 3 ? 'clear' : null;
 }
 
 // The room behind every screen: a night gradient, a pool of candlelight
@@ -35,6 +47,7 @@ export const Backdrop = memo(function Backdrop({
   glowAt = 0.08,
   glowColor = '#F5B45C',
   motes = false,
+  weather = null,
 }: BackdropProps) {
   const { width, height } = useWindowDimensions();
   const windDown = useLifeStore((s) => s.settings.windDown);
@@ -59,6 +72,7 @@ export const Backdrop = memo(function Backdrop({
       </Svg>
       {veil > 0 ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: colors.night, opacity: veil }]} /> : null}
       {motes ? <Motes width={width} height={height} /> : null}
+      {weather === 'rain' || weather === 'snow' ? <Weather kind={weather} width={width} height={height} /> : null}
       {night ? <Stars width={width} height={height} /> : null}
     </View>
   );
@@ -111,6 +125,56 @@ function Mote({
         style,
       ]}
     />
+  );
+}
+
+// Faint rain streaks or snow dots drifting down the window. Few, slow, UI-thread.
+const DROPS = [0.06, 0.17, 0.28, 0.4, 0.5, 0.61, 0.72, 0.83, 0.93, 0.34, 0.77, 0.12].map((x, i) => ({
+  x,
+  d: 5200 + (i % 5) * 900,
+  delay: (i * 530) % 3600,
+  y: (i * 0.17) % 0.6,
+}));
+
+function Weather({ kind, width, height }: { kind: 'rain' | 'snow'; width: number; height: number }) {
+  const reduced = useReducedMotion();
+  return (
+    <>
+      {DROPS.map((dr, i) => (
+        <Drop key={i} {...dr} kind={kind} width={width} height={height} still={reduced} />
+      ))}
+    </>
+  );
+}
+
+function Drop({
+  x, y, d, delay, kind, width, height, still,
+}: (typeof DROPS)[number] & { kind: 'rain' | 'snow'; width: number; height: number; still: boolean }) {
+  const p = useSharedValue(0);
+  const rain = kind === 'rain';
+  const travel = height * 0.5;
+  useEffect(() => {
+    if (still) return;
+    const dur = rain ? d * 0.45 : d;
+    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: dur, easing: Easing.linear }), -1, false));
+  }, [p, d, delay, still, rain]);
+  const style = useAnimatedStyle(() => ({
+    opacity: still ? 0.06 : 0.12 * Math.sin(p.value * Math.PI),
+    transform: [
+      { translateY: still ? 0 : p.value * travel },
+      { translateX: still ? 0 : (rain ? p.value * -travel * 0.2 : Math.sin(p.value * 6.28) * 10) },
+    ],
+  }));
+  return (
+    <Animated.View style={[{ position: 'absolute', left: x * width, top: y * height }, style]}>
+      <Svg width={14} height={22}>
+        {rain ? (
+          <Line x1={10} y1={1} x2={4} y2={21} stroke="#BFD4F0" strokeWidth={1} strokeLinecap="round" />
+        ) : (
+          <Ellipse cx={7} cy={11} rx={2.2} ry={2.2} fill="#EAF1FB" />
+        )}
+      </Svg>
+    </Animated.View>
   );
 }
 
