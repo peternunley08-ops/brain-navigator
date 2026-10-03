@@ -25,7 +25,7 @@ checked · `[–]` decided against (with why)
 
 9. [ ] Open to the Desk in under a second on the phone; measure cold start (R6-96)
 10. [ ] 120 Hz audit with the perf monitor: no JS per frame on scroll or drag (R6-90)
-11. [ ] Badges: render locked tiles without the late jump (from R6-85)
+11. [~] Badges: render locked tiles without the late jump (from R6-85)
 
 ## C. Easy to update the phone
 
@@ -42,7 +42,7 @@ checked · `[–]` decided against (with why)
 
 17. [ ] Screenshots script for the hero pages into `docs/screens/` (R6-53), in show mode only
 18. [ ] Put the screenshots in `docs/WHAT-THIS-IS.md` and the README
-19. [ ] The show tour's lines checked against Riley's sample data
+19. [~] The show tour's lines checked against Riley's sample data
 
 ## F. From the idea bank
 
