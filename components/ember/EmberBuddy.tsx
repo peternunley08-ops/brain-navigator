@@ -469,6 +469,10 @@ export function EmberBuddy() {
   const lastVy = useSharedValue(0);
   const flips = useSharedValue(0);
   const dizzied = useSharedValue(0);
+  // Drag weight: the shown spot trails the finger a few frames, and a tiny tilt leans with the motion.
+  const offX = useSharedValue(0);
+  const offY = useSharedValue(0);
+  const tilt = useSharedValue(0);
   const geo = useSharedValue({ minY, maxY, leftX, rightX, W });
   useEffect(() => {
     geo.value = { minY, maxY, leftX, rightX, W };
@@ -502,10 +506,20 @@ export function EmberBuddy() {
         scheduleOnRN(dragStart);
       }
       const g = geo.value;
+      const px = x.value;
+      const py = y.value;
       x.value = startX.value + tx;
       // Rubber-band past the top and bottom limits.
       const ny = startY.value + ty;
       y.value = ny < g.minY ? g.minY - (g.minY - ny) * 0.35 : ny > g.maxY ? g.maxY + (ny - g.maxY) * 0.35 : ny;
+      if (!reducedMotion) {
+        // Restart the follow from where the shown spot is now, behind the finger.
+        offX.value = offX.value - (x.value - px);
+        offY.value = offY.value - (y.value - py);
+        offX.value = withSpring(0, { damping: 18, stiffness: 260 });
+        offY.value = withSpring(0, { damping: 18, stiffness: 260 });
+        tilt.value += (Math.max(-6, Math.min(6, e.velocityX / 350)) - tilt.value) * 0.25;
+      }
 
       // A carried flame trails behind the way you move it, and stretches
       // when you move it fast.
@@ -532,6 +546,7 @@ export function EmberBuddy() {
     onFinalize: () => {
       'worklet';
       press.value = withSpring(0, { damping: 12, stiffness: 300 });
+      tilt.value = withSpring(0, { damping: 12, stiffness: 140 });
       if (!dragging.value) {
         // A pan that never moved ends as "failed", so `canceled` is set on
         // an ordinary tap too — any touch that didn't travel is a tap.
@@ -564,8 +579,9 @@ export function EmberBuddy() {
     return {
       opacity: show.value * (1 - 0.55 * away),
       transform: [
-        { translateX: x.value + tuck * n * S * 0.2 + tuck * away * S * 0.32 },
-        { translateY: y.value + n * H_BOX * 0.25 },
+        { translateX: x.value + offX.value + tuck * n * S * 0.2 + tuck * away * S * 0.32 },
+        { translateY: y.value + offY.value + n * H_BOX * 0.25 },
+        { rotate: `${tilt.value}deg` },
         { scale: (1 - 0.1 * press.value) * (1 - (1 - NAP_SCALE) * n) * (0.6 + 0.4 * show.value) },
       ],
     };
