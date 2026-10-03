@@ -30,7 +30,7 @@ It lives in a candlelit night room. **Ember**, a small flame, keeps you company:
 | App | Expo SDK 57, Expo Router, React Native 0.86 (iOS) |
 | State | Zustand 5, saved as JSON files on the phone |
 | Motion | Reanimated 4, Gesture Handler 3, react-native-svg |
-| Backend | Supabase (Edge Functions in `supabase/functions/`: `ember`, `chat`, `notion`) |
+| Backend | Supabase (Edge Functions in `supabase/functions/`: `ember`, `notion`) |
 | Design | "Candlelight" palette in `core/theme.ts`; Fraunces for headings and Ember's voice, Figtree for everything else |
 
 ## Where things live
@@ -41,6 +41,7 @@ components/   UI kit (components/ui), Desk cards, Ember, and page pieces
 core/         Stores, theme, dates, night clock, Ember's rules, helpers
 supabase/     Edge Functions
 assets/       Icons, fonts, audio
+plugins/      Expo config plugins (iOS 27 scene life cycle)
 scripts/      Small generators (ambient tones, fire crackle) and evals
 tools/hub/    The agent team's dashboard, quality gate and security scan
 docs/         What the app is, every round's plan, future plans, history
