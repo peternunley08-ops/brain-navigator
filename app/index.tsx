@@ -9,7 +9,7 @@ import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { AboutCards } from '../components/desk/AboutCards';
 import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
-import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
+import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
 import { warmth } from '../core/achievements';
@@ -506,6 +506,7 @@ show('line') ? (
             {show('nudges') ? (
               <>
                 <TryThisWeek />
+                <OneKindThing />
                 <HelperNudge />
                 <PlanTest />
                 <TagTool />

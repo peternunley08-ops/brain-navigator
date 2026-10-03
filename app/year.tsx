@@ -15,7 +15,7 @@ import { daysShowedUp } from '../core/achievements';
 import { plural } from '../core/words';
 import { addDays, dateKey } from '../core/dates';
 import { useHubStore } from '../core/hubStore';
-import { hoursTotal, useLifeStore } from '../core/lifeStore';
+import { hoursTotal, useLifeStore, isSealed } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts } from '../core/theme';
 
@@ -108,7 +108,7 @@ export default function YearScreen() {
     };
     const finished = assignments.filter((a) => a.doneAt && inWeek(a.doneAt));
     const mins = focus.filter((f) => inWeek(f.at)).reduce((t, f) => t + f.minutes, 0);
-    const win = life.wins.find((x) => inWeek(x.at));
+    const win = life.wins.find((x) => inWeek(x.at) && !isSealed(x));
     const biggest = finished.reduce<(typeof finished)[number] | null>((b, a) => (!b || (a.minutes ?? 0) > (b.minutes ?? 0) ? a : b), null);
     const bestMoment = win ? win.text : biggest ? biggest.title : null;
     return { start, end, count: finished.length, mins, bestMoment };
@@ -266,7 +266,7 @@ export default function YearScreen() {
         <Reveal index={n++}>
           <Section title="Latest wins">
             <Card>
-              {life.wins.slice(0, 5).map((w) => (
+              {life.wins.filter((w) => !isSealed(w)).slice(0, 5).map((w) => (
                 <Text key={w.id} style={styles.win}>
                   • {w.text}
                 </Text>

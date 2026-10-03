@@ -18,7 +18,7 @@ import { Section } from '../components/ui/Section';
 import { aboutForAI, CALMERS, CHEER, INTERESTS, pickLabel, STUDY_WAYS, SUBJECTS, THIS_OR_THAT } from '../core/about';
 import { plural } from '../core/words';
 import { learnedNotes } from '../core/learned';
-import { type AboutMe, useLifeStore } from '../core/lifeStore';
+import { type AboutMe, useLifeStore, isSealed } from '../core/lifeStore';
 import { offerUndo } from '../core/undoStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, layout, radii } from '../core/theme';
@@ -44,7 +44,7 @@ const when = (iso?: string) => (iso ? new Date(iso).toLocaleDateString('en-US', 
 function gatherAround(
   stressTags: Record<string, string[]>,
   people: { name: string }[],
-  wins: { text: string; at: string }[],
+  wins: { text: string; at: string; sealedUntil?: string }[],
   weeks: { week: string; text: string }[]
 ) {
   const rows: { title: string; body: string; icon: IconName; path: string }[] = [];
@@ -54,7 +54,8 @@ function gatherAround(
   const top = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
   if (top.length) rows.push({ title: 'What’s weighed on you this month', body: top.map(([t, c]) => `${t} (${plural(c, 'day')})`).join(', '), icon: 'feather', path: '/moods' });
   if (people.length) rows.push({ title: 'The people you trust', body: people.map((p) => p.name).slice(0, 5).join(', '), icon: 'people', path: '/people' });
-  if (wins.length) rows.push({ title: 'Wins you kept', body: [...wins].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3).map((w) => `“${w.text.slice(0, 50)}”`).join('  '), icon: 'jar', path: '/wins' });
+  const kept = wins.filter((w) => !isSealed(w));
+  if (kept.length) rows.push({ title: 'Wins you kept', body: [...kept].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 3).map((w) => `“${w.text.slice(0, 50)}”`).join('  '), icon: 'jar', path: '/wins' });
   if (weeks.length) rows.push({ title: 'Your weeks, in a sentence', body: [...weeks].reverse().slice(0, 3).map((w) => `“${w.text}”`).join('  '), icon: 'star', path: '' });
   return rows;
 }

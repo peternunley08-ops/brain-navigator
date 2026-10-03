@@ -1,4 +1,6 @@
 import { router } from 'expo-router';
+import { Linking } from 'react-native';
+import { isShowing } from '../../core/showMode';
 import { useEffect, useState } from 'react';
 import { celebrate } from '../../core/celebrateStore';
 import { plural } from '../../core/words';
@@ -366,3 +368,42 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
 });
+
+// One kind thing, once a week (weekends, daytime): a ready line to text someone.
+// Nothing is sent for them; the message app opens with the line filled in.
+const KIND_LINES = [
+  'Thinking of you. Hope your week was good.',
+  'No reason, just glad you’re in my life.',
+  'Saw something that made me think of you.',
+  'Hope you’re having a gentle weekend.',
+];
+
+export function OneKindThing() {
+  const people = useLifeStore((s) => s.people);
+  const kindWeek = useLifeStore((s) => s.settings.kindWeek);
+  const setSettings = useLifeStore((s) => s.setSettings);
+  const [hidden, setHidden] = useClosedToday('OneKindThing');
+  if (isShowing() || hidden) return null;
+  const now = new Date();
+  const dow = now.getDay();
+  const week = weekOf();
+  if ((dow !== 6 && dow !== 0) || now.getHours() < 9 || now.getHours() >= 18 || kindWeek === week) return null;
+  const reachable = people.filter((p) => p.phone.trim());
+  if (!reachable.length) return null;
+  const n = Math.floor(Date.parse(week) / (7 * 86400000));
+  const person = reachable[n % reachable.length];
+  const line = KIND_LINES[n % KIND_LINES.length];
+  return (
+    <Row
+      icon="message"
+      color={colors.flame}
+      title={`One kind thing: text ${person.name}`}
+      body={`“${line}” Tap to open it in Messages. Nothing sends until you do.`}
+      onPress={() => {
+        setSettings({ kindWeek: week });
+        Linking.openURL('sms:' + person.phone.trim() + '&body=' + encodeURIComponent(line)).catch(() => {});
+      }}
+      onClose={setHidden}
+    />
+  );
+}

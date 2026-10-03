@@ -6,6 +6,7 @@ import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg'
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { Chip, ChipRow } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
 import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
@@ -13,10 +14,26 @@ import { Reveal } from '../components/ui/Reveal';
 import { ScienceNote } from '../components/ui/ScienceNote';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
-import { dateKey } from '../core/dates';
+import { addDays, dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
 import { colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
+
+// Quick seal dates: a week, a month, and the next end of semester (Dec 20 or May 30).
+function sealChoices(today: string) {
+  const y = Number(today.slice(0, 4));
+  const sem = [`${y}-05-30`, `${y}-12-20`, `${y + 1}-05-30`].find((k) => k > today) as string;
+  return [
+    { id: 'week', label: 'In a week', key: addDays(today, 7) },
+    { id: 'month', label: 'In a month', key: addDays(today, 30) },
+    { id: 'sem', label: 'End of semester', key: sem },
+  ];
+}
+
+function inWords(key: string) {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
 
 const GOLD = '#E6C46A';
 const MARBLES = ['#F5B45C', '#F0845A', '#8CC0A8', '#8FB4E8', '#AFA2DE', '#E89AB8', '#9FD08A', '#E6C46A'];
@@ -41,6 +58,8 @@ export default function WinsScreen() {
   const gratitude = useLifeStore((s) => s.gratitude);
   const setGratitude = useLifeStore((s) => s.setGratitude);
   const [text, setText] = useState('');
+  const [seal, setSeal] = useState<string | null>(null);
+  const openWin = useLifeStore((s) => s.openWin);
 
   const today = dateKey();
   const three = gratitude[today] ?? ['', '', ''];
@@ -52,12 +71,21 @@ export default function WinsScreen() {
 
   const add = () => {
     if (!text.trim()) return;
-    addWin(text);
+    addWin(text, seal ?? undefined);
     setText('');
+    setSeal(null);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     const n = useLifeStore.getState().wins.length;
     emberSay(n === 1 ? 'First one in the jar. They add up.' : n % 10 === 0 ? `${n} wins. Look at that jar.` : 'In the jar.', 'cheer');
   };
+
+  // The first time a sealed note's day arrives and it is on screen, Ember says one line.
+  useEffect(() => {
+    const ready = wins.find((w) => w.sealedUntil && w.sealedUntil <= today && !w.openedAt);
+    if (!ready) return;
+    openWin(ready.id);
+    emberSay('A letter from you just opened. Past you was thinking of you.', 'happy');
+  }, [wins, today, openWin]);
 
   const saveThree = (i: number, v: string) => {
     const next = [...draft];
@@ -84,6 +112,18 @@ export default function WinsScreen() {
       <Reveal index={1}>
         <Card>
           <Field value={text} onChangeText={setText} placeholder="Something that went right, any size" returnKeyType="done" onSubmitEditing={add} />
+          <Text style={[styles.hint, styles.left]}>Seal it until…</Text>
+          <ChipRow>
+            {sealChoices(today).map((c) => (
+              <Chip
+                key={c.id}
+                label={c.label}
+                selected={seal === c.key}
+                onPress={() => setSeal(seal === c.key ? null : c.key)}
+                accessibilityLabel={seal === c.key ? `Sealed until ${inWords(c.key)}, tap to unseal` : `Seal it ${c.label.toLowerCase()}`}
+              />
+            ))}
+          </ChipRow>
           <Button label="Drop it in the jar" icon="jar" onPress={add} disabled={!text.trim()} style={styles.gap} />
           <Text style={styles.hint}>Turned something in. Asked for help. Got out of bed on a hard day. All count.</Text>
         </Card>
@@ -145,9 +185,13 @@ export default function WinsScreen() {
               {wins.slice(0, 30).map((w, i) => (
                 <Animated.View key={w.id} entering={FadeInDown.duration(220)} exiting={FadeOut.duration(150)} layout={LinearTransition}>
                   <Card style={styles.winRow}>
-                    <View style={[styles.marble, { backgroundColor: MARBLES[(wins.length - 1 - i) % MARBLES.length] }]} />
+                    {w.sealedUntil && w.sealedUntil > today ? (
+                      <Icon name="message" size={16} color={GOLD} />
+                    ) : (
+                      <View style={[styles.marble, { backgroundColor: MARBLES[(wins.length - 1 - i) % MARBLES.length] }]} />
+                    )}
                     <View style={styles.flex}>
-                      <Text style={styles.winText}>{w.text}</Text>
+                      <Text style={styles.winText}>{w.sealedUntil && w.sealedUntil > today ? `A letter to you, opens on ${inWords(w.sealedUntil)}` : w.text}</Text>
                       <Text style={styles.winDate}>{new Date(w.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</Text>
                     </View>
                     <Pressy
@@ -157,7 +201,7 @@ export default function WinsScreen() {
                         offerUndo('Took a win out', () => useLifeStore.getState().restoreWin(snap));
                       }}
                       hitSlop={10}
-                      accessibilityLabel={`Remove ${w.text}`}
+                      accessibilityLabel={w.sealedUntil && w.sealedUntil > today ? 'Remove sealed letter' : `Remove ${w.text}`}
                     >
                       <Icon name="close" size={15} color={colors.textFaint} />
                     </Pressy>
@@ -241,6 +285,11 @@ const styles = StyleSheet.create({
     fontFamily: fonts.displaySoft,
     fontSize: 15,
     color: colors.textMuted,
+  },
+  left: {
+    marginTop: 12,
+    marginBottom: 6,
+    textAlign: 'left',
   },
   hint: {
     marginTop: 10,

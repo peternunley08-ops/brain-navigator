@@ -15,6 +15,15 @@ export interface Win {
   id: string;
   text: string;
   at: string;
+  /** A note to yourself, sealed until this day (YYYY-MM-DD). */
+  sealedUntil?: string;
+  /** When a sealed note was first opened (ISO). */
+  openedAt?: string;
+}
+
+/** A sealed note stays closed (text hidden everywhere) until its day. */
+export function isSealed(w: { sealedUntil?: string }, today = dateKey()) {
+  return !!w.sealedUntil && w.sealedUntil > today;
 }
 
 export interface HoursEntry {
@@ -181,6 +190,8 @@ export interface LifeSettings {
   putDown?: string;
   /** The day First light last showed (YYYY-MM-DD). */
   firstLightSeen?: string;
+  /** The week (Monday, YYYY-MM-DD) the student acted on the kind-thing card. */
+  kindWeek?: string;
 }
 
 /**
@@ -352,7 +363,8 @@ interface LifeStore extends LifeData {
   /** Undo: put a part of the data back exactly as it was. */
   putBack: (patch: Partial<LifeData>) => void;
 
-  addWin: (text: string) => void;
+  addWin: (text: string, sealedUntil?: string) => void;
+  openWin: (id: string) => void;
   deleteWin: (id: string) => void;
   restoreWin: (w: Win) => void;
   setGratitude: (date: string, items: string[]) => void;
@@ -625,11 +637,12 @@ export const useLifeStore = create<LifeStore>((set, get) => {
       set({ loaded: true });
     },
 
-    addWin: (text) => {
+    addWin: (text, sealedUntil) => {
       const t = text.trim();
       if (!t) return;
-      commit({ wins: [{ id: uid(), text: t, at: new Date().toISOString() }, ...get().wins] });
+      commit({ wins: [{ id: uid(), text: t, at: new Date().toISOString(), ...(sealedUntil ? { sealedUntil } : {}) }, ...get().wins] });
     },
+    openWin: (id) => commit({ wins: get().wins.map((w) => (w.id === id && !w.openedAt ? { ...w, openedAt: new Date().toISOString() } : w)) }),
     deleteWin: (id) => commit({ wins: get().wins.filter((w) => w.id !== id) }),
     restoreWin: (w) => {
       if (!get().wins.some((x) => x.id === w.id)) commit({ wins: [w, ...get().wins].sort((a, b) => b.at.localeCompare(a.at)) });

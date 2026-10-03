@@ -15,7 +15,7 @@ import { clock } from '../core/dates';
 import { soundsLikeCrisis } from '../core/emberAI';
 import { useEmberStore } from '../core/emberStore';
 import * as Haptics from '../core/haptics';
-import { useLifeStore } from '../core/lifeStore';
+import { useLifeStore, isSealed } from '../core/lifeStore';
 import { dueOn, firstClassOn, morningKey, tonightKey } from '../core/night';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, dimensionColor, fonts } from '../core/theme';
@@ -48,7 +48,7 @@ export default function GoodnightScreen() {
       .filter((a) => a.doneAt && tonightKey(new Date(a.doneAt)) === key)
       .sort((a, b) => (b.doneAt ?? '').localeCompare(a.doneAt ?? ''));
     const minutes = focus.filter((f) => tonightKey(new Date(f.at)) === key).reduce((sum, f) => sum + f.minutes, 0);
-    const won = wins.filter((w) => tonightKey(new Date(w.at)) === key);
+    const won = wins.filter((w) => tonightKey(new Date(w.at)) === key && !isSealed(w));
     return { done, minutes, won };
   }, [assignments, focus, wins, key]);
 

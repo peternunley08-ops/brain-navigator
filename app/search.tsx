@@ -12,7 +12,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { useHubStore } from '../core/hubStore';
-import { useLifeStore } from '../core/lifeStore';
+import { useLifeStore, isSealed } from '../core/lifeStore';
 import { dueLabel, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
 import { colors, fonts } from '../core/theme';
@@ -98,6 +98,7 @@ export default function SearchScreen() {
       {
         title: 'Wins',
         hits: wins
+          .filter((w) => !isSealed(w))
           .filter((w) => has(w.text))
           .map((w) => ({ key: w.id, title: w.text, sub: new Date(w.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), icon: 'jar', color: '#E6C46A', href: '/wins' })),
       },
