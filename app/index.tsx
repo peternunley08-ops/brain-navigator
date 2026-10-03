@@ -7,6 +7,7 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { AboutCards } from '../components/desk/AboutCards';
+import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
 import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
@@ -177,6 +178,7 @@ export default function DeskScreen() {
     return () => clearInterval(iv);
   }, []);
   const windDown = useLifeStore((s) => s.settings.windDown);
+  const firstLightSeen = useLifeStore((s) => s.settings.firstLightSeen);
   const nowMin = minutesOf(nightNow());
   const startMin = nightStart(windDown, timePick === 'b');
   const night = isNight(nowMin, startMin);
@@ -477,6 +479,7 @@ show('line') ? (
         <NightDesk onShowAll={() => setShowAll(true)} />
       ) : (
         <>
+          <FirstLight seen={firstLightSeen} onSeen={(k) => useLifeStore.getState().setSettings({ firstLightSeen: k })} />
           <Reveal index={0}>
             {beforeNight(nowMin, startMin) ? (
               <ChipRow style={styles.windChip}>

@@ -133,3 +133,9 @@ export function firstClassOn(classes: SchoolClass[], key: string): SchoolClass |
 export function dueOn(assignments: Assignment[], key: string) {
   return assignments.filter((a) => !a.done && a.due === key).sort((a, b) => Number(!!b.starred) - Number(!!a.starred));
 }
+
+/** First light shows once a day, from wake time until noon. */
+export function firstLightOpen(now: Date, wake: number, seen: string | undefined) {
+  const m = minutesOf(now);
+  return m >= wake && m < 12 * 60 && seen !== dateKey(now);
+}

@@ -179,6 +179,8 @@ export interface LifeSettings {
   haptics?: 'off' | 'light' | 'full';
   /** The night (tonightKey) the student put the day down; the Desk stays quiet until morning. */
   putDown?: string;
+  /** The day First light last showed (YYYY-MM-DD). */
+  firstLightSeen?: string;
 }
 
 /**

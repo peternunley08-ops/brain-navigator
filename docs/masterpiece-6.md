@@ -85,13 +85,13 @@ checked · [–] decided against (with why)
 26. [~] A goodnight line from Ember that names one real thing from the day
 27. [ ] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now
 28. [~] After midnight, Ember's first line is about sleep, never homework
-29. [ ] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk
+29. [~] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk
 30. [ ] The sky outside the room follows the real sunset time (from the weather store's location, if it has one)
 31. [~] Stars appear in the night backdrop, a few at a time, slower than the motes
 32. [~] Night mode respects Reduce Motion (stars stay still)
 33. [ ] The night stack works with the Desk's fold choices (folded stays folded)
 34. [ ] Night is learned: if they're a night owl, the night layout starts later
-35. [ ] Sunday night: the week sentence card leads the night stack
+35. [~] Sunday night: the week sentence card leads the night stack
 
 ### C. Presentable (36–55)
 36. [x] **Show someone**: Settings → "Show someone the app" swaps in a full set of sample data (a made-up student), shown with a small banner, and nothing saves; one tap returns to your own app untouched — Settings → Show someone the app; Riley's data in every store; a gold "Showing Riley | Done" pill under the Dynamic Island (checked both ways)

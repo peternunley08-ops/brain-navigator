@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 import { cheerLine } from '../../core/about';
 import { clock } from '../../core/dates';
-import { useLifeStore } from '../../core/lifeStore';
+import { useLifeStore, weekOf } from '../../core/lifeStore';
 import { dueOn, firstClassOn, lightsOutMinutes, minutesOf, morningKey, nightNow, pastLightsOut, tonightKey } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, dimensionColor, fonts, radii } from '../../core/theme';
@@ -34,7 +34,7 @@ function Stack({ onShowAll }: { onShowAll: () => void }) {
     <>
       {sunday ? (
         <Reveal index={0}>
-          <AboutCards />
+          <WeekCard />
         </Reveal>
       ) : null}
       <Reveal index={1}>
@@ -53,6 +53,26 @@ function Stack({ onShowAll }: { onShowAll: () => void }) {
         </Pressy>
       </Reveal>
     </>
+  );
+}
+
+// Sunday night: the week's own words from the review, else the week-in-a-sentence card.
+function WeekCard() {
+  const reviews = useLifeStore((s) => s.reviews);
+  const week = weekOf(tonightKey());
+  const review = reviews.find((r) => r.weekOf === week);
+  const line = (review?.well || review?.next || '').trim();
+  // No review yet: the week-in-a-sentence card (About you) leads instead.
+  if (!line) return <AboutCards />;
+  return (
+    <Card tint={MOON} onPress={() => router.push('/review')} style={styles.hero}>
+      <Icon name="book" size={24} color={MOON} />
+      <View style={styles.flex}>
+        <Text style={styles.label}>Your week, in your words</Text>
+        <Text style={styles.sub}>{`\u201c${line}\u201d`}</Text>
+      </View>
+      <Icon name="chevron" size={16} color={colors.textFaint} />
+    </Card>
   );
 }
 
