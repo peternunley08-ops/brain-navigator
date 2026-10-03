@@ -1,6 +1,10 @@
-import { forwardRef, useState } from 'react';
-import { StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
-import { colors, fonts, radii } from '../../core/theme';
+import { forwardRef, useId, useState } from 'react';
+import { InputAccessoryView, Keyboard, Platform, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
+import { colors, fonts, layout, radii } from '../../core/theme';
+import { Pressy } from './Pressy';
+
+// iOS number pads have no return key, so they get a Done bar above them.
+const PADS = new Set(['number-pad', 'decimal-pad', 'numeric', 'phone-pad']);
 
 interface FieldProps extends TextInputProps {
   label?: string;
@@ -16,11 +20,14 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
   ref
 ) {
   const [focused, setFocused] = useState(false);
+  const barId = `field-done-${useId()}`;
+  const doneBar = Platform.OS === 'ios' && !multiline && PADS.has(rest.keyboardType ?? '') && !rest.inputAccessoryViewID;
   return (
     <View style={[styles.wrap, containerStyle]}>
       {label ? <Text style={styles.label}>{label}</Text> : null}
       <TextInput
         ref={ref}
+        inputAccessoryViewID={doneBar ? barId : undefined}
         placeholderTextColor={colors.hint}
         selectionColor={colors.flame}
         multiline={multiline}
@@ -42,6 +49,15 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
         {...rest}
       />
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      {doneBar ? (
+        <InputAccessoryView nativeID={barId}>
+          <View style={styles.bar}>
+            <Pressy onPress={() => Keyboard.dismiss()} hitSlop={10} accessibilityRole="button" accessibilityLabel="Done, close the keyboard">
+              <Text style={styles.barDone}>Done</Text>
+            </Pressy>
+          </View>
+        </InputAccessoryView>
+      ) : null}
     </View>
   );
 });
@@ -49,6 +65,20 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
 const styles = StyleSheet.create({
   wrap: {
     width: '100%',
+  },
+  bar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingHorizontal: layout.gutter,
+    paddingVertical: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.lineStrong,
+    backgroundColor: colors.surfaceHigh,
+  },
+  barDone: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
+    color: colors.flame,
   },
   label: {
     marginBottom: 8,

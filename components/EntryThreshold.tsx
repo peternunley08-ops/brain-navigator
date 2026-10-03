@@ -40,7 +40,7 @@ const HELLO = {
 export function EntryThreshold({ onEnter }: EntryThresholdProps) {
   // The same student line the Desk shows today, instead of an adult quote.
   const quote = useMemo(() => ({ text: lineForToday(), author: 'Ember' }), []);
-  const rig = useEmberRig({ glance: false });
+  const rig = useEmberRig({ glance: false, asleep: true });
   const [awake, setAwake] = useState(false);
   const [burst, setBurst] = useState(0);
   const warmth = useSharedValue(0);
