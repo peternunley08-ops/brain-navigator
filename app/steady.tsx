@@ -69,6 +69,16 @@ export default function SteadyScreen() {
           </Card>
         </Reveal>
         <Reveal index={0}>
+          <Card tint={BLUE} onPress={() => router.push('/safety-plan')} style={styles.help} accessibilityLabel="Safety plan" accessibilityHint="Your own private plan for a hard moment">
+            <Icon name="heart" size={20} color={BLUE} />
+            <View style={styles.doorText}>
+              <Text style={styles.doorTitle}>Safety plan</Text>
+              <Text style={styles.doorBody}>Your own plan for a hard moment. Stays on this phone.</Text>
+            </View>
+            <Icon name="chevron" size={18} color={BLUE} />
+          </Card>
+        </Reveal>
+        <Reveal index={0}>
           <QuickBreath color={BLUE} />
           {breathedThisMonth ? (
             <Text style={styles.breathCount}>
