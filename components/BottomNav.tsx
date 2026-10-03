@@ -51,6 +51,8 @@ const ROUTE_NAME: Record<NavPath, string> = {
 /** Height of the bar plus the room under it, for sliding it out of sight. */
 const AWAY = 120;
 const PILL = 44;
+// Longer than a pop's passing routes, shorter than a real visit to a page that isn't a tab.
+const PASSING_MS = 600;
 
 // The app's one bottom nav, drawn above every page by the root layout, so
 // it holds still while pages slide in and out under it. Pages say whether
@@ -92,14 +94,20 @@ export function BottomNav() {
   const pillX = useSharedValue(-100);
   const pillOn = useSharedValue(0);
   const pillTo = useSharedValue(0);
+  // When the pill last lost its tab: a pop back to the Desk passes through
+  // pages that aren't tabs for a moment, and that's still between tabs.
+  const awaySince = useRef<number | null>(null);
   useEffect(() => {
     const at = active ? spots[active] : undefined;
     if (at == null) {
+      awaySince.current ??= Date.now();
       pillOn.value = withTiming(0, timings.quick);
       return;
     }
+    const away = awaySince.current != null && Date.now() - awaySince.current > PASSING_MS;
+    awaySince.current = null;
     // From nowhere (a page that isn't a tab), appear in place; between tabs, glide.
-    if (pillOn.value < 0.5 || pillX.value < 0) {
+    if (away || pillX.value < 0) {
       pillTo.value = at;
       pillX.value = at;
     }

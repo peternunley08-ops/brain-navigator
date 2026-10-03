@@ -106,6 +106,8 @@ export default function RootLayout() {
               <Stack.Screen name="add-assignment" options={SHEET} />
               <Stack.Screen name="class-edit" options={SHEET} />
               <Stack.Screen name="new-entry" options={SHEET} />
+              {/* Your day swipes between days, so back stays on the edge there. */}
+              <Stack.Screen name="today" options={{ fullScreenGestureEnabled: false }} />
             </Stack>
             {/* One nav for the whole app; pages say whether they want it. */}
             <BottomNav />
