@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     gap: 6,
     minHeight: 36,
     paddingHorizontal: 14,
-    borderRadius: 18,
+    borderRadius: radii.pill,
   },
   actionText: {
     fontFamily: fonts.bodySemi,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingLeft: 12,
     paddingRight: 8,
-    borderRadius: radii.md,
+    borderRadius: radii.pill,
     borderWidth: 1,
     backgroundColor: colors.surface,
   },

@@ -102,7 +102,7 @@ checked · [–] decided against (with why)
 41. [ ] The wake screen: Ember yawns, stretches, and the quote fades in (one breath long)
 42. [x] First run: the welcome flow ends with the five This-or-that cards, so the app knows you from minute one
 43. [x] Every empty page has an Ember drawing and one clear next step (consistent art, not just text) (EmptyState draws Ember by default; the plain lines left are in-section notes, by design)
-44. [ ] Cards share one shadow and one corner radius scale (audit the stragglers)
+44. [~] Cards share one shadow and one corner radius scale (audit the stragglers)
 45. [ ] Section headings breathe the same everywhere (spacing audit)
 46. [~] Every number in the app uses tabular figures so columns line up
 47. [ ] Icons in the Drawer get a soft inner glow in their color

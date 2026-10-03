@@ -35,7 +35,7 @@ import {
 } from '../core/schoolStore';
 import { useLifeStore } from '../core/lifeStore';
 import { offerUndo } from '../core/undoStore';
-import { alpha, colors, fonts, gaugeColor } from '../core/theme';
+import { alpha, colors, fonts, gaugeColor, radii } from '../core/theme';
 
 // B or better reads sage, C gold, below that ember.
 function gradeColor(pct: number) {
@@ -628,7 +628,7 @@ const styles = StyleSheet.create({
   answer: {
     marginTop: 14,
     padding: 16,
-    borderRadius: 16,
+    borderRadius: radii.md,
     borderWidth: 1,
     alignItems: 'center',
   },

@@ -445,7 +445,7 @@ const styles = StyleSheet.create({
   toolIcon: {
     width: 48,
     height: 48,
-    borderRadius: 16,
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

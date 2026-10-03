@@ -19,7 +19,7 @@ import { useGoogleCalendarStore } from '../core/googleCalendarStore';
 import { useHubStore } from '../core/hubStore';
 import { KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { offerUndo } from '../core/undoStore';
-import { alpha, colors, fonts } from '../core/theme';
+import { alpha, colors, fonts, radii } from '../core/theme';
 
 interface Item {
   key: string;
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
     paddingHorizontal: 12,
     height: 32,
-    borderRadius: 16,
+    borderRadius: radii.pill,
     backgroundColor: alpha(colors.flame, 0.12),
     borderWidth: 1,
     borderColor: alpha(colors.flame, 0.3),

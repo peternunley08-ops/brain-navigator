@@ -27,7 +27,7 @@ import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
 import { addDays, clock, dateKey, daysUntil, focusMinutesOn, minutesOn, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
-import { alpha, colors, fonts, layout, skyGlow } from '../core/theme';
+import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 
 type Phase = 'setup' | 'running' | 'paused' | 'done' | 'break';
 
@@ -731,7 +731,7 @@ const styles = StyleSheet.create({
   strayCount: {
     minWidth: 30,
     height: 30,
-    borderRadius: 15,
+    borderRadius: radii.pill,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: alpha(colors.flame, 0.18),

@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     gap: 6,
     minHeight: 40,
     paddingHorizontal: 14,
-    borderRadius: 20,
+    borderRadius: radii.pill,
     backgroundColor: colors.surfaceHigh,
     borderWidth: 1,
     borderColor: colors.lineStrong,

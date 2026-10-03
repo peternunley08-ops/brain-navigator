@@ -34,7 +34,7 @@ import { type IconName } from '../components/ui/Icon';
 import { celebrate } from '../core/celebrateStore';
 import { essayWords } from '../core/words';
 import { parseDue } from '../core/scanParser';
-import { alpha, colors, fonts } from '../core/theme';
+import { alpha, colors, fonts, radii } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
 
 const PLANS: CollegePlan[] = ['ED', 'EA', 'REA', 'RD', 'Rolling'];
@@ -582,7 +582,7 @@ const styles = StyleSheet.create({
   toolIcon: {
     width: 48,
     height: 48,
-    borderRadius: 16,
+    borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: alpha('#8FB4E8', 0.14),
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
   status: {
     paddingHorizontal: 10,
     height: 24,
-    borderRadius: 12,
+    borderRadius: radii.pill,
     justifyContent: 'center',
   },
   statusText: {

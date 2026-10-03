@@ -21,7 +21,7 @@ import { learnedNotes } from '../core/learned';
 import { type AboutMe, useLifeStore } from '../core/lifeStore';
 import { offerUndo } from '../core/undoStore';
 import { useSchoolStore } from '../core/schoolStore';
-import { alpha, colors, fonts, layout } from '../core/theme';
+import { alpha, colors, fonts, layout, radii } from '../core/theme';
 
 const JUMPS: { key: string; label: string; icon: IconName }[] = [
   { key: 'cards', label: 'This or that', icon: 'sparkle' },
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
   },
   cheer: {
     padding: 14,
-    borderRadius: 16,
+    borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.line,
     backgroundColor: colors.surface,

@@ -21,7 +21,7 @@ import { parseCards, useLifeStore } from '../../core/lifeStore';
 import { essayWords, wordGoalFor } from '../../core/words';
 import { askJob } from '../../core/emberAI';
 import { useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, radii } from '../../core/theme';
 
 const ADDERS: { type: BlockType; label: string; icon: IconName }[] = [
   { type: 'text', label: 'Text', icon: 'pen' },
@@ -546,7 +546,7 @@ const styles = StyleSheet.create({
   limit: {
     paddingHorizontal: 9,
     height: 26,
-    borderRadius: 13,
+    borderRadius: radii.pill,
     borderWidth: 1,
     borderColor: colors.line,
     justifyContent: 'center',
