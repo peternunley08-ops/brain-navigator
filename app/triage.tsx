@@ -1,5 +1,6 @@
 import * as Haptics from '../core/haptics';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -10,6 +11,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { goBack } from '../core/chrome';
+import { openSafe } from '../core/links';
 import { plural } from '../core/words';
 import { cheerLine } from '../core/about';
 import { addDays, type Assignment, dateKey, daysUntil, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
@@ -46,12 +48,13 @@ export default function TriageScreen() {
     else if (msg) emberSay(msg, 'happy');
   };
 
-  const ask = (a: Assignment) => {
+  // The polite line for a teacher, ready to copy or send.
+  const [asking, setAsking] = useState<string | null>(null);
+  const noteFor = (a: Assignment) => {
     const cls = classes.find((c) => c.id === a.classId);
     const who = cls?.teacher || 'there';
-    Share.share({
-      message: `Hi ${who},\n\nI’m behind on ${a.title} (it was due ${-daysUntil(a.due)} day${daysUntil(a.due) === -1 ? '' : 's'} ago). Is it still possible to turn it in? I can have it to you by ${inTwoDays()}.\n\nThank you.`,
-    });
+    const days = -daysUntil(a.due);
+    return `Hi ${who},\n\nI’m behind on ${a.title} (it was due ${plural(days, 'day')} ago). Is it still possible to turn it in? I can have it to you by ${inTwoDays()}.\n\nThank you.`;
   };
 
   return (
@@ -140,7 +143,7 @@ export default function TriageScreen() {
                     settle();
                   }}
                 />
-                <Chip label="Ask the teacher" icon="message" onPress={() => ask(a)} />
+                <Chip label="Ask the teacher" icon="message" selected={asking === a.id} onPress={() => setAsking(asking === a.id ? null : a.id)} />
                 <Chip
                   label="Let it go"
                   icon="trash"
@@ -153,6 +156,21 @@ export default function TriageScreen() {
                   }}
                 />
               </ChipRow>
+              {asking === a.id ? (
+                <Animated.View entering={FadeInDown.duration(240)} style={styles.note}>
+                  <Text style={styles.noteText} selectable>
+                    {noteFor(a)}
+                  </Text>
+                  <View style={styles.noteBtns}>
+                    <Button label="Copy or share" size="sm" variant="secondary" onPress={() => Share.share({ message: noteFor(a) }).catch(() => {})} />
+                    <Button
+                      label="Open email"
+                      size="sm"
+                      onPress={() => openSafe(`mailto:?subject=${encodeURIComponent(`About ${a.title}`)}&body=${encodeURIComponent(noteFor(a))}`)}
+                    />
+                  </View>
+                </Animated.View>
+              ) : null}
             </Card>
           </Animated.View>
         );
@@ -210,5 +228,22 @@ const styles = StyleSheet.create({
   },
   chips: {
     marginTop: 14,
+  },
+  note: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 14,
+    backgroundColor: alpha(colors.text, 0.05),
+  },
+  noteText: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textMuted,
+  },
+  noteBtns: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
   },
 });
