@@ -21,6 +21,7 @@ import { BottomNav } from '../components/BottomNav';
 import { EmberBuddy } from '../components/ember/EmberBuddy';
 import { EntryThreshold } from '../components/EntryThreshold';
 import { ErrorScreen } from '../components/ErrorScreen';
+import { PrivacyVeil } from '../components/PrivacyVeil';
 import { OpenWatcher } from '../components/OpenWatcher';
 import { ShowBanner } from '../components/ShowBanner';
 import { UndoBar } from '../components/UndoBar';
@@ -116,6 +117,7 @@ export default function RootLayout() {
         ) : (
           <EntryThreshold onEnter={() => setEntered(true)} />
         )}
+        <PrivacyVeil />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );
