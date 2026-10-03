@@ -60,6 +60,7 @@ app/          Screens (each file is a page; Expo Router)
 components/   UI kit (ui/), Desk cards (desk/), Ember (ember/), page pieces
 core/         Stores (Zustand), theme, dates, night clock, Ember's rules
 supabase/     Server functions (Peter deploys these)
+plugins/      Expo config plugins, applied at prebuild
 docs/         The app, every round's plan, plans, history
 tools/hub/    Quality gate (check.mjs), security scan (security.mjs)
 ```
