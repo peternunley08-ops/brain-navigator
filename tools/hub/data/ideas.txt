@@ -48,7 +48,7 @@ X024 | M | 2 | - | Tap a candle to open it | Each open-loop candle on the Desk o
 
 ## School and homework | school | #E8A25C
 X025 | M | 3 | - | Start from the row | A Start button on a homework row opens Focus with that homework. |
-X026 | M | 3 | - | Learned estimates | Compare focus minutes to estimates per class: "Bio usually takes you 40 minutes". |
+X026 | M | 3 | - | Learned estimates | Compare focus minutes to estimates per class: "Bio usually takes you 40 minutes". | =shipped
 X027 | M | 3 | - | Late work triage | For each late item: do tonight, move it, or ask the teacher (a ready email line). |
 X028 | S | 2 | - | Teacher contact | A teacher email per class and a "draft an email" template that opens Mail. | data
 X029 | S | 2 | - | Workload heat strip | The School header shows the week's load as a heat strip (workloadByDay exists). |
@@ -58,17 +58,17 @@ X032 | S | 2 | - | What-if grades | A what-if calculator on the class page (fina
 X033 | M | 2 | - | Syllabus scan | Photograph a syllabus and pull its dates through the scanner. |
 X034 | M | 2 | - | A/B day schedules | Rotating block schedules: classes on A days, B days. | data
 X035 | S | 1 | - | Minimum days | Mark a date as late start or minimum day; the times shift. | data
-X036 | S | 2 | - | Period ends in | During school, "Period 3 ends in 12 minutes" on the Desk. |
+X036 | S | 2 | - | Period ends in | During school, "Period 3 ends in 12 minutes" on the Desk. | =shipped
 X037 | S | 2 | - | Links on homework | Save the Classroom or Canvas link on a homework item and open it from the row. | data
 X038 | S | 2 | - | Turned in | A second check for "turned in" so done and submitted aren't confused. | data
 X039 | S | 2 | - | Late pattern, kindly | "3 late in History this month" once, with a plan, never a red badge. |
 X040 | S | 2 | - | Steps progress on the row | A thin bar on rows with steps shows how many are done. |
 X041 | M | 1 | - | Group projects | A group project kind with people from Your people. | data
-X042 | S | 1 | - | Class color everywhere | One color per class on rows, Today, Grades, and the week strip. |
+X042 | S | 1 | - | Class color everywhere | One color per class on rows, Today, Grades, and the week strip. | =shipped
 
 ## Focus and study | focus | #6FB7FF
 R6-64 | M | 2 | spark | Study buddy | During Focus, Ember studies too with a tiny book and peeks up at half time. | R6#64
-X043 | S | 2 | - | Parking lot | Jot a distracting thought mid-session without leaving the candle. |
+X043 | S | 2 | - | Parking lot | Jot a distracting thought mid-session without leaving the candle. | =shipped
 X044 | M | 2 | - | Session chains | Four sessions with a long break, drawn as a row of candles. |
 X045 | S | 2 | - | Focus ring for the day | The daily focus goal as a ring on Focus (dailyFocusGoal exists). |
 X046 | M | 2 | - | Candle calendar | A month of focus as small candles, brighter for longer days. |
@@ -77,7 +77,7 @@ X048 | S | 1 | - | Break cards | Stretch, water, look 20 feet away: one card per
 X049 | S | 2 | - | Lock in | During Focus the nav and Ember step back; Ember dozes beside the candle. |
 X050 | M | 2 | - | Focus receipt | A calm card at week's end: what you studied and for how long. |
 X051 | S | 2 | - | Technique by kind | A test suggests active recall, an essay an outline, linked to How to study. |
-X052 | M | 1 | - | Fire crackle (opt-in) | Soft fire sound during Focus, off by default, with a real mute. |
+X052 | M | 1 | - | Fire crackle (opt-in) | Soft fire sound during Focus, off by default, with a real mute. | =shipped
 
 ## Steady and calm | steady | #8CC0A8
 X053 | M | 2 | - | Body map | Tap where you feel it; Steady suggests what fits (shoulders: release, chest: breathe). |
@@ -86,9 +86,9 @@ X055 | S | 2 | - | Haptic breath | Breathe with soft taps you can feel with your
 X056 | M | 3 | - | Kinder thought cards | Write the thought, pick a kinder way to say it (offline templates). |
 X057 | S | 2 | - | Calm kit | Your three best calmers pinned at the top of Steady. |
 X058 | S | 1 | - | Your calm playlist | Save a playlist link; Steady opens it. | data
-X059 | S | 2 | - | Self-compassion break | A three-line script, one line at a time. |
+X059 | S | 2 | - | Self-compassion break | A three-line script, one line at a time. | =shipped
 X060 | S | 3 | - | Can you talk? | Pick someone from Your people and send a ready "Can you talk?" text. |
-X061 | M | 2 | - | Muscle relaxation | A guided tense-and-release walk through the body with a timer. |
+X061 | M | 2 | - | Muscle relaxation | A guided tense-and-release walk through the body with a timer. | =shipped
 X062 | S | 2 | - | What helped before | A list from Did that help answers, best first. |
 X063 | M | 3 | - | Safety plan | A private safety plan page (warning signs, coping, people, places, help lines), on the phone only. | data
 
@@ -105,7 +105,7 @@ X070 | S | 2 | - | Rename Ember | Give Ember another name; every line uses it. |
 X071 | S | 2 | - | Ember's voice | Gentle, funny, or direct, tied to the cheer style. |
 X072 | M | 2 | - | Ember's notebook | A page of what Ember noticed this month, with "Not right" on each. |
 X073 | S | 2 | - | Morning stretch | Ember stretches at the first open of the day. |
-X074 | S | 1 | - | Welcome back | After 3+ days away, Ember blinks and says welcome back, no guilt. |
+X074 | S | 1 | - | Welcome back | After 3+ days away, Ember blinks and says welcome back, no guilt. | =shipped
 X075 | S | 1 | - | High five | Swipe up on Ember after finishing something for a high five. |
 
 ## About you | about | #F28BA8
@@ -131,20 +131,20 @@ X089 | M | 2 | - | Weather and mood | After 5+ days, whether rainy days line up 
 X090 | M | 3 | - | Essay tracker | Each essay with prompt, word count, drafts, and a due date. | data
 X091 | M | 2 | - | Application timeline | Everything due for applications, month by month. |
 X092 | S | 2 | - | Scholarship countdown | The next scholarship deadline as a Desk countdown chip. |
-X093 | S | 2 | - | Activities export | Activities as Common App-ready text to copy. |
+X093 | S | 2 | - | Activities export | Activities as Common App-ready text to copy. | =shipped
 X094 | S | 1 | - | Why this college | A why-this-school note per college. | data
-X095 | S | 2 | - | Thank your recommenders | After a letter is in, a reminder to thank them with a ready line. |
+X095 | S | 2 | - | Thank your recommenders | After a letter is in, a reminder to thank them with a ready line. | =shipped
 X096 | M | 2 | - | Test date plan | SAT/ACT date countdown with a study plan spread backward. |
 X097 | M | 1 | - | Cost side by side | Aid offers compared in one table. |
 
 ## Notes and cards | notes | #57D3E0
-X098 | M | 3 | - | Cards from notes | Lines written "term :: meaning" in a note become a deck in one tap. |
+X098 | M | 3 | - | Cards from notes | Lines written "term :: meaning" in a note become a deck in one tap. | =shipped
 X099 | S | 2 | - | Cards due on the Desk | "12 cards due" on the Desk when reviews are waiting. |
 X100 | S | 2 | - | Class templates | A default note template per class. | data
 X101 | M | 2 | - | Linked notes | Type [[ to link another note. |
-X102 | S | 2 | - | Search inside notes | Search finds words inside note blocks. |
-X103 | M | 2 | - | Type the answer | A flashcard mode where you type the answer. |
-X104 | S | 1 | - | Notes on the class page | Pinned notes show on their class page. |
+X102 | S | 2 | - | Search inside notes | Search finds words inside note blocks. | =shipped
+X103 | M | 2 | - | Type the answer | A flashcard mode where you type the answer. | =shipped
+X104 | S | 1 | - | Notes on the class page | Pinned notes show on their class page. | =shipped
 X105 | S | 1 | - | Share as text | Share a note as plain text or Markdown. |
 
 ## Motion and smoothness | motion | #7FB8F0
@@ -194,7 +194,7 @@ X120 | M | 1 | - | Launch matches wake | The launch screen matches the wake scre
 R6-92 | M | 3 | atlas | Largest text check | Every new piece checked at the largest text size. | R6#92
 R6-93 | M | 3 | sentinel | VoiceOver labels | Every new piece has VoiceOver labels. | R6#93
 R6-94 | S | 3 | atlas | Reduce Motion check | Every new piece with Reduce Motion. | R6#94
-X121 | S | 2 | sentinel | Headings for the rotor | Section titles are accessibility headers. |
+X121 | S | 2 | sentinel | Headings for the rotor | Section titles are accessibility headers. | =shipped
 X122 | M | 3 | sentinel | Label every icon button | Audit every IconButton for a label. |
 X123 | M | 2 | - | Accessibility sizes | No clipped layouts at accessibility text sizes on all pages. |
 X124 | S | 2 | - | Reduce Transparency | The glass bar turns solid when Reduce Transparency is on. |
@@ -331,7 +331,7 @@ R6-19 | S | 2 | atlas | Bar titles match | By design. | R6#19 =verified
 SEC-1 | L | 3 | shield | Notion key out of the app | The Notion secret is read through EXPO_PUBLIC_, so it ships inside the app. Move Notion calls into a Supabase function; Peter rotates the key. |
 SEC-2 | S | 2 | shield | Check links before opening | Links saved in Connections open only if they are https. Crisis tel: and sms: lines keep working. |
 SEC-3 | M | 2 | shield | Vulnerable packages | npm audit shows high flags in expo, @expo/cli, node-forge and google-signin. Bump within SDK 57 where a fix exists. |
-SEC-4 | S | 2 | shield | Keys can never be committed | The gate now blocks real keys in code, and the scanner checks every tracked file. |
+SEC-4 | S | 2 | shield | Keys can never be committed | The gate now blocks real keys in code, and the scanner checks every tracked file. | =shipped
 R6-89 | S | 2 | glide | No jump when a group empties | Ticking the last row of a group keeps the page steady instead of jumping. |
 N-20 | S | 2 | nocturne | Gentler night subtitle | At night the Desk subtitle reads softly instead of "1 due today, 2 late". |
-SEC-5 | S | 2 | shield | Scan before every push | A git pre-push hook runs the free scanner and stops a push with a serious flag. |
+SEC-5 | S | 2 | shield | Scan before every push | A git pre-push hook runs the free scanner and stops a push with a serious flag. | =shipped
