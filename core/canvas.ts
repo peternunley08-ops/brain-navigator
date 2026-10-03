@@ -23,7 +23,9 @@ export type CanvasResult = { ok: true; added: number; updated: number; classes: 
 export function normalizeCanvasUrl(raw: string) {
   let u = raw.trim().replace(/\/+$/, '');
   if (!u) return '';
-  if (!/^https?:\/\//i.test(u)) u = `https://${u}`;
+  // https only: the access token rides in a header and must never go out unencrypted.
+  u = u.replace(/^http:\/\//i, 'https://');
+  if (!/^https:\/\//i.test(u)) u = `https://${u}`;
   return u;
 }
 
