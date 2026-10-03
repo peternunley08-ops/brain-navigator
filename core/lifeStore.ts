@@ -192,6 +192,12 @@ export interface LifeSettings {
   firstLightSeen?: string;
   /** The week (Monday, YYYY-MM-DD) the student acted on the kind-thing card. */
   kindWeek?: string;
+  /** Drawer entries marked new that the student has opened (hrefs). */
+  seenNew?: string[];
+  /** Today's date when a check-in was started and left unsaved. */
+  checkinDraft?: string;
+  /** The last note editor left: its id and when (ISO). */
+  lastNote?: { id: string; at: string };
 }
 
 /**

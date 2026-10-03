@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { EmberReflect } from '../components/ember/EmberReflect';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLifeStore } from '../core/lifeStore';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { TAG_TOOLS } from '../components/desk/DayCards';
@@ -75,6 +76,17 @@ export default function CheckinScreen() {
     fetchCheckins().then(() => {
       if (cancelled) return;
       const existing = todaysCheckin();
+
+  // Started but not saved: leave a light marker so the Desk can offer to pick it up.
+  const dirty = hydrated && !saved && (mood != null || sleepHours != null || sleepQuality != null || stressLevel != null || notes.trim() !== '');
+  const dirtyRef = useRef(false);
+  dirtyRef.current = dirty;
+  useEffect(
+    () => () => {
+      if (dirtyRef.current) useLifeStore.getState().setSettings({ checkinDraft: dateKey() });
+    },
+    [],
+  );
       if (existing) {
         setMood(existing.mood);
         setSleepHours(existing.sleep_hours);
@@ -105,6 +117,7 @@ export default function CheckinScreen() {
     if (ok) {
       setStressTags(dateKey(), tags);
       setSaved(true);
+      if (useLifeStore.getState().settings.checkinDraft) useLifeStore.getState().setSettings({ checkinDraft: undefined });
       // With something to offer, stay a moment so it can be tapped.
       if (offer) return;
       setTimeout(() => {

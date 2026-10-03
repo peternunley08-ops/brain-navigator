@@ -10,7 +10,9 @@ import { addDays, dateKey, daysUntil } from '../../core/dates';
 import { nextBadge } from '../../core/achievements';
 import { dueFollowUp, followUpTopic } from '../../core/emberAI';
 import { helperById } from '../../core/helpers';
+import { useHubStore } from '../../core/hubStore';
 import { useLifeStore, weekOf } from '../../core/lifeStore';
+import { useWellnessStore } from '../../core/wellnessStore';
 import { clock, isoDay, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { Card } from '../ui/Card';
@@ -253,6 +255,32 @@ export function TryThisWeek() {
       onClose={setHidden}
     />
   );
+}
+
+// Pick up where you left off: an unsaved check-in, or the note last written.
+export function PickUp() {
+  const draft = useLifeStore((s) => s.settings.checkinDraft);
+  const lastNote = useLifeStore((s) => s.settings.lastNote);
+  const checkins = useWellnessStore((s) => s.checkins);
+  const notes = useHubStore((s) => s.notes);
+  const [hidden, setHidden] = useClosedToday('PickUp');
+  if (hidden || isShowing()) return null;
+  const today = dateKey();
+  const savedToday = checkins.some((c) => c.checkin_date === today);
+  let body = '';
+  let path = '';
+  if (draft === today && !savedToday) {
+    body = new Date().getHours() < 12 ? 'Your check-in from this morning' : 'Your check-in from earlier today';
+    path = '/checkin';
+  } else if (lastNote && Date.now() - new Date(lastNote.at).getTime() < 12 * 3600 * 1000) {
+    const note = notes.find((n) => n.id === lastNote.id);
+    if (note) {
+      body = `The note you were writing: ${note.title.trim() || 'Untitled'}`;
+      path = `/note/${note.id}`;
+    }
+  }
+  if (!path) return null;
+  return <Row icon="pen" color={colors.flame} title="Pick up where you left off" body={body} onPress={() => router.push(path as never)} onClose={setHidden} />;
 }
 
 // The badge you're closest to, as a small nudge with the number left.

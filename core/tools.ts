@@ -8,6 +8,8 @@ export interface Tool {
   path: string;
   icon: IconName;
   color: string;
+  /** New this round: shows a small gold dot in the Drawer until opened. */
+  isNew?: true;
 }
 
 // Everything that supports the core loop rather than being it. Nothing was
@@ -90,9 +92,9 @@ export const GROUPS: { name: string; tools: Tool[] }[] = [
   {
     name: 'You',
     tools: [
-      { title: 'About you', body: 'What the app knows', path: '/about', icon: 'person', color: '#B79AF0' },
+      { title: 'About you', body: 'What the app knows', path: '/about', icon: 'person', color: '#B79AF0', isNew: true },
       { title: 'Badges', body: 'Quiet ones, never lost', path: '/achievements', icon: 'trophy', color: '#F5B45C' },
-      { title: 'Your year', body: 'Everything, added up', path: '/year', icon: 'star', color: '#F5B45C' },
+      { title: 'Your year', body: 'Everything, added up', path: '/year', icon: 'star', color: '#F5B45C', isNew: true },
       { title: 'Plus', body: 'More AI for the crew', path: '/plus', icon: 'sparkle', color: '#F5B45C' },
       { title: 'Settings', body: 'You, Ember, your data', path: '/settings', icon: 'settings', color: '#C3B3A0' },
       { title: 'Need help now', body: 'Real people, any time', path: '/help', icon: 'phone', color: '#F07060' },

@@ -110,7 +110,7 @@ checked · [–] decided against (with why)
 49. [~] What's New gets a Round 5–6 entry with the best changes
 50. [x] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
 51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
-52. [ ] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen
+52. [~] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen
 53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/)
 54. [ ] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots
 55. [ ] The phone gets a fresh Release build with everything (free signing renews)
@@ -135,7 +135,7 @@ checked · [–] decided against (with why)
 72. [ ] **Your constellation**: About you drawn as stars (each pick a star), joined as more is known
 73. [ ] **Ember's journal**: Ember writes one line a week about your week (on the phone, no AI)
 74. [~] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it
-75. [ ] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk
+75. [~] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk
 
 ### E. Smoothness, the second pass (76–90)
 76. [ ] Numbers animate when they change, not only on first open

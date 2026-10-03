@@ -14,6 +14,12 @@ export default function DrawerScreen() {
   const opened = useLifeStore((s) => s.about.opened);
   const recentPaths = useLifeStore((s) => s.about.recent);
   const learnOff = useLifeStore((s) => s.about.learnOff);
+  const seenNew = useLifeStore((s) => s.settings.seenNew);
+  const setSettings = useLifeStore((s) => s.setSettings);
+  const open = (tool: Tool) => {
+    if (tool.isNew && !(seenNew ?? []).includes(tool.path)) setSettings({ seenNew: [...(seenNew ?? []), tool.path] });
+    router.push(tool.path as never);
+  };
   // Learned from what you open, so it follows the About you switch, and
   // only shows once a tool has been opened a few times.
   const most = learnOff
@@ -50,14 +56,15 @@ export default function DrawerScreen() {
             {group.tools.map((tool) => (
               <Reveal key={tool.path} index={n++} style={styles.cell}>
                 <Card
-                  onPress={() => router.push(tool.path as never)}
-                  accessibilityLabel={tool.title}
+                  onPress={() => open(tool)}
+                  accessibilityLabel={tool.isNew && !(seenNew ?? []).includes(tool.path) ? `${tool.title}, new` : tool.title}
                   accessibilityHint={tool.body}
                   style={styles.tile}
                 >
                   <View style={[styles.icon, { backgroundColor: alpha(tool.color, 0.14), borderColor: alpha(tool.color, 0.3) }]}>
                     <Icon name={tool.icon} size={22} color={tool.color} />
                   </View>
+                  {tool.isNew && !(seenNew ?? []).includes(tool.path) ? <View style={styles.dot} /> : null}
                   <Text style={styles.title}>{tool.title}</Text>
                   <Text style={styles.body}>{tool.body}</Text>
                 </Card>
@@ -119,6 +126,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+  },
+  dot: {
+    position: 'absolute',
+    top: 14,
+    right: 14,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.flame,
   },
   title: {
     fontFamily: fonts.bodySemi,

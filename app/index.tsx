@@ -13,7 +13,7 @@ import { SparkFlight } from '../components/ember/Sparks';
 import { weatherKind } from '../components/ui/Backdrop';
 import { useWeatherStore } from '../core/weatherStore';
 import { StreakOfLight } from '../components/desk/StreakOfLight';
-import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing } from '../components/desk/DayCards';
+import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing, PickUp } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
 import { warmth } from '../core/achievements';
@@ -510,6 +510,7 @@ show('line') ? (
             {show('pinned') ? <PinnedNotes /> : null}
             <Birthday />
             <WelcomeBack />
+            <PickUp />
             <FollowUp />
             {show('question') ? <AboutCards /> : null}
             {!briefFirst && show('brief') ? <DayBrief /> : null}
