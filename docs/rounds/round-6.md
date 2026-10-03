@@ -74,7 +74,7 @@ checked · [–] decided against (with why)
 17. [x] Counting is the same everywhere ("1 thing", "2 things"; no "1 things") — plural() in core/words.ts; fixed "1 cards", "1 minutes", "in -1 days", "starts in 1 minutes"
 18. [x] Time words are the same everywhere ("Tonight", "Tomorrow", "Fri") — by review: due words all come from dueLabel()
 19. [x] Every page title in the compact bar matches the big title — the compact bar reads the page title (or barTitle) by design
-20. [ ] A last full pass: open every page once more after the round, read every word
+20. [ ] A last full pass: open every page once more after the round, read every word (needs the Mac; moved to Round 7)
 
 ### B. Night, the app's best hour (21–35)
 21. [~] **Night Desk**: after wind-down, the Desk becomes one quiet card stack: tomorrow's first class, what's due tomorrow, the pack list, and "lights out by"
@@ -111,9 +111,9 @@ checked · [–] decided against (with why)
 50. [x] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
 51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
 52. [~] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen
-53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/)
+53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/) (needs the Mac; moved to Round 7)
 54. [~] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots (docs/WHAT-THIS-IS.md covers it; screenshots wait on R6-53, which needs the Mac)
-55. [ ] The phone gets a fresh Release build with everything (free signing renews)
+55. [ ] The phone gets a fresh Release build with everything (free signing renews) (needs the Mac; moved to Round 7)
 
 ### D. Surprise: things that make it feel like nothing else (56–75)
 56. [x] **Candle of the week**: every Sunday, the week's focus minutes, wins, and check-ins become one candle on a shelf; the shelf fills over the semester (Your year)
@@ -152,15 +152,15 @@ checked · [–] decided against (with why)
 87. [~] Swipe between days in Your day
 88. [~] Ember's drag follows the finger with a slight lag (weight)
 89. [~] Toasts and the Undo bar never overlap (a single queue)
-90. [ ] Everything at 120 Hz: no JavaScript per frame during scroll or drag (audit with the perf monitor)
+90. [ ] Everything at 120 Hz: no JavaScript per frame during scroll or drag (audit with the perf monitor) (needs the Mac; moved to Round 7)
 
 ### F. Quality and wrap-up (91–100)
-91. [ ] Every new piece checked live in the Simulator, with screenshots
-92. [ ] Every new piece at the largest text size
+91. [ ] Every new piece checked live in the Simulator, with screenshots (needs the Mac; moved to Round 7)
+92. [ ] Every new piece at the largest text size (needs the Mac; moved to Round 7)
 93. [~] Every new piece with VoiceOver labels
 94. [~] Every new piece with Reduce Motion
 95. [x] Show-someone mode can't save over real data (tested by checking the files before and after) — checked: file fingerprints identical after checking things off as Riley; only your own Settings visits changed, no Riley data in your files
-96. [ ] The app opens to the Desk in under a second on the phone (measure)
+96. [ ] The app opens to the Desk in under a second on the phone (measure) (needs the Mac; moved to Round 7)
 97. [x] CLAUDE.md: night Desk, show mode, the shelf, and their rules
 98. [x] SESSION_LOG and this file's progress log
 99. [x] Secret scan, commit, push
