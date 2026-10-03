@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
@@ -167,6 +167,8 @@ export default function DeskScreen() {
   const nickname = useLifeStore((s) => s.about.nickname.trim());
   const timePick = useLifeStore((s) => s.about.picks.time);
   const putDown = useLifeStore((s) => s.settings.putDown);
+  // Where sparks earned elsewhere land (SparkFlight measures it on the way in).
+  const candleRow = useRef<View>(null);
   // A night owl's evening (or a morning person's morning) starts with the brief.
   const hourNow = nightNow().getHours();
   const briefFirst = (timePick === 'b' && hourNow >= 17) || (timePick === 'a' && hourNow >= 5 && hourNow < 11);
@@ -305,7 +307,7 @@ show('due') ? (
       <Reveal index={2}>
         <Section {...fold('mind')} title="On your mind" note={countLine(openLoops.length)}>
         <View style={styles.desk}>
-          <View style={styles.candles}>
+          <View ref={candleRow} style={styles.candles}>
             {onDesk.length === 0 ? (
               <View style={styles.emptyCandle}>
                 <Candle width={112} time={time} intensity={0.35 + 0.25 * dayLift} remaining={0.55} seed={1.7} state="unlit" reducedMotion={reducedMotion} />
@@ -470,7 +472,7 @@ show('line') ? (
       }
       motes
       weather={weatherKind(weatherCode)}
-      overlay={<SparkFlight />}
+      overlay={<SparkFlight target={candleRow} />}
       kicker={momentLabel(nightNow(), night)}
       title={greetingFor(nickname || profile.name, timePick, nightNow())}
       subtitle={

@@ -240,7 +240,11 @@ export default function YearScreen() {
                 <Text style={styles.weekLine}>
                   {openW.count === 0 && openW.mins === 0
                     ? 'A quiet week. Rest counts too.'
-                    : `You finished ${plural(openW.count, 'thing')} and focused for ${plural(openW.mins, 'minute')}.`}
+                    : openW.count === 0
+                      ? `You focused for ${plural(openW.mins, 'minute')}.`
+                      : openW.mins === 0
+                        ? `You finished ${plural(openW.count, 'thing')}.`
+                        : `You finished ${plural(openW.count, 'thing')} and focused for ${plural(openW.mins, 'minute')}.`}
                 </Text>
                 {openW.bestMoment ? <Text style={styles.weekBest}>Best moment: {openW.bestMoment}</Text> : null}
               </Card>

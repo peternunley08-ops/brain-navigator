@@ -1,5 +1,5 @@
 import { useFocusEffect } from 'expo-router';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, type RefObject, useCallback, useEffect, useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
   Easing,
@@ -136,22 +136,35 @@ const styles = StyleSheet.create({
 // row, then the candles glow briefly. Mount once on the Desk (Screen overlay).
 const MAX_FLIGHT = 8;
 
-export const SparkFlight = memo(function SparkFlight({ targetY }: { targetY?: number }) {
+// `target` is the candle row: measured when the Desk comes into view, so the
+// sparks land on the candles. With the candles off screen they just rise
+// and fade, and nothing glows where the candles aren't.
+export const SparkFlight = memo(function SparkFlight({ target }: { target?: RefObject<View | null> }) {
   const { width, height } = useWindowDimensions();
   const reduced = useReducedMotion();
-  const [flight, setFlight] = useState({ n: 0, key: 0 });
+  const [flight, setFlight] = useState<{ n: number; key: number; y: number | null }>({ n: 0, key: 0, y: null });
   const glow = useSharedValue(0);
-  const ty = targetY ?? height * 0.42;
+  const ty = flight.y ?? height * 0.42;
 
   useFocusEffect(
     useCallback(() => {
       const n = takeSparks();
-      if (n > 0) setFlight((f) => ({ n: Math.min(MAX_FLIGHT, n), key: f.key + 1 }));
-    }, [])
+      if (n <= 0) return;
+      const start = (y: number | null) => setFlight((f) => ({ n: Math.min(MAX_FLIGHT, n), key: f.key + 1, y }));
+      const row = target?.current;
+      if (!row) {
+        start(null);
+        return;
+      }
+      row.measureInWindow((_x, y, _w, h) => {
+        const mid = y + h / 2;
+        start(h > 0 && mid > height * 0.12 && mid < height * 0.85 ? mid : null);
+      });
+    }, [target, height])
   );
 
   useEffect(() => {
-    if (flight.n === 0) return;
+    if (flight.n === 0 || flight.y == null) return;
     glow.value = reduced
       ? withSequence(withTiming(0.6, { duration: 500 }), withTiming(0, { duration: 900 }))
       : withDelay(900, withSequence(withTiming(1, { duration: 300 }), withTiming(0, { duration: 900 })));
@@ -162,7 +175,7 @@ export const SparkFlight = memo(function SparkFlight({ targetY }: { targetY?: nu
   if (flight.n === 0) return null;
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <Animated.View style={[styles.glow, { top: ty - 70, width: width * 0.9, left: width * 0.05 }, glowStyle]} />
+      {flight.y != null ? <Animated.View style={[styles.glow, { top: ty - 70, width: width * 0.9, left: width * 0.05 }, glowStyle]} /> : null}
       {reduced ? null : Array.from({ length: flight.n }, (_, i) => (
         <Rising key={`${flight.key}-${i}`} i={i} n={flight.n} width={width} height={height} ty={ty} />
       ))}

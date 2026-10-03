@@ -32,11 +32,8 @@ export default function DrawerScreen() {
   const recentPaths = useLifeStore((s) => s.about.recent);
   const learnOff = useLifeStore((s) => s.about.learnOff);
   const seenNew = useLifeStore((s) => s.settings.seenNew);
-  const setSettings = useLifeStore((s) => s.setSettings);
-  const open = (tool: Tool) => {
-    if (tool.isNew && !(seenNew ?? []).includes(tool.path)) setSettings({ seenNew: [...(seenNew ?? []), tool.path] });
-    router.push(tool.path as never);
-  };
+  // Opening clears a "new" dot (OpenWatcher), wherever it's opened from.
+  const open = (tool: Tool) => router.push(tool.path as never);
   // Learned from what you open, so it follows the About you switch, and
   // only shows once a tool has been opened a few times.
   const most = learnOff
