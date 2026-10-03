@@ -164,7 +164,7 @@ checked · [–] decided against (with why)
 97. [x] CLAUDE.md: night Desk, show mode, the shelf, and their rules
 98. [x] SESSION_LOG and this file's progress log
 99. [x] Secret scan, commit, push
-100. [ ] Write Round 7's plan from what's left and what the user says
+100. [x] Write Round 7's plan from what's left and what the user says
 
 ## Build order
 
@@ -227,13 +227,11 @@ Decisions:
 
 ## RESUME HERE (for a fresh session after compaction)
 
-Wave 3 runs in a cloud session on branch `claude/round6-wave3` (draft PR).
-The gate works there (`node tools/hub/check.mjs --agent atlas`); there is
-no Simulator in the cloud, so every [~] item still needs a live check on
-the Mac before it becomes [x]. Status marks above were brought up to date
-on 2026-10-03, so read them instead of searching the code. Wave 3: Glide
-(School group-collapse jump, Steady pull-to-refresh) and Spark (firsts,
-tiny wins radar).
+Round 6 is built. Every idea is `[x]`, `[~]` (built, waiting for a live
+check) or `[–]` (decided against, with why). What's left needs the Mac:
+the live checks, the phone build, screenshots and measurements. That work
+is Round 7 (`docs/rounds/round-7.md`), which starts with seeing Round 6
+live.
 
 ## Progress log
 
@@ -284,4 +282,11 @@ tiny wins radar).
   removed exclamation marks from Ember's own voice. Release build of
   34e22ba sent to the iPhone from the Mac (pods need LANG=en_US.UTF-8;
   device UDID 00008150-001C4CE12110C01C). All [~] until checked live.
+- 2026-10-03 (cloud, waves 8–10): exam season, Ember's journal, drag
+  weight; seasons in the motes, constellation, fire crackle; show tour,
+  waking yawn, Drawer glow, + sheet art; Ember's night candle and softer
+  night lines, real sunset; notes zoom from their card, lazy Notebook and
+  Badges. Decided against: pocket worry this round (needs expo-sensors),
+  sheets fitted to content (all sheets are long forms). The repo now has a
+  README, docs in rounds/plans/history, and a PR template. Round 7 written.
 

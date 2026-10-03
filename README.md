@@ -79,6 +79,7 @@ The app grew in rounds. Each round has a plan with every idea and its status (`[
 | 4 | The AI design | [round-4](docs/rounds/round-4.md) |
 | 5 | Smooth, and knows you | [round-5](docs/rounds/round-5.md) |
 | 6 | Everything in tune: the night room, Ember moments, polish | [round-6](docs/rounds/round-6.md) |
+| 7 | Seen, shipped, and on the phone (next) | [round-7](docs/rounds/round-7.md) |
 
 Rounds 6 and later were built by a small team of AI agents working in parallel, each in its own git branch, with one orchestrator reviewing and merging. See [`tools/hub/BRIEFING.md`](tools/hub/BRIEFING.md).
 

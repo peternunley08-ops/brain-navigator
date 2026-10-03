@@ -3,7 +3,8 @@
 | Start here | |
 |---|---|
 | [What this app is](WHAT-THIS-IS.md) | The app in two minutes: what it holds, how it treats you. |
-| [Round 6 plan](rounds/round-6.md) | The current round: every idea, its status, and the progress log. |
+| [Round 7 plan](rounds/round-7.md) | What's next: see Round 6 live, faster phone updates, the native batch. |
+| [Round 6 plan](rounds/round-6.md) | The round just built: every idea, its status, and the progress log. |
 
 ## Rounds
 
@@ -17,6 +18,7 @@ Each round is a plan and a tracker. Status marks: `[x]` done and checked live, `
 | [Round 4](rounds/round-4.md) | The AI design |
 | [Round 5](rounds/round-5.md) | Smooth, and knows you |
 | [Round 6](rounds/round-6.md) | Everything in tune |
+| [Round 7](rounds/round-7.md) | Seen, shipped, and on the phone (next) |
 
 ## Plans
 
