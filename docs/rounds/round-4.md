@@ -306,4 +306,4 @@ never tap Done in Ember's chat for tests (it saves to the journal).
   v4.4 (8.1¢), the abuse case re-run on v4.5 (0.9¢). Desk follow-up card,
   repeating-worry card, Quill/Sage hand-offs (structure, final grade,
   college topics), Plus at 250 replies a month. Round 4 is closed; the
-  rest moved to docs/masterpiece-5.md.
+  rest moved to docs/rounds/round-5.md.

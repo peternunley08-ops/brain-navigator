@@ -144,7 +144,7 @@ R3. [x] AI allowance + Plus paywall (core/aiQuota.ts, app/plus.tsx): Free 20
 ## RESUME HERE (for a fresh session after compaction)
 - Committed so far: da32a82 (round 1). Round 2 is NOT committed yet — wait
   for the user's "commit".
-- Round 2 is fully built. Continue in docs/masterpiece-3.md.
+- Round 2 is fully built. Continue in docs/rounds/round-3.md.
 - (old) Next up: I #89–100, F #65–74, G #75–82, H #83–88,
   I #89–100. Then docs (CLAUDE.md "Masterpiece round 2" section,
   SESSION_LOG, todo) and a phone rebuild after the user commits.

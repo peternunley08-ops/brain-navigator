@@ -135,9 +135,9 @@ The user asked this directly. The answer at the time (all still relevant):
 
 **Deliberately deferred, documented:**
 - Real Supabase Auth (RLS is wide-open on the anon key — accepted
-  single-user MVP tradeoff, see `docs/encryption-plan.md`)
+  single-user MVP tradeoff, see `docs/plans/encryption.md`)
 - Local-first encryption (blocked on Auth)
-- Apple Watch companion (`docs/apple-watch-plan.md` — needs real
+- Apple Watch companion (`docs/plans/apple-watch.md` — needs real
   Xcode/signing/paired device work with the user)
 - Topography's two-ring (not force-directed) layout
 
@@ -758,7 +758,7 @@ toward a native rebuild before the real Expo/RN stack was confirmed) out to
 `~/Desktop/`. Created a GitHub repo (`peternunley08-ops/brain-navigator`,
 private) and pushed — but the first push attempt was rejected by GitHub's
 secret-scanning push protection: a real Notion integration secret had been
-copied into `docs/SESSION_LOG.md` itself (ironic) during a much earlier
+copied into `docs/history/SESSION_LOG.md` itself (ironic) during a much earlier
 session, as a "for completeness" note. Redacted it and rewrote the two
 local commits that contained it (safe to do — nothing had reached the
 remote yet) before pushing clean. The Notion key was also rotated
@@ -977,7 +977,7 @@ and is the better default next time a specific screen needs verifying.
 
 Every screen's `tsc --noEmit` was clean and every fix was verified live
 before committing. All 15 screens are done — this closes out the
-screen-by-screen redesign pass entirely. `CLAUDE.md` and `docs/todo.md`
+screen-by-screen redesign pass entirely. `CLAUDE.md` and `docs/history/todo.md`
 updated to reflect completion.
 
 **Next, whenever resumed**: the only paused work left is Phase 22 (AI
@@ -1365,7 +1365,7 @@ go floats the flame away. Flame size = intensity; candle height = time
 open. Secondary tools moved to a Drawer; the in-the-moment tools
 (Breathe, Let it out, Ember) got their own Steady tab. The internal state
 names were replaced on screen with Open / Resolved / Let go, and Trove
-with Kept. Full file list in docs/todo.md Phase 26.
+with Kept. Full file list in docs/history/todo.md Phase 26.
 
 Found and fixed during verification:
 - `cognitive_state` was never in the realtime publication, so every
@@ -1400,7 +1400,7 @@ reinstalled with the Desk build before this; it doesn't have these yet.
 Diagnosis from screenshots of all 20 screens: everything was the same
 beige, every action the same brown pill with tracked typewriter text,
 forms looked like forms. Chose a night palette where the Desk's candles
-are the light source (full reasoning and file list in docs/todo.md
+are the light source (full reasoning and file list in docs/history/todo.md
 Phase 28), Figtree for UI text, a design kit (`Screen` and friends), and
 rebuilt every screen on it. Made Ember — previously a bear with the same
 name — a living flame: a global overlay you can tap for data-driven tips
@@ -1483,7 +1483,7 @@ cleared from `ios/Pods` first).
 
 The user then asked: "orchestrate a master piece make over 100 plus ideas
 and execute all of them" (and to be ready for a session compaction). Wrote
-`docs/masterpiece.md` — 120 ideas in 12 groups, used as the live tracker —
+`docs/rounds/round-1.md` — 120 ideas in 12 groups, used as the live tracker —
 then built all of them in five batches:
 
 1. Foundation: 18 new icons, `ProgressBar`, `Segmented`, `Sparkline`, the
@@ -1552,7 +1552,7 @@ user asked for:
   Crisis and wellness tools are always free. Failed AI calls don't count.
 
 Then the user asked for 100 more ideas and UI-wide improvements —
-`docs/masterpiece-2.md` is the plan and tracker. Done so far: UI polish
+`docs/rounds/round-2.md` is the plan and tracker. Done so far: UI polish
 (dot joins removed per the design rules, tabular numbers, contrast fix,
 sheets, swipe rows, tab long-press, pull to refresh, skeletons, …) and the
 Desk group (quick capture with natural-language parsing, morning/evening
@@ -1564,7 +1564,7 @@ can be without an AI key or real accounts.
 ## 2026-09-30 → 10-01 — Round 3: 100 more, built on rounds 1 and 2
 
 The user asked for "100 more ideas to improve on any ideas you had" and left
-the orchestration to me. Plan and tracker: `docs/masterpiece-3.md`, groups
+the orchestration to me. Plan and tracker: `docs/rounds/round-3.md`, groups
 A–J (celebrations, flashcards and Quizzo, focus, Desk, helpers, school and
 scanning, wellness, college and life, notes and search, quality). Highlights:
 one-time whole-screen celebrations that also fill the wins jar; Quizzo
@@ -1607,8 +1607,8 @@ planner. The test conversation wasn't saved.
 
 ## 2026-10-01 — Round 4: the AI design (100 ideas), then Round 5 begins
 
-Full plan and per-idea status: `docs/masterpiece-4.md` (closed) and
-`docs/masterpiece-5.md` (in progress, with RESUME HERE).
+Full plan and per-idea status: `docs/rounds/round-4.md` (closed) and
+`docs/rounds/round-5.md` (in progress, with RESUME HERE).
 
 Round 4: the `ember` function became a job router (talk, helper, summary,
 title, steps, plan, scan, cards, points, practice, pick, reflect, ping) on
@@ -1636,7 +1636,7 @@ done.
 
 ## 2026-10-02 — Round 5 finished (smooth, and knows you)
 
-Picked up after a compaction and finished `docs/masterpiece-5.md`
+Picked up after a compaction and finished `docs/rounds/round-5.md`
 (93 done, 6 decided against, 1 not seeable live). Highlights: About you
 (swipe cards, chips, goals, daily question, weekly sentence, what the app
 noticed, sharing with the AI off by default and previewed), the app
@@ -1648,12 +1648,12 @@ opened from a link threw "GO_BACK was not handled"; nickname and goal
 fields dropped the last letter on return; the replay deck showed no cards;
 big titles were half-faded at rest on Focus and Steady; nav labels clipped
 at large text sizes; Focus redrew 4× a second. Simulator data was reset to
-a clean state afterwards. Next: `docs/masterpiece-6.md`.
+a clean state afterwards. Next: `docs/rounds/round-6.md`.
 
 
 ## Round 6, wave 2 and Shield (2026-10-02)
 Five lean agents (Sonnet builders, Haiku Sentinel) shipped 17 ideas, merged
-and pushed; details in docs/masterpiece-6.md. The hub home became a
+and pushed; details in docs/rounds/round-6.md. The hub home became a
 zoomable solar-system map. Shield, a security agent with a free scanner,
 found the Notion key baked into the app; Notion sync now runs through the
 `notion` Supabase function and the old token is rotated. Next: the next
