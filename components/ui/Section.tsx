@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { springs } from '../../core/motion';
-import { colors, fonts } from '../../core/theme';
+import { colors, fonts, textGrow } from '../../core/theme';
 import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
 
@@ -30,7 +30,7 @@ export function Section({ title, note, action, icon, iconColor = colors.flame, c
     <View style={styles.headText}>
       <View style={styles.titleRow}>
         {icon ? <Icon name={icon} size={17} color={iconColor} /> : null}
-        <Text style={styles.title} accessibilityRole="header">{title}</Text>
+        <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={textGrow.heading}>{title}</Text>
         {onToggleFold ? (
           <Animated.View style={turn}>
             <Icon name="chevron" size={14} color={colors.textFaint} />

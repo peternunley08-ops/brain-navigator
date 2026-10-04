@@ -20,7 +20,7 @@ import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
 import { goBack } from '../../core/chrome';
 import { cheerLine } from '../../core/about';
-import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, planBackward, spreadSteps, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
+import { addDays, dateKey, daysUntil, dueLabel, dueWords, KIND_LABEL, planBackward, spreadSteps, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { helperById, type HelperId } from '../../core/helpers';
 import { useLifeStore } from '../../core/lifeStore';
@@ -140,9 +140,9 @@ export default function AssignmentScreen() {
             {a.done
               ? 'Done'
               : n === 0 || n === 1
-                ? `Due ${dueLabel(a.due).toLowerCase()}, ${dateText}`
+                ? `Due ${dueWords(a.due)}, ${dateText}`
                 : n < 0
-                  ? `Was due ${dateText} (${dueLabel(a.due).toLowerCase()})`
+                  ? `Was due ${dateText} (${dueWords(a.due)})`
                   : `Due ${dateText}`}
           </Text>
         </View>

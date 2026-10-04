@@ -1,4 +1,6 @@
 import { checkAchievements } from './achievements';
+import { loadCrackle } from './audioStore';
+import { useEmberStore } from './emberStore';
 import { useGoogleCalendarStore } from './googleCalendarStore';
 import { useHabitsStore } from './habitsStore';
 import { useHealthStore } from './healthStore';
@@ -28,8 +30,24 @@ type Snap = {
   calendar: Partial<ReturnType<typeof useGoogleCalendarStore.getState>>;
   health: Partial<ReturnType<typeof useHealthStore.getState>>;
   weather: Partial<ReturnType<typeof useWeatherStore.getState>>;
+  online: object[];
 };
 let snap: Snap | null = null;
+
+// The stores filled from the online database (the sample stand-in while
+// showing). Ending puts back what they held before, so if the real database
+// can't be reached (offline), Riley's rows don't stay on screen.
+type OnlineStore = { getState: () => object; setState: (state: object) => void };
+const ONLINE: OnlineStore[] = [
+  useBrainNavigatorStore,
+  useWellnessStore,
+  useTasksStore,
+  useHabitsStore,
+  useNutritionStore,
+  useVentStore,
+  useWellnessWheelStore,
+  useSleepAmbientStore,
+];
 
 function refetchOnline() {
   return Promise.allSettled([
@@ -70,6 +88,7 @@ export async function startShow() {
       humidityPct: weather.humidityPct,
       hasMarineData: weather.hasMarineData,
     },
+    online: ONLINE.map((s) => s.getState()),
   };
 
   // The flag goes up first, so nothing below can be saved.
@@ -111,8 +130,11 @@ export async function endShow() {
     useGoogleCalendarStore.setState(snap.calendar);
     useHealthStore.setState(snap.health);
     useWeatherStore.setState(snap.weather);
+    snap.online.forEach((state, i) => ONLINE[i].setState(state));
   }
   snap = null;
+  // Ember's perch and nap, and the crackle choice, don't save while showing; read back the real ones.
+  await Promise.all([useEmberStore.getState().load(), loadCrackle()]);
   await refetchOnline();
   if (useGoogleCalendarStore.getState().signedIn) useGoogleCalendarStore.getState().fetchTodayEvents();
   if (useHealthStore.getState().isAuthorized) useHealthStore.getState().fetchToday();

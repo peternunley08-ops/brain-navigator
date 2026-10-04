@@ -9,6 +9,11 @@ import { plural } from './words';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
+/** "once", "twice", "3 times". */
+function times(n: number) {
+  return n === 1 ? 'once' : n === 2 ? 'twice' : plural(n, 'time');
+}
+
 function dayName(key: string) {
   const [y, m, d] = key.split('-').map(Number);
   return DAYS[new Date(y, m - 1, d).getDay()];
@@ -36,8 +41,8 @@ export function weekLine(weekStart: string): string | null {
   if (finished.length) facts.push(`You finished ${plural(finished.length, 'thing')}`);
   if (top && finished.length >= 3 && top[1] >= 2) facts.push(`focused most on ${dayName(top[0])}`);
   else if (mins >= 60) facts.push(`gave ${plural(Math.round(mins / 60), 'hour')} to focus`);
-  if (checkIns && facts.length < 2) facts.push(`checked in ${plural(checkIns, 'time')}`);
-  if (!facts.length && sessions.length) facts.push(`sat down to focus ${plural(sessions.length, 'time')}`);
+  if (checkIns && facts.length < 2) facts.push(`checked in ${times(checkIns)}`);
+  if (!facts.length && sessions.length) facts.push(`sat down to focus ${times(sessions.length)}`);
 
   const heavy = tests.length >= 2;
   const opener = heavy
@@ -48,7 +53,8 @@ export function weekLine(weekStart: string): string | null {
         ? 'A quiet week.'
         : 'A steady week.';
   if (!facts.length) return opener;
-  const body = facts.length === 1 ? facts[0] : `${facts[0]} and ${facts[1]}`;
+  // Every line speaks to them: "You finished…", "You checked in…".
+  const body = (facts.length === 1 ? facts[0] : `${facts[0]} and ${facts[1]}`).replace(/^(?!You )/, 'You ');
   return `${opener} ${heavy ? `You still ${body.replace(/^You /, '')}` : body}.`;
 }
 

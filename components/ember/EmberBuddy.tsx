@@ -21,14 +21,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
-import { type EmberMood, inClassQuiet, useEmberStore } from '../../core/emberStore';
+import { type EmberMood, inClassQuiet, lineMs, useEmberStore } from '../../core/emberStore';
 import { emberHop, navTucked, scrolling } from '../../core/chrome';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
 import { colors, fonts } from '../../core/theme';
 import { dateKey } from '../../core/dates';
-import { isShowing } from '../../core/showMode';
+import { isShowing, useShowMode } from '../../core/showMode';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { EmberBubble } from './EmberBubble';
 import { autoAccessory } from '../../core/emberLook';
@@ -54,6 +54,11 @@ const NAP_SCALE = 0.5;
 // screens already have Ember on stage, and Breathe needs your whole
 // attention.
 const HIDDEN = new Set(['/companion', '/breathe', '/welcome', '/focus', '/scan']);
+
+/** True on the pages where the floating Ember steps aside (its lines don't show there). */
+export function emberStepsAside(path: string) {
+  return HIDDEN.has(path);
+}
 
 const COMFORT = [
   'You’re doing better than you think.',
@@ -115,7 +120,12 @@ export function EmberBuddy() {
     const sub = AppState.addEventListener('change', (st) => {
       if (st === 'active') check();
     });
-    return () => sub.remove();
+    // Riley has no birthday: the hat comes off while showing and back after.
+    const unsubscribeShow = useShowMode.subscribe(check);
+    return () => {
+      sub.remove();
+      unsubscribeShow();
+    };
   }, [reducedMotion]);
   const [mode, setMode] = useState<'tips' | 'about'>('tips');
   const [tipIndex, setTipIndex] = useState(0);
@@ -330,10 +340,14 @@ export function EmberBuddy() {
   useEffect(() => () => breathTimers.current.forEach(clearTimeout), []);
 
   const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // This press started the calm, so letting go is the end of the hold, not a tap.
+  const holdStartedBreath = useRef(false);
   const startHold = useCallback(() => {
     if (holdTimer.current) clearTimeout(holdTimer.current);
+    holdStartedBreath.current = false;
     holdTimer.current = setTimeout(() => {
       holdTimer.current = null;
+      holdStartedBreath.current = !breathing.current;
       startBreath();
     }, 800);
   }, [startBreath]);
@@ -360,6 +374,11 @@ export function EmberBuddy() {
 
   const lastTap = useRef(0);
   const tapOrHoldEnd = useCallback(() => {
+    // Letting go of the hold that started the calm keeps it going (three breaths, about 30 s).
+    if (holdStartedBreath.current) {
+      holdStartedBreath.current = false;
+      return;
+    }
     // A tap while breathing ends the calm.
     if (breathing.current) {
       cancelHold();
@@ -392,7 +411,7 @@ export function EmberBuddy() {
     const t = setTimeout(() => {
       useEmberStore.getState().clearToast(id);
       if (!useEmberStore.getState().napping) rig.setMood('idle');
-    }, 3600);
+    }, lineMs(toast.text));
     return () => clearTimeout(t);
   }, [toast, rig]);
 

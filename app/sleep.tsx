@@ -19,6 +19,7 @@ import { type ListItem, useLifeStore } from '../core/lifeStore';
 import { FALL_ASLEEP, lightsOutMinutes, tonightKey, wrap } from '../core/night';
 import { clock, useSchoolStore } from '../core/schoolStore';
 import { colors, fonts } from '../core/theme';
+import { isShowing } from '../core/showMode';
 
 const MOON = '#8FB4E8';
 
@@ -31,7 +32,7 @@ export default function SleepScreen() {
   const earn = useLifeStore((s) => s.earn);
 
   useEffect(() => {
-    if (earn('sleep_plan')) emberSay('New badge: Bedtime math.', 'cheer');
+    if (earn('sleep_plan') && !isShowing()) emberSay('New badge: Bedtime math.', 'cheer');
   }, [earn]);
 
   const wake = settings.wake;

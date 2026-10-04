@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { useLifeStore } from './lifeStore';
 import { isNight, minutesOf, nightNow, nightStart } from './night';
 import { nowState, useSchoolStore } from './schoolStore';
+import { isShowing } from './showMode';
 import { useUndoStore } from './undoStore';
 
 /** True while a class is in session and Ember has been asked to stay quiet then. */
@@ -29,6 +30,13 @@ export interface EmberToast {
   id: number;
   text: string;
   mood: EmberMood;
+  /** When it started (ms), so a newer line knows to wait its turn. */
+  at: number;
+}
+
+/** How long a line stays up: long enough to read it, 3.6 s at the least. */
+export function lineMs(text: string) {
+  return Math.min(8000, Math.max(3600, 2600 + 45 * text.length));
 }
 
 interface EmberPrefs {
@@ -73,6 +81,8 @@ function prefsFile() {
 }
 
 function persist(p: EmberPrefs) {
+  // Nothing saves while showing someone the app (a goodnight as Riley used to put the real Ember to sleep).
+  if (isShowing()) return;
   try {
     const f = prefsFile();
     if (!f.exists) f.create();
@@ -83,6 +93,8 @@ function persist(p: EmberPrefs) {
 }
 
 let toastSeq = 0;
+/** Lines waiting for the one being read (two at most; asked lines never wait). */
+let queue: { text: string; mood: EmberMood }[] = [];
 /** The latest line held back while the Undo bar is up. */
 let waiting: { text: string; mood: EmberMood; asked?: boolean } | null = null;
 
@@ -97,20 +109,22 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
   peeks: 0,
 
   load: async () => {
+    // Read again after showing someone the app, so it also drops anything unsaved.
+    let prefs = DEFAULTS;
     try {
       const f = prefsFile();
       if (f.exists) {
         const p = JSON.parse(await f.text()) as Partial<EmberPrefs>;
-        set({
+        prefs = {
           side: p.side === 'left' ? 'left' : 'right',
           y: typeof p.y === 'number' ? Math.min(1, Math.max(0, p.y)) : DEFAULTS.y,
           napping: !!p.napping,
-        });
+        };
       }
     } catch {
       // Fall back to the defaults.
     }
-    set({ loaded: true });
+    set({ ...prefs, loaded: true });
   },
 
   setPerch: (side, y) => {
@@ -144,6 +158,13 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
       waiting = { text, mood, asked };
       return;
     }
+    // One line at a time: a new line waits for the one being read, instead of
+    // cutting it off mid-sentence (a first A right after a badge).
+    const current = get().toast;
+    if (!asked && current && Date.now() - current.at < lineMs(current.text)) {
+      queue = [...queue, { text, mood }].slice(-2);
+      return;
+    }
     // At night Ember speaks softer: just the first sentence (asked lines stay whole).
     if (!asked) {
       const life = useLifeStore.getState();
@@ -153,11 +174,14 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
       }
     }
     toastSeq += 1;
-    set({ toast: { id: toastSeq, text, mood } });
+    set({ toast: { id: toastSeq, text, mood, at: Date.now() } });
   },
 
   clearToast: (id) => {
-    if (get().toast?.id === id) set({ toast: null });
+    if (get().toast?.id !== id) return;
+    set({ toast: null });
+    const next = queue.shift();
+    if (next) setTimeout(() => get().say(next.text, next.mood), 350);
   },
 }));
 

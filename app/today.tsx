@@ -60,6 +60,11 @@ function minsOf(iso: string) {
 // A day laid out in time: classes from your schedule, Google Calendar
 // events, blocks you plan here, and the focus you've already done. Each
 // block's height grows with how long it lasts, and a line marks now.
+// "Quiz: logarithms", unless the title already says so ("Quiz: Quiz: logarithms").
+function withKind(title: string, kind: string) {
+  return title.toLowerCase().startsWith(kind.toLowerCase()) ? title : `${kind}: ${title}`;
+}
+
 export default function TodayScreen() {
   const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
@@ -173,7 +178,7 @@ export default function TodayScreen() {
               <Pressy key={a.id} onPress={() => router.push(`/assignment/${a.id}`)} style={styles.duePill}>
                 <Icon name="flag" size={13} color={colors.flame} />
                 <Text style={styles.dueText} numberOfLines={1}>
-                  {KIND_LABEL[a.kind]}: {a.title}
+                  {withKind(a.title, KIND_LABEL[a.kind])}
                 </Text>
               </Pressy>
             ))}
@@ -183,7 +188,7 @@ export default function TodayScreen() {
 
       <Reveal index={1}>
         <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.timeline, slideStyle]}>
+        <Animated.View style={[styles.timeline, !items.length && styles.timelineEmpty, slideStyle]}>
           {items.map((it, i) => (
             <View key={it.key}>
               {i === nowIndex ? <NowLine mins={nowMins} /> : null}
@@ -333,6 +338,11 @@ const styles = StyleSheet.create({
   timeline: {
     marginTop: 18,
     gap: 10,
+  },
+  // Room to swipe between days even when a day is empty.
+  timelineEmpty: {
+    minHeight: 120,
+    justifyContent: 'center',
   },
   empty: {
     fontFamily: fonts.body,

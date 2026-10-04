@@ -125,6 +125,7 @@ export function DayBrief() {
 // A test or quiz within two days: offer the right helper.
 export function HelperNudge() {
   const assignments = useSchoolStore((s) => s.assignments);
+  const decks = useLifeStore((s) => s.decks);
   const [hidden, setHidden] = useClosedToday('HelperNudge');
   const soon = assignments
     .filter((a) => !a.done && (a.kind === 'test' || a.kind === 'quiz') && daysUntil(a.due) >= 0 && daysUntil(a.due) <= 2)
@@ -140,7 +141,13 @@ export function HelperNudge() {
       icon="people"
       color={helper.color}
       title={soon ? `${target.title} is ${when}` : `${target.title} is due ${when}`}
-      body={soon ? `Warm up with ${helper.name}: a quick game from your flashcards.` : `${helper.name} can help you find what to say. You write it.`}
+      body={
+        soon
+          ? decks.some((d) => d.cards.length > 1)
+            ? `Warm up with ${helper.name}: a quick game from your flashcards.`
+            : `Warm up with ${helper.name}: a quick quiz on it, one question at a time.`
+          : `${helper.name} can help you find what to say. You write it.`
+      }
       onPress={() => router.push({ pathname: '/helper/[id]', params: { id: helper.id, about: target.id } })}
       onClose={setHidden}
     />

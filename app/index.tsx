@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
@@ -48,7 +48,7 @@ import { useHabitsStore } from '../core/habitsStore';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useOpenLoops } from '../core/hooks/useOpenLoops';
 import type { CognitiveStateEntry } from '../core/store';
-import { beforeNight, isNight, minutesOf, minutesToNight, NIGHT_END, nightClockOverride, nightClockVersion, nightNow, nightStart, parseNightParam, setNightClock, subscribeNightClock } from '../core/night';
+import { beforeNight, isNight, minutesOf, minutesToNight, NIGHT_END, nightClockOverride, nightClockVersion, nightNow, nightStart, parseNightParam, setNightClock, subscribeNightClock, tonightKey } from '../core/night';
 import { clock, dateKey, daysUntil, focusMinutesOn, isoDay, nowState, tonightsLoad, useSchoolStore, type SchoolClass } from '../core/schoolStore';
 import { useTasksStore } from '../core/tasksStore';
 import { plural } from '../core/words';
@@ -56,16 +56,20 @@ import { offerUndo } from '../core/undoStore';
 import { selectionAsync } from '../core/haptics';
 import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
+import { isShowing } from '../core/showMode';
 
 const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 const MAX_ON_DESK = 9;
 const MOOD_WORDS = ['Rough', 'Low', 'Okay', 'Good', 'Great'];
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-function momentLabel(d = new Date()) {
-  const day = d.toLocaleDateString('en-US', { weekday: 'long' });
+// "Night" only once the Desk itself has turned to night, so the kicker and
+// the line under the greeting agree; past midnight it's still the night before.
+function momentLabel(d: Date, night: boolean) {
   const h = d.getHours();
-  const part = h < 5 ? 'night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : h < 21 ? 'evening' : 'night';
+  const back = night && h < 5 ? 1 : 0;
+  const day = new Date(d.getFullYear(), d.getMonth(), d.getDate() - back).toLocaleDateString('en-US', { weekday: 'long' });
+  const part = night ? 'night' : h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
   return `${day} ${part}`;
 }
 
@@ -163,8 +167,11 @@ export default function DeskScreen() {
   const profile = useSchoolStore((s) => s.profile);
   const nickname = useLifeStore((s) => s.about.nickname.trim());
   const timePick = useLifeStore((s) => s.about.picks.time);
+  const putDown = useLifeStore((s) => s.settings.putDown);
+  // Where sparks earned elsewhere land (SparkFlight measures it on the way in).
+  const candleRow = useRef<View>(null);
   // A night owl's evening (or a morning person's morning) starts with the brief.
-  const hourNow = new Date().getHours();
+  const hourNow = nightNow().getHours();
   const briefFirst = (timePick === 'b' && hourNow >= 17) || (timePick === 'a' && hourNow >= 5 && hourNow < 11);
   const schoolLoaded = useSchoolStore((s) => s.loaded);
 
@@ -251,11 +258,13 @@ export default function DeskScreen() {
   const achievementCount = useLifeStore((s) => Object.keys(s.achievements).length);
   const warmNow = useMemo(() => warmth(), [achievementCount, assignments, focus]); // eslint-disable-line react-hooks/exhaustive-deps
   const warmNext = [...Object.values(EMBER_THEMES).map((t) => t.warmth), ...ACCESSORIES.map((a) => a.warmth)].filter((x) => x > warmNow).sort((a, b) => a - b)[0];
-  const dow = new Date().getDay();
-  const reviewDue = (dow === 0 || dow === 6 || (dow === 5 && new Date().getHours() >= 15)) && !reviews.some((r) => r.weekOf === weekOf());
+  const now = nightNow();
+  const dow = now.getDay();
+  const reviewDue = (dow === 0 || dow === 6 || (dow === 5 && now.getHours() >= 15)) && !reviews.some((r) => r.weekOf === weekOf());
   const earn = useLifeStore((s) => s.earn);
   useEffect(() => {
-    if (allClear && earn('all_clear')) emberSay('New badge: All clear. Nothing due by tomorrow.', 'cheer');
+    // Celebrations stay quiet while showing Riley (the badge is hers, in memory only).
+    if (allClear && earn('all_clear') && !isShowing()) emberSay('New badge: All clear. Nothing due by tomorrow.', 'cheer');
   }, [allClear, earn]);
   const habitsDone = activeHabits.filter((h) => logs.some((l) => l.habit_id === h.id && l.log_date === today)).length;
 
@@ -300,7 +309,7 @@ show('due') ? (
       <Reveal index={2}>
         <Section {...fold('mind')} title="On your mind" note={countLine(openLoops.length)}>
         <View style={styles.desk}>
-          <View style={styles.candles}>
+          <View ref={candleRow} style={styles.candles}>
             {onDesk.length === 0 ? (
               <View style={styles.emptyCandle}>
                 <Candle width={112} time={time} intensity={0.35 + 0.25 * dayLift} remaining={0.55} seed={1.7} state="unlit" reducedMotion={reducedMotion} />
@@ -465,12 +474,14 @@ show('line') ? (
       }
       motes
       weather={weatherKind(weatherCode)}
-      overlay={<SparkFlight />}
-      kicker={momentLabel(nightNow())}
+      overlay={<SparkFlight target={candleRow} />}
+      kicker={momentLabel(nightNow(), night)}
       title={greetingFor(nickname || profile.name, timePick, nightNow())}
       subtitle={
         night
-          ? nightSummaryLine(dueToday, dueTomorrow, openLoops.length, lateCount, nowMin < NIGHT_END)
+          ? putDown === tonightKey()
+            ? 'The day is put down. The rest can wait for morning.'
+            : nightSummaryLine(dueToday, dueTomorrow, openLoops.length, lateCount, nowMin < NIGHT_END)
           : dayPartLine(classes, nightNow(), summaryLine(dueToday, dueTomorrow, openLoops.length, lateCount))
       }
       right={

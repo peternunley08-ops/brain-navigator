@@ -3,17 +3,18 @@ import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown, useReducedMotion } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useEmberStore } from '../core/emberStore';
 import * as Haptics from '../core/haptics';
 import { dismissTour, setTourStep, TOUR_PATHS, useShowMode, useTour } from '../core/showMode';
-import { colors, fonts } from '../core/theme';
-import { emberSay } from './ember/EmberBuddy';
+import { colors, fonts, layout, radii } from '../core/theme';
+import { emberStepsAside } from './ember/EmberBuddy';
 import { Pressy } from './ui/Pressy';
 
 const LINES: { text: string; mood: 'happy' | 'curious' | 'idle' }[] = [
-  { text: 'This is the Desk. Today Riley has a Gatsby reading and Problem set 4.2 due, and a dentist visit at 4:30.', mood: 'happy' },
+  { text: 'This is the Desk. Today Riley has a Gatsby reading and Problem set 4.2 due, and one thing to make it a good day.', mood: 'happy' },
   { text: 'School keeps AP Biology, Algebra II and the rest in one place. The Genetics unit test is four days out.', mood: 'idle' },
   { text: 'Focus is a study candle. Riley has been giving it 25 minutes at a time, most recently for the Genetics unit test.', mood: 'curious' },
-  { text: 'Steady holds Riley’s habits, like a morning walk and reading 20 minutes, plus a worry box for heavier evenings.', mood: 'idle' },
+  { text: 'Steady is the rest of being a student: sleep, a toolkit for hard moments, and a worry box for heavier evenings.', mood: 'idle' },
   { text: 'Your year adds up Riley’s weeks, gently. That is the tour, and nothing here was saved.', mood: 'happy' },
 ];
 
@@ -29,7 +30,8 @@ export function ShowTour() {
   const go = (i: number) => {
     setTourStep(i);
     router.navigate(TOUR_PATHS[i] as never);
-    emberSay(LINES[i].text, LINES[i].mood);
+    // Asked for (they tapped Next), so it comes at once and stays whole.
+    useEmberStore.getState().say(LINES[i].text, LINES[i].mood, true);
   };
 
   // If show mode stops mid-tour, the store resets itself; nothing to do.
@@ -57,8 +59,11 @@ export function ShowTour() {
   }
 
   const last = step >= TOUR_PATHS.length - 1;
+  // Ember steps aside on Focus (its own Ember is on stage), so the tour says that line itself.
+  const ownLine = emberStepsAside(TOUR_PATHS[step]) ? LINES[step].text : null;
   return (
     <Animated.View entering={reduced ? undefined : FadeInDown.duration(260)} exiting={reduced ? undefined : FadeOutDown.duration(180)} style={[styles.wrap, { bottom }]} pointerEvents="box-none">
+      {ownLine ? <Text style={styles.line}>{ownLine}</Text> : null}
       <View style={styles.row}>
         <Pressy
           onPress={() => { Haptics.selectionAsync().catch(() => {}); if (last) dismissTour(); else go(step + 1); }}
@@ -81,6 +86,21 @@ export function ShowTour() {
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 40 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  line: {
+    maxWidth: 320,
+    marginHorizontal: layout.gutter,
+    marginBottom: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    backgroundColor: colors.surfaceHigh,
+    fontFamily: fonts.body,
+    fontSize: 15,
+    lineHeight: 21,
+    color: colors.text,
+  },
   gold: {
     height: 40,
     paddingHorizontal: 20,

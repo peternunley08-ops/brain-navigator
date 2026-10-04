@@ -12,7 +12,7 @@ import { Section } from '../components/ui/Section';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { useHubStore } from '../core/hubStore';
 import { plural } from '../core/words';
-import { clock, dueLabel, isoDay, useSchoolStore, workloadByDay } from '../core/schoolStore';
+import { clock, dueLabel, dueWords, isoDay, useSchoolStore, workloadByDay } from '../core/schoolStore';
 import { alpha, colors, fonts, layout, radii } from '../core/theme';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -182,7 +182,7 @@ export default function WeekScreen() {
           {pick ? (
             <View style={styles.list}>
               <Button
-                label={`Add a study block ${dueLabel(pick) === 'Today' || dueLabel(pick) === 'Tomorrow' ? dueLabel(pick).toLowerCase() : `on ${dueLabel(pick)}`}`}
+                label={`Add a study block ${dueLabel(pick) === 'Today' || dueLabel(pick) === 'Tomorrow' ? dueWords(pick) : `on ${dueLabel(pick)}`}`}
                 icon="plus"
                 variant="secondary"
                 size="sm"
@@ -195,7 +195,7 @@ export default function WeekScreen() {
               {picked.length ? (
                 picked.map((a, i) => <AssignmentRow key={a.id} a={a} index={i} />)
               ) : (
-                <Text style={styles.empty}>Nothing due {dueLabel(pick).toLowerCase()}.</Text>
+                <Text style={styles.empty}>Nothing due {dueWords(pick)}.</Text>
               )}
             </View>
           ) : null}

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { AppState, StyleSheet, Text } from 'react-native';
 import Animated, { FadeOut, useReducedMotion } from 'react-native-reanimated';
 import { clock, dateKey } from '../../core/dates';
 import { useLifeStore } from '../../core/lifeStore';
-import { firstClassOn, firstLightOpen, nightNow } from '../../core/night';
+import { firstClassOn, firstLightOpen, nightNow, subscribeNightClock } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
 import { colors, fonts } from '../../core/theme';
 import { weatherCodeLabel } from '../../core/weatherCodes';
@@ -24,8 +24,21 @@ export function FirstLight({ seen, onSeen }: { seen: string | undefined; onSeen:
   const temp = useWeatherStore((s) => s.temperatureF);
   const code = useWeatherStore((s) => s.weatherCode);
   const today = dateKey(nightNow());
-  // Decided once on mount, so marking it seen does not pull it away mid-read.
+  // Decided on mount, so marking it seen does not pull it away mid-read.
   const [open, setOpen] = useState(() => firstLightOpen(nightNow(), wake, seen));
+  // Asked again when the app comes back or the dev clock moves: left open
+  // overnight, the Desk is still mounted in the morning. A re-ask only opens it.
+  useEffect(() => {
+    const check = () => {
+      if (firstLightOpen(nightNow(), wake, seen)) setOpen(true);
+    };
+    const sub = AppState.addEventListener('change', (state) => state === 'active' && check());
+    const unsubscribe = subscribeNightClock(check);
+    return () => {
+      sub.remove();
+      unsubscribe();
+    };
+  }, [wake, seen]);
 
   const close = () => {
     setOpen(false);

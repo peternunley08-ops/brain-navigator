@@ -56,7 +56,9 @@ const MOODS: Record<EmberMood, { happy: number; sleepy: number; dizzy: number; s
   dizzy: { happy: 0, sleepy: 0, dizzy: 1, smile: 0, flare: 1, speed: 1.6 },
 };
 
-export function useEmberRig({ glance = true }: { glance?: boolean } = {}): EmberRig {
+// `asleep` starts the eyes already closed (the wake screen), so the first
+// frame isn't a wide-eyed Ember that then dozes off.
+export function useEmberRig({ glance = true, asleep = false }: { glance?: boolean; asleep?: boolean } = {}): EmberRig {
   const reduced = useReducedMotion();
 
   const time = useSharedValue(Math.random() * 10000);
@@ -66,7 +68,7 @@ export function useEmberRig({ glance = true }: { glance?: boolean } = {}): Ember
   const lookX = useSharedValue(0);
   const lookY = useSharedValue(0);
   const happy = useSharedValue(0);
-  const sleepy = useSharedValue(0);
+  const sleepy = useSharedValue(asleep ? 1 : 0);
   const dizzy = useSharedValue(0);
   const mouth = useSharedValue(0);
   const smile = useSharedValue(0.45);

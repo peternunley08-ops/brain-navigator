@@ -22,16 +22,20 @@ export interface CalendarEvent {
 class AuthExpiredError extends Error {}
 
 let configured = false;
+const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 
+/** False when this copy of the app has no Google client ID (.env): Calendar stays off instead of throwing. */
 function ensureConfigured() {
-  if (configured) return;
+  if (configured) return true;
+  if (!IOS_CLIENT_ID) return false;
   GoogleSignin.configure({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    iosClientId: IOS_CLIENT_ID,
     scopes: [CALENDAR_SCOPE],
     offlineAccess: false,
   });
   configured = true;
+  return true;
 }
 
 function startOfTodayISO() {
@@ -69,8 +73,7 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
 
   restoreSession: async () => {
     if (isShowing()) return; // showing someone the app: sample data only
-    ensureConfigured();
-    if (!GoogleSignin.hasPreviousSignIn()) return;
+    if (!ensureConfigured() || !GoogleSignin.hasPreviousSignIn()) return;
 
     try {
       const response = await GoogleSignin.signInSilently();
@@ -84,7 +87,10 @@ export const useGoogleCalendarStore = create<GoogleCalendarStore>((set, get) => 
   },
 
   signIn: async () => {
-    ensureConfigured();
+    if (!ensureConfigured()) {
+      set({ error: 'Google Calendar isn’t set up in this copy of the app.' });
+      return;
+    }
     set({ error: null });
 
     try {

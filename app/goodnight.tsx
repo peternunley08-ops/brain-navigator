@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, useReducedMotion } from 'react-native-reanimated';
-import { emberSay } from '../components/ember/EmberBuddy';
 import { HelpCard } from '../components/ember/HelpCard';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -87,7 +86,9 @@ export default function GoodnightScreen() {
     // Whatever is typed but not kept yet goes in the box too, so nothing is lost.
     if (text.trim()) addWorry(text.trim());
     const latest = today.done[0];
-    emberSay(
+    // They asked for the goodnight, so it stays whole (night lines are
+    // otherwise cut to the first sentence, which dropped "Goodnight.").
+    useEmberStore.getState().say(
       latest
         ? `You finished ${latest.title}. Rest now.`
         : today.minutes >= 10
@@ -97,7 +98,8 @@ export default function GoodnightScreen() {
             : checkedIn
               ? 'You checked in with yourself today. Goodnight.'
             : 'You made it through today. Goodnight.',
-      'happy'
+      'happy',
+      true
     );
     useLifeStore.getState().setSettings({ putDown: key });
     // A napping Ember keeps its bubble hidden, so let the line be read first.

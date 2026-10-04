@@ -20,6 +20,13 @@ export function OneThing() {
   const setDone = useLifeStore((s) => s.setOneThingDone);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(text);
+  // Follow the saved line when it changes underneath (a new day, or leaving
+  // show mode), so Riley's one thing can't be saved as yours.
+  const [shown, setShown] = useState(text);
+  if (text !== shown && !editing) {
+    setShown(text);
+    setDraft(text);
+  }
   const [burst, setBurst] = useState(0);
   const pop = useSharedValue(1);
   const popStyle = useAnimatedStyle(() => ({ transform: [{ scale: pop.value }] }));

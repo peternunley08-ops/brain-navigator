@@ -28,6 +28,12 @@ export function dueLabel(key: string) {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+/** dueLabel inside a sentence: "today", "tomorrow", "yesterday", but "Friday" and "Oct 12" keep their capitals. */
+export function dueWords(key: string) {
+  const label = dueLabel(key);
+  return label === 'Today' || label === 'Tomorrow' || label === 'Yesterday' ? label.toLowerCase() : label;
+}
+
 /** 1 = Monday … 7 = Sunday. */
 export function isoDay(d = new Date()) {
   return ((d.getDay() + 6) % 7) + 1;

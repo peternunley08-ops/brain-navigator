@@ -76,17 +76,6 @@ export default function CheckinScreen() {
     fetchCheckins().then(() => {
       if (cancelled) return;
       const existing = todaysCheckin();
-
-  // Started but not saved: leave a light marker so the Desk can offer to pick it up.
-  const dirty = hydrated && !saved && (mood != null || sleepHours != null || sleepQuality != null || stressLevel != null || notes.trim() !== '');
-  const dirtyRef = useRef(false);
-  dirtyRef.current = dirty;
-  useEffect(
-    () => () => {
-      if (dirtyRef.current) useLifeStore.getState().setSettings({ checkinDraft: dateKey() });
-    },
-    [],
-  );
       if (existing) {
         setMood(existing.mood);
         setSleepHours(existing.sleep_hours);
@@ -100,6 +89,17 @@ export default function CheckinScreen() {
       cancelled = true;
     };
   }, [hydrated, fetchCheckins, todaysCheckin]);
+
+  // Started but not saved: leave a light marker so the Desk can offer to pick it up.
+  const dirty = hydrated && !saved && (mood != null || sleepHours != null || sleepQuality != null || stressLevel != null || notes.trim() !== '');
+  const dirtyRef = useRef(false);
+  dirtyRef.current = dirty;
+  useEffect(
+    () => () => {
+      if (dirtyRef.current) useLifeStore.getState().setSettings({ checkinDraft: dateKey() });
+    },
+    [],
+  );
 
   const existing = todaysCheckin();
 

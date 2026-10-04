@@ -29,7 +29,8 @@ import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
 import { addDays, clock, dateKey, daysUntil, focusMinutesOn, minutesOn, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
-import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
+import { alpha, colors, fonts, layout, radii } from '../core/theme';
+import { useSkyGlow } from '../core/hooks/useSkyGlow';
 
 type Phase = 'setup' | 'running' | 'paused' | 'done' | 'break';
 
@@ -59,6 +60,7 @@ function mmss(ms: number) {
 // Ember sits beside it with its reading glasses on. Time comes from real
 // timestamps, so it stays right if you lock the phone mid-session.
 export default function FocusScreen() {
+  const sky = useSkyGlow();
   const { width: winW } = useWindowDimensions();
   const { assignment: assignmentParam, quick, topic, mins } = useLocalSearchParams<{ assignment?: string; quick?: string; topic?: string; mins?: string }>();
   const assignments = useSchoolStore((s) => s.assignments);
@@ -265,15 +267,17 @@ export default function FocusScreen() {
   const candleState: CandleState = phase === 'setup' || phase === 'break' ? 'unlit' : phase === 'done' ? 'snuffed' : 'lit';
   const remaining = phase === 'setup' || phase === 'break' ? 1 : 1 - 0.62 * progress;
 
-  // Last seven days of focus, for the little bar chart.
+  // This week, Monday to Sunday like the rest of the app (the weekly goal,
+  // the heat grid, Your year), for the ring and the little bar chart.
   const today = dateKey();
+  const monday = weekOf(today);
   const week = Array.from({ length: 7 }, (_, i) => {
-    const key = addDays(today, i - 6);
+    const key = addDays(monday, i);
     const [y, m, d] = key.split('-').map(Number);
     return { key, letter: new Date(y, m - 1, d).toLocaleDateString('en-US', { weekday: 'narrow' }), min: focusMinutesOn(focus, key) };
   });
   const weekMax = Math.max(30, ...week.map((w) => w.min));
-  const todayMin = week[6].min;
+  const todayMin = focusMinutesOn(focus, today);
   const weekTotal = week.reduce((s, w) => s + w.min, 0);
   // Five weeks of focus, Monday-aligned, oldest first, for the heat grid.
   const gridStart = addDays(weekOf(today), -28);
@@ -329,7 +333,7 @@ export default function FocusScreen() {
       : null;
 
   return (
-    <Screen back={false} tone="ember" glowColor={skyGlow()} motes={phase !== 'running'} title="Focus" subtitle="One thing. One candle.">
+    <Screen back={false} tone="ember" glowColor={sky} motes={phase !== 'running'} title="Focus" subtitle="One thing. One candle.">
       <View style={styles.stage}>
         <View style={styles.candle}>
           <Candle width={132} time={time} intensity={0.55} remaining={remaining} seed={5.5} state={candleState} reducedMotion={reduced} />
@@ -690,12 +694,12 @@ export default function FocusScreen() {
               </Card>
             ) : null}
             <Card style={styles.weekCard}>
-              {week.map((w, i) => (
+              {week.map((w) => (
                 <View key={w.key} style={styles.barCol}>
                   <View style={styles.barTrack}>
-                    <View style={[styles.bar, { height: `${Math.max(4, (w.min / weekMax) * 100)}%`, backgroundColor: i === 6 ? colors.flame : colors.lineStrong }]} />
+                    <View style={[styles.bar, { height: `${Math.max(4, (w.min / weekMax) * 100)}%`, backgroundColor: w.key === today ? colors.flame : colors.lineStrong }]} />
                   </View>
-                  <Text style={[styles.barLabel, i === 6 && { color: colors.flame }]}>{w.letter}</Text>
+                  <Text style={[styles.barLabel, w.key === today && { color: colors.flame }]}>{w.letter}</Text>
                 </View>
               ))}
             </Card>

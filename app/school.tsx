@@ -21,7 +21,8 @@ import { plural } from '../core/words';
 import { syncCanvas } from '../core/canvas';
 import { smallestStart } from '../core/helperOffline';
 import { useHubStore } from '../core/hubStore';
-import { alpha, colors, fonts, radii, skyGlow } from '../core/theme';
+import { alpha, colors, fonts, radii } from '../core/theme';
+import { useSkyGlow } from '../core/hooks/useSkyGlow';
 import { emberSay } from '../components/ember/EmberBuddy';
 
 function hm(minutes: number) {
@@ -40,6 +41,7 @@ const TOOLS: { label: string; icon: IconName; color: string; path: string }[] = 
 ];
 
 export default function SchoolScreen() {
+  const sky = useSkyGlow();
   const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
   const cap = useSchoolStore((s) => s.profile.nightlyCap);
@@ -134,7 +136,7 @@ export default function SchoolScreen() {
   return (
     <Screen
       back={false}
-      glowColor={skyGlow()}
+      glowColor={sky}
       onRefresh={async () => {
         if (!useHubStore.getState().canvas.token) return;
         const r = await syncCanvas();

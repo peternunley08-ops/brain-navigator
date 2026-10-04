@@ -19,7 +19,7 @@ import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
-import { addDays, dateKey, dueLabel } from '../core/dates';
+import { addDays, dateKey, dueLabel, dueWords } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
 import { findClass } from '../core/quickParse';
 import { attachTimes, type FoundAssignment, type FoundClass, linesFromText, mergeScans, parseSchedule, parseScan, type ScanResult } from '../core/scanParser';
@@ -498,7 +498,7 @@ function WorkPick({
             {KIND_LABEL[a.kind]}
             {mappedTo ? `, goes under ${mappedTo}` : a.className ? `, ${a.className}` : ''}
           </Text>
-          {already ? <Text style={[styles.pickMeta, { color: colors.flame }]}>Already on your list, due {dueLabel(already).toLowerCase()}</Text> : null}
+          {already ? <Text style={[styles.pickMeta, { color: colors.flame }]}>Already on your list, due {dueWords(already)}</Text> : null}
         </View>
         <Pressy onPress={onEditDate} style={[styles.dateBtn, !due && styles.dateMissing]} hitSlop={6} accessibilityLabel="Change due date">
           <Text style={[styles.dateText, !due && { color: colors.flame }]}>{due ? dueLabel(due) : 'Pick date'}</Text>

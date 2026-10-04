@@ -15,18 +15,18 @@ checked · `[–]` decided against (with why)
 1. [ ] Fix the phone install: Xcode said "the developer disk image could not be mounted". Unlock the phone, let Xcode prepare it (Window → Devices and Simulators), update Xcode if iOS 27.2 isn't supported
    - [~] iOS 27 launch: apps built with the iOS 27 SDK won't open without the UIScene life cycle. `plugins/withSceneLifecycle.js` wires in Expo's scene delegate at prebuild. Opens on the iOS 27 and iOS 26 simulators, deep links work warm and cold; check on the phone
 2. [ ] Release build on the phone: `./scripts/build-phone.sh --main`
-3. [ ] Walk every `[~]` item in Round 6 with real taps; flip it to `[x]` or file the bug here
-4. [ ] Night: `?night=21:30`, `?night=00:30`, Sunday night, `?night=08:00` for First light
-5. [ ] Ember: hold to breathe, drag weight, night candle, study buddy book, birthday hat
-6. [ ] Every new piece at the largest text size (R6-92)
-7. [ ] Every new piece with VoiceOver and Reduce Motion, on the device (R6-93, R6-94)
+3. [~] Walk every `[~]` item in Round 6 with real taps; flip it to `[x]` or file the bug here — walked 2026-10-03 on four Simulators: 72 of 100 now `[x]`; the bugs it found are fixed (see the log below); what's left needs the phone, a real Sunday, or a live re-check
+4. [~] Night: `?night=21:30`, `?night=00:30`, Sunday night, `?night=08:00` for First light — all seen in the Simulator except Sunday night, which needs a real Sunday
+5. [~] Ember: hold to breathe, drag weight, night candle, study buddy book, birthday hat — all seen (hold to breathe fixed); the drag's lag needs the phone
+6. [~] Every new piece at the largest text size (R6-92) — the walk found mid-word breaks, cut-off buttons, overlapping cards; caps added (textGrow in the theme), Settings and the wake screen re-checked; a full pass still to do
+7. [~] Every new piece with VoiceOver and Reduce Motion, on the device (R6-93, R6-94) — Reduce Motion seen in the Simulator; VoiceOver labels checked by reading; VoiceOver itself on the phone
 8. [ ] A last full pass: open every page, read every word (R6-20)
 
 ## B. Fast and measured
 
 9. [ ] Open to the Desk in under a second on the phone; measure cold start (R6-96)
 10. [ ] 120 Hz audit with the perf monitor: no JS per frame on scroll or drag (R6-90)
-11. [~] Badges: render locked tiles without the late jump (from R6-85)
+11. [x] Badges: render locked tiles without the late jump (from R6-85) — seen frame by frame
 
 ## C. Easy to update the phone
 
@@ -37,17 +37,28 @@ checked · `[–]` decided against (with why)
 
 14. [ ] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63)
 15. [ ] Home screen widget: tonight's first class and what's due
-16. [~] A speaker icon in the kit for Fire crackle (drawn in code, no rebuild needed)
+16. [x] A speaker icon in the kit for Fire crackle (drawn in code, no rebuild needed) — seen on and off
 
 ## E. Show it well
 
 17. [ ] Screenshots script for the hero pages into `docs/screens/` (R6-53), in show mode only
 18. [ ] Put the screenshots in `docs/WHAT-THIS-IS.md` and the README
-19. [~] The show tour's lines checked against Riley's sample data
+19. [x] The show tour's lines checked against Riley's sample data — two were wrong (the dentist, Steady's habits) and Focus's never showed; fixed and seen
 
 ## F. From the idea bank
 
 20. [ ] Pick the next ten from `tools/hub/data/ideas.txt` after A–C, by delight per hour
+
+## G. From the live walk (2026-10-03)
+
+21. [ ] Supabase: `.env` points at project `cvkx…`, but Ember and Notion are deployed on `jmjd…` (the session log's project); use that project's key, or deploy the functions to `cvkx…`
+22. [ ] Weather loads only from Check-in's "Show conditions", so the window's weather (R6-61) and the real sunset sky (R6-30) are gone after every cold start. Loading it at launch sends your location to the weather service on each open: decide first (privacy)
+23. [ ] Defaults: lights out (9:30 PM, from wake and sleep goal) comes before wind-down (10 PM), so the night card always says "Lights out was", never "Lights out by"
+24. [ ] Exam season (R6-67) is a lead card with rings, not a whole-Desk study view: decide whether that's enough
+25. [ ] Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge
+26. [ ] What's New's October entry could name the later surprises (sparks, firsts, weather, the shelf)
+27. [ ] Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today
+28. [ ] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10)
 
 ## Ground rules
 
@@ -55,3 +66,7 @@ Everything from Rounds 4–6 still holds: privacy, nothing new to AI by
 default, calm copy, motion with manners, every delete has Undo, the gate
 passes on every commit. Builders work in their own branches; nothing is
 `[x]` until it's seen live.
+
+## Progress log
+
+**2026-10-03, Atlas (Mac, Simulators).** iOS 27 launch fixed (UIScene, item 1). Walked Round 6 on four Simulators (iOS 27 and 26) with helpers; fixed what they found: show mode left Riley's rows, one thing and Ember's nap behind after Done; the check-in page threw "Invalid hook call" and never loaded today's check-in; goodnight lost its "Goodnight."; First light skipped a Desk left open overnight; Sunday night read the calendar's day; holding Ember ended the calm on release; Ember's lines cut each other off and vanished in 3.6 s; the tour's Focus line never showed; journal lines had no subject; sparks aimed at a fixed spot; new dots only cleared from the Drawer; Focus's week mixed Sunday and Monday starts; number pads couldn't close; the largest text broke words; Your day swiped back instead of a day; "due friday" and "Quiz: Quiz:"; Calendar crashed without a Google client ID; the shelf's candles wrote during render. Re-checked live: check-in, show mode's exit, the tour, the journal, the night labels, First light, hold to breathe, the Done bar, Your day's swipe, the largest text on Settings and the wake screen.

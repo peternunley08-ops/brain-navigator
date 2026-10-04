@@ -18,6 +18,7 @@ import { QuickBreath } from '../components/ui/QuickBreath';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { useFlameClock } from '../core/hooks/useFlameClock';
+import { useWellnessStore } from '../core/wellnessStore';
 import { calmOrder } from '../core/about';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
@@ -57,7 +58,17 @@ export default function SteadyScreen() {
   const reordered = doors.join() !== DOORS.join() || smallTools[0].id !== SMALL[0].id;
 
   return (
-    <Screen back={false} tone="dusk" glowColor={BLUE} motes kicker="Take a breath." title="Steady" subtitle="For when it’s a lot, right now.">
+    <Screen
+      back={false}
+      tone="dusk"
+      glowColor={BLUE}
+      motes
+      // Pull to refresh like the Desk and School (Ember hops): brings in check-ins from the database.
+      onRefresh={() => useWellnessStore.getState().fetchCheckins()}
+      kicker="Take a breath."
+      title="Steady"
+      subtitle="For when it’s a lot, right now."
+    >
       <View style={styles.list}>
         <Reveal index={0}>
           <Card tint="#F07060" onPress={() => router.push('/help')} style={styles.help} accessibilityLabel="Need help now">

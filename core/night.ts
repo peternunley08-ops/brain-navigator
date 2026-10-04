@@ -77,6 +77,11 @@ export function tonightKey(d: Date = nightNow()) {
   return d.getHours() < 5 ? addDays(dateKey(d), -1) : dateKey(d);
 }
 
+/** The weekday tonight belongs to (0 = Sunday): Sunday night runs past midnight. */
+export function tonightWeekday(d: Date = nightNow()) {
+  return d.getHours() < 5 ? (d.getDay() + 6) % 7 : d.getDay();
+}
+
 // ---- Night and sleep -----------------------------------------------------
 
 /** When to be asleep: wake time, minus the hours wanted, minus falling asleep. */
