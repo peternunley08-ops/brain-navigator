@@ -73,12 +73,12 @@ checked · `[–]` decided against (with why)
 
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
-29. [ ] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Needs Peter's decision
+29. [ ] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Peter: decide later (until then, single-user only)
 30. [ ] B2 Entry photos in a private bucket with signed URLs
-31. [ ] B3 Notion sync off for everyone but the developer
+31. [ ] B3 Notion: bring your own (OAuth per student); until then off in release builds
 32. [ ] B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app
 33. [~] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here
-34. [ ] B6 Age: Declared Age Range API (native), 13+ gate, honest App Store age rating
+34. [ ] B6 Age 13+ (decided): Declared Age Range API (native), under-13 gate, honest App Store age rating
 35. [~] B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol
 36. [ ] B8 Anthropic's child-safety system prompt in `ember`; confirm minors use with Anthropic
 
