@@ -74,7 +74,9 @@ export default function FocusScreen() {
   const rig = useEmberRig();
 
   const open = useMemo(() => assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 6), [assignments]);
-  const [target, setTarget] = useState<string | null>(assignmentParam ?? null);
+  // The next thing due (today, tomorrow, or late) is already chosen, so
+  // lighting the candle is one tap; it stays easy to change or clear.
+  const [target, setTarget] = useState<string | null>(() => assignmentParam ?? (quick ? null : (open.find((a) => daysUntil(a.due) <= 1)?.id ?? null)));
   // Ember or a helper can suggest a length (`mins`); short ones come as `quick` and start right away.
   // Otherwise it starts on their usual length, once there's a clear one
   // (learned on the phone; off when learning is off in About you).
@@ -96,6 +98,8 @@ export default function FocusScreen() {
     return PRESETS.find((p) => p.work === m)?.key ?? 'custom';
   });
   const [bestHour] = useState(() => bestFocusHour());
+  // This week's numbers wait behind a tap; the candle is the focal point.
+  const [weekFolded, setWeekFolded] = useState(true);
   const [stray, setStray] = useState('');
   const [gotDone, setGotDone] = useState('');
   const [heatDay, setHeatDay] = useState<string | null>(null);
@@ -611,7 +615,12 @@ export default function FocusScreen() {
 
       {phase === 'setup' || phase === 'done' ? (
         <Reveal index={3}>
-          <Section title="This week" note={`${todayMin ? `${plural(todayMin, 'minute')} today` : 'Nothing yet today'}, ${allTimeH}h all time`}>
+          <Section
+            title="This week"
+            note={`${todayMin ? `${plural(todayMin, 'minute')} today` : 'Nothing yet today'}, ${allTimeH}h all time`}
+            folded={weekFolded}
+            onToggleFold={() => setWeekFolded((f) => !f)}
+          >
             <Card style={styles.goalCard}>
               <Ring progress={Math.min(1, weekTotal / Math.max(1, focusGoal))} value={String(Math.round((weekTotal / 60) * 10) / 10)} unit="h" label="This week" color={colors.flame} />
               <View style={styles.flex}>

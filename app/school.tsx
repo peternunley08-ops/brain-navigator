@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActionSheetIOS, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, withTiming } from 'react-native-reanimated';
 import { AssignmentRow } from '../components/school/AssignmentRow';
 import { EmberPick } from '../components/school/EmberPick';
@@ -131,7 +131,38 @@ export default function SchoolScreen() {
     transform: [{ scaleX: withTiming(Math.min(1, load.minutes / Math.max(1, cap)), { duration: 700 }) }],
   }));
 
-  let n = 0;
+  // The header's tools, folded into one menu.
+  const more = () =>
+    ActionSheetIOS.showActionSheetWithOptions({ options: ['Your schedule', 'Scan a screenshot', 'Search', 'Cancel'], cancelButtonIndex: 3 }, (i) => {
+      const to = ['/classes', '/scan', '/search'][i];
+      if (to) router.push(to as never);
+    });
+
+  // Tonight comes first: what the evening holds against the nightly cap.
+  const tonightCard =
+    load.items.length > 0 ? (
+        <Reveal index={0}>
+          <Card tint={over ? colors.unlocked : undefined} style={styles.load}>
+            <View style={styles.loadHead}>
+              <Text style={styles.loadTitle}>Tonight’s load</Text>
+              <Text style={[styles.loadValue, over && { color: colors.unlocked }]}>
+                {hm(load.minutes)} <Text style={styles.loadOf}>of {hm(cap)}</Text>
+              </Text>
+            </View>
+            <View style={styles.track}>
+              <Animated.View style={[styles.fill, { backgroundColor: over ? colors.unlocked : colors.secured }, fill]} />
+            </View>
+            <Text style={styles.loadNote}>
+              {over
+                ? 'More than you planned for tonight. Start the biggest thing first, or sort out what can move.'
+                : `${plural(load.items.length, 'thing')} due by tomorrow. It fits.`}
+            </Text>
+            {over ? <Button label="Sort it out" icon="flag" variant="ghost" size="sm" onPress={() => router.push('/triage')} /> : null}
+          </Card>
+        </Reveal>
+      ) : null;
+
+  let n = 1;
 
   return (
     <Screen
@@ -143,15 +174,10 @@ export default function SchoolScreen() {
         emberSay(r.ok ? 'Synced with Canvas.' : r.message, r.ok ? 'happy' : 'concerned');
       }}
       title="School"
-      subtitle={open.length === 0 ? 'Nothing due. Nice.' : `${plural(open.length, 'thing')} to do.`}
-      right={
-        <View style={styles.headerBtns}>
-          <IconButton icon="search" label="Search" onPress={() => router.push('/search')} />
-          <IconButton icon="image" label="Scan a screenshot" onPress={() => router.push('/scan')} />
-          <IconButton icon="book" label="Your schedule" onPress={() => router.push('/classes')} />
-        </View>
-      }
+      subtitle={open.length === 0 ? 'Nothing due.' : load.items.length ? `Tonight: ${hm(load.minutes)} of ${hm(cap)}` : 'Nothing due tonight.'}
+      right={<IconButton icon="drawer" label="More: your schedule, scan, search" onPress={more} />}
     >
+      {tonightCard}
       <Reveal index={n++}>
         <NowCard />
         {next ? (
@@ -168,26 +194,6 @@ export default function SchoolScreen() {
         {open.length >= 2 ? <EmberPick /> : null}
       </Reveal>
 
-      {load.items.length > 0 ? (
-        <Reveal index={n++}>
-          <Card tint={over ? colors.unlocked : undefined} style={styles.load}>
-            <View style={styles.loadHead}>
-              <Text style={styles.loadTitle}>Tonight’s load</Text>
-              <Text style={[styles.loadValue, over && { color: colors.unlocked }]}>
-                {hm(load.minutes)} <Text style={styles.loadOf}>of {hm(cap)}</Text>
-              </Text>
-            </View>
-            <View style={styles.track}>
-              <Animated.View style={[styles.fill, { backgroundColor: over ? colors.unlocked : colors.secured }, fill]} />
-            </View>
-            <Text style={styles.loadNote}>
-              {over
-                ? 'More than one night holds. Start the biggest thing first, and see if anything can move.'
-                : `${plural(load.items.length, 'thing')} due by tomorrow. It fits.`}
-            </Text>
-          </Card>
-        </Reveal>
-      ) : null}
 
       <Reveal index={n++}>
         <View style={styles.week}>
@@ -322,10 +328,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textFaint,
     textAlign: 'center',
-  },
-  headerBtns: {
-    flexDirection: 'row',
-    gap: 8,
   },
   load: {
     marginTop: 12,

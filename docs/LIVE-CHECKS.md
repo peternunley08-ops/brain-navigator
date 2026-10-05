@@ -34,6 +34,8 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] First AI request opens "Before Ember thinks with AI"; Not now sends nothing; Allow, then Ember replies; How AI works here can take the OK back
 - [ ] Ember's chat shows "Ember is a computer program, not a person…" under its name
 - [ ] Ember replies in chat (confirms the Supabase project, Round 7 G21)
+- [ ] School: subtitle "Tonight: 40m of 1h 30m" (or "Nothing due tonight."); Tonight's load is the first card, with "Sort it out" when over; the header has one menu button (Your schedule, Scan, Search)
+- [ ] Focus: the next thing due today or tomorrow is already chosen as the target (Just focus clears it); This week is folded and opens on tap
 - [ ] + sheet: titled "Put something down"; with brainnavigator://?night=23:30 "Something on my mind" is first and A focus session last; at 4 PM on a weekday "Homework or a test" first; on Sunday "A win" leads the small row
 - [ ] Drawer: "Find anything" field on top; five groups (School and study, Feeling okay, Your days, Later and looking back, You and the app), four tools each with "All N"; Need help now pinned at the bottom; typing "aid" shows Financial aid; "Search your homework…" opens Search with the words filled in
 - [ ] Habits: each habit reads "Kept N of the last 14 days" (weekly: "N times in two weeks"), no streak number; finishing every habit, Ember says "Small things, kept, add up"
