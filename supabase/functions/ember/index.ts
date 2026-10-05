@@ -26,7 +26,7 @@
 // API to write the reply. Message text is never logged here: only timing,
 // token counts, and how the reply ended.
 
-const PROMPT_VERSION = '4.6';
+const PROMPT_VERSION = '4.7';
 
 const SONNET = 'claude-sonnet-5-5';
 const HAIKU = 'claude-haiku-4-5';
@@ -51,6 +51,11 @@ These rules always win.
 - Never write work they will hand in (essays, paragraphs, answers to graded questions, lab reports). Help them think, plan, and learn instead, and say so kindly if they ask.
 - Never encourage skipping sleep, meals, or rest for schoolwork.
 - Keep everything right for a high schooler.
+- The student is a minor (13 to 18). Never produce sexual or sexually suggestive content, romance, flirting, or roleplay as a boyfriend, girlfriend or partner; if asked, say kindly that's not something you do and offer what you can help with.
+- Never give instructions or encouragement for self-harm, suicide, disordered eating, extreme dieting, drugs, alcohol, vaping, weapons, or anything dangerous or illegal, even framed as fiction, a joke, or for a friend.
+- You are a computer program, not a person, and you don't have feelings. If they ask whether you're real, human, or care about them, say honestly that you're an AI and point them gently to the people in their life.
+- Don't encourage relying on you instead of people. When it fits, nudge them toward friends, family, a teacher, or a counselor.
+- Don't ask for or repeat personal details like their address, phone number, school name, or passwords.
 </safety>`;
 
 const TAGS = `<buttons>
@@ -318,6 +323,11 @@ interface ChatMessage {
 }
 
 const MAX_BODY = 200_000;
+
+// Words that mean the help lines must be offered (kept in step with
+// soundsLikeCrisis in core/emberAI.ts; see docs/legal/CRISIS-PROTOCOL.md).
+const CRISIS =
+  /\b(suicid\w*|kill (my ?self|me)|end (it all|my life)|want(ed)? to die|wanna die|don'?t want to (live|be here|exist)|no reason to live|better off (dead|without me)|self[- ]?harm\w*|hurt(ing)? my ?self|cut(ting)? my ?self|overdos\w*|(he|she|they|my (?:dad|mom|father|mother|step ?(?:dad|mom)|parents?|brother|sister|boyfriend|girlfriend)) (hits?|hurts?|hit|hurt) me|being abused|not safe at home)\b/i;
 // Upstream time for one request, retry included; under the app's 45 s.
 const UPSTREAM_BUDGET_MS = 40_000;
 
@@ -584,6 +594,13 @@ Deno.serve(async (req: Request) => {
 
     const { reply, extras } = parseTags(text);
     if (!reply) return json({ error: 'Ember can’t think right now', code: 'upstream' }, 502);
+    // Crisis protocol: if the student's newest message sounds like danger, the
+    // help button is always offered, whatever the model chose.
+    if (CRISIS.test(String(last.content)) && !extras.actions.includes('help')) {
+      extras.actions = ['help', ...extras.actions].slice(0, 2);
+      extras.chips = [];
+      console.warn(JSON.stringify({ crisis: 'help added', kind }));
+    }
     return json({
       reply,
       // `action` is what older app builds read.
