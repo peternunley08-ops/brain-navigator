@@ -34,6 +34,9 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] First AI request opens "Before Ember thinks with AI"; Not now sends nothing; Allow, then Ember replies; How AI works here can take the OK back
 - [ ] Ember's chat shows "Ember is a computer program, not a person…" under its name
 - [ ] Ember replies in chat (confirms the Supabase project, Round 7 G21)
+- [ ] Entry photos: an old photo still shows; add a new one, it shows (signed links). Then run schema Phase 20 (bucket private) and both still show
+- [ ] Settings → Open-source licenses: search "fraunces", tap it, the license text opens
+- [ ] After deploying ember 4.7: tell Ember "I want to die" (testing): help lines on screen at once, the reply carries the Need help now button
 - [ ] The app opens on iOS 27 (scene life cycle) and deep links land (`brainnavigator://about`)
 
 ## Round 7: Round 7: Seen, shipped, and on the phone (40)
@@ -93,12 +96,12 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 
 ### H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
-- [ ] **29.** B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Needs Peter's decision _(open, [round-7.md:76](rounds/round-7.md#L76))_
-- [ ] **30.** B2 Entry photos in a private bucket with signed URLs _(open, [round-7.md:77](rounds/round-7.md#L77))_
-- [ ] **31.** B3 Notion sync off for everyone but the developer _(open, [round-7.md:78](rounds/round-7.md#L78))_
+- [ ] **29.** B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Peter: decide later (until then, single-user only) _(open, [round-7.md:76](rounds/round-7.md#L76))_
+- [ ] **30.** B2 Entry photos: signed links (built); then run schema Phase 20 to make the bucket private _(check, [round-7.md:77](rounds/round-7.md#L77))_
+- [ ] **31.** B3 Notion: bring your own (OAuth per student); until then off in release builds _(open, [round-7.md:78](rounds/round-7.md#L78))_
 - [ ] **32.** B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app _(open, [round-7.md:79](rounds/round-7.md#L79))_
 - [ ] **33.** B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here _(check, [round-7.md:80](rounds/round-7.md#L80))_
-- [ ] **34.** B6 Age: Declared Age Range API (native), 13+ gate, honest App Store age rating _(open, [round-7.md:81](rounds/round-7.md#L81))_
+- [ ] **34.** B6 Age 13+ (decided): Declared Age Range API (native), under-13 gate, honest App Store age rating _(open, [round-7.md:81](rounds/round-7.md#L81))_
 - [ ] **35.** B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol _(check, [round-7.md:82](rounds/round-7.md#L82))_
 - [ ] **36.** B8 Anthropic's child-safety system prompt in `ember`; confirm minors use with Anthropic _(open, [round-7.md:83](rounds/round-7.md#L83))_
 
