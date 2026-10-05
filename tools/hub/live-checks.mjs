@@ -81,6 +81,9 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] First AI request opens "Before Ember thinks with AI"; Not now sends nothing; Allow, then Ember replies; How AI works here can take the OK back
 - [ ] Ember's chat shows "Ember is a computer program, not a person…" under its name
 - [ ] Ember replies in chat (confirms the Supabase project, Round 7 G21)
+- [ ] Entry photos: an old photo still shows; add a new one, it shows (signed links). Then run schema Phase 20 (bucket private) and both still show
+- [ ] Settings → Open-source licenses: search "fraunces", tap it, the license text opens
+- [ ] After deploying ember 4.7: tell Ember "I want to die" (testing): help lines on screen at once, the reply carries the Need help now button
 - [ ] The app opens on iOS 27 (scene life cycle) and deep links land (\`brainnavigator://about\`)
 
 `;
