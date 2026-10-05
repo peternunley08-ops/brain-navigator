@@ -69,7 +69,7 @@ checked · `[–]` decided against (with why)
 25. [ ] Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge
 26. [ ] What's New's October entry could name the later surprises (sparks, firsts, weather, the shelf)
 27. [ ] Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today
-28. [ ] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10)
+37. [ ] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10)
 
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
