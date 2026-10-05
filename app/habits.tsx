@@ -17,9 +17,13 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { cheerLine } from '../core/about';
 import { Habit, HabitFrequency, useHabitsStore } from '../core/habitsStore';
+import { addDays, dateKey } from '../core/dates';
 import { plural } from '../core/words';
 import { alpha, colors, dimensionColor, fonts } from '../core/theme';
 import { WELLNESS_DIMENSIONS, WellnessDimension, dimensionLabel } from '../core/wellness';
+
+// The window habits are counted over: long enough to show a rhythm, short enough to forgive.
+const KEPT_WINDOW = 14;
 
 const FREQUENCIES: { key: HabitFrequency; label: string }[] = [
   { key: 'daily', label: 'Every day' },
@@ -179,7 +183,6 @@ export default function HabitsScreen() {
 
 function HabitRow({ habit, index }: { habit: Habit; index: number }) {
   const isLoggedToday = useHabitsStore((s) => s.isLoggedToday(habit.id));
-  const streak = useHabitsStore((s) => s.currentStreak(habit.id));
   const weekProgress = useHabitsStore((s) => s.weekProgress(habit.id));
   const logs = useHabitsStore((s) => s.logs);
   const toggleLogToday = useHabitsStore((s) => s.toggleLogToday);
@@ -189,8 +192,10 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
   const days = lastSevenDays();
   const logged = new Set(logs.filter((l) => l.habit_id === habit.id).map((l) => l.log_date));
 
-  const unit = habit.frequency === 'daily' ? 'day' : 'week';
-  const streakLabel = plural(streak, unit);
+  // A gentle count of the last two weeks, not a streak: a missed day never
+  // resets anything or turns red (no streak pressure, see docs/design/DIRECTION.md).
+  const since = addDays(dateKey(), -(KEPT_WINDOW - 1));
+  const kept = [...logged].filter((d) => d >= since).length;
 
   const scale = useSharedValue(1);
   const toggle = async () => {
@@ -201,7 +206,7 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
       const s = useHabitsStore.getState();
       const daily = s.habits.filter((h) => !h.archived && h.frequency === 'daily');
       if (daily.length > 0 && daily.every((h) => s.isLoggedToday(h.id))) {
-        emberSay(cheerLine('Every habit, done today. That’s how streaks get built.'), 'cheer');
+        emberSay(cheerLine('Every habit, done today. Small things, kept, add up.'), 'cheer');
       }
     }
   };
@@ -234,9 +239,9 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
         <View style={styles.habitInfo}>
           <Text style={styles.habitName}>{habit.name}</Text>
           <View style={styles.metaRow}>
-            <Icon name="flame" size={14} color={streak > 0 ? colors.flame : colors.textFaint} strokeWidth={2} />
+            <Icon name="flame" size={14} color={kept > 0 ? colors.flame : colors.textFaint} strokeWidth={2} />
             <Text style={styles.habitMeta}>
-              <Text style={streak > 0 ? { color: colors.flame } : undefined}>{streakLabel}</Text>, {dimensionLabel(habit.category)}
+              {habit.frequency === 'daily' ? `Kept ${kept} of the last ${plural(KEPT_WINDOW, 'day')}` : `${plural(kept, 'time')} in two weeks`}, {dimensionLabel(habit.category)}
               {habit.frequency === 'weekly' ? `, ${weekProgress} of ${habit.target_per_week} this week` : ''}
             </Text>
           </View>

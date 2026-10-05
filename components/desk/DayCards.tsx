@@ -290,7 +290,8 @@ export function PickUp() {
   return <Row icon="pen" color={colors.flame} title="Pick up where you left off" body={body} onPress={() => router.push(path as never)} onClose={setHidden} />;
 }
 
-// The badge you're closest to, as a small nudge with the number left.
+// The badge you're closest to, as a quiet heads-up. No countdown: a number
+// left reads as a target to chase, and badges are a nice surprise, not a goal.
 export function NextBadge() {
   // Re-read when anything that counts toward a badge changes.
   useSchoolStore((s) => s.assignments);
@@ -298,16 +299,12 @@ export function NextBadge() {
   useLifeStore((s) => s.wins);
   const next = nextBadge();
   if (!next || next.have / next.need < 0.5) return null;
-  const left = next.need - next.have;
-  // Focus is counted in minutes; past an hour and a half it reads better in hours.
-  const hrs = (m: number) => Math.round((m / 60) * 10) / 10;
-  const inHours = next.unit === 'minutes' && left >= 90;
   return (
     <Row
       icon={next.badge.icon}
       color={next.badge.color}
-      title={inHours ? `${hrs(left)} more hours for ${next.badge.title}` : `${left} more ${next.unit} for ${next.badge.title}`}
-      body={inHours ? `${hrs(next.have)} of ${hrs(next.need)} hours so far.` : `${next.have} of ${next.need} so far. ${next.badge.body}`}
+      title={`On the way to ${next.badge.title}`}
+      body={next.badge.body}
       onPress={() => router.push('/achievements')}
     />
   );
