@@ -174,6 +174,8 @@ export interface LifeSettings {
   sageLevel?: string;
   /** AI turned off everywhere: every tool runs on the phone only. */
   aiOff?: boolean;
+  /** When the student agreed to send messages to the AI (ISO). Nothing goes to the AI before this. */
+  aiConsentAt?: string;
   /** Ember's memory: off means nothing from past chats is kept or sent. */
   memoryOff?: boolean;
   /** Opt out of the calm veil over the app in the app switcher (default on). */
