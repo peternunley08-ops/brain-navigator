@@ -70,3 +70,18 @@ describe('AI allowance', () => {
     ]);
   });
 });
+
+describe('goodnight continuity', () => {
+  it('finds what Ember will ask about tomorrow, never with memory off', async () => {
+    const { followUpOn, followUpTopic } = await import('../core/emberAI');
+    const st = useLifeStore.getState();
+    useLifeStore.setState({
+      emberMemory: [{ id: 'm1', text: 'Chem quiz Thursday', at: '2026-10-05', followUp: 'Ask how the chem quiz went', followUpDate: '2026-10-08' }] as never,
+      settings: { ...st.settings, memoryOff: false },
+    });
+    assert.equal(followUpTopic(followUpOn('2026-10-08')?.followUp ?? ''), 'the chem quiz');
+    assert.equal(followUpOn('2026-10-09'), null);
+    useLifeStore.setState({ settings: { ...useLifeStore.getState().settings, memoryOff: true } });
+    assert.equal(followUpOn('2026-10-08'), null);
+  });
+});

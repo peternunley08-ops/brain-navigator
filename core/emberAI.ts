@@ -251,6 +251,13 @@ export function dueFollowUp(today = todayKey()) {
   return [...emberMemory].reverse().find((m) => m.followUp && m.followUpDate && !m.followedUp && m.followUpDate <= today && m.followUpDate >= threeAgo) ?? null;
 }
 
+/** A follow-up Ember will ask about on that date (memory on, not asked yet), for the goodnight line. */
+export function followUpOn(date: string) {
+  const { emberMemory, settings } = useLifeStore.getState();
+  if (settings.memoryOff) return null;
+  return [...emberMemory].reverse().find((m) => m.followUp && m.followUpDate === date && !m.followedUp) ?? null;
+}
+
 /** The event a follow-up is about, as a few words: "Check in about how the chem test went" → "the chem test". */
 export function followUpTopic(followUp: string) {
   const t = followUp
