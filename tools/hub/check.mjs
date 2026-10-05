@@ -88,8 +88,15 @@ const tscOut = (tsc.stdout || '') + (tsc.stderr || '');
 const tscErrors = tscOut.split('\n').filter((l) => /error TS\d+/.test(l));
 if (tscErrors.length) console.log(tscErrors.slice(0, 30).join('\n'));
 
-const ok = errors.length === 0 && tscErrors.length === 0;
-const summary = `${ok ? 'passed' : 'failed'}: ${files.length} files, ${errors.length} rule errors, ${warns.length} warnings, ${tscErrors.length} type errors`;
+console.log('\nUnit tests (npm test)…');
+const testScript = join(cwd, 'tools/hub/test.mjs');
+const test = existsSync(testScript) ? spawnSync('node', [testScript], { cwd, encoding: 'utf8' }) : { status: 0, stdout: '# fail 0' };
+const testOut = (test.stdout || '') + (test.stderr || '');
+const failing = Number(/^# fail (\d+)/m.exec(testOut)?.[1] ?? (test.status === 0 ? 0 : 1));
+if (failing) console.log(testOut.split('\n').filter((l) => /not ok|Error|expected|actual/.test(l)).slice(0, 30).join('\n'));
+
+const ok = errors.length === 0 && tscErrors.length === 0 && failing === 0;
+const summary = `${ok ? 'passed' : 'failed'}: ${files.length} files, ${errors.length} rule errors, ${warns.length} warnings, ${tscErrors.length} type errors, ${failing} failing test${failing === 1 ? "" : "s"}`;
 console.log(`\nGate ${summary}`);
 spawnSync('node', [HUB, agent, 'check', ok ? '--ok' : '--fail', ...(idea ? ['--idea', idea] : []), `Gate ${summary}`], { stdio: 'ignore' });
 process.exit(ok ? 0 : 1);

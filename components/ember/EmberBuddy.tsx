@@ -102,13 +102,23 @@ export function EmberBuddy() {
   const [confetti, setConfetti] = useState(0);
 
   // Birthday: a party hat all day, and confetti the first time the app opens that day.
+  // Halloween: a tiny pumpkin hat all day, and one line the first time (birthday wins).
   useEffect(() => {
     const check = () => {
       const life = useLifeStore.getState();
       const today = dateKey();
       const birthday = life.settings.birthday;
       const on = !!birthday && today.slice(5) === birthday && !isShowing();
-      useEmberStore.getState().setHat(on);
+      const halloween = today.slice(5) === '10-31';
+      useEmberStore.getState().setHat(on ? 'party' : halloween ? 'pumpkin' : false);
+      if (!on && halloween && !isShowing()) {
+        const key = `halloween-${today.slice(0, 4)}`;
+        const done = life.settings.celebrated ?? [];
+        if (!done.includes(key)) {
+          life.setSettings({ celebrated: [...done, key].slice(-200) });
+          useEmberStore.getState().say('Happy Halloween. I found a pumpkin that fits.', 'happy');
+        }
+      }
       if (!on) return;
       const key = `birthday-sparks-${today.slice(0, 4)}`;
       const done = life.settings.celebrated ?? [];
