@@ -73,6 +73,8 @@ export interface Assignment {
   subtasks?: Subtask[];
   /** Weekly: finishing it makes next week's copy. */
   repeat?: 'weekly' | null;
+  /** Done is "I finished it"; this is "the teacher has it". */
+  turnedIn?: boolean;
 }
 
 export interface FocusSession {

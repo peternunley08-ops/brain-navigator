@@ -15,7 +15,8 @@ import { ScienceNote } from '../components/ui/ScienceNote';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { addDays, dateKey } from '../core/dates';
-import { useLifeStore } from '../core/lifeStore';
+import { useShake } from '../core/hooks/useShake';
+import { isSealed, useLifeStore } from '../core/lifeStore';
 import { colors, fonts } from '../core/theme';
 import { offerUndo } from '../core/undoStore';
 
@@ -79,6 +80,24 @@ export default function WinsScreen() {
     const n = useLifeStore.getState().wins.length;
     emberSay(n === 1 ? 'First one in the jar. They add up.' : n % 10 === 0 ? `${n} wins. Look at that jar.` : 'In the jar.', 'cheer');
   };
+
+  // Shake the jar: Ember pulls out something from before, a past win or a
+  // past day's gratitude (never a sealed letter before its day).
+  useShake(() => {
+    const st = useLifeStore.getState();
+    const pool = [
+      ...st.wins.filter((w) => !isSealed(w, today) && w.text.trim()).map((w) => w.text.trim()),
+      ...Object.entries(st.gratitude)
+        .filter(([k]) => k !== today)
+        .flatMap(([, v]) => v.map((x) => x.trim()).filter(Boolean)),
+    ];
+    if (!pool.length) {
+      emberSay('The jar’s still filling. Shake it again once there’s something inside.', 'happy');
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    emberSay(`From the jar: “${pool[Math.floor(Math.random() * pool.length)]}”`, 'happy');
+  });
 
   // The first time a sealed note's day arrives and it is on screen, Ember says one line.
   useEffect(() => {
