@@ -30,6 +30,7 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] Mark a homework done → "Done, not turned in yet" and a Mark turned in chip → "Done and turned in"
 - [ ] Phone date Oct 31: Ember wears a pumpkin hat and says hello once
 - [ ] VoiceOver: Your day → Plan a block, swatches read "Gold block"…; a filled text field still says what it's for
+- [ ] Quick add: type "bio quiz thurs": the preview says Thursday (the short-weekday fix)
 - [ ] Ember replies in chat (confirms the Supabase project, Round 7 G21)
 - [ ] The app opens on iOS 27 (scene life cycle) and deep links land (`brainnavigator://about`)
 
