@@ -41,7 +41,7 @@ the App Store listing before release.**
 | S5 | Medical claims (Apple 1.4.1): wellness, not treatment | Keep the "not a therapist or doctor" lines; never claim to diagnose or treat; the App Store text must say the same |
 | S6 | App Privacy "nutrition label" in App Store Connect | Fill from the table in `PRIVACY-POLICY.md` §2 |
 | S7 | Payments: Plus isn't connected | Don't show prices or a paywall in the release build until StoreKit is in (Apple 3.1.1) |
-| S8 | Open-source licenses: MIT/BSD notices must ship; Fraunces and Figtree fonts are OFL | Add a Licenses page (generated from `package-lock.json`) |
+| S8 | Open-source licenses: MIT/BSD notices must ship; Fraunces and Figtree fonts are OFL | Built: Settings → Open-source licenses (`app/licenses.tsx`, data from `node tools/hub/licenses.mjs`; re-run after package changes) |
 | S9 | Names and marks: "Brain Navigator", "Ember" | Search USPTO and the App Store for conflicts; use Canvas, Google, Notion names only to describe connections |
 | S10 | Crisis numbers: 988 and text HOME to 741741 are US-only | Limit release to the US at first, or localize the help page |
 
