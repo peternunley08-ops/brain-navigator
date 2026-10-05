@@ -54,9 +54,9 @@ checked · `[–]` decided against (with why)
     3. [~] X122 Label every icon button for VoiceOver. Audit: IconButton already requires a label; one bare control found (Your day's color swatches, now named); text fields now keep their label after they're filled. Listen with VoiceOver on the phone
     4. [x] X174 Tests for the core helpers: `npm test` (Node's built-in runner, no new packages), 16 tests over dates, plural, the night clock, classAverage, letterFor, planBackward. Part of the gate now
     5. [~] X038 Turned in: homework, projects and essays marked done show "Done, not turned in yet" and a Mark turned in chip on their page (`turnedIn`, optional)
-    6. [ ] X013 Snooze a Desk card to tonight or tomorrow (optional field)
+    6. [ ] X013 Snooze a Desk card to tonight or tomorrow (optional field). A swipe on the Desk: build it where it can be felt (desktop session, Simulator)
     7. [–] X057 Calm kit: already built (Steady orders its doors and tools by About you's calmers and what you said helped)
-    8. [ ] X003 Brain dump before bed: a quick night list that becomes tomorrow's first card
+    8. [–] X003 Brain dump before bed: covered by Put the day down ("Anything still on your mind?" into the worry box, "Tomorrow starts with" into First light's one thing)
     9. [ ] X125 Increase Contrast: muted text gets stronger when the iPhone setting is on. Bigger than it looked: theme colors are plain strings used by SVG and alpha(), so iOS's DynamicColorIOS can't drop in; needs a theme that re-renders on the setting
     10. [~] X084 Shake the jar: on Wins, a shake has Ember read out a past win or gratitude (never a sealed letter early). Shared `core/hooks/useShake.ts`; the pocket worry stays quiet on Wins
 
