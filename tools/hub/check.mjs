@@ -7,7 +7,7 @@
 // 2. The TypeScript check (npx tsc --noEmit).
 // Reports to the hub, prints findings, exits 1 on any error.
 import { execFileSync, spawnSync } from 'node:child_process';
-import { existsSync, readFileSync, symlinkSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, symlinkSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -88,6 +88,14 @@ const tscOut = (tsc.stdout || '') + (tsc.stderr || '');
 const tscErrors = tscOut.split('\n').filter((l) => /error TS\d+/.test(l));
 if (tscErrors.length) console.log(tscErrors.slice(0, 30).join('\n'));
 
+// The hub's own scripts (live checks, licenses, tests) must still parse.
+const scriptErrors = existsSync(join(cwd, 'tools/hub'))
+  ? readdirSync(join(cwd, 'tools/hub'))
+      .filter((f) => f.endsWith('.mjs'))
+      .filter((f) => spawnSync('node', ['--check', join(cwd, 'tools/hub', f)]).status !== 0)
+  : [];
+if (scriptErrors.length) console.log(`Scripts that don't parse: ${scriptErrors.join(', ')}`);
+
 console.log('\nUnit tests (npm test)…');
 const testScript = join(cwd, 'tools/hub/test.mjs');
 const test = existsSync(testScript) ? spawnSync('node', [testScript], { cwd, encoding: 'utf8' }) : { status: 0, stdout: '# fail 0' };
@@ -95,7 +103,7 @@ const testOut = (test.stdout || '') + (test.stderr || '');
 const failing = Number(/^# fail (\d+)/m.exec(testOut)?.[1] ?? (test.status === 0 ? 0 : 1));
 if (failing) console.log(testOut.split('\n').filter((l) => /not ok|Error|expected|actual/.test(l)).slice(0, 30).join('\n'));
 
-const ok = errors.length === 0 && tscErrors.length === 0 && failing === 0;
+const ok = errors.length === 0 && tscErrors.length === 0 && failing === 0 && scriptErrors.length === 0;
 const summary = `${ok ? 'passed' : 'failed'}: ${files.length} files, ${errors.length} rule errors, ${warns.length} warnings, ${tscErrors.length} type errors, ${failing} failing test${failing === 1 ? "" : "s"}`;
 console.log(`\nGate ${summary}`);
 spawnSync('node', [HUB, agent, 'check', ok ? '--ok' : '--fail', ...(idea ? ['--idea', idea] : []), `Gate ${summary}`], { stdio: 'ignore' });
