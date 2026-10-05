@@ -5,12 +5,12 @@
 > ⚠ describe the app *after* the release blockers B1–B3 are fixed; until then
 > they aren't true and this must not be published.
 
-Effective date: [date]. Publisher: [name or LLC], [city, state] ("we").
+Effective date: [date]. Publisher: [LLC name], [city, state] ("we").
 Contact for anything here, including deleting your data: [email].
 
 Brain Navigator is a school planner and wellness companion for high school
 students. It is not a medical service, not therapy, and not for emergencies.
-It's for people **13 and older** [or 16]; if you're under 13, please don't use it.
+It's for people **13 and older**; if you're under 13, please don't use it.
 
 ## 1. The short version
 
@@ -72,7 +72,7 @@ Only these service providers, only to run the app, and each bound to protect it
 at least as well as this policy: **Supabase** (database), **Anthropic** (AI, only
 with your OK), **Open-Meteo** (weather, approximate location), **Apple** (Health,
 speech, if you use them), **Google** and **Instructure (Canvas)**, only if you
-connect them. We don't sell or share personal data for advertising, and we don't
+connect them, and **Notion** only if you connect your own Notion workspace (your data goes to your workspace, not ours). We don't sell or share personal data for advertising, and we don't
 disclose health data to anyone except as listed here or as the law requires.
 
 ## 6. How long we keep it, and deleting it
@@ -94,7 +94,7 @@ consent, using the contact above. [Lawyer: confirm MHMDA notice requirements.]
 
 ## 8. Teens and children
 
-The app is meant for students 13 and older [or 16]. We don't knowingly collect
+The app is meant for students 13 and older. We don't knowingly collect
 data from children under 13; if we learn we have, we delete it. Parents can
 contact [email]. ⚠ Where state law requires, the app reads the App Store's age
 category and respects parental consent.

@@ -2,9 +2,9 @@
 
 > **Draft for lawyer review. Not in effect.** Fields in [brackets] need Peter's answers.
 
-Effective date: [date]. These terms are between you and [name or LLC] ("we").
+Effective date: [date]. These terms are between you and [LLC name] ("we").
 
-1. **Who can use it.** You must be 13 or older [or 16]. If you're under 18, use it
+1. **Who can use it.** You must be 13 or older. If you're under 18, use it
    with a parent's or guardian's awareness, and where your state requires it, their
    consent through the App Store.
 2. **Not medical care, not an emergency service.** Brain Navigator is a planner and

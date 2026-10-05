@@ -23,10 +23,10 @@ the App Store listing before release.**
 |---|---|---|---|---|
 | B1 | **Everyone's data is readable by everyone.** Supabase tables (vents, check-ins, Desk entries, habits, tasks, food, sleep) use "anon full access" row-level security, and the anon key ships inside the app. One user, or anyone who extracts the key, can read and change every user's vents and moods. | Data breach of minors' mental-health data: FTC, state breach laws, WA MHMDA, negligence suits | Either (a) Supabase anonymous sign-in plus per-user RLS (`user_id = auth.uid()`) on every table, invisible to the student, or (b) keep these on the phone only and drop the server copy. **Peter decides** (CLAUDE.md forbids changing auth without him) | Open |
 | B2 | **Entry photos are public.** `snapshot-images` is a public bucket; `getPublicUrl` links work for anyone. | Same as B1, for photos | Private bucket, per-user paths, signed URLs that expire | Open |
-| B3 | **Notion sync writes to Peter's Notion.** The function and database IDs are the developer's. Another student's check-ins would land in Peter's workspace. | Collecting other people's (minors') health data without notice | Turn Notion sync off for everyone but the developer build (or make it bring-your-own Notion) | Open |
+| B3 | **Notion sync writes to Peter's Notion.** The function and database IDs are the developer's. Another student's check-ins would land in Peter's workspace. | Collecting other people's (minors') health data without notice | Decided: bring your own Notion (OAuth per student, their own databases); until built, Notion sync off in release builds | Open |
 | B4 | **No privacy policy or terms.** Apple requires a privacy policy link in App Store Connect *and* inside the app; WA MHMDA requires a separate consumer-health-data notice. | App rejection; deceptive-practice claims | Drafts: `PRIVACY-POLICY.md`, `TERMS.md` (this folder). Lawyer review, host at a public URL, link from Settings → Privacy | Drafted |
 | B5 | **AI ran without explicit permission.** Apple 5.1.2(i) (Nov 2025) needs explicit permission before personal data goes to third-party AI; WA MHMDA needs opt-in consent before sharing health data. | App rejection; MHMDA private right of action | **Built:** consent sheet before anything is sent (`app/ai-consent.tsx`), revocable in How AI works here | Built, check live |
-| B6 | **Age.** No age gate. Under-13 users trigger COPPA (amended rule fully in force April 22, 2026). Texas SB 2420 (in force since the Supreme Court declined to block it, July 2026), Utah (May 2026) and Louisiana (July 2026) require developers to read the App Store's age category and respect parental consent. | FTC penalties; Texas up to $10,000 per violation | Terms say 13+; ask for age range with Apple's Declared Age Range API (native, needs the Mac) and block under-13; set the App Store age rating honestly (likely 13+ or 16+ given mental-health topics and AI chat) | Open (native) |
+| B6 | **Age (decided: 13+).** No age gate. Under-13 users trigger COPPA (amended rule fully in force April 22, 2026). Texas SB 2420 (in force since the Supreme Court declined to block it, July 2026), Utah (May 2026) and Louisiana (July 2026) require developers to read the App Store's age category and respect parental consent. | FTC penalties; Texas up to $10,000 per violation | Terms say 13+; ask for age range with Apple's Declared Age Range API (native, needs the Mac) and block under-13; set the App Store age rating honestly (likely 13+ or 16+ given mental-health topics and AI chat) | Open (native) |
 | B7 | **AI companion laws.** SB 243 and NY Art. 47: tell the user it's AI at the start and at least every 3 hours (with a break nudge for minors), have a published crisis protocol, keep sexual content away from minors; SB 243 adds annual reports from July 1, 2027. | SB 243 lets families sue; NY AG penalties up to $15,000/day | **Built:** disclosure under Ember's name on every chat, a reminder plus break nudge every 3 hours of talking (`core/companionRules.ts`). Already there: help lines on screen the moment a message sounds like crisis, before any AI; the AI prompt's safety rules. Still to do: publish the crisis protocol (in the privacy policy) and decide on SB 243 reporting | Partly built |
 | B8 | **Anthropic's rules for minors.** API customers serving under-18s must add safeguards (age checks, moderation, monitoring, Anthropic's child-safety system prompt) and follow COPPA. | Losing API access; harm | Add Anthropic's child-safety prompt to `ember`; confirm with Anthropic sales/terms that this use is allowed | Open |
 
@@ -57,14 +57,16 @@ the App Store listing before release.**
 - The server functions validate input, cap size and never return raw errors (`tools/hub/SECURITY.md`)
 - "Learn from how I use the app" off now means off everywhere
 
-## Decisions needed from Peter
+## Decisions
 
-1. **B1:** per-user Supabase accounts (invisible anonymous sign-in) or phone-only data?
-2. Who is the publisher: you personally, or an LLC? (The policy and terms name them; an LLC limits personal liability, ask the lawyer.)
-3. A contact email for privacy requests.
-4. Minimum age: 13+ (recommended) or 16+?
-5. Release region: US only at first (recommended; the help lines are US).
-6. Notion: developer-only, or bring-your-own?
+| Question | Answer (2026-10-05) |
+|---|---|
+| Minimum age | **13 and older** |
+| Publisher | **An LLC Peter will form** (drafts say [LLC name] until it exists) |
+| Notion | **Bring your own Notion**: each student connects their own workspace (Notion public integration with OAuth; the shared developer key and database IDs come out of the release build) |
+| B1, per-user data | **Decide later.** Until then the app stays single-user and can't be released |
+| Contact email for privacy requests | Open |
+| Release region | Open (US only at first recommended; the help lines are US) |
 
 ## Sources (checked 2026-10-05)
 
