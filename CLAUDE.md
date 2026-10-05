@@ -25,4 +25,5 @@ For detailed session history, past roadmaps, and full changelogs, see `docs/hist
 - **Show mode**: `isShowing()` (`core/showMode.ts`) swaps in sample student Riley; nothing saves, and firsts, wins radar and celebrations stay silent.
 - **Ember lines**: `emberSay(text, mood)`; pass `asked = true` to `say` only when the student reached for Ember (hold, breath), which lets it through quiet modes. Lines wait while the Undo bar is up (one queue in `core/emberStore.ts`).
 - **Agents & gate**: Team workflow in `tools/hub/BRIEFING.md`. Every commit passes `node tools/hub/check.mjs --agent <name>`. Round status lives in `docs/rounds/round-6.md` (next: `round-7.md`) ([~] built, [x] checked live), read it instead of searching code.
+- **Live checks**: on the Mac (phone or Simulator), walk `docs/LIVE-CHECKS.md` and flip statuses in `docs/rounds/*`; regenerate with `node tools/hub/live-checks.mjs`. Cloud sessions can't see the app, so they never mark `[x]`.
 - **Token Efficiency**: Inspect code using targeted line ranges or `grep`. Do not ingest `docs/history/SESSION_LOG.md` or `package-lock.json` unless specifically requested.
