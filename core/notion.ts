@@ -3,14 +3,20 @@
 // one-way archive/dashboard. The Notion key lives only in the `notion` Supabase
 // function; the app never holds it.
 
+import { IS_RELEASE } from './build';
 import { isShowing } from './showMode';
 import { supabase } from './supabase';
 
-export const NOTION_DB = {
-  tasks: process.env.EXPO_PUBLIC_NOTION_TASKS_DB_ID,
-  checkins: process.env.EXPO_PUBLIC_NOTION_CHECKINS_DB_ID,
-  entries: process.env.EXPO_PUBLIC_NOTION_ENTRIES_DB_ID,
-};
+// These are the developer's own Notion databases. A release build never
+// syncs: other students' data must not reach this workspace (until each
+// student can connect their own Notion).
+export const NOTION_DB = IS_RELEASE
+  ? { tasks: undefined, checkins: undefined, entries: undefined }
+  : {
+      tasks: process.env.EXPO_PUBLIC_NOTION_TASKS_DB_ID,
+      checkins: process.env.EXPO_PUBLIC_NOTION_CHECKINS_DB_ID,
+      entries: process.env.EXPO_PUBLIC_NOTION_ENTRIES_DB_ID,
+    };
 
 async function call(body: Record<string, unknown>): Promise<{ id?: string | null } | null> {
   try {
@@ -26,7 +32,7 @@ export async function createNotionPage(
   databaseId: string | undefined,
   properties: Record<string, unknown>
 ): Promise<string | null> {
-  if (isShowing() || !databaseId) return null;
+  if (IS_RELEASE || isShowing() || !databaseId) return null;
   const data = await call({ action: 'create', databaseId, properties });
   return data?.id ?? null;
 }
@@ -35,12 +41,12 @@ export async function updateNotionPage(
   pageId: string | null | undefined,
   properties: Record<string, unknown>
 ): Promise<boolean> {
-  if (isShowing() || !pageId) return false;
+  if (IS_RELEASE || isShowing() || !pageId) return false;
   return (await call({ action: 'update', pageId, properties })) !== null;
 }
 
 export async function archiveNotionPage(pageId: string | null | undefined): Promise<boolean> {
-  if (isShowing() || !pageId) return false;
+  if (IS_RELEASE || isShowing() || !pageId) return false;
   return (await call({ action: 'archive', pageId })) !== null;
 }
 
