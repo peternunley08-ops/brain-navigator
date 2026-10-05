@@ -47,7 +47,8 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
-    "test": "node tools/hub/test.mjs"
+    "test": "node tools/hub/test.mjs",
+    "check:functions": "npx -y deno@latest check supabase/functions/ember/index.ts supabase/functions/notion/index.ts"
   },
   "private": true
 }

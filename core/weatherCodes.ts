@@ -35,6 +35,7 @@ export function weatherCodeEmoji(code: number): string {
 const DIRECTIONS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
 
 export function compassLabel(degrees: number): string {
-  const index = Math.round(degrees / 22.5) % 16;
+  // Wraps any angle, negative or past 360, onto the 16 points.
+  const index = ((Math.round(degrees / 22.5) % 16) + 16) % 16;
   return DIRECTIONS[index];
 }

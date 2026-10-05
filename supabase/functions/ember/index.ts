@@ -318,6 +318,8 @@ interface ChatMessage {
 }
 
 const MAX_BODY = 200_000;
+// Upstream time for one request, retry included; under the app's 45 s.
+const UPSTREAM_BUDGET_MS = 40_000;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -401,13 +403,26 @@ async function callAnthropic(apiKey: string, body: Record<string, unknown>, sonn
   // If Sonnet declines a message on safety grounds, the API retries it on a
   // fallback model inside the same call instead of failing.
   if (sonnet) headers['anthropic-beta'] = 'server-side-fallback-2026-07-01';
-  const send = () => fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers, body: JSON.stringify(body) });
+  // The app gives up at 45 s, so the whole exchange (one retry included)
+  // has to fit inside that: a hung upstream call fails fast instead.
+  const deadline = Date.now() + UPSTREAM_BUDGET_MS;
+  const send = () =>
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(Math.max(1000, deadline - Date.now())),
+    });
   let res = await send();
-  // Busy or overloaded: wait a moment and try once more.
+  // Busy or overloaded: wait as long as the API asks (up to 3 s), then try once more.
   if (res.status === 429 || res.status === 529 || res.status === 503) {
+    const after = Number(res.headers.get('retry-after'));
     await res.body?.cancel();
-    await new Promise((r) => setTimeout(r, 900));
-    res = await send();
+    const wait = Number.isFinite(after) && after > 0 ? Math.min(3000, after * 1000) : 900;
+    if (deadline - Date.now() > wait + 5000) {
+      await new Promise((r) => setTimeout(r, wait));
+      res = await send();
+    }
   }
   return res;
 }
@@ -444,6 +459,10 @@ Deno.serve(async (req: Request) => {
     if (!Array.isArray(messages) || messages.length === 0) {
       return json({ error: 'messages is required', code: 'bad_request' }, 400);
     }
+    // Only well-formed turns: an object with text content.
+    const turns = messages.filter(
+      (m): m is ChatMessage => !!m && typeof m === 'object' && typeof m.content === 'string',
+    );
     if (tooMany()) return json({ error: 'Too many requests', code: 'busy' }, 429);
 
     const apiKey = Deno.env.get('brain-navigator-v2');
@@ -455,8 +474,8 @@ Deno.serve(async (req: Request) => {
     // Recent turns only, each capped, so a long conversation stays cheap.
     // The window moves in steps of four, so the history at its front stays
     // identical for several turns in a row and can be read from the cache.
-    const from = Math.floor(Math.max(0, messages.length - job.turns) / 4) * 4;
-    const recent = messages
+    const from = Math.floor(Math.max(0, turns.length - job.turns) / 4) * 4;
+    const recent = turns
       .slice(from)
       .map((m) => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content).slice(0, job.maxInput) }));
     // The API needs the first turn to be the person's.
@@ -575,6 +594,11 @@ Deno.serve(async (req: Request) => {
       v: PROMPT_VERSION,
     });
   } catch (err) {
+    // The upstream deadline passed: say "busy" so the app offers a retry.
+    if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+      console.error(JSON.stringify({ error: 'upstream timeout', ms: Date.now() - started }));
+      return json({ error: 'Ember can’t think right now', code: 'busy' }, 504);
+    }
     console.error('ember function error', err);
     return json({ error: 'Something went wrong', code: 'server' }, 500);
   }
