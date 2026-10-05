@@ -3,6 +3,7 @@
 | Start here | |
 |---|---|
 | [What this app is](WHAT-THIS-IS.md) | The app in two minutes: what it holds, how it treats you. |
+| [Live checks](LIVE-CHECKS.md) | Everything built but not yet seen working, every round: the local session's walk list. |
 | [Round 7 plan](rounds/round-7.md) | What's next: see Round 6 live, faster phone updates, the native batch. |
 | [Round 6 plan](rounds/round-6.md) | The round just built: every idea, its status, and the progress log. |
 
