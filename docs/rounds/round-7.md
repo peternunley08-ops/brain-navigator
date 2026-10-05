@@ -80,7 +80,7 @@ checked · `[–]` decided against (with why)
 33. [~] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here
 34. [ ] B6 Age 13+ (decided): Declared Age Range API (native), under-13 gate, honest App Store age rating
 35. [~] B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol
-36. [ ] B8 Anthropic's child-safety system prompt in `ember`; confirm minors use with Anthropic
+36. [~] B8 Anthropic for minors: disclosure and safety rules done; request the official child-safety system prompt from Anthropic and add it
 
 ## Ground rules
 
