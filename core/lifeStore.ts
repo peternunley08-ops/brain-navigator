@@ -146,6 +146,8 @@ export interface LifeSettings {
   deskHidden: string[];
   /** Desk sections folded with a tap on their heading. */
   deskFolded?: string[];
+  /** The Desk by day: one lit card and Today rows (default), or the classic long page. */
+  deskLayout?: 'lit' | 'classic';
   /** Desk cards closed today (they come back tomorrow). */
   deskClosed?: { day: string; ids: string[] };
   /** Hourly pay at a job, for the earnings estimate. */

@@ -90,6 +90,7 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] After deploying ember 4.7: tell Ember "I want to die" (testing): help lines on screen at once, the reply carries the Need help now button
 - [ ] The app opens on iOS 27 (scene life cycle) and deep links land (\`brainnavigator://about\`)
 - [ ] Ember's note (design phase 1): show mode (Riley), Desk by day: one day card near the top, "Ember has N more" under it; tap it, the others are in a sheet ending "That's everything."; tap a card there, the sheet closes and the page opens; close the shown card with the x, the next takes its place; Reduce Motion on, same with no slide
+- [ ] Lit Desk (design phase 2): at 4 PM with homework due tomorrow, one lit card with the title, "About 30 minutes. Due tomorrow." and Light the candle (opens Focus on it); Today shows Tonight "N of 90 minutes", On your mind with gold dots, How you're doing with the faces; finish all due work and the lit card becomes All clear; More on your desk starts folded and holds one thing, the class card, the brief, countdowns, quick add, pinned notes, the streak, Set something down, tiles and the day line; a spark earned elsewhere flies to the On your mind dots; Settings, Your Desk, Classic layout on brings the old long Desk back; night clock 23:30 still shows the Night Desk
 
 `;
 writeFileSync(join(ROOT, 'docs/LIVE-CHECKS.md'), head + body.join('\n'));
