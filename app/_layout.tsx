@@ -109,6 +109,7 @@ export default function RootLayout() {
               <Stack.Screen name="class-edit" options={SHEET} />
               <Stack.Screen name="new-entry" options={SHEET} />
               <Stack.Screen name="pocket-worry" options={SHEET} />
+              <Stack.Screen name="ai-consent" options={SHEET} />
               {/* Your day swipes between days, so back stays on the edge there. */}
               <Stack.Screen name="today" options={{ fullScreenGestureEnabled: false }} />
             </Stack>

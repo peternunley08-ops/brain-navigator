@@ -71,6 +71,17 @@ checked · `[–]` decided against (with why)
 27. [ ] Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today
 28. [ ] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10)
 
+## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
+
+29. [ ] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Needs Peter's decision
+30. [ ] B2 Entry photos in a private bucket with signed URLs
+31. [ ] B3 Notion sync off for everyone but the developer
+32. [ ] B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app
+33. [~] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here
+34. [ ] B6 Age: Declared Age Range API (native), 13+ gate, honest App Store age rating
+35. [~] B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol
+36. [ ] B8 Anthropic's child-safety system prompt in `ember`; confirm minors use with Anthropic
+
 ## Ground rules
 
 Everything from Rounds 4–6 still holds: privacy, nothing new to AI by

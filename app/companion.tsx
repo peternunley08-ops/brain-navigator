@@ -31,6 +31,7 @@ import { Pressy } from '../components/ui/Pressy';
 import { Screen } from '../components/ui/Screen';
 import { goBack } from '../core/chrome';
 import { CLOSING_LINES, FOLLOW_UP_PROMPTS, OPENING_PROMPTS, randomFrom } from '../core/companionPrompts';
+import { AI_DISCLOSURE, AI_REMINDER, reminderDue } from '../core/companionRules';
 import { type AIFailure, askEmber, askJob, dueFollowUp, followUpTopic, type EmberReply, type EmberTurn, soundsLikeCrisis, whyOffline } from '../core/emberAI';
 import { uid, useHubStore } from '../core/hubStore';
 import { useLifeStore } from '../core/lifeStore';
@@ -77,6 +78,8 @@ export default function CompanionScreen() {
   const scroll = useRef<ScrollView>(null);
 
   const [lines, setLines] = useState<Line[]>([]);
+  // When Ember last said it's a computer program (the header says so on open).
+  const disclosedAt = useRef(Date.now());
   // The conversation as of right now — state lags a render behind, and
   // finishing straight after an answer must include that answer.
   const linesRef = useRef<Line[]>([]);
@@ -192,6 +195,11 @@ export default function CompanionScreen() {
     stopMic();
     if (soundsLikeCrisis(text)) setCrisis(true);
     if (startedAt.current == null) startedAt.current = Date.now();
+    // Three hours of talking since Ember last said what it is: say it again, with a break nudge.
+    if (reminderDue(disclosedAt.current)) {
+      disclosedAt.current = Date.now();
+      say(AI_REMINDER, { aside: true });
+    }
     push({ from: 'you', text });
     const next = linesRef.current;
     if (!chip) box.clear(text);
@@ -430,6 +438,7 @@ export default function CompanionScreen() {
         <EmberSprite rig={rig} size={104} seed={2.2} />
         <Text style={styles.name}>Ember</Text>
         <Text style={styles.tagline}>{mode === 'ai' ? 'Here to listen. Say as much or as little as you like.' : 'stopped by to ask how you’re doing.'}</Text>
+        <Text style={styles.disclosure}>{AI_DISCLOSURE}</Text>
       </View>
 
       <ScrollView
@@ -636,6 +645,14 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontSize: 24,
     color: colors.text,
+  },
+  disclosure: {
+    marginTop: 4,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    lineHeight: 16,
+    textAlign: 'center',
+    color: colors.textFaint,
   },
   tagline: {
     marginTop: 2,

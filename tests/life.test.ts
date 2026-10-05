@@ -91,3 +91,12 @@ describe('About you', () => {
     assert.equal(aboutFilled(about({ interests: ['music'], cheer: 'calm' })), 0.25);
   });
 });
+
+describe('AI companion rules', () => {
+  it('reminds every three hours of continuing use', async () => {
+    const { reminderDue, REMINDER_EVERY_MS } = await import('../core/companionRules');
+    const t0 = 1_000_000;
+    assert.equal(reminderDue(t0, t0 + REMINDER_EVERY_MS - 1), false);
+    assert.equal(reminderDue(t0, t0 + REMINDER_EVERY_MS), true);
+  });
+});

@@ -34,6 +34,7 @@ const SENT = [
 export default function AIScreen() {
   const st = useAIStatus();
   const aiOff = useLifeStore((s) => !!s.settings.aiOff);
+  const consentAt = useLifeStore((s) => s.settings.aiConsentAt);
   const memoryOff = useLifeStore((s) => !!s.settings.memoryOff);
   const memory = useLifeStore((s) => s.emberMemory);
   const rated = useLifeStore((s) => s.replyFeedback);
@@ -91,6 +92,22 @@ export default function AIScreen() {
               <Text style={styles.body}>Ember and the helpers use only what’s on your phone. Nothing is sent.</Text>
             </View>
             <Switch value={aiOff} onValueChange={(v) => useLifeStore.getState().setSettings({ aiOff: v })} trackColor={{ true: colors.flame }} accessibilityLabel="Turn off AI everywhere" />
+          </View>
+          <View style={styles.switchRow}>
+            <View style={styles.flex}>
+              <Text style={styles.switchTitle}>Your OK to send to the AI</Text>
+              <Text style={styles.body}>
+                {consentAt
+                  ? `Given ${new Date(consentAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}. Take it back and nothing is sent until you agree again.`
+                  : 'Not given yet. Ember asks the first time you want an AI reply.'}
+              </Text>
+            </View>
+            <Switch
+              value={!!consentAt}
+              onValueChange={(on) => (on ? router.push('/ai-consent') : useLifeStore.getState().setSettings({ aiConsentAt: undefined }))}
+              trackColor={{ true: colors.flame }}
+              accessibilityLabel="Your OK to send to the AI"
+            />
           </View>
         </Card>
       </Reveal>

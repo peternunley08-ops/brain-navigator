@@ -9,6 +9,7 @@
 // Anthropic to write the reply. Nothing else.
 
 import { FunctionsHttpError } from '@supabase/supabase-js';
+import { router } from 'expo-router';
 import type { IconName } from '../components/ui/Icon';
 import { aboutForAI } from './about';
 import { canUseAI, recordAIUse } from './aiQuota';
@@ -87,7 +88,7 @@ export type EmberAIResult = EmberReply | { ok: false; reason: AIFailure };
  * `limit` = this week's free AI replies are used up; `off` = the student
  * turned AI off; `spend_limit` = the Anthropic account hit its monthly cap.
  */
-export type AIFailure = 'no_credit' | 'spend_limit' | 'offline' | 'unavailable' | 'limit' | 'busy' | 'timeout' | 'off';
+export type AIFailure = 'no_credit' | 'spend_limit' | 'offline' | 'unavailable' | 'limit' | 'busy' | 'timeout' | 'off' | 'consent';
 
 const DAY = 24 * 60 * 60 * 1000;
 const TIMEOUT = 45_000;
@@ -299,8 +300,19 @@ type Kind = 'talk' | 'helper' | 'summary' | 'title' | 'steps' | 'plan' | 'scan' 
 /** Background jobs that don't use up the student's weekly AI replies. */
 const FREE_KINDS = new Set<Kind>(['summary', 'title', 'ping']);
 
+/** True until the student has agreed to send things to the AI (App Store 5.1.2(i), health-data consent laws). */
+export function needsAIConsent() {
+  return !useLifeStore.getState().settings.aiConsentAt;
+}
+
 async function callEmber(body: Record<string, unknown>): Promise<{ ok: true; data: Record<string, any> } | { ok: false; reason: AIFailure }> {
   if (useLifeStore.getState().settings.aiOff) return { ok: false, reason: 'off' };
+  // Nothing leaves for the AI without a yes. A request the student made opens
+  // the consent sheet; background jobs just stop.
+  if (needsAIConsent()) {
+    if (!FREE_KINDS.has(body.kind as Kind)) router.push('/ai-consent');
+    return { ok: false, reason: 'consent' };
+  }
   const started = Date.now();
   const { data, error } = await supabase.functions.invoke('ember', { body, timeout: TIMEOUT });
   if (!error && data) return { ok: true, data };
@@ -398,6 +410,8 @@ export function aiFailLine(reason: AIFailure) {
   switch (reason) {
     case 'off':
       return 'AI is turned off. You can turn it back on from How AI works here.';
+    case 'consent':
+      return 'AI needs your OK first. Nothing was sent.';
     case 'limit':
       return 'That’s all your free AI replies for this week.';
     case 'no_credit':
@@ -417,6 +431,7 @@ export function aiFailLine(reason: AIFailure) {
 
 export function whyOffline(reason: AIFailure) {
   if (reason === 'off') return 'AI is turned off in Settings, so I’ll use my own questions. Everything else still works.';
+  if (reason === 'consent') return 'My thinking brain needs your OK before anything is sent, so I’ll use my own questions for now. Nothing left your phone.';
   if (reason === 'busy') return 'My thinking brain is swamped for a moment. Try again in a minute, or I’ll use my own questions for now.';
   if (reason === 'timeout') return 'That took too long to think through, so I stopped waiting. Try again, or I’ll use my own questions for now.';
   if (reason === 'spend_limit') return 'My thinking brain hit this month’s spending limit, so I’ll use my own questions for now.';

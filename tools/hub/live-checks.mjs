@@ -78,6 +78,8 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] Phone date Oct 31: Ember wears a pumpkin hat and says hello once
 - [ ] VoiceOver: Your day → Plan a block, swatches read "Gold block"…; a filled text field still says what it's for
 - [ ] Quick add: type "bio quiz thurs": the preview says Thursday (the short-weekday fix)
+- [ ] First AI request opens "Before Ember thinks with AI"; Not now sends nothing; Allow, then Ember replies; How AI works here can take the OK back
+- [ ] Ember's chat shows "Ember is a computer program, not a person…" under its name
 - [ ] Ember replies in chat (confirms the Supabase project, Round 7 G21)
 - [ ] The app opens on iOS 27 (scene life cycle) and deep links land (\`brainnavigator://about\`)
 
