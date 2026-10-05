@@ -2,6 +2,11 @@
 // any import of them gets an inert stand-in. Tests only call pure helpers;
 // a store module may import these at the top without ever using them.
 const Module = require('node:module');
+
+// Stores that talk to Supabase build a client on import; give them a
+// placeholder project (tests never make a network call).
+process.env.EXPO_PUBLIC_SUPABASE_URL ||= 'https://example.supabase.co';
+process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ||= 'test-anon-key';
 const NATIVE = /^(expo($|-)|@expo\/|react-native|@react-native|@kingstinct\/|@react-native-google-signin\/|react$|react\/)/;
 
 function inert() {

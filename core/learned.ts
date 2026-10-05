@@ -6,7 +6,9 @@ import { useWellnessStore } from './wellnessStore';
 
 // What the app notices from how a student uses it, worked out on the phone.
 // Each note says what it's based on, needs at least five examples, and can
-// be dismissed ("Not right") or turned off entirely in About you.
+// be dismissed ("Not right") or turned off entirely in About you. Off means
+// off everywhere: every function here returns nothing while learnOff is set,
+// so Focus, the wins radar and Ember stop using it too.
 
 export interface LearnedNote {
   id: string;
@@ -17,6 +19,8 @@ export interface LearnedNote {
 }
 
 const MIN = 5;
+
+const learning = () => !useLifeStore.getState().about.learnOff;
 
 function calmerName(id: string) {
   const label = CALMERS.find((c) => c.id === id)?.label ?? id;
@@ -30,6 +34,7 @@ function hourLabel(h: number) {
 
 /** The hour (0–23) most focus sessions started in, and how many did. */
 export function bestFocusHour() {
+  if (!learning()) return null;
   const focus = useSchoolStore.getState().focus;
   if (focus.length < MIN) return null;
   const counts = new Array(24).fill(0);
@@ -44,6 +49,7 @@ export function bestFocusHour() {
 
 /** The focus length used most, if one stands out. */
 export function usualFocusLength() {
+  if (!learning()) return null;
   const focus = useSchoolStore.getState().focus;
   if (focus.length < MIN) return null;
   const counts = new Map<number, number>();
@@ -57,7 +63,7 @@ export function usualFocusLength() {
 
 /** The hour most check-ins happen, from when they were saved. */
 export function usualCheckinHour() {
-  if (useLifeStore.getState().about.learnOff) return null;
+  if (!learning()) return null;
   const list = useWellnessStore.getState().checkins;
   if (list.length < MIN) return null;
   const counts = new Array(24).fill(0);
@@ -68,6 +74,7 @@ export function usualCheckinHour() {
 
 /** Mood on nights near the sleep goal vs. short nights, from their own check-ins. */
 export function sleepAndMood() {
+  if (!learning()) return null;
   const goal = useSchoolStore.getState().profile.sleepGoal;
   const both = useWellnessStore.getState().checkins.filter((c) => c.mood != null && c.sleep_hours != null);
   const rested = both.filter((c) => (c.sleep_hours ?? 0) >= goal - 0.5);
