@@ -2,7 +2,7 @@
 // Ember's note: which day card leads the Desk, and the link under it.
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { closedToday, moreLine, NOTE_ORDER, pickNotes } from '../core/deskNotes';
+import { closedToday, firstWeekDay, firstWeekNotes, moreLine, NOTE_ORDER, pickNotes } from '../core/deskNotes';
 
 describe('Ember’s note queue', () => {
   it('shows nothing when no card applies', () => {
@@ -47,5 +47,41 @@ describe('Ember’s note queue', () => {
     assert.equal(closedToday(closed, 'PlanTest', '2026-10-06'), false);
     assert.equal(closedToday(closed, 'HelperNudge', '2026-10-05'), false);
     assert.equal(closedToday(undefined, 'PlanTest', '2026-10-05'), false);
+  });
+});
+
+describe('the first week', () => {
+  const fw = (done: string[] = []) => ({ started: '2026-10-05', done });
+
+  it('counts calendar days from the welcome, across a month end', () => {
+    assert.equal(firstWeekDay(fw(), '2026-10-05'), 0);
+    assert.equal(firstWeekDay(fw(), '2026-10-06'), 1);
+    assert.equal(firstWeekDay({ started: '2026-10-31', done: [] }, '2026-11-02'), 2);
+  });
+
+  it('students who finished the welcome before have no first-week notes', () => {
+    assert.deepEqual(firstWeekNotes(undefined, '2026-10-06'), { crew: false, holdIntro: false });
+  });
+
+  it('Day 1 is quiet: no crew, the five cards wait', () => {
+    assert.deepEqual(firstWeekNotes(fw(), '2026-10-05'), { crew: false, holdIntro: true });
+  });
+
+  it('Day 2 brings the crew; the five cards still wait', () => {
+    assert.deepEqual(firstWeekNotes(fw(), '2026-10-06'), { crew: true, holdIntro: true });
+  });
+
+  it('Day 3 lets the five cards in; a skipped crew does not come back', () => {
+    assert.deepEqual(firstWeekNotes(fw(['crew']), '2026-10-07'), { crew: false, holdIntro: false });
+    assert.equal(firstWeekNotes(fw(), '2026-10-07').crew, true);
+  });
+
+  it('after two weeks the crew stops asking', () => {
+    assert.equal(firstWeekNotes(fw(), '2026-10-19').crew, false);
+  });
+
+  it('the crew note comes right after a follow-up', () => {
+    assert.equal(pickNotes(['AboutCards', 'Crew', 'PickUp']).shown, 'Crew');
+    assert.equal(pickNotes(['Crew', 'FollowUp']).shown, 'FollowUp');
   });
 });

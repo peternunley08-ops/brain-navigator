@@ -107,16 +107,19 @@ function DueTonight() {
   );
 }
 
+// The evening brief's blue, so wind-down reads as the same evening.
+const MOON = '#8FB4E8';
+
 function WindDown() {
   const windDown = useLifeStore((s) => s.settings.windDown);
   const owl = useLifeStore((s) => s.about.picks.time === 'b');
   const start = nightStart(windDown, owl);
   const left = minutesToNight(minutesOf(nightNow()), start);
   return (
-    <Card tint="#8FB4E8" style={styles.gap}>
+    <Card tint={MOON} style={styles.gap}>
       <View style={styles.row}>
-        <View style={[styles.icon, { backgroundColor: alpha('#8FB4E8', 0.16) }]}>
-          <Icon name="moon" size={20} color="#8FB4E8" />
+        <View style={[styles.icon, { backgroundColor: alpha(MOON, 0.16) }]}>
+          <Icon name="moon" size={20} color={MOON} />
         </View>
         <View style={styles.flex}>
           <Text style={styles.title}>Wind-down in {plural(left, 'minute')}</Text>

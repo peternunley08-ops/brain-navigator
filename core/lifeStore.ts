@@ -148,6 +148,8 @@ export interface LifeSettings {
   deskFolded?: string[];
   /** The Desk by day: one lit card and Today rows (default), or the classic long page. */
   deskLayout?: 'lit' | 'classic';
+  /** A new student's first week (set when the welcome first finishes): its day, and first-week notes done or skipped. */
+  firstWeek?: { started: string; done: string[] };
   /** Desk cards closed today (they come back tomorrow). */
   deskClosed?: { day: string; ids: string[] };
   /** Hourly pay at a job, for the earnings estimate. */

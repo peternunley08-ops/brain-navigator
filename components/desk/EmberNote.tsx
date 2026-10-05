@@ -5,7 +5,7 @@ import Animated, { SlideInDown, useReducedMotion } from 'react-native-reanimated
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { nextBadge } from '../../core/achievements';
 import { dateKey } from '../../core/dates';
-import { closedToday, moreLine, pickNotes, type DeskNoteId } from '../../core/deskNotes';
+import { closedToday, firstWeekNotes, moreLine, pickNotes, type DeskNoteId } from '../../core/deskNotes';
 import { dueFollowUp } from '../../core/emberAI';
 import { useHubStore } from '../../core/hubStore';
 import { learnedNotes } from '../../core/learned';
@@ -45,11 +45,13 @@ import {
   whenWorryTime,
   WorryTime,
 } from './DayCards';
+import { Crew, whenCrew } from './FirstWeek';
 import { WhatsNew, whenWhatsNew } from './WhatsNew';
 
 const NOTES: Record<DeskNoteId, ComponentType> = {
   Birthday,
   FollowUp,
+  Crew,
   PickUp,
   HelperNudge,
   PlanTest,
@@ -91,6 +93,7 @@ export function useDeskNoteIds(deskHidden: string[]): DeskNoteId[] {
   const about = useLifeStore((s) => s.about);
   const checkins = useWellnessStore((s) => s.checkins);
   const notes = useHubStore((s) => s.notes);
+  const firstWeek = useLifeStore((s) => s.settings.firstWeek);
   useMarkSeen();
 
   const today = dateKey();
@@ -102,6 +105,7 @@ export function useDeskNoteIds(deskHidden: string[]): DeskNoteId[] {
   };
   add('Birthday', whenBirthday(birthday, today, shut('Birthday')));
   add('FollowUp', whenFollowUp(dueFollowUp(), aiOff));
+  add('Crew', whenCrew(firstWeek, today));
   add('PickUp', whenPickUp(draft, lastNote, checkins, notes, shut('PickUp')));
   add('HelperNudge', whenHelperNudge(assignments, shut('HelperNudge')));
   add('PlanTest', whenPlanTest(assignments, shut('PlanTest')));
@@ -110,7 +114,7 @@ export function useDeskNoteIds(deskHidden: string[]): DeskNoteId[] {
   add('WelcomeBack', whenWelcomeBack(awayOnOpen(), shut('WelcomeBack')));
   add('TryThisWeek', whenTryThisWeek(reviews, shut('TryThisWeek')));
   add('OneKindThing', whenOneKindThing(people, kindWeek, shut('OneKindThing')));
-  add('AboutCards', !deskHidden.includes('question') && whenAboutCards(about, onboarded, today, () => learnedNotes().length));
+  add('AboutCards', !deskHidden.includes('question') && whenAboutCards(about, onboarded, today, () => learnedNotes().length, false, firstWeekNotes(firstWeek, today).holdIntro));
   add('WhatsNew', whenWhatsNew(whatsNewSeen));
   add('Resurface', whenResurface(gratitude, shut('Resurface')));
   add('NextBadge', whenNextBadge(nextBadge(), shut('NextBadge')));

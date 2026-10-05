@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { aboutFilled, pickLabel, questionOfTheDay, THIS_OR_THAT } from '../../core/about';
 import { dateKey } from '../../core/dates';
+import { firstWeekNotes } from '../../core/deskNotes';
 import { learnedNotes } from '../../core/learned';
 import { useLifeStore, weekOf, type AboutMe } from '../../core/lifeStore';
 import { tonightKey, tonightWeekday } from '../../core/night';
@@ -32,10 +33,12 @@ const RECHECK_DAYS = 60;
  * true?", the week in a sentence, the question of the day, or something noticed.
  * `playing` keeps the five on screen once started; `notes` counts the things
  * the app has noticed (asked last, only when nothing else applies).
+ * `holdIntro`: a new student's first two days, before the five arrive on Day 3
+ * (core/deskNotes.ts firstWeekNotes); nothing About-you shows until then.
  */
-export function whenAboutCards(about: AboutMe, onboarded: boolean, today: string, notes: () => number, playing = false) {
+export function whenAboutCards(about: AboutMe, onboarded: boolean, today: string, notes: () => number, playing = false, holdIntro = false) {
   if (!onboarded) return null;
-  if (!about.introDone && (playing || FIRST_FIVE.some((c) => !about.picks[c.id]))) return { kind: 'intro' as const };
+  if (!about.introDone && (playing || FIRST_FIVE.some((c) => !about.picks[c.id]))) return holdIntro && !playing ? null : { kind: 'intro' as const };
   const recheck = stillTrue(about, today);
   if (recheck) return { kind: 'still' as const, recheck };
   if (weekSentenceDue(about)) return { kind: 'week' as const };
@@ -47,11 +50,12 @@ export function whenAboutCards(about: AboutMe, onboarded: boolean, today: string
 export function AboutCards() {
   const about = useLifeStore((s) => s.about);
   const onboarded = useSchoolStore((s) => s.profile.onboarded);
+  const firstWeek = useLifeStore((s) => s.settings.firstWeek);
   const today = dateKey();
   // Once the five cards are showing, they stay until finished or closed,
   // so the last answer gets its "thanks" instead of vanishing mid-swipe.
   const [playing, setPlaying] = useState(false);
-  const card = whenAboutCards(about, onboarded, today, () => learnedNotes().length, playing);
+  const card = whenAboutCards(about, onboarded, today, () => learnedNotes().length, playing, firstWeekNotes(firstWeek, today).holdIntro);
   const needIntro = card?.kind === 'intro';
   useEffect(() => {
     if (needIntro) setPlaying(true);
