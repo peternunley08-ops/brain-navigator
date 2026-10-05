@@ -62,6 +62,26 @@ if [[ ! -d node_modules ]] || [[ package-lock.json -nt node_modules ]]; then
 fi
 
 log "Building and installing (a few minutes; keep the phone unlocked)"
-npx expo run:ios --configuration Release --device "$DEVICE"
+BUILD_LOG="$(mktemp "${TMPDIR:-/tmp}/bn-build.XXXXXX")"
+trap 'rm -f "$BUILD_LOG"' EXIT
+if ! npx expo run:ios --configuration Release --device "$DEVICE" 2>&1 | tee "$BUILD_LOG"; then
+  # The usual failures are signing, not code. Say what to do in plain steps.
+  if grep -q "No Accounts" "$BUILD_LOG"; then
+    printf '\n✗ Xcode isn'"'"'t signed in to your Apple ID.\n'
+    printf '  Xcode → Settings → Accounts → + → Apple ID. Use the same Apple ID as last time,\n'
+    printf '  or the phone will refuse the update. Then run this again.\n'
+  elif grep -qE "No profiles for|requires a development team|provisioning profile" "$BUILD_LOG"; then
+    printf '\n✗ Xcode needs to make a signing profile once, from its own window:\n'
+    printf '  1. open ios/brainnavigator.xcworkspace\n'
+    printf '  2. brainnavigator target → Signing & Capabilities → Automatically manage signing on\n'
+    printf '  3. Team: your Personal Team (pick it again if it is already set), phone plugged in\n'
+    printf '  4. Wait for "Xcode Managed Profile", close Xcode, run this again\n'
+  elif grep -qiE "developer disk image|could not be mounted" "$BUILD_LOG"; then
+    printf '\n✗ Xcode can'"'"'t prepare the phone. Unlock it, then Xcode → Window → Devices and Simulators,\n'
+    printf '  click the phone and wait for "Preparing" to finish. Update Xcode if this iOS is too new.\n'
+  fi
+  printf '\n  Never delete the app from the phone to get past a signing error: its data goes with it.\n'
+  exit 1
+fi
 
 log "Done. If the phone says Untrusted Developer: Settings → General → VPN & Device Management → your Apple ID → Trust."

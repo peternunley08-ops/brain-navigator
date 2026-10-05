@@ -62,7 +62,7 @@ npx expo start            # Simulator / dev build
 ./scripts/build-phone.sh --main     # pull main, find the phone, build, install
 ```
 
-The script sets UTF-8 (CocoaPods crashes without it), finds the connected iPhone, and warns if Xcode can't prepare it. Free signing lasts 7 days; run it again when the app stops opening. If Xcode says the developer disk image can't be mounted, unlock the phone and let Xcode finish preparing it (Window → Devices and Simulators).
+The script sets UTF-8 (CocoaPods crashes without it), finds the connected iPhone, and warns if Xcode can't prepare it. Free signing lasts 7 days; run it again when the app stops opening. If Xcode says the developer disk image can't be mounted, unlock the phone and let Xcode finish preparing it (Window → Devices and Simulators). When a build fails on signing ("No Accounts", "No profiles for…"), the script prints the steps to fix it; never delete the app from the phone to get past one, its data goes with it.
 
 **Before every commit:** `node tools/hub/check.mjs --agent <name>` (house rules plus the type check).
 
