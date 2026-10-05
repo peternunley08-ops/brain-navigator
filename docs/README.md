@@ -3,6 +3,7 @@
 | Start here | |
 |---|---|
 | [What this app is](WHAT-THIS-IS.md) | The app in two minutes: what it holds, how it treats you. |
+| [Design direction](design/DIRECTION.md) | "One Lit Thing": a simpler layout, every feature kept, built in 8 phases (Muse). |
 | [Release compliance](legal/RELEASE-COMPLIANCE.md) | Legal and App Store readiness: blockers, what's built, decisions, sources. Drafts: [privacy policy](legal/PRIVACY-POLICY.md), [terms](legal/TERMS.md). |
 | [Live checks](LIVE-CHECKS.md) | Everything built but not yet seen working, every round: the local session's walk list. |
 | [Round 7 plan](rounds/round-7.md) | What's next: see Round 6 live, faster phone updates, the native batch. |
