@@ -1,14 +1,17 @@
 import * as Haptics from '../core/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname, useRootNavigationState } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { type LayoutChangeEvent, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, SlideInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { GestureDetector, GestureHandlerRootView, usePanGesture } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import { navTucked, navWanted, scrollFocusedToTop } from '../core/chrome';
+import { useLifeStore } from '../core/lifeStore';
 import { springs, timings } from '../core/motion';
+import { nightNow } from '../core/night';
+import { addOrder } from '../core/quickAddOrder';
 import { dateKey, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, gradients, radii } from '../core/theme';
 import { Icon, type IconName } from './ui/Icon';
@@ -196,7 +199,20 @@ const MORE_OPTIONS: { title: string; icon: IconName; color: string; href: string
 // The + button's sheet: every way to add something, one tap each. Drag it
 // down to put it away; it follows the finger and springs back if you don't
 // pull far enough.
+// Options in the given href order; anything not named keeps its place at the end.
+function byHref<T extends { href: string }>(options: T[], hrefs: string[]) {
+  const rank = (o: T) => {
+    const i = hrefs.indexOf(o.href);
+    return i < 0 ? hrefs.length : i;
+  };
+  return [...options].sort((a, b) => rank(a) - rank(b));
+}
+
 function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const windDown = useLifeStore((s) => s.settings.windDown);
+  const nightOwl = useLifeStore((s) => s.about.picks.time === 'b');
+  // Re-ordered each time the sheet opens, by the (dev-adjustable) clock.
+  const order = useMemo(() => addOrder(nightNow(), windDown, nightOwl), [open, windDown, nightOwl]); // eslint-disable-line react-hooks/exhaustive-deps
   const insets = useSafeAreaInsets();
   const drag = useSharedValue(0);
   const speed = useSharedValue(0);
@@ -233,8 +249,8 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
           <GestureDetector gesture={pan}>
             <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }, follow]}>
               <View style={styles.grabber} />
-              <Text style={styles.sheetTitle}>Add something</Text>
-              {ADD_OPTIONS.map((o) => (
+              <Text style={styles.sheetTitle}>Put something down</Text>
+              {byHref(ADD_OPTIONS, order.main).map((o) => (
                 <Pressy
                   key={o.href}
                   style={styles.option}
@@ -256,7 +272,7 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
                 </Pressy>
               ))}
               <View style={styles.moreRow}>
-                {MORE_OPTIONS.map((o) => (
+                {byHref(MORE_OPTIONS, order.more).map((o) => (
                   <Pressy
                     key={o.href}
                     style={styles.more}
