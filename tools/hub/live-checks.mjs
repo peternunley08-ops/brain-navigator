@@ -74,27 +74,27 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] Shake the phone firmly on the Desk: "Drop a worry" opens; save one → Undo bar; it's in the Worry box
 - [ ] Walking around with the phone opens nothing; Settings → Privacy → Shake to drop a worry off → shaking does nothing
 - [ ] Shake on Wins: Ember reads out a past win; no worry sheet
-- [ ] Mark a homework done → "Done, not turned in yet" and a Mark turned in chip → "Done and turned in"
+- [x] Mark a homework done → "Done, not turned in yet" and a Mark turned in chip → "Done and turned in" — seen 2026-10-05 (bug: an empty Steps box, Round 7 G41)
 - [ ] Phone date Oct 31: Ember wears a pumpkin hat and says hello once
 - [ ] VoiceOver: Your day → Plan a block, swatches read "Gold block"…; a filled text field still says what it's for
-- [ ] Quick add: type "bio quiz thurs": the preview says Thursday (the short-weekday fix)
-- [ ] First AI request opens "Before Ember thinks with AI"; Not now sends nothing; Allow, then Ember replies; How AI works here can take the OK back
-- [ ] Ember's chat shows "Ember is a computer program, not a person…" under its name
-- [ ] Ember replies in chat (confirms the Supabase project, Round 7 G21)
+- [x] Quick add: type "bio quiz thurs": the preview says Thursday (the short-weekday fix) — seen 2026-10-05: "Quiz for AP Biology, due Thursday"
+- [x] First AI request opens "Before Ember thinks with AI"; Not now sends nothing; Allow, then Ember replies; How AI works here can take the OK back — seen 2026-10-05; Allow now answers the first message too (PR #42)
+- [x] Ember's chat shows "Ember is a computer program, not a person…" under its name — seen 2026-10-05
+- [x] Ember replies in chat (confirms the Supabase project, Round 7 G21) — seen 2026-10-05
 - [ ] Goodnight continuity: tell Ember about a quiz in two days and save the memory; the night before, Put the day down, Goodnight: Ember adds "Tomorrow I'll ask how the quiz went." With memory off in About you: no such line
-- [ ] After wind-down (brainnavigator://?night=23:30) the tab bar is a little dimmer but readable; the Night Desk link reads "Open the day desk"
-- [ ] School: subtitle "Tonight: 40m of 1h 30m" (or "Nothing due tonight."); Tonight's load is the first card, with "Sort it out" when over; the header has one menu button (Your schedule, Scan, Search)
-- [ ] Focus: the next thing due today or tomorrow is already chosen as the target (Just focus clears it); This week is folded and opens on tap
-- [ ] + sheet: titled "Put something down"; with brainnavigator://?night=23:30 "Something on my mind" is first and A focus session last; at 4 PM on a weekday "Homework or a test" first; on Sunday "A win" leads the small row
-- [ ] Drawer: "Find anything" field on top; five groups (School and study, Feeling okay, Your days, Later and looking back, You and the app), four tools each with "All N"; Need help now pinned at the bottom; typing "aid" shows Financial aid; "Search your homework…" opens Search with the words filled in
-- [ ] Habits: each habit reads "Kept N of the last 14 days" (weekly: "N times in two weeks"), no streak number; finishing every habit, Ember says "Small things, kept, add up"
-- [ ] Desk tiles: Focus today and Habits only (Warmth now lives in Settings → Ember); the badge nudge reads "On the way to …" with no countdown
+- [x] After wind-down (brainnavigator://?night=23:30) the tab bar is a little dimmer but readable; the Night Desk link reads "Open the day desk" — seen 2026-10-05
+- [x] School: subtitle "Tonight: 40m of 1h 30m" (or "Nothing due tonight."); Tonight's load is the first card, with "Sort it out" when over; the header has one menu button (Your schedule, Scan, Search) — seen 2026-10-05
+- [x] Focus: the next thing due today or tomorrow is already chosen as the target (Just focus clears it); This week is folded and opens on tap — seen 2026-10-05
+- [x] + sheet: titled "Put something down"; with brainnavigator://?night=23:30 "Something on my mind" is first and A focus session last; at 4 PM on a weekday "Homework or a test" first; on Sunday "A win" leads the small row — seen 2026-10-05
+- [x] Drawer: "Find anything" field on top; five groups (School and study, Feeling okay, Your days, Later and looking back, You and the app), four tools each with "All N"; Need help now pinned at the bottom; typing "aid" shows Financial aid; "Search your homework…" opens Search with the words filled in — seen 2026-10-05 (the Habits tool still says "Streaks you keep", Round 7 G39)
+- [x] Habits: each habit reads "Kept N of the last 14 days" (weekly: "N times in two weeks"), no streak number; finishing every habit, Ember says "Small things, kept, add up" — seen 2026-10-05 (bugs: the flame wraps alone, the all-done subtitle; Round 7 G38, G39)
+- [x] Desk tiles: Focus today and Habits only (Warmth now lives in Settings → Ember); the badge nudge reads "On the way to …" with no countdown — seen 2026-10-05
 - [ ] Entry photos: an old photo still shows; add a new one, it shows (signed links). Then run schema Phase 20 (bucket private) and both still show
-- [ ] Settings → Open-source licenses: search "fraunces", tap it, the license text opens
-- [ ] After deploying ember 4.7: tell Ember "I want to die" (testing): help lines on screen at once, the reply carries the Need help now button
-- [ ] The app opens on iOS 27 (scene life cycle) and deep links land (\`brainnavigator://about\`)
-- [ ] Ember's note (design phase 1): show mode (Riley), Desk by day: one day card near the top, "Ember has N more" under it; tap it, the others are in a sheet ending "That's everything."; tap a card there, the sheet closes and the page opens; close the shown card with the x, the next takes its place; Reduce Motion on, same with no slide
-- [ ] Lit Desk (design phase 2): at 4 PM with homework due tomorrow, one lit card with the title, "About 30 minutes. Due tomorrow." and Light the candle (opens Focus on it); Today shows Tonight "N of 90 minutes", On your mind with gold dots, How you're doing with the faces; finish all due work and the lit card becomes All clear; More on your desk starts folded and holds one thing, the class card, the brief, countdowns, quick add, pinned notes, the streak, Set something down, tiles and the day line; a spark earned elsewhere flies to the On your mind dots; Settings, Your Desk, Classic layout on brings the old long Desk back; night clock 23:30 still shows the Night Desk
+- [x] Settings → Open-source licenses: search "fraunces", tap it, the license text opens — seen 2026-10-05 (bug: the fonts' OFL text is missing, Round 7 G42)
+- [x] After deploying ember 4.7: tell Ember "I want to die" (testing): help lines on screen at once, the reply carries the Need help now button — seen 2026-10-05: the 988 and 741741 lines at once; the reply asks "Are you safe right now?" with Need help now
+- [ ] The app opens on iOS 27 (scene life cycle) and deep links land (\`brainnavigator://about\`) — deep links land on the iOS 26.5 Simulator (2026-10-05); iOS 27 not yet seen
+- [x] Ember's note (design phase 1): show mode (Riley), Desk by day: one day card near the top, "Ember has N more" under it; tap it, the others are in a sheet ending "That's everything."; tap a card there, the sheet closes and the page opens; close the shown card with the x, the next takes its place; Reduce Motion on, same with no slide — seen 2026-10-05 except Reduce Motion (bug: floating Ember covers the x, Round 7 G25)
+- [x] Lit Desk (design phase 2): at 4 PM with homework due tomorrow, one lit card with the title, "About 30 minutes. Due tomorrow." and Light the candle (opens Focus on it); Today shows Tonight "N of 90 minutes", On your mind with gold dots, How you're doing with the faces; finish all due work and the lit card becomes All clear; More on your desk starts folded and holds one thing, the class card, the brief, countdowns, quick add, pinned notes, the streak, Set something down, tiles and the day line; a spark earned elsewhere flies to the On your mind dots; Settings, Your Desk, Classic layout on brings the old long Desk back; night clock 23:30 still shows the Night Desk — seen 2026-10-05 except All clear and the spark flight
 - [ ] First run (design phase 7): Settings, Start over (or a fresh install): the welcome has three dots; the first line reads "Hi. I'm Ember, a small program that keeps your school days from piling up. What should I call you?"; Skip works on each step; Let's go opens the Desk with one lit card (Add your first homework, or the next class) and no This-or-that cards. Next day (phone date +1): Ember's note is "Meet the helper crew"; the x puts it away for good. Day 3: the five This-or-that cards arrive. Replay the welcome on an existing install: no crew note ever
 
 `;
