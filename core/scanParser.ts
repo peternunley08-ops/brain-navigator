@@ -325,6 +325,8 @@ export interface FoundGrade {
 
 const FRACTION = /(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/;
 const PERCENT = /(\d{1,3}(?:\.\d+)?)\s*%/;
+const FRACTIONS = new RegExp(FRACTION.source, 'g');
+const FULL_DATE = /\b\d{1,2}\/\d{1,2}\/(?:\d{4}|\d{2})\b/g;
 
 function categoryFor(title: string) {
   const k = kindFor(title);
@@ -358,12 +360,15 @@ export function parseGrades(input: ScanLine[]): FoundGrade[] {
   rows.forEach((row, i) => {
     let score: number | null = null;
     let outOf = 100;
-    let rest = row;
-    const f = row.match(FRACTION);
-    if (f && Number(f[2]) > 0 && Number(f[1]) <= Number(f[2]) * 1.5) {
+    // Dates sit beside scores in gradebooks ("10/03/2026 18/20"): drop full
+    // dates, then take the last fraction that reads as a score, since the
+    // score column comes after the date column.
+    let rest = row.replace(FULL_DATE, ' ');
+    const f = [...rest.matchAll(FRACTIONS)].filter((x) => Number(x[2]) > 0 && Number(x[1]) <= Number(x[2]) * 1.5).pop();
+    if (f) {
       score = Number(f[1]);
       outOf = Number(f[2]);
-      rest = row.replace(f[0], ' ');
+      rest = rest.replace(FRACTIONS, ' ');
     } else {
       const p = row.match(PERCENT);
       if (p && Number(p[1]) <= 150) {
@@ -429,8 +434,10 @@ export function parseSchedule(input: ScanLine[]): FoundTime[] {
     const m = row.match(TIME_RANGE);
     if (!m) return;
     const endAp = m[6];
-    const start = toMinutes(Number(m[1]), Number(m[2]), m[3] ?? endAp);
     const end = toMinutes(Number(m[4]), Number(m[5]), endAp ?? m[3]);
+    let start = toMinutes(Number(m[1]), Number(m[2]), m[3] ?? endAp);
+    // "11:50 - 12:40 PM": only the end says PM, and the class crosses noon.
+    if (!m[3] && endAp && start >= end) start = toMinutes(Number(m[1]), Number(m[2]), /^p/i.test(endAp) ? 'am' : 'pm');
     if (end <= start || end - start > 240) return;
     const roomMatch = row.match(/\b(?:room|rm\.?)\s*([a-z0-9-]+)/i);
     let name = row
