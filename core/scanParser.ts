@@ -60,6 +60,8 @@ const TEACHER = /^(mr|ms|mrs|mx|dr|miss|prof(essor)?|profe|coach|sra|sr|srta|se�
 const SECTION = /^(period|pd|per|block|section|sec|hour|hr)\.?\s*[\w-]{1,3}$|^\d+(st|nd|rd|th)\s+(period|block|hour)$/i;
 
 const WEEKDAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+// Every way a weekday gets written, Sunday first (matches Date.getDay()).
+const WEEKDAY_FORMS = [/\bsun(day)?\b/, /\bmon(day)?\b/, /\btue(s|sday)?\b/, /\bwed(s|nesday)?\b/, /\bthu(r|rs|rsday)?\b/, /\bfri(day)?\b/, /\bsat(urday)?\b/];
 const MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'];
 
 /** A due date in any of the ways Classroom and Canvas write them. */
@@ -116,8 +118,8 @@ export function parseDue(raw: string, today = dateKey()): string | null {
     return dateKey(new Date(year, Number(n[1]) - 1, Number(n[2])));
   }
 
-  // "Friday" → the next Friday (today if it's Friday).
-  const w = WEEKDAYS.findIndex((d) => new RegExp(`\\b${d.slice(0, 3)}(${d.slice(3)})?\\b`).test(s));
+  // "Friday" → the next Friday (today if it's Friday). Short forms too: "tues", "thurs".
+  const w = WEEKDAY_FORMS.findIndex((re) => re.test(s));
   if (w >= 0) {
     const [y, mo, d] = today.split('-').map(Number);
     const now = new Date(y, mo - 1, d);
