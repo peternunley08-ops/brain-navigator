@@ -50,3 +50,11 @@ Listed in `ACCEPTED` in security.mjs. Changing that list is Peter's call.
   release (npm's only "fix" is downgrading to Expo 44). The scanner now reports
   one finding per real advisory and accepts these two as `dep-vuln-build`;
   any other high advisory still shows. Re-check on each Expo SDK update.
+- 2026-10-05: `ember` hardened and smoke-tested locally under Deno 2.9:
+  upstream calls have a 40 s budget (retry included; the app gives up at
+  45 s), so a hung call returns `busy` (504) instead of holding the
+  function; the retry honours `retry-after` up to 3 s; malformed turns
+  (null, numbers) are dropped instead of crashing into a 500. Checked: 405,
+  bad JSON 400, unknown job 400, empty 400, malformed 400, oversize 413,
+  upstream failure 502 with only a code. `npm run check:functions`
+  type-checks both functions. Redeploy `ember` from the Mac to apply.
