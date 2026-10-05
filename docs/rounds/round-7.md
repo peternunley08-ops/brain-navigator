@@ -74,7 +74,7 @@ checked · `[–]` decided against (with why)
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
 29. [ ] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Peter: decide later (until then, single-user only)
-30. [ ] B2 Entry photos in a private bucket with signed URLs
+30. [~] B2 Entry photos: signed links (built); then run schema Phase 20 to make the bucket private
 31. [ ] B3 Notion: bring your own (OAuth per student); until then off in release builds
 32. [ ] B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app
 33. [~] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here

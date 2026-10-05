@@ -17,7 +17,7 @@ import { goBack } from '../../core/chrome';
 import { cheerLine } from '../../core/about';
 import { useAudioStore } from '../../core/audioStore';
 import { useFlameClock } from '../../core/hooks/useFlameClock';
-import { uploadSnapshotImage } from '../../core/imageUpload';
+import { uploadSnapshotImage, useSnapshotImage } from '../../core/imageUpload';
 import { CognitiveStateEntry, STATE_LABEL, useBrainNavigatorStore } from '../../core/store';
 import { supabase } from '../../core/supabase';
 import { alpha, colors, fonts, radii, stateColor } from '../../core/theme';
@@ -66,6 +66,8 @@ export default function EntryDetailScreen() {
     [history, openLoops, id]
   );
   const entry = historyEntry ?? fetchedEntry ?? undefined;
+  // The bucket is private: photos show through a short-lived signed link.
+  const photo = useSnapshotImage(entry?.image_url);
 
   // The history feed is capped to the 50 most recent entries, so an older
   // entry (reached via Kept, Loops, or a saved link) won't be in it — fetch
@@ -137,11 +139,11 @@ export default function EntryDetailScreen() {
     if (result.canceled || !result.assets?.[0]) return;
 
     setUploadingImage(true);
-    const url = await uploadSnapshotImage(result.assets[0].uri, entry.id);
-    if (url) {
-      await supabase.from('cognitive_state').update({ image_url: url }).eq('id', entry.id);
+    const path = await uploadSnapshotImage(result.assets[0].uri, entry.id);
+    if (path) {
+      await supabase.from('cognitive_state').update({ image_url: path }).eq('id', entry.id);
       await fetchHistory();
-      if (!historyEntry) setFetchedEntry((prev) => (prev ? { ...prev, image_url: url } : prev));
+      if (!historyEntry) setFetchedEntry((prev) => (prev ? { ...prev, image_url: path } : prev));
     }
     setUploadingImage(false);
   };
@@ -253,9 +255,9 @@ export default function EntryDetailScreen() {
         </Reveal>
       ) : null}
 
-      {entry.image_url ? (
+      {entry.image_url && photo ? (
         <Reveal index={1}>
-          <Image source={{ uri: entry.image_url }} style={styles.snapshotImage} />
+          <Image source={{ uri: photo }} style={styles.snapshotImage} accessibilityLabel="Photo on this entry" />
         </Reveal>
       ) : null}
 

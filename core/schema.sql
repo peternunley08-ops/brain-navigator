@@ -284,3 +284,12 @@ begin
     alter publication supabase_realtime add table cognitive_state;
   end if;
 end $$;
+
+-- Phase 20 — Private entry photos (release blocker B2, docs/legal/RELEASE-COMPLIANCE.md).
+-- The app now stores the storage path in image_url and shows photos through
+-- signed links that expire after an hour (core/imageUpload.ts), so the bucket
+-- no longer needs to be public; older rows holding a public URL are read by
+-- path too. Run after the app update is on the phone. Full per-user privacy
+-- still needs B1 (per-user auth); until then the anon read policy remains.
+update storage.buckets set public = false where id = 'snapshot-images';
+
