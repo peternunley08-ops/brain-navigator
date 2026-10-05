@@ -44,7 +44,7 @@ export interface QuickItem {
 }
 
 const DATE_WORDS =
-  /\b(due\s+)?(every\s+|next\s+)?(today|tonight|tomorrow|tmrw|tmr|mon(day)?|tue(s(day)?)?|wed(nesday)?|thu(rs(day)?)?|fri(day)?|sat(urday)?|sun(day)?|(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}|\d{1,2}\/\d{1,2}(\/\d{2,4})?|in (\d{1,2}|a|one|two|three) (days?|weeks?)|end of (the )?(month|week)|this weekend|next week)\b/gi;
+  /\b(due\s+)?(every\s+|next\s+)?(today|tonight|tomorrow|tmrw|tmr|mon(day)?|tue(s(day)?)?|wed(s|nesday)?|thu(r|rs|rsday)?|fri(day)?|sat(urday)?|sun(day)?|(jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}|\d{1,2}\/\d{1,2}(\/\d{2,4})?|in (\d{1,2}|a|one|two|three) (days?|weeks?)|end of (the )?(month|week)|this weekend|next week)\b/gi;
 const TIME_WORDS = /\b(\d{1,3})\s*(minutes?|mins?|m|hours?|hrs?|h)\b/i;
 
 /** The class a line mentions, and the word that named it. */

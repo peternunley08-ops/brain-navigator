@@ -62,6 +62,16 @@ const ACCEPTED = [
   { id: 'anon-rls', why: 'Single-user MVP: wide-open anon RLS by design. No Supabase Auth or per-user RLS without Peter.' },
 ];
 
+// Advisories in packages that only run on the Mac while building (bundler,
+// CLI), never inside the app on the phone, and with no patched release yet
+// (npm's only "fix" is downgrading Expo by many versions). Reported once, as
+// accepted; anything else still shows as dep-vuln. Re-check on each Expo SDK.
+const BUILD_ONLY = {
+  braces: 'Metro file matching on the Mac (dev server and bundling); no patched release (2026-10-05)',
+  'node-forge': 'Expo CLI code-signing on the Mac; no patched release (2026-10-05)',
+};
+ACCEPTED.push({ id: 'dep-vuln-build', why: `Build-only advisories with no fix yet: ${Object.keys(BUILD_ONLY).join(', ')}. Not in the app on the phone.` });
+
 const findings = [];
 for (const f of files) {
   let text;
@@ -90,9 +100,21 @@ if (!/^\.env$/m.test(ignore)) findings.push({ sev: 'high', id: 'env-not-ignored'
 const audit = spawnSync('npm', ['audit', '--omit=dev', '--json'], { cwd: existsSync(join(cwd, 'package-lock.json')) ? cwd : MAIN, encoding: 'utf8', timeout: 60_000 });
 try {
   const vulns = JSON.parse(audit.stdout || '{}').vulnerabilities || {};
+  // One finding per real advisory (the package that has it), not one per
+  // package that merely depends on it.
   for (const [name, v] of Object.entries(vulns)) {
-    if (v.severity === 'high' || v.severity === 'critical')
-      findings.push({ sev: v.severity === 'critical' ? 'high' : 'med', id: 'dep-vuln', file: 'package.json', line: 0, why: `${name} has a known ${v.severity} vulnerability${v.isDirect ? '' : ' (pulled in by another package)'}`, fix: 'Wait for an Expo SDK 57 patch release, then npx expo install --fix. Never npm audit fix --force (it downgrades Expo)' });
+    if (v.severity !== 'high' && v.severity !== 'critical') continue;
+    const own = (v.via || []).filter((x) => typeof x !== 'string');
+    if (!own.length) continue;
+    const title = own.map((x) => x.title).join('; ');
+    findings.push({
+      sev: v.severity === 'critical' ? 'high' : 'med',
+      id: BUILD_ONLY[name] ? 'dep-vuln-build' : 'dep-vuln',
+      file: 'package.json',
+      line: 0,
+      why: `${name}: ${title}${BUILD_ONLY[name] ? ` (${BUILD_ONLY[name]})` : ''}`,
+      fix: 'Update Expo within the SDK (npx expo install --fix) when a patch lands. Never npm audit fix --force (it downgrades Expo)',
+    });
   }
 } catch {
   /* offline: no audit */

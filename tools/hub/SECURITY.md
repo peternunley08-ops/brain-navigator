@@ -44,4 +44,9 @@ Listed in `ACCEPTED` in security.mjs. Changing that list is Peter's call.
   first unlock). An existing token moves over on first launch, and the file
   is rewritten without it only once the keychain holds it. Google sign-in
   never lived in app files: the Google SDK keeps its tokens in the keychain.
-
+- 2026-10-05: dependency flags traced to their two real advisories, braces
+  (Metro file matching) and node-forge (Expo CLI code-signing). Both run only
+  on the Mac while building, never in the app, and neither has a patched
+  release (npm's only "fix" is downgrading to Expo 44). The scanner now reports
+  one finding per real advisory and accepts these two as `dep-vuln-build`;
+  any other high advisory still shows. Re-check on each Expo SDK update.
