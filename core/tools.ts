@@ -14,9 +14,12 @@ export interface Tool {
 
 // Everything that supports the core loop rather than being it. Nothing was
 // removed in the redesign; it lives here instead of in the main navigation.
+//
+// Five groups by what the student needs, not by feature (docs/design/DIRECTION.md,
+// "One Lit Thing", phase 3). Everything that was in the Drawer is still here.
 export const GROUPS: { name: string; tools: Tool[] }[] = [
   {
-    name: 'School',
+    name: 'School and study',
     tools: [
       { title: 'Your day', body: 'A timeline of today', path: '/today', icon: 'clock', color: '#F5B45C' },
       { title: 'Your week', body: 'Timetable and workload', path: '/week', icon: 'calendar', color: '#8FB4E8' },
@@ -26,26 +29,11 @@ export const GROUPS: { name: string; tools: Tool[] }[] = [
       { title: 'I was out', body: 'Catch up after an absence', path: '/absent', icon: 'message', color: '#D99A6C' },
       { title: 'Connections', body: 'Canvas, Classroom, more', path: '/connections', icon: 'sparkle', color: '#AFA2DE' },
       { title: 'Scan a screenshot', body: 'Import from Classroom', path: '/scan', icon: 'image', color: '#D99A6C' },
-    ],
-  },
-  {
-    name: 'Study',
-    tools: [
       { title: 'Helpers', body: 'Ember’s crew, on call', path: '/helpers', icon: 'people', color: '#B79AF0' },
       { title: 'Flashcards', body: 'Spaced repetition decks', path: '/flashcards', icon: 'cards', color: '#E89AB8' },
       { title: 'How to study', body: 'Methods that work', path: '/techniques', icon: 'flask', color: '#AFA2DE' },
       { title: 'Notebook', body: 'Notes and study guides', path: '/notes', icon: 'pen', color: '#E6C46A' },
       { title: 'Search', body: 'Find anything', path: '/search', icon: 'search', color: '#8FB4E8' },
-    ],
-  },
-  {
-    name: 'College',
-    tools: [
-      { title: 'Applications', body: 'Deadlines and checklists', path: '/college', icon: 'cap', color: '#8FB4E8' },
-      { title: 'Activities list', body: 'Common App, with limits', path: '/activities', icon: 'list', color: '#8FB4E8' },
-      { title: 'Scholarships', body: 'Money for school', path: '/scholarships', icon: 'gift', color: '#E6C46A' },
-      { title: 'Rec letters', body: 'Ask, track, thank', path: '/recs', icon: 'message', color: '#E89AB8' },
-      { title: 'Financial aid', body: 'FAFSA step by step', path: '/aid', icon: 'check', color: '#9FD08A' },
     ],
   },
   {
@@ -59,6 +47,9 @@ export const GROUPS: { name: string; tools: Tool[] }[] = [
       { title: 'Your people', body: 'Text someone you trust', path: '/people', icon: 'people', color: '#E89AB8' },
       { title: 'Wins', body: 'The jar and good things', path: '/wins', icon: 'jar', color: '#E6C46A' },
       { title: 'Weekly review', body: 'Five minutes on Sunday', path: '/review', icon: 'star', color: '#F5B45C' },
+      { title: 'Health', body: 'From Apple Health', path: '/health', icon: 'heart', color: '#F08A8A' },
+      { title: 'Trends', body: 'The last two weeks', path: '/trends', icon: 'trend', color: '#8FB4E8' },
+      { title: 'Food', body: 'Meals and macros', path: '/nutrition', icon: 'bowl', color: '#9FD08A' },
     ],
   },
   {
@@ -73,16 +64,13 @@ export const GROUPS: { name: string; tools: Tool[] }[] = [
     ],
   },
   {
-    name: 'Your body',
+    name: 'Later and looking back',
     tools: [
-      { title: 'Health', body: 'From Apple Health', path: '/health', icon: 'heart', color: '#F08A8A' },
-      { title: 'Trends', body: 'The last two weeks', path: '/trends', icon: 'trend', color: '#8FB4E8' },
-      { title: 'Food', body: 'Meals and macros', path: '/nutrition', icon: 'bowl', color: '#9FD08A' },
-    ],
-  },
-  {
-    name: 'Looking closer',
-    tools: [
+      { title: 'Applications', body: 'Deadlines and checklists', path: '/college', icon: 'cap', color: '#8FB4E8' },
+      { title: 'Activities list', body: 'Common App, with limits', path: '/activities', icon: 'list', color: '#8FB4E8' },
+      { title: 'Scholarships', body: 'Money for school', path: '/scholarships', icon: 'gift', color: '#E6C46A' },
+      { title: 'Rec letters', body: 'Ask, track, thank', path: '/recs', icon: 'message', color: '#E89AB8' },
+      { title: 'Financial aid', body: 'FAFSA step by step', path: '/aid', icon: 'check', color: '#9FD08A' },
       { title: 'Loops', body: 'Everything still open', path: '/open-loops', icon: 'loops', color: '#F0845A' },
       { title: 'The Map', body: 'What keeps coming up', path: '/topography', icon: 'map', color: '#AFA2DE' },
       { title: 'Wellness wheel', body: 'Eight parts of a life', path: '/wellness', icon: 'wheel', color: '#AFA2DE' },
@@ -90,7 +78,7 @@ export const GROUPS: { name: string; tools: Tool[] }[] = [
     ],
   },
   {
-    name: 'You',
+    name: 'You and the app',
     tools: [
       { title: 'About you', body: 'What the app knows', path: '/about', icon: 'person', color: '#B79AF0', isNew: true },
       { title: 'Badges', body: 'Quiet ones, never lost', path: '/achievements', icon: 'trophy', color: '#F5B45C' },

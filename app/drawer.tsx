@@ -1,15 +1,21 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card } from '../components/ui/Card';
 import { Chip } from '../components/ui/Chip';
+import { Field } from '../components/ui/Field';
 import { Icon } from '../components/ui/Icon';
 import { IconButton } from '../components/ui/IconButton';
+import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { alpha, colors, fonts } from '../core/theme';
 import { useLifeStore } from '../core/lifeStore';
 import { GROUPS, type Tool, toolFor, TOOLS } from '../core/tools';
+
+// Tools shown per group before "All N".
+const PER_GROUP = 4;
 
 // A soft glow behind the icon in its own colour. Static.
 function IconGlow({ color, id }: { color: string; id: string }) {
@@ -42,16 +48,35 @@ export default function DrawerScreen() {
         .sort((a, b) => (opened[b.path] ?? 0) - (opened[a.path] ?? 0))
         .slice(0, 4);
   const recent = learnOff ? [] : recentPaths.map(toolFor).filter((t): t is Tool => !!t).slice(0, 5);
-  const groups = most.length >= 2 ? [{ name: 'Your most used', tools: most }, ...GROUPS] : GROUPS;
+  // Each group opens on four tools (the ones you open most first, if learning
+  // is on); "All N" shows the rest. Typing filters every tool at once.
+  const [q, setQ] = useState('');
+  const [expanded, setExpanded] = useState<string[]>([]);
+  const term = q.trim().toLowerCase();
+  const found = term ? TOOLS.filter((t) => t.title.toLowerCase().includes(term) || t.body.toLowerCase().includes(term)) : [];
+  const byUse = (tools: Tool[]) => (learnOff ? tools : [...tools].sort((a, b) => (opened[b.path] ?? 0) - (opened[a.path] ?? 0)));
+  const groups = term
+    ? [{ name: found.length ? 'Matches' : 'No tool matches', tools: found }]
+    : most.length >= 2
+      ? [{ name: 'Your most used', tools: most }, ...GROUPS.map((g) => ({ ...g, tools: byUse(g.tools) }))]
+      : GROUPS.map((g) => ({ ...g, tools: byUse(g.tools) }));
+  const help = toolFor('/help');
 
   let n = 0;
   return (
     <Screen
       title="The Drawer"
-      subtitle="Everything else the app can do."
+      subtitle="Everything else, one search away."
       right={<IconButton icon="settings" label="Settings" onPress={() => router.push('/settings')} />}
     >
-      {recent.length >= 2 ? (
+      <Field value={q} onChangeText={setQ} placeholder="Find anything" returnKeyType="search" autoCapitalize="none" autoCorrect={false} clearButtonMode="while-editing" />
+      {term ? (
+        <Pressy onPress={() => router.push({ pathname: '/search', params: { q: q.trim() } })} style={styles.searchAll} accessibilityRole="button">
+          <Icon name="search" size={16} color={colors.flame} />
+          <Text style={styles.searchAllText}>Search your homework, notes and cards for “{q.trim()}”</Text>
+        </Pressy>
+      ) : null}
+      {!term && recent.length >= 2 ? (
         <Reveal index={n++}>
           <Text style={styles.recentLabel}>Recently opened</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recent}>
@@ -67,7 +92,7 @@ export default function DrawerScreen() {
             <Text style={styles.groupName}>{group.name}</Text>
           </Reveal>
           <View style={styles.grid}>
-            {group.tools.map((tool) => (
+            {(term || group.name === 'Your most used' || expanded.includes(group.name) ? group.tools : group.tools.slice(0, PER_GROUP)).map((tool) => (
               <Reveal key={tool.path} index={n++} style={styles.cell}>
                 <Card
                   onPress={() => open(tool)}
@@ -86,14 +111,65 @@ export default function DrawerScreen() {
               </Reveal>
             ))}
           </View>
+          {!term && group.tools.length > PER_GROUP && group.name !== 'Your most used' ? (
+            <Pressy
+              onPress={() => setExpanded((e) => (e.includes(group.name) ? e.filter((x) => x !== group.name) : [...e, group.name]))}
+              haptic="none"
+              accessibilityRole="button"
+              style={styles.all}
+            >
+              <Text style={styles.allText}>{expanded.includes(group.name) ? 'Show fewer' : `All ${group.tools.length}`}</Text>
+            </Pressy>
+          ) : null}
           {group.name === 'Your most used' ? <Text style={styles.why}>From what you open most. Turn this off in About you.</Text> : null}
         </View>
       ))}
+      {help && !term ? (
+        <Card onPress={() => open(help)} accessibilityLabel={help.title} accessibilityHint={help.body} style={styles.help}>
+          <Icon name={help.icon} size={20} color={help.color} />
+          <View style={styles.helpText}>
+            <Text style={styles.title}>{help.title}</Text>
+            <Text style={styles.body}>{help.body}</Text>
+          </View>
+        </Card>
+      ) : null}
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  searchAll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+    paddingVertical: 8,
+  },
+  searchAllText: {
+    flex: 1,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.flame,
+  },
+  all: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+    paddingVertical: 6,
+  },
+  allText: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 14,
+    color: colors.flame,
+  },
+  help: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 24,
+  },
+  helpText: {
+    flex: 1,
+  },
   group: {
     marginTop: 24,
   },
