@@ -65,6 +65,12 @@
           "speechRecognitionPermission": "Brain Navigator turns what you say into text on your phone, so you can speak an entry."
         }
       ],
+      [
+        "expo-sensors",
+        {
+          "motionPermission": false
+        }
+      ],
       "./plugins/withSceneLifecycle"
     ],
     "scheme": "brainnavigator"

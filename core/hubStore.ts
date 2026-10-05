@@ -1,6 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
 import { saveAside } from './saveAside';
+import { readSecret, writeSecret } from './secrets';
 import { isShowing } from './showMode';
 
 // The hub: notes (a small Notion), colleges (a better Common App
@@ -195,6 +196,10 @@ export const EMPTY_HUB: HubData = {
 
 const FILE = 'hub.json';
 
+// True only if an old hub.json token couldn't be moved to the keychain;
+// then the file keeps it so the connection isn't lost.
+let tokenInFile = false;
+
 let timer: ReturnType<typeof setTimeout> | null = null;
 function persist(data: HubData) {
   // Nothing saves while showing someone the app (sample data in memory).
@@ -228,7 +233,8 @@ export const useHubStore = create<HubStore>((set, get) => {
     // and saving it would overwrite everything on disk.
     if (!get().loaded) return;
     const { notes, colleges, plan, links, canvas, scholarships, recs, activities, aid } = get();
-    persist({ notes, colleges, plan, links, canvas, scholarships, recs, activities, aid });
+    // The Canvas token lives in the keychain (core/secrets), never in hub.json.
+    persist({ notes, colleges, plan, links, canvas: tokenInFile ? canvas : { ...canvas, token: '' }, scholarships, recs, activities, aid });
   };
 
   return {
@@ -250,6 +256,7 @@ export const useHubStore = create<HubStore>((set, get) => {
     load: async () => {
       if (get().loaded) return;
       let raw = '';
+      let legacyToken = '';
       try {
         const f = new File(Paths.document, FILE);
         if (f.exists) {
@@ -260,18 +267,29 @@ export const useHubStore = create<HubStore>((set, get) => {
             colleges: d.colleges ?? [],
             plan: d.plan ?? [],
             links: { ...EMPTY_HUB.links, ...(d.links ?? {}) },
-            canvas: { ...EMPTY_HUB.canvas, ...(d.canvas ?? {}) },
+            canvas: { ...EMPTY_HUB.canvas, ...(d.canvas ?? {}), token: '' },
             scholarships: d.scholarships ?? [],
             recs: d.recs ?? [],
             activities: d.activities ?? [],
             aid: d.aid ?? {},
           });
+          legacyToken = d.canvas?.token?.trim() ?? '';
         }
       } catch {
         // Start fresh, but keep the file that couldn't be read.
         if (raw) saveAside(FILE, raw);
       }
-      set({ loaded: true });
+      let token = await readSecret('canvas.token');
+      // Older versions kept the token in hub.json: move it to the keychain,
+      // then rewrite the file without it (only once the keychain has it).
+      let migrated = false;
+      if (legacyToken && !isShowing()) {
+        if (!token) token = legacyToken;
+        migrated = token === legacyToken ? await writeSecret('canvas.token', legacyToken) : true;
+        tokenInFile = !migrated;
+      }
+      set({ canvas: { ...get().canvas, token }, loaded: true });
+      if (migrated) commit({});
     },
 
     createNote: (partial) => {
@@ -330,7 +348,15 @@ export const useHubStore = create<HubStore>((set, get) => {
     deleteBlock: (id) => commit({ plan: get().plan.filter((b) => b.id !== id) }),
 
     setLinks: (patch) => commit({ links: { ...get().links, ...patch } }),
-    setCanvas: (patch) => commit({ canvas: { ...get().canvas, ...patch } }),
+    setCanvas: (patch) => {
+      if (patch.token !== undefined && patch.token !== get().canvas.token && !isShowing()) {
+        void writeSecret('canvas.token', patch.token.trim()).then((ok) => {
+          tokenInFile = !ok;
+          if (!ok) commit({});
+        });
+      }
+      commit({ canvas: { ...get().canvas, ...patch } });
+    },
 
     saveScholarship: (x) => commit({ scholarships: upsert(get().scholarships, x) }),
     deleteScholarship: (id) => commit({ scholarships: get().scholarships.filter((x) => x.id !== id) }),

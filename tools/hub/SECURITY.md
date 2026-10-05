@@ -38,6 +38,10 @@ Listed in `ACCEPTED` in security.mjs. Changing that list is Peter's call.
   optional `NOTION_DATABASES` allowlist. Canvas addresses are forced to
   https. The one-kind-thing text link keeps only digits and +. New scanner
   rules: `fn-error-leak`, `http-token`. Done 2026-10-03 from the Mac: `chat` deleted, `ember` and
-  `notion` redeployed. Open: set `NOTION_DATABASES`; Canvas token and Google sign-in live in plain app
-  files (move to expo-secure-store in the Round 7 native batch).
+  `notion` redeployed. Open: set `NOTION_DATABASES`.
+- 2026-10-05 (Wave 9): the Canvas token moved from `hub.json` to the iPhone
+  keychain (`core/secrets.ts`, expo-secure-store, this-device-only, after
+  first unlock). An existing token moves over on first launch, and the file
+  is rewritten without it only once the keychain holds it. Google sign-in
+  never lived in app files: the Google SDK keeps its tokens in the keychain.
 

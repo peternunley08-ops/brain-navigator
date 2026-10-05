@@ -178,6 +178,8 @@ export interface LifeSettings {
   memoryOff?: boolean;
   /** Opt out of the calm veil over the app in the app switcher (default on). */
   veilOff?: boolean;
+  /** Shake the phone to drop a worry in the box from anywhere. On unless turned off. */
+  shakeWorryOff?: boolean;
   /** The person (from Your people) shown as a one-tap text on Steady. */
   trustedAdultId?: string;
   /** A class name as it appears in screenshots (lowercase) → your class's id. */
@@ -389,7 +391,8 @@ interface LifeStore extends LifeData {
   setList: (which: 'pack' | 'windDownItems', items: ListItem[]) => void;
   toggleListItem: (which: 'packDone' | 'windDownDone', date: string, id: string) => void;
 
-  addWorry: (text: string) => void;
+  /** Returns the new worry's id (for Undo), or undefined if the text was empty. */
+  addWorry: (text: string) => string | undefined;
   resolveWorry: (id: string) => void;
   deleteWorry: (id: string) => void;
 
@@ -684,8 +687,10 @@ export const useLifeStore = create<LifeStore>((set, get) => {
 
     addWorry: (text) => {
       const t = text.trim();
-      if (!t) return;
-      commit({ worries: [{ id: uid(), text: t, createdAt: new Date().toISOString(), resolved: false }, ...get().worries] });
+      if (!t) return undefined;
+      const id = uid();
+      commit({ worries: [{ id, text: t, createdAt: new Date().toISOString(), resolved: false }, ...get().worries] });
+      return id;
     },
     resolveWorry: (id) => commit({ worries: get().worries.map((w) => (w.id === id ? { ...w, resolved: true } : w)) }),
     deleteWorry: (id) => commit({ worries: get().worries.filter((w) => w.id !== id) }),

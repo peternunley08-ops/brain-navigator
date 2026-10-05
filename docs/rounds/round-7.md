@@ -35,9 +35,10 @@ checked · `[–]` decided against (with why)
 
 ## D. Native batch (one rebuild, done together)
 
-14. [ ] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63)
+14. [~] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63). Three hard jolts in 0.8 s open a small sheet; off switch in Settings → Privacy
 15. [ ] Home screen widget: tonight's first class and what's due
 16. [x] A speaker icon in the kit for Fire crackle (drawn in code, no rebuild needed) — seen on and off
+28. [~] The Canvas token moves into the iPhone keychain (`expo-secure-store`); an existing connection carries over on first launch
 
 ## E. Show it well
 
@@ -47,7 +48,17 @@ checked · `[–]` decided against (with why)
 
 ## F. From the idea bank
 
-20. [ ] Pick the next ten from `tools/hub/data/ideas.txt` after A–C, by delight per hour
+20. [x] Picked 2026-10-05, by delight per hour (small first, nothing that needs AI or a new native module). Already built, so skipped: X032 what-if grades, X047 smart start
+    1. [ ] X065 Halloween Ember: a tiny pumpkin hat and orange candles on October 31 (before the 31st)
+    2. [ ] X019 One-tap mood: five faces on the Desk; a tap logs a check-in, a hold opens the full one
+    3. [ ] X122 Label every icon button for VoiceOver (audit, no visual change)
+    4. [ ] X174 Tests for the core helpers: dueLabel, plural, classAverage, planBackward, tonightKey
+    5. [ ] X038 Turned in: a second check so done and submitted aren't confused (optional field)
+    6. [ ] X013 Snooze a Desk card to tonight or tomorrow (optional field)
+    7. [ ] X057 Calm kit: your three most-used calmers pinned at the top of Steady
+    8. [ ] X003 Brain dump before bed: a quick night list that becomes tomorrow's first card
+    9. [ ] X125 Increase Contrast: muted text gets stronger when the iPhone setting is on
+    10. [ ] X084 Gratitude jar shake: shake on the jar page to pull out a past gratitude (reuses the pocket-worry shake)
 
 ## G. From the live walk (2026-10-03)
 

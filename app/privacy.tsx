@@ -24,7 +24,7 @@ const ONLINE = [
 const SENT = [
   { icon: 'chat' as const, title: 'Anthropic (Claude)', body: 'Only when you use an AI chat: your messages and a short note about your day. See How AI works.' },
   { icon: 'calendar' as const, title: 'Google', body: 'Only if you connect Google Calendar, to read and add events.' },
-  { icon: 'cap' as const, title: 'Canvas', body: 'Only if you add a Canvas key, to read your to-do list. The key stays on this phone and is left out of backups.' },
+  { icon: 'cap' as const, title: 'Canvas', body: 'Only if you add a Canvas key, to read your to-do list. The key stays in this phone’s keychain and is left out of backups.' },
 ];
 
 // Where everything lives, said plainly, including the parts that aren't locked yet.
