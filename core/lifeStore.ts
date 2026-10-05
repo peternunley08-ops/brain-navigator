@@ -839,7 +839,6 @@ export function deckStats(deck: Deck) {
   return { fresh, mastered, learning: deck.cards.length - fresh - mastered, total: deck.cards.length };
 }
 
-/** "front :: back" or "front - back" or "front\tback", one per line. */
 /** Note a day a breathing tool was finished (once per day). */
 export function noteBreathDay() {
   const st = useLifeStore.getState();
@@ -851,12 +850,20 @@ export function noteBreathDay() {
 /** The lower Desk sections, top to bottom, unless the student reorders them. */
 export const DESK_ORDER = ['due', 'mind', 'checkin', 'tiles', 'line'];
 
+// Strongest first: a line with "::" splits there even if a colon comes earlier.
+const CARD_SEPARATORS = ['::', '\t', ' — ', ' - ', ': '];
+
+/** "front :: back", "front - back", "front: back" or "front\tback", one per line. */
 export function parseCards(text: string) {
   return text
     .split('\n')
     .map((line) => {
-      const m = line.match(/^(.+?)\s*(?:::|\t| — | - |: )\s*(.+)$/);
-      return m ? { front: m[1].trim(), back: m[2].trim() } : null;
+      const sep = CARD_SEPARATORS.find((x) => line.indexOf(x) > 0);
+      if (!sep) return null;
+      const i = line.indexOf(sep);
+      const front = line.slice(0, i).trim();
+      const back = line.slice(i + sep.length).trim();
+      return front && back ? { front, back } : null;
     })
     .filter((x): x is { front: string; back: string } => !!x);
 }
