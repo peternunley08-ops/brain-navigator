@@ -1,11 +1,10 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, useReducedMotion } from 'react-native-reanimated';
 import { EmberSprite } from '../components/ember/EmberSprite';
 import { Sparks } from '../components/ember/Sparks';
 import { useEmberRig } from '../components/ember/useEmberRig';
-import { ThisOrThatDeck } from '../components/about/ThisOrThatDeck';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Chip, ChipRow } from '../components/ui/Chip';
@@ -14,24 +13,25 @@ import { Icon } from '../components/ui/Icon';
 import { Screen } from '../components/ui/Screen';
 import { Stepper } from '../components/ui/Stepper';
 import { goBack } from '../core/chrome';
+import { dateKey } from '../core/dates';
+import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
-import { THIS_OR_THAT } from '../core/about';
-import { HELPERS } from '../core/helpers';
 import { alpha, colors, fonts } from '../core/theme';
 
 const GRADES = [9, 10, 11, 12];
 const CAPS = [60, 90, 120, 180];
-const STEPS = 5;
+const STEPS = 3;
 
-// First launch (and replayable from Settings). Ember introduces itself and
-// gets three things: what to call you, your classes, and how much a school
-// night should hold, with a quick hello from the helper crew in between,
-// and ends by offering the This-or-that cards. All skippable; all changeable later.
+// First launch (and replayable from Settings). Ember introduces itself as a
+// program and gets three things: what to call you, your classes, and how much
+// a school night should hold. All skippable; all changeable later. The helper
+// crew (Day 2) and the This-or-that cards (Day 3) arrive later as Ember's notes.
 export default function WelcomeScreen() {
   const profile = useSchoolStore((s) => s.profile);
   const classes = useSchoolStore((s) => s.classes);
   const setProfile = useSchoolStore((s) => s.setProfile);
   const rig = useEmberRig();
+  const reduced = useReducedMotion();
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState(profile.name);
@@ -39,6 +39,12 @@ export default function WelcomeScreen() {
   const [sleepGoal, setSleepGoal] = useState(profile.sleepGoal);
   const [cap, setCap] = useState(profile.nightlyCap);
   const [burst, setBurst] = useState(0);
+  // Only a first welcome starts a first week; a replay from Settings doesn't.
+  const [firstTime] = useState(() => !profile.onboarded);
+  const startFirstWeek = () => {
+    const settings = useLifeStore.getState().settings;
+    if (firstTime && !settings.firstWeek) useLifeStore.getState().setSettings({ firstWeek: { started: dateKey(), done: [] } });
+  };
 
   useEffect(() => {
     rig.setMood('happy');
@@ -50,7 +56,7 @@ export default function WelcomeScreen() {
 
   const next = () => {
     if (step === 0) setProfile({ name: name.trim(), grade });
-    if (step === 3) setProfile({ sleepGoal, nightlyCap: cap });
+    if (step === 2) setProfile({ sleepGoal, nightlyCap: cap });
     rig.hopUp(10);
     rig.talk(true);
     setTimeout(() => rig.talk(false), 900);
@@ -59,6 +65,7 @@ export default function WelcomeScreen() {
       return;
     }
     setProfile({ onboarded: true });
+    startFirstWeek();
     rig.setMood('cheer');
     setBurst((b) => b + 1);
     setTimeout(() => goBack(), 700);
@@ -66,21 +73,18 @@ export default function WelcomeScreen() {
 
   const skipAll = () => {
     setProfile({ name: name.trim(), grade, onboarded: true });
+    startFirstWeek();
     goBack();
   };
 
   const line =
     step === 0
-      ? 'Hi. I’m Ember. I’ll help you keep school — and everything else — from piling up.'
+      ? 'Hi. I’m Ember, a small program that keeps your school days from piling up. What should I call you?'
       : step === 1
         ? classes.length
           ? `${classes.length} class${classes.length === 1 ? '' : 'es'} on your schedule. Add more any time.`
           : 'Let’s get your classes in, so I always know what’s next.'
-        : step === 2
-          ? 'I brought friends. Each one helps with a different part of studying.'
-          : step === 3
-            ? 'Almost done: how much should a school night hold?'
-            : 'One last thing, just for fun. Swipe a few, or skip them.';
+        : 'How much should a school night hold?';
 
   return (
     <Screen nav={false} back={false} tone="ember" motes right={<Button label="Skip" variant="ghost" size="sm" onPress={skipAll} />}>
@@ -88,7 +92,7 @@ export default function WelcomeScreen() {
         <Sparks burst={burst} reach={80} />
         <EmberSprite rig={rig} size={120} seed={4.4} />
       </View>
-      <Animated.Text key={`l${step}${classes.length}`} entering={FadeInDown.duration(380)} style={styles.line}>
+      <Animated.Text key={`l${step}${classes.length}`} entering={reduced ? undefined : FadeInDown.duration(380)} style={styles.line}>
         {line}
       </Animated.Text>
 
@@ -98,10 +102,10 @@ export default function WelcomeScreen() {
         ))}
       </View>
 
-      <Animated.View key={step} entering={FadeInDown.delay(120).duration(380)} exiting={FadeOut.duration(150)}>
+      <Animated.View key={step} entering={reduced ? undefined : FadeInDown.delay(120).duration(380)} exiting={reduced ? undefined : FadeOut.duration(150)}>
         {step === 0 ? (
           <View style={styles.block}>
-            <Field label="What should I call you?" placeholder="Your first name (optional)" value={name} onChangeText={setName} autoCapitalize="words" returnKeyType="done" />
+            <Field label="Your name" placeholder="Your first name (optional)" value={name} onChangeText={setName} autoCapitalize="words" returnKeyType="done" />
             <Text style={styles.label}>What grade are you in?</Text>
             <ChipRow>
               {GRADES.map((g) => (
@@ -129,27 +133,6 @@ export default function WelcomeScreen() {
                 <Text style={styles.optBody}>Name, color, days, and times. About a minute per class.</Text>
               </View>
             </Card>
-          </View>
-        ) : step === 2 ? (
-          <View style={styles.block}>
-            <Card>
-              {HELPERS.map((h, i) => (
-                <View key={h.id} style={[styles.crewRow, i > 0 && styles.crewGap]}>
-                  <View style={[styles.crewDot, { backgroundColor: alpha(h.color, 0.18), borderColor: alpha(h.color, 0.5) }]}>
-                    <Icon name={h.icon} size={16} color={h.color} />
-                  </View>
-                  <View style={styles.flex}>
-                    <Text style={styles.optTitle}>{h.name}</Text>
-                    <Text style={styles.optBody}>{h.tagline}</Text>
-                  </View>
-                </View>
-              ))}
-            </Card>
-            <Text style={styles.crewNote}>Their games and plans are free and work on your phone. AI chat comes with 20 replies a week.</Text>
-          </View>
-        ) : step === 4 ? (
-          <View style={styles.block}>
-            <ThisOrThatDeck cards={THIS_OR_THAT.slice(0, 5)} doneText="That’s every card. You can change any answer in About you." />
           </View>
         ) : (
           <View style={styles.block}>
@@ -215,30 +198,6 @@ const styles = StyleSheet.create({
   block: {
     marginTop: 20,
     gap: 4,
-  },
-  crewRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  crewGap: {
-    marginTop: 12,
-  },
-  crewDot: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  crewNote: {
-    marginTop: 10,
-    fontFamily: fonts.body,
-    fontSize: 13,
-    lineHeight: 18,
-    color: colors.textFaint,
-    textAlign: 'center',
   },
   label: {
     marginTop: 18,

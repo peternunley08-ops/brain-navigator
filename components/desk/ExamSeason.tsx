@@ -23,20 +23,26 @@ function inWords(key: string) {
   return `${DAYS[new Date(y, m - 1, d).getDay()]}, ${MONTHS[m - 1]} ${d}`;
 }
 
+type Assignments = ReturnType<typeof useSchoolStore.getState>['assignments'];
+
+/** Tests in the next week, soonest first, when there are three or more (and it isn't closed today). */
+export function whenExamSeason(assignments: Assignments, hidden: boolean) {
+  if (hidden) return null;
+  const tests = assignments
+    .filter((a) => !a.done && a.kind === 'test' && daysUntil(a.due) >= 0 && daysUntil(a.due) <= 7)
+    .sort((a, b) => a.due.localeCompare(b.due));
+  return tests.length >= 3 ? tests : null;
+}
+
 // Three or more tests and exams in the next week: a calm card that leads the
 // Desk. Quizzes are left out (KIND_LABEL keeps them separate); closes for today.
 export function ExamSeason() {
   const assignments = useSchoolStore((s) => s.assignments);
   const classes = useSchoolStore((s) => s.classes);
   const [hidden, close] = useClosedToday(ID);
-  const tests = useMemo(
-    () =>
-      assignments
-        .filter((a) => !a.done && a.kind === 'test' && daysUntil(a.due) >= 0 && daysUntil(a.due) <= 7)
-        .sort((a, b) => a.due.localeCompare(b.due)),
-    [assignments],
-  );
-  if (hidden || tests.length < 3) return null;
+  const found = useMemo(() => whenExamSeason(assignments, hidden), [assignments, hidden]);
+  if (!found) return null;
+  const tests = found;
 
   const first = tests[0];
   const step = first.subtasks?.find((t) => !t.done);
