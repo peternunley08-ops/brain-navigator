@@ -20,7 +20,7 @@ import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
 import { goBack } from '../../core/chrome';
 import { cheerLine } from '../../core/about';
-import { addDays, dateKey, daysUntil, dueLabel, dueWords, KIND_LABEL, planBackward, spreadSteps, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
+import { addDays, dateKey, daysUntil, dueLabel, dueWords, KIND_LABEL, planBackward, spreadSteps, type AssignmentKind, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { helperById, type HelperId } from '../../core/helpers';
 import { useLifeStore } from '../../core/lifeStore';
@@ -43,6 +43,9 @@ I wanted to reach out before ${title} is due (${due}). I’m behind on it and I 
 
 Thank you for understanding.`;
 }
+
+// Kinds that get handed in, so "done" and "turned in" can differ.
+const TURN_IN = new Set<AssignmentKind>(['homework', 'project', 'essay']);
 
 export default function AssignmentScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -138,7 +141,11 @@ export default function AssignmentScreen() {
           <Text style={[styles.title, a.done && styles.done]}>{a.title}</Text>
           <Text style={[styles.due, !a.done && n < 0 && { color: colors.danger }, !a.done && n <= 1 && n >= 0 && { color: colors.flame }]}>
             {a.done
-              ? 'Done'
+              ? !TURN_IN.has(a.kind)
+                ? 'Done'
+                : a.turnedIn
+                  ? 'Done and turned in'
+                  : 'Done, not turned in yet'
               : n === 0 || n === 1
                 ? `Due ${dueWords(a.due)}, ${dateText}`
                 : n < 0
@@ -259,6 +266,19 @@ export default function AssignmentScreen() {
           </Card>
         </Section>
       </Reveal>
+
+      {a.done && TURN_IN.has(a.kind) ? (
+        <Reveal index={3}>
+          <ChipRow>
+            <Chip
+              label={a.turnedIn ? 'Turned in' : 'Mark turned in'}
+              icon="check"
+              selected={!!a.turnedIn}
+              onPress={() => update(a.id, { turnedIn: !a.turnedIn })}
+            />
+          </ChipRow>
+        </Reveal>
+      ) : null}
 
       {!a.done ? (
         <Reveal index={3}>
