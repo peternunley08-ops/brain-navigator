@@ -54,7 +54,7 @@ const DESK_PARTS: { key: string; label: string }[] = [
   { key: 'due', label: 'Due soon' },
   { key: 'mind', label: 'On your mind' },
   { key: 'checkin', label: 'How you’re doing' },
-  { key: 'tiles', label: 'Focus, warmth, habits' },
+  { key: 'tiles', label: 'Focus and habits' },
   { key: 'line', label: 'Line of the day' },
 ];
 

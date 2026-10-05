@@ -17,8 +17,6 @@ import { StreakOfLight } from '../components/desk/StreakOfLight';
 import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing, PickUp } from '../components/desk/DayCards';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
-import { warmth } from '../core/achievements';
-import { ACCESSORIES, EMBER_THEMES } from '../core/emberLook';
 import { OneThing } from '../components/desk/OneThing';
 import { WhatsNew } from '../components/desk/WhatsNew';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -255,9 +253,6 @@ export default function DeskScreen() {
     onToggleFold: () => useLifeStore.getState().setSettings({ deskFolded: deskFolded.includes(key) ? deskFolded.filter((k) => k !== key) : [...deskFolded, key] }),
   });
   const deskOrder = useLifeStore((s) => s.settings.deskOrder) ?? DESK_ORDER;
-  const achievementCount = useLifeStore((s) => Object.keys(s.achievements).length);
-  const warmNow = useMemo(() => warmth(), [achievementCount, assignments, focus]); // eslint-disable-line react-hooks/exhaustive-deps
-  const warmNext = [...Object.values(EMBER_THEMES).map((t) => t.warmth), ...ACCESSORIES.map((a) => a.warmth)].filter((x) => x > warmNow).sort((a, b) => a - b)[0];
   const now = nightNow();
   const dow = now.getDay();
   const reviewDue = (dow === 0 || dow === 6 || (dow === 5 && now.getHours() >= 15)) && !reviews.some((r) => r.weekOf === weekOf());
@@ -425,14 +420,6 @@ show('tiles') ? (
             value={focusToday ? `${focusToday} min` : 'None yet'}
             note={focusToday ? 'Keep the candle going' : 'Light a study candle'}
             onPress={() => router.push('/focus')}
-          />
-          <Tile
-            icon="flame"
-            color={colors.flame}
-            title="Warmth"
-            value={String(warmNow)}
-            note={warmNext ? `${warmNext - warmNow} to next unlock` : 'Everything unlocked'}
-            onPress={() => router.push('/settings')}
           />
           <Tile
             icon="repeat"
