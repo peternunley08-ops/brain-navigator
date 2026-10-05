@@ -1,5 +1,5 @@
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, AppState, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
@@ -250,14 +250,40 @@ export default function CompanionScreen() {
       return;
     }
 
-    // No AI right now — say why, once, and carry on with the built-in flow.
-    if (res.reason === 'limit') setLimited(true);
+    // The consent sheet just opened over the chat: wait for its answer.
+    if (res.reason === 'consent') {
+      awaitingOk.current = answers;
+      rig.setMood('idle');
+      return;
+    }
+
+    offline(res.reason, answers);
+  };
+
+  // No AI right now — say why, once, and carry on with the built-in flow.
+  const offline = (reason: AIFailure, answers: number) => {
+    if (reason === 'limit') setLimited(true);
     setMode('scripted');
     rig.setMood('concerned');
-    say(whyOffline(res.reason), { aside: true });
+    say(whyOffline(reason), { aside: true });
     setTimeout(() => rig.setMood('idle'), 900);
     scriptedNext(answers);
   };
+
+  // Back from the consent sheet: answer with the AI if they said yes,
+  // otherwise nothing was sent and the built-in questions carry on.
+  const awaitingOk = useRef<number | null>(null);
+  const latest = useRef({ think, offline });
+  latest.current = { think, offline };
+  useFocusEffect(
+    useCallback(() => {
+      const answers = awaitingOk.current;
+      if (answers == null) return;
+      awaitingOk.current = null;
+      if (useLifeStore.getState().settings.aiConsentAt) latest.current.think(answers);
+      else latest.current.offline('consent', answers);
+    }, []),
+  );
 
   // Bring back the last conversation above this one, so Ember has it too.
   const resume = () => {
