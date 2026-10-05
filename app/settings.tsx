@@ -318,6 +318,20 @@ export default function SettingsScreen() {
       <View onLayout={jumps.mark('desk')} />
       <Reveal index={n++}>
         <Section title="Your Desk" icon="candle" note="Tap to hide what you don’t use. The class card always stays.">
+          <Card style={styles.layoutCard}>
+            <View style={styles.row}>
+              <View style={styles.flex}>
+                <Text style={styles.rowLabel}>Classic layout</Text>
+                <Text style={styles.hint}>Everything on one long page, the way the Desk used to be. Off: one lit card, Today in three rows, and the rest under More on your desk.</Text>
+              </View>
+              <Switch
+                value={settings.deskLayout === 'classic'}
+                onValueChange={(v) => setSettings({ deskLayout: v ? 'classic' : 'lit' })}
+                trackColor={{ true: colors.flame }}
+                accessibilityLabel="Classic Desk layout"
+              />
+            </View>
+          </Card>
           <ChipRow>
             {DESK_PARTS.map((p) => {
               const on = !settings.deskHidden.includes(p.key);
@@ -614,6 +628,9 @@ const styles = StyleSheet.create({
   },
   down: {
     transform: [{ rotate: '-90deg' }],
+  },
+  layoutCard: {
+    marginBottom: 14,
   },
   restoreToggle: {
     marginTop: 10,

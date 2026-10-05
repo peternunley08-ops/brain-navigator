@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { useContext } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeOut } from 'react-native-reanimated';
 import { useLifeStore } from '../../core/lifeStore';
@@ -7,6 +8,7 @@ import { EmberGlyph } from '../ember/EmberSprite';
 import { Card } from '../ui/Card';
 import { Chip, ChipRow } from '../ui/Chip';
 import { IconButton } from '../ui/IconButton';
+import { LeaveNoteSheet } from './DayCards';
 
 export const WHATS_NEW_VERSION = 3;
 
@@ -18,11 +20,16 @@ const NEW: { label: string; href: string }[] = [
   { label: 'Check in', href: '/checkin' },
 ];
 
+export function whenWhatsNew(seen: number) {
+  return seen < WHATS_NEW_VERSION;
+}
+
 // A one-time note about what just arrived. Dismissed for good with the ×.
 export function WhatsNew() {
   const seen = useLifeStore((s) => s.settings.whatsNewSeen);
   const setSettings = useLifeStore((s) => s.setSettings);
-  if (seen >= WHATS_NEW_VERSION) return null;
+  const leave = useContext(LeaveNoteSheet);
+  if (!whenWhatsNew(seen)) return null;
   return (
     <Animated.View exiting={FadeOut.duration(200)}>
       <Card tint={colors.flame} style={styles.card}>
@@ -36,9 +43,15 @@ export function WhatsNew() {
         </View>
         <ChipRow style={styles.chips}>
           {NEW.map((n) => (
-            <Chip key={n.href} label={n.label} onPress={() => router.push(n.href as never)} style={styles.chip} />
+            <Chip key={n.href} label={n.label} onPress={() => {
+                leave();
+                router.push(n.href as never);
+              }} style={styles.chip} />
           ))}
-          <Chip label="Everything new" icon="arrow" onPress={() => router.push('/whats-new')} style={styles.chip} />
+          <Chip label="Everything new" icon="arrow" onPress={() => {
+              leave();
+              router.push('/whats-new');
+            }} style={styles.chip} />
         </ChipRow>
       </Card>
     </Animated.View>

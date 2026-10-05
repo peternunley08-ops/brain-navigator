@@ -6,7 +6,6 @@ import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-nat
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
-import { AboutCards } from '../components/desk/AboutCards';
 import { ExamSeason } from '../components/desk/ExamSeason';
 import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
@@ -14,11 +13,13 @@ import { SparkFlight } from '../components/ember/Sparks';
 import { weatherKind } from '../components/ui/Backdrop';
 import { useWeatherStore } from '../core/weatherStore';
 import { StreakOfLight } from '../components/desk/StreakOfLight';
-import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing, PickUp } from '../components/desk/DayCards';
+import { DayBrief } from '../components/desk/DayCards';
+import { EmberNote } from '../components/desk/EmberNote';
+import { LitCard, useLitKind } from '../components/desk/LitCard';
+import { TodayRows } from '../components/desk/TodayRows';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
 import { OneThing } from '../components/desk/OneThing';
-import { WhatsNew } from '../components/desk/WhatsNew';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Sparks } from '../components/ember/Sparks';
 import { AssignmentRow } from '../components/school/AssignmentRow';
@@ -263,6 +264,47 @@ export default function DeskScreen() {
   }, [allClear, earn]);
   const habitsDone = activeHabits.filter((h) => logs.some((l) => l.habit_id === h.id && l.log_date === today)).length;
 
+  // Lit (default) or the classic long page (Settings → Your Desk).
+  const lit = useLifeStore((s) => s.settings.deskLayout) !== 'classic';
+  const windSoon = beforeNight(nowMin, startMin);
+  const litKind = useLitKind({ allClear, windDownSoon: windSoon, deskHidden });
+  // "More on your desk" starts folded; 'more' in deskFolded means it was opened.
+  const moreOpen = deskFolded.includes('more');
+  const toggleMore = () => useLifeStore.getState().setSettings({ deskFolded: moreOpen ? deskFolded.filter((k) => k !== 'more') : [...deskFolded, 'more'] });
+  const windChip = (
+    <ChipRow style={styles.windChip}>
+      <Chip
+        label={`Wind-down in ${plural(minutesToNight(nowMin, startMin), 'minute')}`}
+        icon="moon"
+        onPress={() => router.push('/sleep')}
+        accessibilityLabel={`Wind-down at ${clock(startMin)}. Open sleep.`}
+      />
+    </ChipRow>
+  );
+  const reviewCard = (
+    <Card onPress={() => router.push('/review')} style={styles.clear}>
+      <Icon name="star" size={22} color={colors.flame} />
+      <View style={styles.promptText}>
+        <Text style={styles.promptTitle}>Look back at your week</Text>
+        <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
+      </View>
+      <Icon name="chevron" size={18} color={colors.textFaint} />
+    </Card>
+  );
+  const mindButtons = (
+    <>
+      <Button label="Set something down" icon="candle" variant="secondary" onPress={() => router.push('/new-entry')} style={styles.primary} />
+      <Button
+        label="Not sure what it is? Talk it through"
+        variant="ghost"
+        icon="chat"
+        size="sm"
+        onPress={() => router.push('/companion')}
+        style={styles.ghost}
+      />
+    </>
+  );
+
   // The lower Desk sections, in the order chosen in Settings.
   const deskSections: Record<string, ReactNode> = {
     due: (
@@ -345,17 +387,7 @@ show('due') ? (
         </Section>
       </Reveal>
       ) : null}
-      <Reveal index={3}>
-        <Button label="Set something down" icon="candle" variant="secondary" onPress={() => router.push('/new-entry')} style={styles.primary} />
-        <Button
-          label="Not sure what it is? Talk it through"
-          variant="ghost"
-          icon="chat"
-          size="sm"
-          onPress={() => router.push('/companion')}
-          style={styles.ghost}
-        />
-      </Reveal>
+      <Reveal index={3}>{mindButtons}</Reveal>
       </>
     ),
     checkin: (
@@ -485,6 +517,38 @@ show('line') ? (
       ) : null}
       {night && !showAll ? (
         <NightDesk onShowAll={() => setShowAll(true)} />
+      ) : lit ? (
+        // The lit Desk: one lit card, Ember's note, Today in three rows, and
+        // everything else one tap away under "More on your desk".
+        <>
+          <FirstLight seen={firstLightSeen} onSeen={(k) => useLifeStore.getState().setSettings({ firstLightSeen: k })} />
+          <Reveal index={0}>
+            {windSoon && litKind !== 'windDown' ? windChip : null}
+            <LitCard kind={litKind} doneToday={doneToday} />
+            <EmberNote deskHidden={deskHidden} />
+          </Reveal>
+          <Reveal index={1}>
+            <TodayRows open={openLoops.length} show={show} onMood={logMood} candleRow={candleRow} />
+          </Reveal>
+          <Reveal index={2}>
+            <Section title="More on your desk" folded={!moreOpen} onToggleFold={toggleMore}>
+              {reviewDue ? reviewCard : null}
+              {litKind !== 'oneThing' && show('onething') ? <OneThing /> : null}
+              {litKind !== 'class' && litKind !== 'nextClass' ? <NowCard /> : null}
+              {litKind !== 'brief' && show('brief') ? <DayBrief /> : null}
+              {litKind !== 'exams' ? <View style={styles.foldGap}><ExamSeason /></View> : null}
+              {show('countdowns') ? <CountdownChips /> : null}
+              {show('capture') ? <QuickCapture /> : null}
+              {show('pinned') ? <PinnedNotes /> : null}
+              <View style={styles.foldGap}>
+                <StreakOfLight />
+              </View>
+              {show('mind') ? mindButtons : null}
+              {deskSections.tiles}
+              {deskSections.line}
+            </Section>
+          </Reveal>
+        </>
       ) : (
         <>
           <View style={styles.streak}>
@@ -493,41 +557,16 @@ show('line') ? (
           <ExamSeason />
           <FirstLight seen={firstLightSeen} onSeen={(k) => useLifeStore.getState().setSettings({ firstLightSeen: k })} />
           <Reveal index={0}>
-            {beforeNight(nowMin, startMin) ? (
-              <ChipRow style={styles.windChip}>
-                <Chip
-                  label={`Wind-down in ${plural(minutesToNight(nowMin, startMin), 'minute')}`}
-                  icon="moon"
-                  onPress={() => router.push('/sleep')}
-                  accessibilityLabel={`Wind-down at ${clock(startMin)}. Open sleep.`}
-                />
-              </ChipRow>
-            ) : null}
+            {windSoon ? windChip : null}
+            {/* Ember's note: one day card at a time, the rest a tap away. */}
+            <EmberNote deskHidden={deskHidden} />
           {show('countdowns') ? <CountdownChips /> : null}
             {briefFirst && show('brief') ? <DayBrief /> : null}
-            <WhatsNew />
             {show('onething') ? <OneThing /> : null}
             <NowCard />
             {show('capture') ? <QuickCapture /> : null}
             {show('pinned') ? <PinnedNotes /> : null}
-            <Birthday />
-            <WelcomeBack />
-            <PickUp />
-            <FollowUp />
-            {show('question') ? <AboutCards /> : null}
             {!briefFirst && show('brief') ? <DayBrief /> : null}
-            {show('nudges') ? (
-              <>
-                <TryThisWeek />
-                <OneKindThing />
-                <HelperNudge />
-                <PlanTest />
-                <TagTool />
-                <WorryTime />
-                <Resurface />
-                <NextBadge />
-              </>
-            ) : null}
           </Reveal>
 
           {allClear ? (
@@ -545,18 +584,7 @@ show('line') ? (
             </Reveal>
           ) : null}
 
-          {reviewDue ? (
-            <Reveal index={0}>
-              <Card onPress={() => router.push('/review')} style={styles.clear}>
-                <Icon name="star" size={22} color={colors.flame} />
-                <View style={styles.promptText}>
-                  <Text style={styles.promptTitle}>Look back at your week</Text>
-                  <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
-                </View>
-                <Icon name="chevron" size={18} color={colors.textFaint} />
-              </Card>
-            </Reveal>
-          ) : null}
+          {reviewDue ? <Reveal index={0}>{reviewCard}</Reveal> : null}
 
           {deskOrder.map((k) => (
             <Fragment key={k}>{deskSections[k]}</Fragment>
@@ -641,6 +669,7 @@ function DeskCandle({
 
 const styles = StyleSheet.create({
   streak: { marginBottom: 14 },
+  foldGap: { marginTop: 12 },
   headerBtns: {
     flexDirection: 'row',
     gap: 8,
