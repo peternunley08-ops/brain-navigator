@@ -14,6 +14,8 @@ const NOTION_VERSION = '2022-06-28';
 const NOTION_API = 'https://api.notion.com/v1';
 const ID = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
 const MAX_BODY = 60_000;
+// Each call to Notion; a hung one fails instead of holding the function.
+const NOTION_TIMEOUT_MS = 15_000;
 // Optional server secret NOTION_DATABASES: comma-separated database IDs this
 // function may touch. When set, creates must target one of them, and updates
 // and archives must be on a page that lives in one of them.
@@ -65,7 +67,7 @@ Deno.serve(async (req: Request) => {
     // Updates and archives: confirm the page belongs to an allowed database first.
     const pageAllowed = async (pageId: string) => {
       if (!allowed) return true;
-      const r = await fetch(`${NOTION_API}/pages/${pageId}`, { headers });
+      const r = await fetch(`${NOTION_API}/pages/${pageId}`, { headers, signal: AbortSignal.timeout(NOTION_TIMEOUT_MS) });
       if (!r.ok) return false;
       const page = await r.json();
       const db = page?.parent?.database_id;
@@ -104,11 +106,15 @@ Deno.serve(async (req: Request) => {
       return json({ error: 'Unknown action', code: 'bad_request' }, 400);
     }
 
-    const res = await fetch(url, { method, headers, body: JSON.stringify(payload) });
+    const res = await fetch(url, { method, headers, body: JSON.stringify(payload), signal: AbortSignal.timeout(NOTION_TIMEOUT_MS) });
+    if (res.status === 429) return json({ error: 'Notion is busy', code: 'busy', status: 429 }, 503);
     if (!res.ok) return json({ error: 'Notion declined', code: 'upstream', status: res.status }, 502);
     const data = await res.json();
     return json({ id: typeof data.id === 'string' ? data.id : null });
-  } catch {
+  } catch (err) {
+    if (err instanceof DOMException && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+      return json({ error: 'Notion took too long', code: 'busy' }, 504);
+    }
     return json({ error: 'Something went wrong', code: 'server' }, 500);
   }
 });

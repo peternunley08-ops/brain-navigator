@@ -58,3 +58,5 @@ Listed in `ACCEPTED` in security.mjs. Changing that list is Peter's call.
   bad JSON 400, unknown job 400, empty 400, malformed 400, oversize 413,
   upstream failure 502 with only a code. `npm run check:functions`
   type-checks both functions. Redeploy `ember` from the Mac to apply.
+- 2026-10-05: `notion` calls to Notion time out after 15 s (504 `busy`), and Notion's
+  429 maps to `busy`. Redeploy `notion` from the Mac to apply.
