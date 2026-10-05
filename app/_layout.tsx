@@ -26,6 +26,7 @@ import { OpenWatcher } from '../components/OpenWatcher';
 import { ShowBanner } from '../components/ShowBanner';
 import { ShowTour } from '../components/ShowTour';
 import { FireCrackle } from '../components/FireCrackle';
+import { ShakeToWorry } from '../components/ShakeToWorry';
 import { UndoBar } from '../components/UndoBar';
 import { Celebration } from '../components/Celebration';
 import { useHubStore } from '../core/hubStore';
@@ -93,6 +94,7 @@ export default function RootLayout() {
         {entered ? (
           <>
             <FireCrackle />
+            <ShakeToWorry />
             <Stack
               screenOptions={{
                 headerShown: false,
@@ -106,6 +108,7 @@ export default function RootLayout() {
               <Stack.Screen name="add-assignment" options={SHEET} />
               <Stack.Screen name="class-edit" options={SHEET} />
               <Stack.Screen name="new-entry" options={SHEET} />
+              <Stack.Screen name="pocket-worry" options={SHEET} />
               {/* Your day swipes between days, so back stays on the edge there. */}
               <Stack.Screen name="today" options={{ fullScreenGestureEnabled: false }} />
             </Stack>

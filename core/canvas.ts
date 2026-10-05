@@ -1,7 +1,7 @@
 // Canvas: pulls upcoming assignments and quizzes from the student's own
 // Canvas account using a personal access token they generate in Canvas
 // (Account → Settings → New access token). Talks to Canvas directly from
-// the phone; the token is kept on the phone in hub.json.
+// the phone; the token is kept in the iPhone keychain (core/secrets), not in hub.json.
 
 import { dateKey } from './dates';
 import { useHubStore } from './hubStore';

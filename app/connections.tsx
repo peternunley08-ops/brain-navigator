@@ -84,7 +84,7 @@ export default function ConnectionsScreen() {
               <Card style={styles.panel}>
                 <Text style={styles.panelText}>
                   In Canvas, open Account → Settings → New access token, give it a name like “Brain Navigator,” and copy the token. It stays on this
-                  phone.
+                  phone, locked in the iPhone keychain.
                 </Text>
                 <Field label="Your Canvas address" placeholder="yourschool.instructure.com" autoCapitalize="none" autoCorrect={false} keyboardType="url" value={url} onChangeText={setUrl} containerStyle={styles.gap} />
                 <Field label="Access token" placeholder="Paste it here" autoCapitalize="none" autoCorrect={false} secureTextEntry value={token} onChangeText={setToken} containerStyle={styles.gap} />

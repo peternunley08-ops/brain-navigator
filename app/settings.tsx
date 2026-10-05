@@ -475,6 +475,13 @@ export default function SettingsScreen() {
               </View>
               <Switch value={!settings.veilOff} onValueChange={(v) => useLifeStore.getState().setSettings({ veilOff: !v })} trackColor={{ true: colors.flame }} accessibilityLabel="Hide the app in the app switcher" />
             </View>
+            <View style={styles.row}>
+              <View style={styles.flex}>
+                <Text style={styles.rowLabel}>Shake to drop a worry</Text>
+                <Text style={styles.hint}>Give the phone a firm shake on any page to write a worry down and put it in the box.</Text>
+              </View>
+              <Switch value={!settings.shakeWorryOff} onValueChange={(v) => useLifeStore.getState().setSettings({ shakeWorryOff: !v })} trackColor={{ true: colors.flame }} accessibilityLabel="Shake to drop a worry" />
+            </View>
           </Card>
         </Section>
       </Reveal>
