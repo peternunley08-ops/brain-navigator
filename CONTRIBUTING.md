@@ -80,3 +80,11 @@ tools/hub/    Quality gate (check.mjs), security scan (security.mjs)
 - Run `node tools/hub/security.mjs` before a PR that touches networking,
   storage or `supabase/`. Rules: [`tools/hub/SECURITY.md`](tools/hub/SECURITY.md).
 - Found something sensitive in the repo? Tell Peter privately; don't open a public issue.
+
+## Agents
+
+`.claude/agents/` holds Claude Code agents for this repo. **Muse**
+(`muse.md`) is the design director: emotional design, attention, and a
+simpler layout, within ethical hard lines for a teen audience. In Claude Code:
+"Ask muse to redesign the Desk" (or any page or flow).
+
