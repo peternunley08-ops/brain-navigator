@@ -58,7 +58,7 @@ try everything without real data. Nothing saves while showing.
    ```bash
    node tools/hub/check.mjs --agent yourname
    ```
-   It runs the house rules on your changed lines plus the TypeScript check. Fix every error.
+   It runs the house rules on your changed lines, the TypeScript check, and the unit tests (`npm test`, in `tests/`). Fix every error.
 5. **Open a pull request** into `main`. The template asks what changed, the checks, and **how to check it live** (what to tap, what you should see). Peter reviews and merges.
 6. **Live check:** nothing counts as done until it's seen working in the Simulator or on a phone. Say so in the PR.
 

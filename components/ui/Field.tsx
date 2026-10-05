@@ -28,6 +28,8 @@ export const Field = forwardRef<TextInput, FieldProps>(function Field(
       <TextInput
         ref={ref}
         inputAccessoryViewID={doneBar ? barId : undefined}
+        // VoiceOver keeps saying what the field is for after it's filled in.
+        accessibilityLabel={label ?? rest.placeholder}
         placeholderTextColor={colors.hint}
         selectionColor={colors.flame}
         multiline={multiline}

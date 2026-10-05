@@ -39,6 +39,8 @@ interface Item {
 
 const LENGTHS = [15, 30, 45, 60, 90];
 const BLOCK_COLORS = ['#F5B45C', '#8FB4E8', '#8CC0A8', '#AFA2DE', '#F0845A'];
+// What VoiceOver says for each swatch.
+const COLOR_NAMES = ['Gold', 'Blue', 'Green', 'Lavender', 'Coral'];
 
 function parseKey(key: string) {
   const [y, m, d] = key.split('-').map(Number);
@@ -229,8 +231,15 @@ export default function TodayScreen() {
                   ))}
                 </ChipRow>
                 <View style={styles.swatches}>
-                  {BLOCK_COLORS.map((c) => (
-                    <Pressy key={c} onPress={() => setColor(c)} depth={0.85} style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchOn]} />
+                  {BLOCK_COLORS.map((c, i) => (
+                    <Pressy
+                      key={c}
+                      onPress={() => setColor(c)}
+                      depth={0.85}
+                      style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchOn]}
+                      accessibilityLabel={`${COLOR_NAMES[i]} block`}
+                      accessibilityState={{ selected: color === c }}
+                    />
                   ))}
                 </View>
                 <Button label={`Add ${clock(start)} – ${clock(start + length)}`} icon="plus" disabled={!title.trim()} onPress={save} style={styles.gap} />

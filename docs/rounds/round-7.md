@@ -49,15 +49,15 @@ checked · `[–]` decided against (with why)
 ## F. From the idea bank
 
 20. [x] Picked 2026-10-05, by delight per hour (small first, nothing that needs AI or a new native module). Already built, so skipped: X032 what-if grades, X047 smart start
-    1. [ ] X065 Halloween Ember: a tiny pumpkin hat and orange candles on October 31 (before the 31st)
+    1. [~] X065 Halloween Ember: a tiny pumpkin hat on October 31 and one hello line (birthday hat wins). Check by setting the phone's date to Oct 31
     2. [ ] X019 One-tap mood: five faces on the Desk; a tap logs a check-in, a hold opens the full one
-    3. [ ] X122 Label every icon button for VoiceOver (audit, no visual change)
-    4. [ ] X174 Tests for the core helpers: dueLabel, plural, classAverage, planBackward, tonightKey
+    3. [~] X122 Label every icon button for VoiceOver. Audit: IconButton already requires a label; one bare control found (Your day's color swatches, now named); text fields now keep their label after they're filled. Listen with VoiceOver on the phone
+    4. [x] X174 Tests for the core helpers: `npm test` (Node's built-in runner, no new packages), 16 tests over dates, plural, the night clock, classAverage, letterFor, planBackward. Part of the gate now
     5. [ ] X038 Turned in: a second check so done and submitted aren't confused (optional field)
     6. [ ] X013 Snooze a Desk card to tonight or tomorrow (optional field)
     7. [ ] X057 Calm kit: your three most-used calmers pinned at the top of Steady
     8. [ ] X003 Brain dump before bed: a quick night list that becomes tomorrow's first card
-    9. [ ] X125 Increase Contrast: muted text gets stronger when the iPhone setting is on
+    9. [ ] X125 Increase Contrast: muted text gets stronger when the iPhone setting is on. Bigger than it looked: theme colors are plain strings used by SVG and alpha(), so iOS's DynamicColorIOS can't drop in; needs a theme that re-renders on the setting
     10. [ ] X084 Gratitude jar shake: shake on the jar page to pull out a past gratitude (reuses the pocket-worry shake)
 
 ## G. From the live walk (2026-10-03)

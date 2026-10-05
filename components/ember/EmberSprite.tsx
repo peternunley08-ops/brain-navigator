@@ -35,6 +35,11 @@ interface EmberSpriteProps {
   theme?: EmberTheme;
 }
 
+// Halloween pumpkin hat.
+const PUMPKIN = '#E8893A';
+const PUMPKIN_RIB = '#B8611F';
+const PUMPKIN_STEM = '#6E8B4E';
+
 export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, glasses = false, accessory, theme }: EmberSpriteProps) {
   const { time, wob, blink, lookX, lookY, happy, sleepy, dizzy, mouth, smile, flare, lean, stretch, hop, squash } = rig;
   const unit = size / 100;
@@ -47,6 +52,7 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
   const hat = useEmberStore((s) => s.hat);
   const peeks = useEmberStore((s) => s.peeks);
   const prop = held ?? (hat ? 'hat' : null);
+  const pumpkin = hat === 'pumpkin' && !held;
   const reading = prop === 'book';
 
   // Night: a tiny candle (the book wins during Focus).
@@ -239,6 +245,22 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
     const y = 58 + lookY.value * 1.4;
     return { d: `M${x - 6.5},${y - 7} L${x + 7.5},${y - 7} M${x - 3.5},${y - 14} L${x + 4},${y - 14}` };
   });
+  // Halloween: a small pumpkin sits where the party hat would.
+  const pumpkinBody = useAnimatedProps(() => {
+    const x = CX + 1 + lookX.value * 2.2;
+    const y = 56 + lookY.value * 1.4;
+    return { d: `M${x - 11},${y - 1} Q${x - 13},${y - 12} ${x},${y - 12} Q${x + 13},${y - 12} ${x + 11},${y - 1} Q${x},${y + 4} ${x - 11},${y - 1} Z` };
+  });
+  const pumpkinRibs = useAnimatedProps(() => {
+    const x = CX + 1 + lookX.value * 2.2;
+    const y = 56 + lookY.value * 1.4;
+    return { d: `M${x},${y - 12} Q${x - 5},${y - 5} ${x},${y + 1.5} M${x},${y - 12} Q${x + 5},${y - 5} ${x},${y + 1.5}` };
+  });
+  const pumpkinStem = useAnimatedProps(() => {
+    const x = CX + 1 + lookX.value * 2.2;
+    const y = 56 + lookY.value * 1.4;
+    return { d: `M${x},${y - 12} Q${x + 0.5},${y - 16} ${x + 3},${y - 17.5}` };
+  });
   const hatPom = useAnimatedProps(() => ({
     cx: CX + 1 + lookX.value * 2.2,
     cy: 58 - 20 + lookY.value * 1.4,
@@ -329,7 +351,13 @@ export const EmberSprite = memo(function EmberSprite({ rig, size, seed = 1.3, gl
             <AnimatedPath stroke={INK} strokeWidth={1.8} strokeLinecap="round" fill="none" animatedProps={bridge} />
           </>
         ) : null}
-        {prop === 'hat' ? (
+        {prop === 'hat' && pumpkin ? (
+          <>
+            <AnimatedPath fill={PUMPKIN} stroke={colors.flameInk} strokeWidth={0.6} strokeLinejoin="round" animatedProps={pumpkinBody} />
+            <AnimatedPath stroke={PUMPKIN_RIB} strokeWidth={1} strokeLinecap="round" fill="none" animatedProps={pumpkinRibs} />
+            <AnimatedPath stroke={PUMPKIN_STEM} strokeWidth={2} strokeLinecap="round" fill="none" animatedProps={pumpkinStem} />
+          </>
+        ) : prop === 'hat' ? (
           <>
             <AnimatedPath fill="#E89AB8" stroke={colors.flameInk} strokeWidth={0.6} strokeLinejoin="round" animatedProps={hatCone} />
             <AnimatedPath stroke={P.core[0]} strokeWidth={1.6} strokeLinecap="round" fill="none" animatedProps={hatStripe} />

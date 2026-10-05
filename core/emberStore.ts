@@ -54,8 +54,8 @@ interface EmberStore extends EmberPrefs {
   seen: string[];
   /** Transient (never saved): what Ember is holding right now. */
   prop: 'book' | 'hat' | null;
-  /** Birthday hat, worn whenever nothing else is held. */
-  hat: boolean;
+  /** A seasonal hat (birthday party hat, Halloween pumpkin), worn whenever nothing else is held. */
+  hat: false | 'party' | 'pumpkin';
   /** Bumps once to make Ember glance up from its book. */
   peeks: number;
 
@@ -64,7 +64,7 @@ interface EmberStore extends EmberPrefs {
   setNapping: (napping: boolean) => void;
   setBubbleOpen: (open: boolean) => void;
   setProp: (prop: 'book' | 'hat' | null) => void;
-  setHat: (hat: boolean) => void;
+  setHat: (hat: false | 'party' | 'pumpkin') => void;
   peek: () => void;
   markSeen: (id: string) => void;
   /** Ember says something short, then it fades. */
