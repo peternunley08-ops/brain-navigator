@@ -27,7 +27,7 @@ export const supabase = new Proxy(real, {
       if (prop === 'from') return (table: string) => sampleFrom(table);
       if (prop === 'channel') return () => sampleChannel;
       if (prop === 'functions') return { invoke: async () => ({ data: null, error: new Error('Showing sample data') }) };
-      if (prop === 'storage') return { from: () => ({ upload: async () => failed, getPublicUrl: () => ({ data: { publicUrl: '' } }) }) };
+      if (prop === 'storage') return { from: () => ({ upload: async () => failed, getPublicUrl: () => ({ data: { publicUrl: '' } }), createSignedUrl: async () => ({ data: null, error: failed.error }) }) };
     }
     const v = Reflect.get(target, prop, receiver);
     return typeof v === 'function' ? v.bind(target) : v;
