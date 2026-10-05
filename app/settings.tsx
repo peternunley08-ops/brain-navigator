@@ -520,6 +520,7 @@ export default function SettingsScreen() {
             <Button label="Share a summary as text" icon="list" variant="ghost" size="sm" onPress={shareSummary} style={styles.restoreToggle} />
             <Text style={[styles.hint, styles.center]}>A file with everything. The Canvas key is left out.</Text>
             <Button label="Where your stuff lives" icon="pin" variant="ghost" size="sm" onPress={() => router.push('/privacy')} style={styles.restoreToggle} />
+            <Button label="Open-source licenses" icon="book" variant="ghost" size="sm" onPress={() => router.push('/licenses')} style={styles.restoreToggle} />
             <Button
               label={restoreOpen ? 'Never mind' : 'Restore from a backup'}
               icon={restoreOpen ? 'close' : 'repeat'}
