@@ -81,6 +81,8 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] First AI request opens "Before Ember thinks with AI"; Not now sends nothing; Allow, then Ember replies; How AI works here can take the OK back
 - [ ] Ember's chat shows "Ember is a computer program, not a person…" under its name
 - [ ] Ember replies in chat (confirms the Supabase project, Round 7 G21)
+- [ ] Goodnight continuity: tell Ember about a quiz in two days and save the memory; the night before, Put the day down, Goodnight: Ember adds "Tomorrow I'll ask how the quiz went." With memory off in About you: no such line
+- [ ] After wind-down (brainnavigator://?night=23:30) the tab bar is a little dimmer but readable; the Night Desk link reads "Open the day desk"
 - [ ] School: subtitle "Tonight: 40m of 1h 30m" (or "Nothing due tonight."); Tonight's load is the first card, with "Sort it out" when over; the header has one menu button (Your schedule, Scan, Search)
 - [ ] Focus: the next thing due today or tomorrow is already chosen as the target (Just focus clears it); This week is folded and opens on tap
 - [ ] + sheet: titled "Put something down"; with brainnavigator://?night=23:30 "Something on my mind" is first and A focus session last; at 4 PM on a weekday "Homework or a test" first; on Sunday "A win" leads the small row

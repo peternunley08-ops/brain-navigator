@@ -11,7 +11,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { goHome } from '../core/chrome';
 import { clock } from '../core/dates';
-import { soundsLikeCrisis } from '../core/emberAI';
+import { followUpOn, followUpTopic, soundsLikeCrisis } from '../core/emberAI';
 import { useEmberStore } from '../core/emberStore';
 import * as Haptics from '../core/haptics';
 import { useLifeStore, isSealed } from '../core/lifeStore';
@@ -86,10 +86,13 @@ export default function GoodnightScreen() {
     // Whatever is typed but not kept yet goes in the box too, so nothing is lost.
     if (text.trim()) addWorry(text.trim());
     const latest = today.done[0];
+    // Continuity: if Ember means to ask about something tomorrow, it says so now.
+    const ask = followUpOn(morningKey());
+    const tomorrow = ask?.followUp ? ` Tomorrow I’ll ask how ${followUpTopic(ask.followUp)} went.` : '';
     // They asked for the goodnight, so it stays whole (night lines are
     // otherwise cut to the first sentence, which dropped "Goodnight.").
     useEmberStore.getState().say(
-      latest
+      (latest
         ? `You finished ${latest.title}. Rest now.`
         : today.minutes >= 10
           ? `${plural(today.minutes, 'minute')} of focus today. Goodnight.`
@@ -97,7 +100,7 @@ export default function GoodnightScreen() {
             ? 'You wrote down a win today. Goodnight.'
             : checkedIn
               ? 'You checked in with yourself today. Goodnight.'
-            : 'You made it through today. Goodnight.',
+            : 'You made it through today. Goodnight.') + tomorrow,
       'happy',
       true
     );

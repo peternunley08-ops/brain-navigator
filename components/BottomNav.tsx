@@ -1,7 +1,7 @@
 import * as Haptics from '../core/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname, useRootNavigationState } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { type LayoutChangeEvent, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, SlideInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { GestureDetector, GestureHandlerRootView, usePanGesture } from 'react-native-gesture-handler';
@@ -10,7 +10,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { navTucked, navWanted, scrollFocusedToTop } from '../core/chrome';
 import { useLifeStore } from '../core/lifeStore';
 import { springs, timings } from '../core/motion';
-import { nightNow } from '../core/night';
+import { isNight, minutesOf, nightClockVersion, nightNow, nightStart, subscribeNightClock } from '../core/night';
 import { addOrder } from '../core/quickAddOrder';
 import { dateKey, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, gradients, radii } from '../core/theme';
@@ -135,10 +135,16 @@ export function BottomNav() {
     turn.value = withSpring(adding ? 1 : 0, springs.snappy);
   }, [adding, turn]);
   const plusStyle = useAnimatedStyle(() => ({ transform: [{ rotate: `${turn.value * 45}deg` }] }));
+  // After wind-down the room's light should be the candle, not the chrome:
+  // the bar steps back a little (still readable, still tappable).
+  const windDown = useLifeStore((s) => s.settings.windDown);
+  const nightOwl = useLifeStore((s) => s.about.picks.time === 'b');
+  useSyncExternalStore(subscribeNightClock, nightClockVersion);
+  const late = isNight(minutesOf(nightNow()), nightStart(windDown, nightOwl));
 
   return (
     <Animated.View style={[styles.wrap, { paddingBottom: Math.max(16, insets.bottom - 8) }, shown]} pointerEvents="box-none">
-      <View style={styles.bar}>
+      <View style={[styles.bar, late && styles.barLate]}>
         <Animated.View style={[styles.pill, pillStyle]} pointerEvents="none" />
         {LEFT.map((item) => (
           <NavSegment
@@ -472,6 +478,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.55,
     shadowRadius: 20,
     elevation: 10,
+  },
+  barLate: {
+    opacity: 0.75,
   },
   segment: {
     flex: 1,

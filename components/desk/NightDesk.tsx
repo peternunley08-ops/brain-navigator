@@ -49,7 +49,7 @@ function Stack({ onShowAll }: { onShowAll: () => void }) {
       <Reveal index={4}>
         <Button label="Put the day down" icon="moon" onPress={() => router.push('/goodnight')} style={styles.primary} />
         <Pressy onPress={onShowAll} hitSlop={10} accessibilityRole="button" style={styles.link}>
-          <Text style={styles.linkText}>Show the whole Desk</Text>
+          <Text style={styles.linkText}>Open the day desk</Text>
         </Pressy>
       </Reveal>
     </>
