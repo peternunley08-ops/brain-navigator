@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
@@ -31,7 +31,9 @@ interface Hit {
 // One box that finds anything: homework, classes, notes, flashcards,
 // colleges, wins.
 export default function SearchScreen() {
-  const [q, setQ] = useState('');
+  // The Drawer's "Find anything" can open this with what was typed.
+  const { q: initial } = useLocalSearchParams<{ q?: string }>();
+  const [q, setQ] = useState(typeof initial === 'string' ? initial : '');
   const [open, setOpen] = useState<string[]>([]);
   // Select the stored array itself; a fallback inside the selector would be a new array every render.
   const recent = useLifeStore((s) => s.settings.recentSearches) ?? NONE;
