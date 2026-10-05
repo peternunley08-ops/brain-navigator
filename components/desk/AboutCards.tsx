@@ -27,6 +27,23 @@ const RECHECK_DAYS = 60;
 // five quick cards for someone new, then a question a day (a word or two,
 // or skip), and every couple of months a "still true?" on an old answer.
 // Everything lands in About you, where it can be changed or forgotten.
+/**
+ * Which About-you card applies today, if any: the five quick ones, a "still
+ * true?", the week in a sentence, the question of the day, or something noticed.
+ * `playing` keeps the five on screen once started; `notes` counts the things
+ * the app has noticed (asked last, only when nothing else applies).
+ */
+export function whenAboutCards(about: AboutMe, onboarded: boolean, today: string, notes: () => number, playing = false) {
+  if (!onboarded) return null;
+  if (!about.introDone && (playing || FIRST_FIVE.some((c) => !about.picks[c.id]))) return { kind: 'intro' as const };
+  const recheck = stillTrue(about, today);
+  if (recheck) return { kind: 'still' as const, recheck };
+  if (weekSentenceDue(about)) return { kind: 'week' as const };
+  const q = questionOfTheDay(about, today);
+  if (q) return { kind: 'question' as const, q };
+  return about.noticedOn === today || !notes() ? null : { kind: 'noticed' as const };
+}
+
 export function AboutCards() {
   const about = useLifeStore((s) => s.about);
   const onboarded = useSchoolStore((s) => s.profile.onboarded);
@@ -34,19 +51,17 @@ export function AboutCards() {
   // Once the five cards are showing, they stay until finished or closed,
   // so the last answer gets its "thanks" instead of vanishing mid-swipe.
   const [playing, setPlaying] = useState(false);
-  const needIntro = !about.introDone && (playing || FIRST_FIVE.some((c) => !about.picks[c.id]));
+  const card = whenAboutCards(about, onboarded, today, () => learnedNotes().length, playing);
+  const needIntro = card?.kind === 'intro';
   useEffect(() => {
     if (needIntro) setPlaying(true);
   }, [needIntro]);
-  if (!onboarded) return null;
-
-  if (needIntro) return <GetToKnowYou />;
-  const recheck = stillTrue(about, today);
-  if (recheck) return <StillTrue {...recheck} />;
-  if (weekSentenceDue(about)) return <WeekSentence />;
-  const q = questionOfTheDay(about, today);
-  if (q) return <Question q={q} />;
-  return about.noticedOn === today ? null : <Noticed />;
+  if (!card) return null;
+  if (card.kind === 'intro') return <GetToKnowYou />;
+  if (card.kind === 'still') return <StillTrue {...card.recheck} />;
+  if (card.kind === 'week') return <WeekSentence />;
+  if (card.kind === 'question') return <Question q={card.q} />;
+  return <Noticed />;
 }
 
 // One thing the app has noticed, a different one each day, with what it's

@@ -89,6 +89,7 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] Settings → Open-source licenses: search "fraunces", tap it, the license text opens
 - [ ] After deploying ember 4.7: tell Ember "I want to die" (testing): help lines on screen at once, the reply carries the Need help now button
 - [ ] The app opens on iOS 27 (scene life cycle) and deep links land (\`brainnavigator://about\`)
+- [ ] Ember's note (design phase 1): show mode (Riley), Desk by day: one day card near the top, "Ember has N more" under it; tap it, the others are in a sheet ending "That's everything."; tap a card there, the sheet closes and the page opens; close the shown card with the x, the next takes its place; Reduce Motion on, same with no slide
 
 `;
 writeFileSync(join(ROOT, 'docs/LIVE-CHECKS.md'), head + body.join('\n'));

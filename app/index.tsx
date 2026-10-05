@@ -6,7 +6,6 @@ import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-nat
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
-import { AboutCards } from '../components/desk/AboutCards';
 import { ExamSeason } from '../components/desk/ExamSeason';
 import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
@@ -14,11 +13,11 @@ import { SparkFlight } from '../components/ember/Sparks';
 import { weatherKind } from '../components/ui/Backdrop';
 import { useWeatherStore } from '../core/weatherStore';
 import { StreakOfLight } from '../components/desk/StreakOfLight';
-import { Birthday, DayBrief, FollowUp, HelperNudge, NextBadge, PlanTest, Resurface, TagTool, TryThisWeek, WelcomeBack, WorryTime, OneKindThing, PickUp } from '../components/desk/DayCards';
+import { DayBrief } from '../components/desk/DayCards';
+import { EmberNote } from '../components/desk/EmberNote';
 import { checkAchievements } from '../core/achievements';
 import { QuickCapture } from '../components/desk/QuickCapture';
 import { OneThing } from '../components/desk/OneThing';
-import { WhatsNew } from '../components/desk/WhatsNew';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Sparks } from '../components/ember/Sparks';
 import { AssignmentRow } from '../components/school/AssignmentRow';
@@ -503,31 +502,15 @@ show('line') ? (
                 />
               </ChipRow>
             ) : null}
+            {/* Ember's note: one day card at a time, the rest a tap away. */}
+            <EmberNote deskHidden={deskHidden} />
           {show('countdowns') ? <CountdownChips /> : null}
             {briefFirst && show('brief') ? <DayBrief /> : null}
-            <WhatsNew />
             {show('onething') ? <OneThing /> : null}
             <NowCard />
             {show('capture') ? <QuickCapture /> : null}
             {show('pinned') ? <PinnedNotes /> : null}
-            <Birthday />
-            <WelcomeBack />
-            <PickUp />
-            <FollowUp />
-            {show('question') ? <AboutCards /> : null}
             {!briefFirst && show('brief') ? <DayBrief /> : null}
-            {show('nudges') ? (
-              <>
-                <TryThisWeek />
-                <OneKindThing />
-                <HelperNudge />
-                <PlanTest />
-                <TagTool />
-                <WorryTime />
-                <Resurface />
-                <NextBadge />
-              </>
-            ) : null}
           </Reveal>
 
           {allClear ? (
