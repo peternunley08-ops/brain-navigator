@@ -54,10 +54,13 @@ Pay special attention to:
 - **Drawer** (search, five groups, All N), **+ sheet** order by time,
   **School** (Tonight first, one menu), **Focus** (target preselected),
   **Habits** (no streaks), **Goodnight** continuity line.
-- **Desk "One Lit Thing"** (Muse's phases 1, 2, 7), if merged: one Ember note
-  at a time with "Ember has N more", the lit card, Today rows, "More on your
-  desk", Settings switch back to the classic Desk, the 3-step first run
-  (Settings → reset the welcome). If anything is off, prefer fixing over
+- **Desk "One Lit Thing"** (Muse's phases 1, 2, 7, merged): one Ember note
+  at a time with "Ember has N more" (sheet), the lit card, Today rows, "More on
+  your desk" (folded), Settings → Your Desk → Classic layout, the 3-step first
+  run (Settings → start over) and the Day 2 crew / Day 3 This-or-that notes.
+  Muse couldn't see it, so check: the note sheet with the keyboard up, spacing
+  around the lit card, the Today rows' dots, and that every card that used to
+  show is still reachable (queue, fold or lit card). Prefer fixing over
   reverting; the classic switch is the safety net.
 
 Commit the status flips and regenerate: `node tools/hub/live-checks.mjs`.
@@ -114,5 +117,5 @@ disclosure and 3-hour reminder; minor-safety AI rules; server crisis
 guarantee; private photo links; release builds skip Notion; open-source
 licenses page; Drawer regrouped with search; + sheet by time of day; School
 and Focus focal points; no streak pressure; goodnight continuity; and Muse's
-Desk phases if merged. Details: `git log --oneline -40`, `docs/rounds/round-7.md`,
+Desk phases (one lit card, Ember's note queue, 3-step first run). Details: `git log --oneline -40`, `docs/rounds/round-7.md`,
 `docs/design/DIRECTION.md`, `docs/legal/RELEASE-COMPLIANCE.md`.

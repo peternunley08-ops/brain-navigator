@@ -103,7 +103,7 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] **25.** Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge _(open, [round-7.md:69](rounds/round-7.md#L69))_
 - [ ] **26.** What's New's October entry could name the later surprises (sparks, firsts, weather, the shelf) _(open, [round-7.md:70](rounds/round-7.md#L70))_
 - [ ] **27.** Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today _(open, [round-7.md:71](rounds/round-7.md#L71))_
-- [ ] **28.** Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10) _(open, [round-7.md:72](rounds/round-7.md#L72))_
+- [ ] **37.** Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10) _(open, [round-7.md:72](rounds/round-7.md#L72))_
 
 ### H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
@@ -114,7 +114,7 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] **33.** B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here _(check, [round-7.md:80](rounds/round-7.md#L80))_
 - [ ] **34.** B6 Age 13+ (decided): Declared Age Range API (native), under-13 gate, honest App Store age rating _(open, [round-7.md:81](rounds/round-7.md#L81))_
 - [ ] **35.** B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol _(check, [round-7.md:82](rounds/round-7.md#L82))_
-- [ ] **36.** B8 Anthropic's child-safety system prompt in `ember`; confirm minors use with Anthropic _(open, [round-7.md:83](rounds/round-7.md#L83))_
+- [ ] **36.** B8 Anthropic for minors: disclosure and safety rules done; request the official child-safety system prompt from Anthropic and add it _(check, [round-7.md:83](rounds/round-7.md#L83))_
 
 ## Round 6: Masterpiece 6: Everything in tune (24)
 
