@@ -1,3 +1,34 @@
+import { File, Paths } from 'expo-file-system';
+import { AccessibilityInfo } from 'react-native';
+
+// Increase Contrast (the iPhone setting) makes muted text and lines stronger.
+// Theme colors are plain strings baked into each file's styles as it loads
+// (and used by SVG and alpha()), so the setting is remembered in a small note
+// read here, before any style exists; a change shows the next time the app opens.
+function contrastNote() {
+  return new File(Paths.document, 'contrast.txt');
+}
+const strong = (() => {
+  try {
+    const f = contrastNote();
+    return f.exists && f.textSync() === '1';
+  } catch {
+    return false;
+  }
+})();
+function noteContrast(on: boolean) {
+  try {
+    const f = contrastNote();
+    if (f.exists && f.textSync() === (on ? '1' : '0')) return;
+    if (!f.exists) f.create();
+    f.write(on ? '1' : '0');
+  } catch {
+    // Missing the note only means normal contrast; never let it break the app.
+  }
+}
+AccessibilityInfo.isDarkerSystemColorsEnabled().then(noteContrast, () => {});
+AccessibilityInfo.addEventListener('darkerSystemColorsChanged', noteContrast);
+
 // Candlelight — a study at night, lit by the things you've set down.
 //
 // Revised 2026-09-29: the whole app moved off the vellum-on-vellum "field
@@ -16,14 +47,14 @@ export const colors = {
   surface: '#211A25',
   surfaceHigh: '#2B2230',
   surfaceSunk: '#17121A',
-  line: 'rgba(255, 228, 190, 0.09)',
-  lineStrong: 'rgba(255, 228, 190, 0.18)',
+  line: strong ? 'rgba(255, 228, 190, 0.22)' : 'rgba(255, 228, 190, 0.09)',
+  lineStrong: strong ? 'rgba(255, 228, 190, 0.36)' : 'rgba(255, 228, 190, 0.18)',
 
   // Ink, reversed: warm parchment on the dark.
   text: '#F5EBDD',
-  textMuted: '#C3B3A0',
-  textFaint: '#998C7D', // 5.2:1 on surface, 4.7:1 on raised cards (AA)
-  hint: '#7E7266',
+  textMuted: strong ? '#E4D9CA' : '#C3B3A0',
+  textFaint: strong ? '#C9BAA8' : '#998C7D', // 5.2:1 on surface, 4.7:1 on raised cards (AA)
+  hint: strong ? '#B0A291' : '#7E7266',
 
   // Candlelight — the one accent for actions and focus.
   flame: '#F5B45C',
