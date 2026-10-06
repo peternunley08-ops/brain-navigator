@@ -190,86 +190,89 @@ export default function AssignmentScreen() {
         </Reveal>
       ) : null}
 
-      <Reveal index={2}>
-        <Section
-          title="Steps"
-          note={subtasks.length ? `${stepsDone} of ${subtasks.length} done` : 'Big things go better in small pieces.'}
-          action={!a.done ? { label: subtasks.some((t) => t.on) ? 'Re-plan' : 'Plan it backward', onPress: planIt } : undefined}
-        >
-          <Card>
-            {subtasks.length ? <ProgressBar value={stepsDone / subtasks.length} color={colors.secured} style={styles.stepBar} /> : null}
-            {subtasks.map((t) => (
-              <Animated.View key={t.id} entering={FadeInDown.duration(220)} exiting={FadeOut.duration(150)} layout={LinearTransition} style={styles.step}>
-                <Pressy
-                  onPress={() => toggleStep(t.id)}
-                  haptic="none"
-                  depth={0.85}
-                  hitSlop={6}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: t.done }}
-                  accessibilityLabel={t.text}
-                  style={[styles.stepCheck, t.done && { backgroundColor: colors.secured, borderColor: colors.secured }]}
-                >
-                  {t.done ? <Icon name="check" size={13} color={colors.flameInk} strokeWidth={3} /> : null}
-                </Pressy>
-                <View style={styles.flex}>
-                  <Text style={[styles.stepText, t.done && styles.done]}>{t.text}</Text>
-                  {t.on ? (
-                    <Text style={[styles.stepOn, !t.done && t.on < dateKey() && { color: colors.danger }, !t.done && t.on === dateKey() && { color: colors.flame }]}>
-                      {dueLabel(t.on)}
-                    </Text>
-                  ) : null}
+      {/* Done with no steps: nothing to show or add, so no empty box. */}
+      {!a.done || subtasks.length ? (
+        <Reveal index={2}>
+          <Section
+            title="Steps"
+            note={subtasks.length ? `${stepsDone} of ${subtasks.length} done` : 'Big things go better in small pieces.'}
+            action={!a.done ? { label: subtasks.some((t) => t.on) ? 'Re-plan' : 'Plan it backward', onPress: planIt } : undefined}
+          >
+            <Card>
+              {subtasks.length ? <ProgressBar value={stepsDone / subtasks.length} color={colors.secured} style={styles.stepBar} /> : null}
+              {subtasks.map((t) => (
+                <Animated.View key={t.id} entering={FadeInDown.duration(220)} exiting={FadeOut.duration(150)} layout={LinearTransition} style={styles.step}>
+                  <Pressy
+                    onPress={() => toggleStep(t.id)}
+                    haptic="none"
+                    depth={0.85}
+                    hitSlop={6}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: t.done }}
+                    accessibilityLabel={t.text}
+                    style={[styles.stepCheck, t.done && { backgroundColor: colors.secured, borderColor: colors.secured }]}
+                  >
+                    {t.done ? <Icon name="check" size={13} color={colors.flameInk} strokeWidth={3} /> : null}
+                  </Pressy>
+                  <View style={styles.flex}>
+                    <Text style={[styles.stepText, t.done && styles.done]}>{t.text}</Text>
+                    {t.on ? (
+                      <Text style={[styles.stepOn, !a.done && !t.done && t.on < dateKey() && { color: colors.danger }, !a.done && !t.done && t.on === dateKey() && { color: colors.flame }]}>
+                        {dueLabel(t.on)}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Pressy onPress={() => setSubtasks(subtasks.filter((x) => x.id !== t.id))} hitSlop={10} accessibilityLabel={`Remove step ${t.text}`}>
+                    <Icon name="close" size={15} color={colors.textFaint} />
+                  </Pressy>
+                </Animated.View>
+              ))}
+              {!a.done ? (
+                <View style={styles.addStep}>
+                  <Field value={step} onChangeText={setStep} placeholder="Add a step" returnKeyType="done" onSubmitEditing={addStep} containerStyle={styles.flex} />
+                  <IconButton icon="plus" label="Add step" onPress={addStep} tint={colors.flame} />
                 </View>
-                <Pressy onPress={() => setSubtasks(subtasks.filter((x) => x.id !== t.id))} hitSlop={10} accessibilityLabel={`Remove step ${t.text}`}>
-                  <Icon name="close" size={15} color={colors.textFaint} />
-                </Pressy>
-              </Animated.View>
-            ))}
-            {!a.done ? (
-              <View style={styles.addStep}>
-                <Field value={step} onChangeText={setStep} placeholder="Add a step" returnKeyType="done" onSubmitEditing={addStep} containerStyle={styles.flex} />
-                <IconButton icon="plus" label="Add step" onPress={addStep} tint={colors.flame} />
-              </View>
-            ) : null}
-            {!a.done ? (
-              <AIPicker
-                label="Break it into steps"
-                sends="Sends this assignment’s title, class, due date, time estimate, and notes to Claude."
-                watch={[a.title, a.notes ?? '', ...subtasks.map((t) => t.text)].join('\n')}
-                color={color}
-                load={async () => {
-                  const input = [
-                    `${KIND_LABEL[a.kind]}: ${a.title}${cls ? ` (${cls.name})` : ''}, due ${dueLabel(a.due)} (${a.due})${a.minutes ? `, about ${a.minutes} minutes` : ''}`,
-                    subtasks.length ? `Steps they already have: ${subtasks.map((t) => t.text).join('; ')}` : '',
-                    a.notes ? `Their notes: ${a.notes.slice(0, 1500)}` : '',
-                  ]
-                    .filter(Boolean)
-                    .join('\n');
-                  const res = await askJob<{ steps: { title: string; minutes: number }[] }>('steps', input, { who: 'steps' });
-                  if (!res.ok) return res;
-                  return { ok: true, items: res.data.steps.map((st) => ({ title: st.title, detail: `About ${st.minutes} min` })) };
-                }}
-                addLabel={(k) => {
-                  const days = spreadOut ? new Set(spreadSteps(Array<string>(k).fill(''), a.due).map((t) => t.on)).size : 1;
-                  return `Add ${k === 1 ? '1 step' : `${k} steps`}${days > 1 ? ` over ${days} days` : ''}`;
-                }}
-                onAdd={(picked) => {
-                  const before = subtasks;
-                  const texts = picked.map((p) => `${p.title.replace(DAY_PREFIX, '')}${p.detail ? ` (${p.detail.replace('About ', '')})` : ''}`);
-                  const added: Subtask[] = spreadOut ? spreadSteps(texts, a.due) : texts.map((text) => ({ id: uid(), text, done: false }));
-                  setSubtasks([...subtasks, ...added]);
-                  offerUndo(`Added ${picked.length} step${picked.length === 1 ? '' : 's'}`, () => update(a.id, { subtasks: before }), 'list');
-                  if (spreadOut) emberSay(`Spread across ${new Set(added.map((t) => t.on)).size} days. Just today’s step, today.`, 'happy');
-                }}
-              />
-            ) : null}
-          </Card>
-        </Section>
-      </Reveal>
+              ) : null}
+              {!a.done ? (
+                <AIPicker
+                  label="Break it into steps"
+                  sends="Sends this assignment’s title, class, due date, time estimate, and notes to Claude."
+                  watch={[a.title, a.notes ?? '', ...subtasks.map((t) => t.text)].join('\n')}
+                  color={color}
+                  load={async () => {
+                    const input = [
+                      `${KIND_LABEL[a.kind]}: ${a.title}${cls ? ` (${cls.name})` : ''}, due ${dueLabel(a.due)} (${a.due})${a.minutes ? `, about ${a.minutes} minutes` : ''}`,
+                      subtasks.length ? `Steps they already have: ${subtasks.map((t) => t.text).join('; ')}` : '',
+                      a.notes ? `Their notes: ${a.notes.slice(0, 1500)}` : '',
+                    ]
+                      .filter(Boolean)
+                      .join('\n');
+                    const res = await askJob<{ steps: { title: string; minutes: number }[] }>('steps', input, { who: 'steps' });
+                    if (!res.ok) return res;
+                    return { ok: true, items: res.data.steps.map((st) => ({ title: st.title, detail: `About ${st.minutes} min` })) };
+                  }}
+                  addLabel={(k) => {
+                    const days = spreadOut ? new Set(spreadSteps(Array<string>(k).fill(''), a.due).map((t) => t.on)).size : 1;
+                    return `Add ${k === 1 ? '1 step' : `${k} steps`}${days > 1 ? ` over ${days} days` : ''}`;
+                  }}
+                  onAdd={(picked) => {
+                    const before = subtasks;
+                    const texts = picked.map((p) => `${p.title.replace(DAY_PREFIX, '')}${p.detail ? ` (${p.detail.replace('About ', '')})` : ''}`);
+                    const added: Subtask[] = spreadOut ? spreadSteps(texts, a.due) : texts.map((text) => ({ id: uid(), text, done: false }));
+                    setSubtasks([...subtasks, ...added]);
+                    offerUndo(`Added ${picked.length} step${picked.length === 1 ? '' : 's'}`, () => update(a.id, { subtasks: before }), 'list');
+                    if (spreadOut) emberSay(`Spread across ${new Set(added.map((t) => t.on)).size} days. Just today’s step, today.`, 'happy');
+                  }}
+                />
+              ) : null}
+            </Card>
+          </Section>
+        </Reveal>
+      ) : null}
 
       {a.done && TURN_IN.has(a.kind) ? (
         <Reveal index={3}>
-          <ChipRow>
+          <ChipRow style={styles.turnIn}>
             <Chip
               label={a.turnedIn ? 'Turned in' : 'Mark turned in'}
               icon="check"
@@ -459,6 +462,9 @@ const styles = StyleSheet.create({
   stats: {
     flexDirection: 'row',
     gap: 10,
+    marginTop: 20,
+  },
+  turnIn: {
     marginTop: 20,
   },
   stat: {
