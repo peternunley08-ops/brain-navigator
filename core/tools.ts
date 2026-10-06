@@ -56,7 +56,7 @@ export const GROUPS: { name: string; tools: Tool[] }[] = [
     name: 'Your days',
     tools: [
       { title: 'To-dos', body: 'Everything not school', path: '/tasks', icon: 'plate', color: '#E6C46A' },
-      { title: 'Habits', body: 'Streaks you keep', path: '/habits', icon: 'repeat', color: '#8CC0A8' },
+      { title: 'Habits', body: 'Small things you keep', path: '/habits', icon: 'repeat', color: '#8CC0A8' },
       { title: 'Countdowns', body: 'Things to look forward to', path: '/countdowns', icon: 'gift', color: '#E89AB8' },
       { title: 'Hours', body: 'Service, driving, work', path: '/hours', icon: 'hands', color: '#9FD08A' },
       { title: 'Calendar', body: 'Today’s schedule', path: '/calendar', icon: 'calendar', color: '#D99A6C' },

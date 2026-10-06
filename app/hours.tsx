@@ -67,7 +67,7 @@ export default function HoursScreen() {
       .reverse()
       .map((x) => `${x.date}: ${h(x.minutes / 60)} h${x.at != null ? ` from ${clock(x.at)}` : ''}${x.night ? ', night' : ''}${x.note ? `, ${x.note}` : ''}`);
     Share.share({
-      message: [`${title}${name ? `, ${name}` : ''}`, '', ...lines, '', `Total: ${h(total)} hours`, '', 'Verified by: ____________________   Date: ________'].join('\n'),
+      message: [`${title}${name ? `, ${name}` : ''}`, '', ...lines, '', `Total: ${plural(h(total), 'hour')}`, '', 'Verified by: ____________________   Date: ________'].join('\n'),
     });
   };
   const pickAt = (m: number) => {
@@ -88,9 +88,9 @@ export default function HoursScreen() {
   const paceLine = (() => {
     if (!goal || total >= goal || perWeek <= 0) return null;
     const weeks = Math.ceil((goal - total) / perWeek);
-    if (weeks > 104) return `About ${h(perWeek)} hours a week lately. A little more each week gets you there sooner.`;
+    if (weeks > 104) return `About ${plural(h(perWeek), 'hour')} a week lately. A little more each week gets you there sooner.`;
     const when = new Date(Date.now() + weeks * 7 * 86400000).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-    return `About ${h(perWeek)} hours a week lately. At that pace you’ll reach ${goal} around ${when}.`;
+    return `About ${plural(h(perWeek), 'hour')} a week lately. At that pace you’ll reach ${goal} around ${when}.`;
   })();
 
   const log = () => {
@@ -123,7 +123,7 @@ export default function HoursScreen() {
         <Card tint={m.color} style={styles.top}>
           <Text style={styles.big}>
             {h(total)}
-            <Text style={styles.unit}> {goal ? `of ${goal} hours` : 'hours total'}</Text>
+            <Text style={styles.unit}> {goal ? `of ${goal} hours` : h(total) === 1 ? 'hour total' : 'hours total'}</Text>
           </Text>
           {goal ? <ProgressBar value={total / goal} color={m.color} /> : null}
           {paceLine ? <Text style={styles.sub}>{paceLine}</Text> : null}
@@ -138,7 +138,7 @@ export default function HoursScreen() {
           {kind === 'work' ? (
             <>
               <Text style={styles.sub}>
-                {h(workWeek)} hours in the last 7 days{settings.wage ? `, about $${Math.round(workWeek * settings.wage)}` : ''}. Keep school nights sane.
+                {plural(h(workWeek), 'hour')} in the last 7 days{settings.wage ? `, about $${Math.round(workWeek * settings.wage)}` : ''}. Keep school nights sane.
               </Text>
               <View style={styles.row}>
                 <Text style={styles.label}>Pay per hour</Text>
@@ -155,7 +155,7 @@ export default function HoursScreen() {
               </View>
               {settings.wage ? (
                 <Text style={styles.sub}>
-                  This month: {h(workMonth)} hours, about ${Math.round(workMonth * settings.wage)} before taxes.
+                  This month: {plural(h(workMonth), 'hour')}, about {`$${Math.round(workMonth * settings.wage)}`} before taxes.
                 </Text>
               ) : null}
             </>

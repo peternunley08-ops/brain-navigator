@@ -12,7 +12,7 @@ import { useLifeStore } from '../../core/lifeStore';
 import { minutesOf, minutesToNight, nightNow, nightStart } from '../../core/night';
 import { nowState, useSchoolStore } from '../../core/schoolStore';
 import { offerUndo } from '../../core/undoStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { plural } from '../../core/words';
 import { Sparks } from '../ember/Sparks';
 import { NowCard } from '../school/NowCard';
@@ -159,7 +159,7 @@ function DueTonight() {
             accessibilityActions={[{ name: 'snooze', label: `Set aside till ${later}` }]}
             onAccessibilityAction={(e) => e.nativeEvent.actionName === 'snooze' && snooze()}
           >
-            <Text style={styles.big} numberOfLines={2}>
+            <Text style={styles.big} numberOfLines={3} maxFontSizeMultiplier={textGrow.heading}>
               {a.title}
             </Text>
             <Text style={styles.body}>{dueLine(a.minutes, a.due, today)}</Text>

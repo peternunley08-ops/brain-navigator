@@ -6,7 +6,7 @@ import { daysUntil } from '../../core/dates';
 import { useHubStore } from '../../core/hubStore';
 import { useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts, radii } from '../../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { Icon, type IconName } from '../ui/Icon';
 import { Pressy } from '../ui/Pressy';
 
@@ -83,7 +83,7 @@ export function CountdownChips() {
       {chips.map((c) => (
         <Pressy key={c.key} onPress={() => router.push(c.href as never)} depth={0.95} style={[styles.chip, { borderColor: alpha(c.color, 0.4), backgroundColor: alpha(c.color, 0.08) }]} accessibilityRole="button" accessibilityLabel={c.label}>
           {c.progress != null ? <MiniRing value={c.progress} color={c.color} /> : <Icon name={c.icon} size={14} color={c.color} strokeWidth={2} />}
-          <Text style={styles.text} numberOfLines={1}>
+          <Text style={styles.text} numberOfLines={1} maxFontSizeMultiplier={textGrow.control}>
             {c.label.length > 34 ? `${c.label.slice(0, 32)}…` : c.label}
           </Text>
         </Pressy>
@@ -109,8 +109,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    height: 34,
+    minHeight: 34,
     paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: radii.pill,
     borderWidth: 1,
   },

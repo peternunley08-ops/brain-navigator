@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import type { ReactNode, RefObject } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { tonightLine } from '../../core/litCard';
 import { tonightsLoad, useSchoolStore } from '../../core/schoolStore';
 import { colors, fonts } from '../../core/theme';
@@ -36,30 +36,33 @@ export function TodayRows({
   const load = tonightsLoad(assignments);
   const over = load.minutes > cap;
   const rows = [show('due'), show('mind'), show('checkin')];
+  // At the largest text sizes a value beside its label breaks words in half; stack them.
+  const stack = useWindowDimensions().fontScale > 1.5;
+  const value = [styles.value, stack && styles.valueStack];
   if (!rows.some(Boolean)) return null;
 
   return (
     <Section title="Today">
       <Card padded={false}>
         {show('due') ? (
-          <Row label="Tonight" onPress={() => router.push(load.items.length ? '/school' : '/add-assignment')} hint={load.items.length ? 'Opens School' : 'Adds homework'}>
-            <Text style={[styles.value, over && { color: colors.unlocked }]}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
+          <Row label="Tonight" onPress={() => router.push(load.items.length ? '/school' : '/add-assignment')} hint={load.items.length ? 'Opens School' : 'Adds homework'} stack={stack}>
+            <Text style={[value, over && { color: colors.unlocked }]}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
           </Row>
         ) : null}
         {show('mind') ? (
-          <Row label="On your mind" onPress={() => router.push(open ? '/open-loops' : '/new-entry')} hint={open ? 'Opens everything on your mind' : 'Sets something down'} line={show('due')}>
+          <Row label="On your mind" onPress={() => router.push(open ? '/open-loops' : '/new-entry')} hint={open ? 'Opens everything on your mind' : 'Sets something down'} line={show('due')} stack={stack}>
             <View ref={candleRow} style={styles.dots}>
               {Array.from({ length: Math.min(open, DOTS) }, (_, i) => (
                 <View key={i} style={styles.dot} />
               ))}
             </View>
-            <Text style={styles.value}>{open ? plural(open, 'candle') : 'Nothing open'}</Text>
+            <Text style={value}>{open ? plural(open, 'candle') : 'Nothing open'}</Text>
           </Row>
         ) : null}
         {show('checkin') ? (
           checkin?.mood != null ? (
-            <Row label="How you’re doing" onPress={() => router.push('/checkin')} hint="Opens today’s check-in" line={show('due') || show('mind')}>
-              <Text style={styles.value}>
+            <Row label="How you’re doing" onPress={() => router.push('/checkin')} hint="Opens today’s check-in" line={show('due') || show('mind')} stack={stack}>
+              <Text style={value}>
                 {[MOOD_WORDS[checkin.mood - 1], checkin.sleep_hours != null ? `${plural(checkin.sleep_hours, 'hour')} of sleep` : null].filter(Boolean).join(', ')}
               </Text>
             </Row>
@@ -78,12 +81,12 @@ export function TodayRows({
   );
 }
 
-function Row({ label, onPress, hint, line, children }: { label: string; onPress: () => void; hint: string; line?: boolean; children: ReactNode }) {
+function Row({ label, onPress, hint, line, stack, children }: { label: string; onPress: () => void; hint: string; line?: boolean; stack?: boolean; children: ReactNode }) {
   return (
-    <Pressy onPress={onPress} style={[styles.row, line && styles.line]} depth={0.98} accessibilityRole="button" accessibilityHint={hint}>
+    <Pressy onPress={onPress} style={[styles.row, stack && styles.rowStack, line && styles.line]} depth={0.98} accessibilityRole="button" accessibilityHint={hint}>
       <Text style={styles.label}>{label}</Text>
-      <View style={styles.right}>{children}</View>
-      <Icon name="chevron" size={16} color={colors.textFaint} />
+      <View style={[styles.right, stack && styles.rightStack]}>{children}</View>
+      {stack ? null : <Icon name="chevron" size={16} color={colors.textFaint} />}
     </Pressy>
   );
 }
@@ -118,6 +121,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textMuted,
     textAlign: 'right',
+  },
+  rowStack: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+    gap: 4,
+  },
+  rightStack: {
+    flex: 0,
+    justifyContent: 'flex-start',
+  },
+  valueStack: {
+    textAlign: 'left',
   },
   dots: {
     flexDirection: 'row',
