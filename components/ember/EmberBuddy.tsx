@@ -22,7 +22,7 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
 import { emberOnScreen, type EmberMood, inClassQuiet, lineMs, useEmberStore } from '../../core/emberStore';
-import { emberHop, navTucked, scrolling } from '../../core/chrome';
+import { emberHop, navTucked, pageDown, scrolling } from '../../core/chrome';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
@@ -49,6 +49,9 @@ const H_BOX = S * 1.2;
 const EDGE = 2;
 const NAV_TOP = 86 + 8; // the floating nav's top edge, from the bottom
 const NAP_SCALE = 0.5;
+// Resting, Ember slides this far into its edge: about a third of the flame
+// stays on screen, inside the page margin.
+const PEEK = S * 0.6;
 
 // Screens where Ember steps aside: the companion, welcome, and focus
 // screens already have Ember on stage, and Breathe needs your whole
@@ -503,6 +506,18 @@ export function EmberBuddy() {
   const dizzied = useSharedValue(0);
   // Drag weight: the shown spot trails the finger a few frames, and a tiny tilt leans with the motion.
   const offX = useSharedValue(0);
+  // Resting Ember peeks from its edge so it never sits on words or buttons.
+  // It comes all the way out by the title at the top of a page (the title
+  // leaves it room), while it talks, and while you touch it.
+  const awake = bubbleOpen || !!toast;
+  const byTitle = !napping && yFrac <= 0.22;
+  const peek = useSharedValue(0);
+  useAnimatedReaction(
+    () => (awake ? 0 : byTitle ? pageDown.value : 1),
+    (to, was) => {
+      if (to !== was) peek.value = withSpring(to, { damping: 18, stiffness: 160 });
+    },
+  );
   const offY = useSharedValue(0);
   const tilt = useSharedValue(0);
   const geo = useSharedValue({ minY, maxY, leftX, rightX, W });
@@ -608,10 +623,11 @@ export function EmberBuddy() {
     const tuck = x.value > g.W / 2 ? 1 : -1;
     // While a page scrolls, Ember steps toward its edge and dims, then comes back.
     const away = scrolling.value * (1 - n);
+    const out = Math.max(away * S * 0.32, peek.value * (1 - n) * (1 - press.value) * PEEK);
     return {
       opacity: show.value * (1 - 0.55 * away),
       transform: [
-        { translateX: x.value + offX.value + tuck * n * S * 0.2 + tuck * away * S * 0.32 },
+        { translateX: x.value + offX.value + tuck * n * S * 0.3 + tuck * out },
         { translateY: y.value + offY.value + n * H_BOX * 0.25 },
         { rotate: `${tilt.value}deg` },
         { scale: (1 - 0.1 * press.value) * (1 - (1 - NAP_SCALE) * n) * (0.6 + 0.4 * show.value) },

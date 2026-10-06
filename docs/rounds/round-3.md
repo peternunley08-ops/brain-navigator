@@ -18,27 +18,27 @@ Status marks:
 1. [~] Celebrations respect Reduce Motion (fade only) and a "Quiet celebrations" setting
 2. [~] Each milestone celebrates once (the weekly goal once a week, not every session)
 3. [~] Rare badges (Fifty down, Thirty days, Ten hours deep) get the full celebration
-4. [~] Tap a badge to see what it took, when you earned it, and share it
+4. [x] Tap a badge to see what it took, when you earned it, and share it — seen 2026-10-05, Simulator, show mode
 5. [x] "Next badge" card on the Desk: the one you're closest to
 6. [x] Your year: tap a month's bar to see what that month held
 7. [x] Your year: "up from 3 in August" comparison line
-8. [~] Weekly review: the highlights become tap-to-insert chips for "What went well"
-9. [~] Monday morning Desk card: last week's "one thing to try"
-10. [~] Big moments drop into the wins jar on their own (college yes, scholarship won, 100 in Quizzo)
+8. [x] Weekly review: the highlights become tap-to-insert chips for "What went well" — seen 2026-10-05, Simulator, show mode
+9. [x] Monday morning Desk card: last week's "one thing to try" — seen 2026-10-05, Simulator, show mode
+10. [~] Big moments drop into the wins jar on their own (college yes, scholarship won, 100 in Quizzo) — needs a real big moment (college yes, scholarship, 100 in Quizzo) (2026-10-05)
 
 ## B. Flashcards and Quizzo
-11. [~] Type the answer: "Count it" when it says close but you were right
-12. [~] Type the answer: Return checks, Return again moves on when it matched
+11. [x] Type the answer: "Count it" when it says close but you were right — seen 2026-10-05, Simulator, show mode
+12. [x] Type the answer: Return checks, Return again moves on when it matched — seen 2026-10-05, Simulator, show mode
 13. [x] Each deck remembers type and reverse mode
-14. [~] Study the hardest cards first (lowest box first)
-15. [~] Edit a card in place
-16. [~] Search inside a deck once it has more than 10 cards
+14. [x] Study the hardest cards first (lowest box first) — seen 2026-10-05, Simulator, show mode
+15. [x] Edit a card in place — seen 2026-10-05, Simulator, show mode
+16. [x] Search inside a deck once it has more than 10 cards — seen 2026-10-05, Simulator, show mode
 17. [x] Cards from a note: preview with checkboxes before making them
 18. [x] Cards from a note: "Update from note" adds only the new lines
-19. [~] Quizzo lightning best kept separately
+19. [x] Quizzo lightning best kept separately — seen 2026-10-05, Simulator, show mode
 20. [x] Quizzo: replay just the ones you missed
 21. [x] Quizzo: true or false questions for decks too small for four choices
-22. [~] Paste a shared deck: the first line becomes the deck name
+22. [x] Paste a shared deck: the first line becomes the deck name — seen 2026-10-05, Simulator, show mode
 
 ## C. Focus
 23. [x] Month heat map: tap a day to see its sessions
@@ -46,13 +46,13 @@ Status marks:
 25. [~] Keep cycling shows round dots (●●○○)
 26. [x] A focus goal for today (30, 60, 90 minutes) with its own ring
 27. [~] Best time of day counts sessions you rated well more
-28. [~] Done screen: a line about what you got done, saved to the assignment's notes
-29. [~] Parked thoughts turn into homework with one tap
+28. [x] Done screen: a line about what you got done, saved to the assignment's notes — seen 2026-10-05, Simulator, show mode
+29. [x] Parked thoughts turn into homework with one tap — seen 2026-10-05, Simulator, show mode
 30. [~] Morning brief adds this week's focus so far
 
 ## D. Desk
 31. [x] Quick capture reads "30 min" as the time estimate
-32. [~] Quick capture stars tests automatically
+32. [x] Quick capture stars tests automatically — seen 2026-10-05, Simulator, show mode
 33. [x] Quick capture remembers your last three as repeat chips
 34. [x] Settings: move Desk sections up and down
 35. [~] Stress-tag card shows the next tag after you close the first
@@ -66,63 +66,63 @@ Status marks:
 41. [~] Study session can be resumed from the Helpers screen
 42. [~] Finishing all three steps is a win and a celebration
 43. [~] Tap a helper's "last time" line to do the same thing again
-44. [~] Pip: "Busy until" also takes any time you pick
-45. [~] Pip: tap a plan step to do it first
-46. [~] Sage remembers your explanation level
-47. [~] Quill's free mode lists your essay notes to pick up where you left off
-48. [~] Spark: two-minute rule mode
+44. [x] Pip: "Busy until" also takes any time you pick — seen 2026-10-05, Simulator, show mode
+45. [x] Pip: tap a plan step to do it first — seen 2026-10-05, Simulator, show mode
+46. [x] Sage remembers your explanation level — seen 2026-10-05, Simulator, show mode
+47. [x] Quill's free mode lists your essay notes to pick up where you left off — seen 2026-10-05, Simulator, show mode
+48. [x] Spark: two-minute rule mode — seen 2026-10-05, Simulator, show mode
 49. [~] Notebook filter for replies you saved from helpers
-50. [~] Plus screen shows how many days until the allowance resets
+50. [x] Plus screen shows how many days until the allowance resets — seen 2026-10-05, Simulator, show mode
 
 ## F. School and scanning
 51. [~] Scan review: select all or none
 52. [~] Scan review: marks what's already on your list and leaves it unchecked
 53. [~] Scan remembers which of your classes a scanned class name meant
-54. [~] Class page: what you need on the final, from its grades
+54. [x] Class page: what you need on the final, from its grades — seen 2026-10-05, Simulator, show mode
 55. [x] Grades: a trend line for each class as grades come in
-56. [~] Assignment: focus time so far against your estimate
+56. [x] Assignment: focus time so far against your estimate — seen 2026-10-05, Simulator, show mode
 57. [~] Desk card: a test in three days with no plan offers "Plan it backward"
 58. [x] School: filter the list by class
 59. [x] Week: tap a class block to see what's next for that class
-60. [~] Triage: mark the five-minute ones and do them first
+60. [~] Triage: mark the five-minute ones and do them first — needs something late; Riley's sample has nothing late (2026-10-05)
 
 ## G. Wellness
 61. [~] Mood faces bob when chosen (still under Reduce Motion)
 62. [~] After a check-in, the matching tool is offered right there
 63. [x] Mood map shows small dots for days with stress tags
 64. [x] Quick breath: one minute or three
-65. [~] Steady counts the days you used a breathing tool this month
-66. [~] Wind-down shows "starts in 40 minutes" before it begins
+65. [x] Steady counts the days you used a breathing tool this month — seen 2026-10-05, Simulator, show mode
+66. [x] Wind-down shows "starts in 40 minutes" before it begins — seen 2026-10-05, Simulator, show mode
 67. [~] Five-minute reset's last step can set today's one thing
 68. [~] Gratitude: shuffle for a different set of prompts
-69. [~] Your people: "Talked in person" counts as reaching out
+69. [x] Your people: "Talked in person" counts as reaching out — seen 2026-10-05, Simulator, show mode
 70. [x] Worry time card opens the worry box with a 15-minute timer
 
 ## H. College and life
-71. [~] College: "Ask for a fee waiver" note template
+71. [x] College: "Ask for a fee waiver" note template — seen 2026-10-05, Simulator, show mode
 72. [~] Supplements: mark one done; done ones sink and show a check
 73. [~] Coming up includes supplements not started within 14 days of a deadline
-74. [~] Scholarships: when you hear back, as a date in Coming up
-75. [~] Hours: weekly average and when you'll reach your goal at this pace
+74. [x] Scholarships: when you hear back, as a date in Coming up — seen 2026-10-05, Simulator, show mode
+75. [x] Hours: weekly average and when you'll reach your goal at this pace — seen 2026-10-05, Simulator, show mode
 76. [x] Driving: tag a drive (highway, rain, parking)
-77. [~] Work: this week's pay estimate
-78. [~] Countdowns: birthdays repeat every year
+77. [x] Work: this week's pay estimate — seen 2026-10-05, Simulator, show mode
+78. [x] Countdowns: birthdays repeat every year — seen 2026-10-05, Simulator, show mode
 79. [x] Activities: description character counter that turns red past 150
-80. [~] Rec letters: thank-you note draft once a rec is in
+80. [x] Rec letters: thank-you note draft once a rec is in — seen 2026-10-05, Simulator, show mode
 
 ## I. Notes and search
-81. [~] Notebook list shows word-limit progress on essay notes
-82. [~] Note: "Focus on this" starts a focus session named for the note
+81. [x] Notebook list shows word-limit progress on essay notes — seen 2026-10-05, Simulator, show mode
+82. [~] Note: "Focus on this" starts a focus session named for the note — works with PR #47 (seen on the Simulator); flip when it merges (2026-10-05)
 83. [~] Pinned notes show as chips on the Desk
 84. [-] "Term — definition" lines show the term in bold (skipped: the editor fields are uncontrolled on purpose, and styled text inside them would bring back lost keystrokes)
-85. [~] Essay word count leaves out headings
-86. [~] Search remembers your recent searches
+85. [x] Essay word count leaves out headings — seen 2026-10-05, Simulator, show mode
+86. [x] Search remembers your recent searches — seen 2026-10-05, Simulator, show mode
 
 ## J. Quality, accessibility, settings
 87. [~] VoiceOver labels on the celebration, badges, charts, and heat map
 88. [x] Larger text check on the new cards
-89. [~] Haptics setting: off, light, full
-90. [~] Settings: "Everything as text" summary to share or save
+89. [~] Haptics setting: off, light, full — chips seen; haptics need the phone (2026-10-05)
+90. [x] Settings: "Everything as text" summary to share or save — seen 2026-10-05, Simulator, show mode
 91. [x] Error screen: share the details for a bug report
 92. [~] Desk work is memoized so it stays smooth with lots of data
 93. [~] Undo for removing a supplement or a college

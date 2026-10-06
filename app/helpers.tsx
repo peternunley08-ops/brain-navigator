@@ -11,6 +11,7 @@ import { Icon } from '../components/ui/Icon';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
+import { PLUS_PER_MONTH } from '../core/aiQuota';
 import { type Helper, HELPERS } from '../core/helpers';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
@@ -65,7 +66,7 @@ export default function HelpersScreen() {
             <Text style={styles.planTitle}>
               {st.left} of {st.limit} AI replies left {st.plus ? 'this month' : 'this week'}
             </Text>
-            <Text style={styles.planBody}>{st.plus ? `Plus. Resets ${st.resets}.` : `Resets ${st.resets}. Plus gives you 400 a month.`}</Text>
+            <Text style={styles.planBody}>{st.plus ? `Plus. Resets ${st.resets}.` : `Resets ${st.resets}. Plus gives you ${PLUS_PER_MONTH} a month.`}</Text>
           </View>
           <Icon name="chevron" size={16} color={colors.textFaint} />
         </Card>

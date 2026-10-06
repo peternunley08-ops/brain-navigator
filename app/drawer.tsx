@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Card } from '../components/ui/Card';
 import { Chip } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
@@ -52,6 +52,8 @@ export default function DrawerScreen() {
   // is on); "All N" shows the rest. Typing filters every tool at once.
   const [q, setQ] = useState('');
   const [expanded, setExpanded] = useState<string[]>([]);
+  // At the largest text sizes two tiles a row break words in half; stack them.
+  const oneColumn = useWindowDimensions().fontScale > 1.5;
   const term = q.trim().toLowerCase();
   const found = term ? TOOLS.filter((t) => t.title.toLowerCase().includes(term) || t.body.toLowerCase().includes(term)) : [];
   const byUse = (tools: Tool[]) => (learnOff ? tools : [...tools].sort((a, b) => (opened[b.path] ?? 0) - (opened[a.path] ?? 0)));
@@ -93,7 +95,7 @@ export default function DrawerScreen() {
           </Reveal>
           <View style={styles.grid}>
             {(term || group.name === 'Your most used' || expanded.includes(group.name) ? group.tools : group.tools.slice(0, PER_GROUP)).map((tool) => (
-              <Reveal key={tool.path} index={n++} style={styles.cell}>
+              <Reveal key={tool.path} index={n++} style={oneColumn ? styles.cellWide : styles.cell}>
                 <Card
                   onPress={() => open(tool)}
                   accessibilityLabel={tool.isNew && !(seenNew ?? []).includes(tool.path) ? `${tool.title}, new` : tool.title}
@@ -105,7 +107,7 @@ export default function DrawerScreen() {
                     <Icon name={tool.icon} size={22} color={tool.color} />
                   </View>
                   {tool.isNew && !(seenNew ?? []).includes(tool.path) ? <View style={styles.dot} /> : null}
-                  <Text style={styles.title}>{tool.title}</Text>
+                  <Text style={styles.title} maxFontSizeMultiplier={2.6}>{tool.title}</Text>
                   <Text style={styles.body}>{tool.body}</Text>
                 </Card>
               </Reveal>
@@ -128,7 +130,7 @@ export default function DrawerScreen() {
         <Card onPress={() => open(help)} accessibilityLabel={help.title} accessibilityHint={help.body} style={styles.help}>
           <Icon name={help.icon} size={20} color={help.color} />
           <View style={styles.helpText}>
-            <Text style={styles.title}>{help.title}</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={2.6}>{help.title}</Text>
             <Text style={styles.body}>{help.body}</Text>
           </View>
         </Card>
@@ -205,6 +207,9 @@ const styles = StyleSheet.create({
     width: '48%',
     flexGrow: 1,
     flexBasis: '46%',
+  },
+  cellWide: {
+    width: '100%',
   },
   tile: {
     minHeight: 132,

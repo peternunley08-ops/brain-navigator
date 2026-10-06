@@ -86,7 +86,11 @@ export function TonightPlan({ rig }: { rig: EmberRig }) {
               icon="clock"
               color={OCEAN}
               selected={picking || (startAt != null && !later.includes(startAt))}
-              onPress={() => setPicking((v) => !v)}
+              onPress={() => {
+                // The field shows a time as soon as it opens, so the plan uses it too.
+                if (!picking && startAt == null) setStartAt(Math.ceil((nowMin + 60) / 15) * 15);
+                setPicking((v) => !v);
+              }}
             />
           </ChipRow>
           {picking ? (

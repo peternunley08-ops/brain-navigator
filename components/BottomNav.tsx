@@ -13,7 +13,7 @@ import { springs, timings } from '../core/motion';
 import { isNight, minutesOf, nightClockVersion, nightNow, nightStart, subscribeNightClock } from '../core/night';
 import { addOrder } from '../core/quickAddOrder';
 import { dateKey, useSchoolStore } from '../core/schoolStore';
-import { alpha, colors, fonts, gradients, radii } from '../core/theme';
+import { alpha, colors, fonts, gradients, radii, textGrow } from '../core/theme';
 import { Icon, type IconName } from './ui/Icon';
 import { PlusArt, hasPlusArt } from './plus/PlusArt';
 import { Pressy } from './ui/Pressy';
@@ -255,7 +255,7 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
           <GestureDetector gesture={pan}>
             <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }, follow]}>
               <View style={styles.grabber} />
-              <Text style={styles.sheetTitle}>Put something down</Text>
+              <Text style={styles.sheetTitle} maxFontSizeMultiplier={textGrow.display}>Put something down</Text>
               {byHref(ADD_OPTIONS, order.main).map((o) => (
                 <Pressy
                   key={o.href}
@@ -266,12 +266,13 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
                   }}
                   accessibilityRole="button"
                   accessibilityLabel={o.title}
+                  accessibilityHint={o.body}
                 >
                   <View style={[styles.optionIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
                     {hasPlusArt(o.href) ? <PlusArt href={o.href} size={34} /> : <Icon name={o.icon} size={22} color={o.color} />}
                   </View>
                   <View style={styles.optionText}>
-                    <Text style={styles.optionTitle}>{o.title}</Text>
+                    <Text style={styles.optionTitle} maxFontSizeMultiplier={2.6}>{o.title}</Text>
                     <Text style={styles.optionBody}>{o.body}</Text>
                   </View>
                   <Icon name="chevron" size={18} color={colors.textFaint} />
@@ -292,7 +293,7 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
                     <View style={[styles.moreIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
                       <Icon name={o.icon} size={20} color={o.color} />
                     </View>
-                    <Text style={styles.moreText}>{o.title}</Text>
+                    <Text style={styles.moreText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.bar}>{o.title}</Text>
                   </Pressy>
                 ))}
               </View>

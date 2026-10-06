@@ -12,6 +12,9 @@ export const navWanted = makeMutable(1);
 export const navTucked = makeMutable(0);
 /** 1 while a page is being dragged or is gliding; Ember steps aside. */
 export const scrolling = makeMutable(0);
+/** 1 once the page in front has scrolled down from its top; resting Ember
+ * peeks from its edge instead of sitting on the page. */
+export const pageDown = makeMutable(0);
 /** Bumped when a page is pulled to refresh; Ember hops. */
 export const emberHop = makeMutable(0);
 

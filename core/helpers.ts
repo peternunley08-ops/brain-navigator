@@ -77,7 +77,7 @@ export const HELPERS: Helper[] = [
     icon: 'feather',
     hello: 'Quill here. I won’t write it for you — but I’m great at questions that get the good stuff out of your head. What are you writing?',
     chips: ['Help me brainstorm', 'Is my thesis clear?', 'I’m stuck on the intro', 'Check my outline'],
-    offlineLabel: 'Brainstorm with questions',
+    offlineLabel: 'Ask me questions',
     persona: `${RULES} You are Quill, an encouraging writing coach. Help with brainstorming, thesis, structure, and feedback on their own drafts by asking sharp questions and pointing at specific places to improve. Never write sentences or paragraphs for them to submit; you may show a tiny generic example of a technique.`,
   },
   {

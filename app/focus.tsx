@@ -76,7 +76,7 @@ export default function FocusScreen() {
   const open = useMemo(() => assignments.filter((a) => !a.done).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 6), [assignments]);
   // The next thing due (today, tomorrow, or late) is already chosen, so
   // lighting the candle is one tap; it stays easy to change or clear.
-  const [target, setTarget] = useState<string | null>(() => assignmentParam ?? (quick ? null : (open.find((a) => daysUntil(a.due) <= 1)?.id ?? null)));
+  const [target, setTarget] = useState<string | null>(() => assignmentParam ?? (quick || topic ? null : (open.find((a) => daysUntil(a.due) <= 1)?.id ?? null)));
   // Ember or a helper can suggest a length (`mins`); short ones come as `quick` and start right away.
   // Otherwise it starts on their usual length, once there's a clear one
   // (learned on the phone; off when learning is off in About you).
@@ -131,6 +131,10 @@ export default function FocusScreen() {
   useEffect(() => {
     if (assignmentParam) setTarget(assignmentParam);
   }, [assignmentParam]);
+  // "Focus on this" from a note: the session is the note's, not the next thing due.
+  useEffect(() => {
+    if (topic && !assignmentParam) setTarget(null);
+  }, [topic, assignmentParam]);
 
   // Spark's "5 minutes. Go." (quick=5) and "Just two minutes" (quick=2) arrive here and light the candle.
   const quickStarted = useRef(false);
@@ -228,6 +232,7 @@ export default function FocusScreen() {
     const minutes = Math.round(worked / 60_000);
     banked.current = worked;
     if (minutes >= 1) setLastSession(logFocus(minutes, target).id);
+    else setLastSession(null);
     // Crossing the weekly goal with this session is worth a moment.
     if (minutes >= 1 && weekTotal < focusGoal && weekTotal + minutes >= focusGoal) {
       celebrate('Weekly focus goal', `${Math.round((focusGoal / 60) * 10) / 10} hours this week. That’s the work that adds up.`, undefined, {
@@ -235,7 +240,6 @@ export default function FocusScreen() {
         win: 'Hit the weekly focus goal',
       });
     }
-    else setLastSession(null);
     if (!complete && minutes < 1) {
       banked.current = 0;
       setPhase('setup');
