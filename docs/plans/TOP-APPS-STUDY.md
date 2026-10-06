@@ -60,11 +60,11 @@ everywhere. Pattern 3 already lives in "Can't start? Just 5 minutes."
 
 | Pick | Pattern | Idea for us | Needs |
 |---|---|---|---|
-| **A** | Does the chore, you approve | When tonight is over your cap, the Tonight row offers the fix: "Set Vocab aside till tomorrow?" One tap, with Undo. | Nothing new; builds on #57 |
+| **A** | Does the chore, you approve | When tonight is over your cap, the Tonight row offers the fix: "Pip can fit it in" opens Pip's plan, which fits the night inside the cap and goes on Your day in one tap. (Setting work aside wouldn't help: it is still due.) | Nothing new. Built in #58. |
 | **B** | Short pieces + Anki | Flashcards remember which cards you missed and bring those back first next time. | Nothing new; local only |
 | C | Living outside the app | Home Screen widget with the lit card; a Live Activity while the Focus candle burns. | A widget target: new native code and signing. Peter's OK. |
 | D | Value first | First run: show the Desk with one sample card before asking for classes. | Design call; touches the welcome |
 | E | Smart timing | One quiet reminder when tonight goes over your cap, opt-in, off by default. | Notifications package. Peter's OK. |
 
-A and B are being built first, since they need no new packages, no signing
-and no database.
+A and B come first, since they need no new packages, no signing and no
+database.
