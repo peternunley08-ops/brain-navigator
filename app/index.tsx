@@ -53,7 +53,7 @@ import { useTasksStore } from '../core/tasksStore';
 import { plural } from '../core/words';
 import { offerUndo } from '../core/undoStore';
 import { selectionAsync } from '../core/haptics';
-import { alpha, colors, fonts, layout, radii, skyGlow } from '../core/theme';
+import { alpha, colors, fonts, layout, radii, skyGlow, textGrow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 import { isShowing } from '../core/showMode';
 
@@ -615,8 +615,8 @@ function Tile({
       <View style={[styles.tileIcon, { backgroundColor: alpha(color, 0.14) }]}>
         <Icon name={icon} size={19} color={color} />
       </View>
-      <Text style={styles.tileTitle}>{title}</Text>
-      <Text style={styles.tileValue}>{value}</Text>
+      <Text style={styles.tileTitle} maxFontSizeMultiplier={textGrow.control}>{title}</Text>
+      <Text style={styles.tileValue} maxFontSizeMultiplier={textGrow.display}>{value}</Text>
       <Text style={styles.tileNote}>{note}</Text>
     </Card>
   );
