@@ -33,7 +33,7 @@ R3. [x] AI allowance + Plus paywall (core/aiQuota.ts, app/plus.tsx): Free 20
 7. [~] Section headings can carry a small icon
 8. [~] Empty states: Ember wears the right gear for the screen
 9. [~] Pull to refresh on Desk and School
-10. [~] Add/edit screens open as sheets (modal presentation)
+10. [x] Add/edit screens open as sheets (modal presentation) — seen 2026-10-05, Simulator, show mode
 11. [x] Swipe an assignment right to finish, left to push to tomorrow
 12. [~] Tinted cards glow a touch when pressed
 13. [x] Undo bar shows what kind of thing it'll bring back
@@ -46,8 +46,8 @@ R3. [x] AI allowance + Plus paywall (core/aiQuota.ts, app/plus.tsx): Free 20
 20. [~] Screen titles never truncate awkwardly (long class names)
 
 ## B. Desk
-21. [~] Customize the Desk: hide sections you don't use
-22. [~] Evening "tomorrow" card: first class and what's due
+21. [~] Customize the Desk: hide sections you don't use — chips toggle in Settings; countdowns live under More on your desk, hiding not re-checked there (2026-10-05)
+22. [x] Evening "tomorrow" card: first class and what's due — seen 2026-10-05, Simulator, show mode
 23. [x] Morning brief card: today's classes and due today
 24. [x] Quick capture bar: "bio quiz friday" becomes a real assignment
 25. [x] Natural-language parsing for quick capture (kind, class, date)
@@ -55,20 +55,20 @@ R3. [x] AI allowance + Plus paywall (core/aiQuota.ts, app/plus.tsx): Free 20
 27. [~] Resurfaced good thing: "A while ago you were grateful for…"
 28. [~] Worry-time card when worries are waiting (4–7 PM)
 29. [x] Warmth meter on the Desk
-30. [~] Soonest countdown gets a progress ring
+30. [x] Soonest countdown gets a progress ring — seen 2026-10-05, Simulator, show mode
 
 ## C. School
-31. [~] "Add another like this" on assignments
+31. [x] "Add another like this" on assignments — seen 2026-10-05, Simulator, show mode
 32. [~] Due-date pile-up warning when adding (3+ due the same day)
 33. [~] Smarter time estimates from your own focus history
-34. [~] Grade what-if: try a hypothetical score
-35. [~] Grade goal per class with progress
+34. [x] Grade what-if: try a hypothetical score — seen 2026-10-05, Simulator, show mode
+35. [x] Grade goal per class with progress — seen 2026-10-05, Simulator, show mode
 36. [~] Scan grades from a screenshot ("85/100" lines)
 37. [~] Scan class times from a schedule screenshot ("8:00 AM - 8:50 AM")
-38. [~] Week view: tap a day to add a study block
-39. [~] "Do this now" line at the top of School
-40. [~] Class page quick color change
-41. [~] Bulk move: push every overdue thing to one day
+38. [~] Week view: tap a day to add a study block — picking a day shows its work and "Add a study block on <day>"; no Ember line showed after Add in show mode, check the block lands on the phone (2026-10-05)
+39. [x] "Do this now" line at the top of School — seen 2026-10-05, Simulator, show mode
+40. [x] Class page quick color change — seen 2026-10-05, Simulator, show mode
+41. [~] Bulk move: push every overdue thing to one day — needs something late; Riley's sample has nothing late (2026-10-05)
 42. [~] Assignment detail shows which helper you last used on it
 
 ## D. Study and Focus
@@ -77,7 +77,7 @@ R3. [x] AI allowance + Plus paywall (core/aiQuota.ts, app/plus.tsx): Free 20
 45. [x] Flashcards: type-the-answer mode
 46. [x] Flashcards: reverse mode (back to front)
 47. [x] Make flashcards from a note's "term — definition" lines
-48. [~] Share a deck as text; import one by pasting
+48. [x] Share a deck as text; import one by pasting — seen 2026-10-05, Simulator, show mode
 49. [x] Focus month heat calendar
 50. [x] Best time of day to focus (from your sessions)
 51. [x] Quizzo warm-up offer on the Focus setup
@@ -103,20 +103,20 @@ R3. [x] AI allowance + Plus paywall (core/aiQuota.ts, app/plus.tsx): Free 20
 67. [x] Wind-down nights counted (no streaks)
 68. [x] One-minute breath button at the top of Steady
 69. [x] Stress tag → matching tool suggestion after a check-in
-70. [~] Weekly "check on a friend" nudge from Your people
+70. [~] Weekly "check on a friend" nudge from Your people — shows only Sunday or Wednesday, noon to 9 PM (2026-10-05)
 71. [x] Five-minute reset routine in the Toolkit
 72. [~] Long-press the Steady tab → Need help now
-73. [~] Sleep: tonight's bedtime on the evening Desk
+73. [x] Sleep: tonight's bedtime on the evening Desk — seen 2026-10-05, Simulator, show mode
 74. [x] Gratitude: prompts rotate daily
 
 ## G. College and life
 75. [x] Supplement essays per college with word limits
-76. [~] Application fees and waivers per college
+76. [x] Application fees and waivers per college — seen 2026-10-05, Simulator, show mode
 77. [x] Scholarships sorted by urgency with colors
-78. [~] Activities list: copy all as text for the Common App
+78. [x] Activities list: copy all as text for the Common App — seen 2026-10-05, Simulator, show mode
 79. [x] Hours: share a log (for a supervisor to verify)
 80. [x] Driving: time of day logged, night hours auto-marked
-81. [~] Work: hourly wage and earnings this month
+81. [x] Work: hourly wage and earnings this month — seen 2026-10-05, Simulator, show mode
 82. [x] Countdowns: pick an icon
 
 ## H. Motivation
@@ -136,10 +136,10 @@ R3. [x] AI allowance + Plus paywall (core/aiQuota.ts, app/plus.tsx): Free 20
 94. [~] Error screen: copy the details for a bug report
 95. [~] Old per-day checklists and chats trimmed automatically
 96. [x] Welcome flow mentions helpers and scanning
-97. [~] "How AI works here" page: what's free, what's sent, what it costs
+97. [x] "How AI works here" page: what's free, what's sent, what it costs — seen 2026-10-05, Simulator, show mode
 98. [x] Privacy page: what lives on the phone vs Supabase vs Anthropic
 99. [x] Replay the app tour from Settings
-100. [~] What's new history page
+100. [x] What's new history page — seen 2026-10-05, Simulator, show mode
 
 ## RESUME HERE (for a fresh session after compaction)
 - Committed so far: da32a82 (round 1). Round 2 is NOT committed yet — wait

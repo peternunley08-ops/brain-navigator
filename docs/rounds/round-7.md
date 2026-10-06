@@ -53,7 +53,7 @@ checked · `[–]` decided against (with why)
     2. [–] X019 One-tap mood: already built (the Desk's mood faces call `quickMood`, with Undo)
     3. [~] X122 Label every icon button for VoiceOver. Audit: IconButton already requires a label; one bare control found (Your day's color swatches, now named); text fields now keep their label after they're filled. Listen with VoiceOver on the phone
     4. [x] X174 Tests for the core helpers: `npm test` (Node's built-in runner, no new packages), 16 tests over dates, plural, the night clock, classAverage, letterFor, planBackward. Part of the gate now
-    5. [~] X038 Turned in: homework, projects and essays marked done show "Done, not turned in yet" and a Mark turned in chip on their page (`turnedIn`, optional)
+    5. [x] X038 Turned in: homework, projects and essays marked done show "Done, not turned in yet" and a Mark turned in chip on their page (`turnedIn`, optional) — seen 2026-10-05 (Simulator): Mark done → "Done, not turned in yet", Mark turned in → "Done and turned in" (bug found: 41)
     6. [ ] X013 Snooze a Desk card to tonight or tomorrow (optional field). A swipe on the Desk: build it where it can be felt (desktop session, Simulator)
     7. [–] X057 Calm kit: already built (Steady orders its doors and tools by About you's calmers and what you said helped)
     8. [–] X003 Brain dump before bed: covered by Put the day down ("Anything still on your mind?" into the worry box, "Tomorrow starts with" into First light's one thing)
@@ -62,14 +62,37 @@ checked · `[–]` decided against (with why)
 
 ## G. From the live walk (2026-10-03)
 
-21. [ ] Supabase: `.env` points at project `cvkx…`, but Ember and Notion are deployed on `jmjd…` (the session log's project); use that project's key, or deploy the functions to `cvkx…`
+21. [x] Supabase: `.env` points at project `cvkx…`, but Ember and Notion are deployed on `jmjd…` (the session log's project); use that project's key, or deploy the functions to `cvkx…` — fixed 2026-10-05: ember and notion redeployed to `jmjd…`; Ember replies in chat (Simulator)
 22. [ ] Weather loads only from Check-in's "Show conditions", so the window's weather (R6-61) and the real sunset sky (R6-30) are gone after every cold start. Loading it at launch sends your location to the weather service on each open: decide first (privacy)
 23. [ ] Defaults: lights out (9:30 PM, from wake and sleep goal) comes before wind-down (10 PM), so the night card always says "Lights out was", never "Lights out by"
 24. [ ] Exam season (R6-67) is a lead card with rings, not a whole-Desk study view: decide whether that's enough
-25. [ ] Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge
+25. [ ] Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge — also the x on Ember's note on the Desk (seen 2026-10-05)
 26. [ ] What's New's October entry could name the later surprises (sparks, firsts, weather, the shelf)
 27. [ ] Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today
 37. [ ] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10)
+
+From the Part 1 walk (2026-10-05, Simulator):
+
+38. [ ] Habits: the flame icon wraps onto a line of its own under "Kept N of the last 14 days" (`app/habits.tsx`, the meta row)
+39. [ ] Wording: the drawer's Habits tool says "Streaks you keep" (`core/tools.ts`), against the no-streak framing; after every habit is done, Habits' subtitle still says "Tap a habit's circle…"
+40. [ ] Habits' title scrolls away with the list; other pages keep a small header on scroll
+41. [ ] Homework marked done with no steps shows an empty Steps box on its page (`app/assignment/[id].tsx`)
+42. [ ] Open-source licenses: the five `@expo-google-fonts` entries open only Expo's MIT text; the fonts' own OFL-1.1 text (and Material Symbols' Apache-2.0) is missing, and the OFL asks for it to travel with the fonts (`assets/licenses.json`)
+43. [ ] Desk: mid-scroll, the header's search and grid buttons sit over the status bar icons
+44. [ ] Show mode: Riley's "Take the tour / Not now" card overlaps the Today rows
+45. [ ] `brainnavigator://school` doesn't open School (settings, drawer, habits, about, licenses, companion and ai do)
+46. [ ] At 10 AM on a Monday the Desk said "School's done for today": check the schedule state behind it (`app/index.tsx:130`)
+47. [ ] The Simulator app is slow even on a production bundle: taps and typing land seconds late, 33–80% CPU at idle (with 9, 10 and 37)
+
+From the Part 2 walk (2026-10-05, Simulator, show mode):
+
+48. [~] Focus: "How did it go?" never showed after a session; a stray `else` cleared the session it rates (`app/focus.tsx`). Fixed in PR #47, seen working there (R1-39, and R3-27 gets its ratings back)
+49. [~] Focus from a note's "Focus on this" picked the next thing due instead of the note's topic (`app/focus.tsx`). Fixed in PR #47, seen working there (R3-82)
+50. [~] Hours said "1 hours" (`app/hours.tsx`). Fixed in PR #48
+51. [~] Helpers and the quota card said Plus gives 400 replies a month; it's 250 (`PLUS_PER_MONTH`). Fixed in PR #49
+52. [ ] Quill's tab label is cut off on a 402-pt-wide phone: "Brainstorm with questi…"
+53. [ ] Pip's "Other time" shows 8:30 PM before you pick one, while the plan still uses Start now (`components/helpers/TonightPlan.tsx`)
+54. [ ] Export a backup names the file with the UTC date, so an evening backup gets tomorrow's date (`app/settings.tsx:148`, `toISOString`)
 
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
@@ -77,9 +100,9 @@ checked · `[–]` decided against (with why)
 30. [~] B2 Entry photos: signed links (built); then run schema Phase 20 to make the bucket private
 31. [ ] B3 Notion: bring your own (OAuth per student); until then off in release builds
 32. [ ] B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app
-33. [~] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here
+33. [x] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here — seen 2026-10-05 (Simulator): the sheet opens on the first AI request; Not now sends nothing; Allow, then Ember answers (that same message too, since PR #42); How AI works here takes the OK back
 34. [ ] B6 Age 13+ (decided): Declared Age Range API (native), under-13 gate, honest App Store age rating
-35. [~] B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol
+35. [~] B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol — seen 2026-10-05: the line under Ember's name in chat; "I want to die (testing)" shows the help lines at once and the reply carries Need help now. The 3-hour reminder not yet seen
 36. [~] B8 Anthropic for minors: disclosure and safety rules done; request the official child-safety system prompt from Anthropic and add it
 
 ## Ground rules
@@ -92,3 +115,5 @@ passes on every commit. Builders work in their own branches; nothing is
 ## Progress log
 
 **2026-10-03, Atlas (Mac, Simulators).** iOS 27 launch fixed (UIScene, item 1). Walked Round 6 on four Simulators (iOS 27 and 26) with helpers; fixed what they found: show mode left Riley's rows, one thing and Ember's nap behind after Done; the check-in page threw "Invalid hook call" and never loaded today's check-in; goodnight lost its "Goodnight."; First light skipped a Desk left open overnight; Sunday night read the calendar's day; holding Ember ended the calm on release; Ember's lines cut each other off and vanished in 3.6 s; the tour's Focus line never showed; journal lines had no subject; sparks aimed at a fixed spot; new dots only cleared from the Drawer; Focus's week mixed Sunday and Monday starts; number pads couldn't close; the largest text broke words; Your day swiped back instead of a day; "due friday" and "Quiz: Quiz:"; Calendar crashed without a Google client ID; the shelf's candles wrote during render. Re-checked live: check-in, show mode's exit, the tour, the journal, the night labels, First light, hold to breathe, the Done bar, Your day's swipe, the largest text on Settings and the wake screen.
+
+**2026-10-05, local session (Mac, iPhone 17 Pro Simulator).** Walked LIVE-CHECKS' Do these first: 16 of 26 seen working (marked there). Fixed one bug on the way: after Allow on the consent sheet, Ember now answers the message that opened it (PR #42). Filed ten new items (38–47). Still to see: the shakes, Canvas sync and entry photos (phone), Halloween and Goodnight continuity (phone date), VoiceOver (Part 3), First run (Start over erases the data).
