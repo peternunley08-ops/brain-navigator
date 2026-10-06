@@ -1,11 +1,17 @@
+import * as Haptics from '../../core/haptics';
 import { router } from 'expo-router';
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
+import Animated, { interpolate, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { dateKey } from '../../core/dates';
 import { closedToday } from '../../core/deskNotes';
-import { dueLine, pickLit, urgentTonight, type LitKind } from '../../core/litCard';
+import { dueLine, pickLit, snoozeTarget, urgentTonight, type LitKind } from '../../core/litCard';
 import { useLifeStore } from '../../core/lifeStore';
 import { minutesOf, minutesToNight, nightNow, nightStart } from '../../core/night';
 import { nowState, useSchoolStore } from '../../core/schoolStore';
+import { offerUndo } from '../../core/undoStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { plural } from '../../core/words';
 import { Sparks } from '../ember/Sparks';
@@ -95,17 +101,79 @@ function DueTonight() {
   const assignments = useSchoolStore((s) => s.assignments);
   const today = dateKey();
   const a = urgentTonight(assignments, today);
+  // Swipe it left and it leaves the Desk till tonight (or tomorrow morning,
+  // once it's evening); its due date stays. Undo puts it back.
+  const later = snoozeTarget(nightNow()).when;
+  const snooze = () => {
+    if (!a) return;
+    const { id, snoozedUntil: was } = a;
+    const to = snoozeTarget(nightNow());
+    useSchoolStore.getState().updateAssignment(id, { snoozedUntil: to.until });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    offerUndo(`Set aside till ${to.when}`, () => useSchoolStore.getState().updateAssignment(id, { snoozedUntil: was }), 'arrow');
+  };
+  const tx = useSharedValue(0);
+  const armed = useSharedValue(0);
+  const tick = () => Haptics.selectionAsync().catch(() => {});
+  const pan = usePanGesture({
+    activeOffsetX: [-14, 14],
+    failOffsetY: [-10, 10],
+    onUpdate: (e) => {
+      'worklet';
+      // Only leftward; a pull to the right just resists.
+      tx.value = e.translationX < 0 ? e.translationX : e.translationX * 0.2;
+      const over = e.translationX < -SNOOZE_AT ? 1 : 0;
+      if (over !== armed.value) {
+        armed.value = over;
+        scheduleOnRN(tick);
+      }
+    },
+    onFinalize: () => {
+      'worklet';
+      armed.value = 0;
+      // Past the line it slides off, and the next card takes its place.
+      if (tx.value < -SNOOZE_AT) tx.value = withTiming(-W_OFF, { duration: 180 }, (done) => done && scheduleOnRN(snooze));
+      else tx.value = withSpring(0, { damping: 18, stiffness: 220 });
+    },
+  });
+  const slide = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
+  // A new card (or the same one back from Undo) starts in place.
+  const shownId = a?.id;
+  useEffect(() => {
+    tx.value = 0;
+  }, [shownId, tx]);
+  const under = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [-SNOOZE_AT, 0], [1, 0], 'clamp') }));
   if (!a) return null;
   return (
-    <Card tint={colors.flame} onPress={() => router.push(`/assignment/${a.id}`)} accessibilityHint="Opens it" style={styles.gap}>
-      <Text style={styles.big} numberOfLines={2}>
-        {a.title}
-      </Text>
-      <Text style={styles.body}>{dueLine(a.minutes, a.due, today)}</Text>
-      <Button label="Light the candle" icon="candle" size="sm" onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })} style={styles.action} />
-    </Card>
+    <View style={styles.gap}>
+      <Animated.View pointerEvents="none" style={[styles.under, under]}>
+        <Text style={styles.underText}>{later === 'tonight' ? 'Tonight' : 'Tomorrow'}</Text>
+        <Icon name="arrow" size={20} color={colors.flameInk} strokeWidth={2.6} />
+      </Animated.View>
+      <GestureDetector gesture={pan}>
+        <Animated.View style={slide}>
+          <Card
+            tint={colors.flame}
+            onPress={() => router.push(`/assignment/${a.id}`)}
+            accessibilityHint={`Opens it. Swipe left to set it aside till ${later}.`}
+            accessibilityActions={[{ name: 'snooze', label: `Set aside till ${later}` }]}
+            onAccessibilityAction={(e) => e.nativeEvent.actionName === 'snooze' && snooze()}
+          >
+            <Text style={styles.big} numberOfLines={2}>
+              {a.title}
+            </Text>
+            <Text style={styles.body}>{dueLine(a.minutes, a.due, today)}</Text>
+            <Button label="Light the candle" icon="candle" size="sm" onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })} style={styles.action} />
+          </Card>
+        </Animated.View>
+      </GestureDetector>
+    </View>
   );
 }
+
+// How far left the lit card has to travel before letting go snoozes it.
+const SNOOZE_AT = 90;
+const W_OFF = 480;
 
 // The evening brief's blue, so wind-down reads as the same evening.
 const MOON = '#8FB4E8';
@@ -149,6 +217,25 @@ function FirstHomework() {
 }
 
 const styles = StyleSheet.create({
+  under: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderRadius: 22,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+    paddingHorizontal: 20,
+    backgroundColor: colors.flame,
+  },
+  underText: {
+    fontFamily: fonts.bodyBold,
+    fontSize: 14,
+    color: colors.flameInk,
+  },
   gap: {
     marginTop: 12,
   },

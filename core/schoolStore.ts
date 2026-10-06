@@ -75,6 +75,8 @@ export interface Assignment {
   repeat?: 'weekly' | null;
   /** Done is "I finished it"; this is "the teacher has it". */
   turnedIn?: boolean;
+  /** Swiped off the Desk's lit card until this time (ms). Due date unchanged. */
+  snoozedUntil?: number;
 }
 
 export interface FocusSession {
