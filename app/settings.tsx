@@ -23,6 +23,7 @@ import { EVENING_HOURS, MORNING_HOURS, TimeField } from '../components/ui/TimeFi
 import { useAIStatus } from '../components/helpers/Quota';
 import { aboutFilled } from '../core/about';
 import { goHome } from '../core/chrome';
+import { dateKey } from '../core/dates';
 import { startShow } from '../core/show';
 import { warmth } from '../core/achievements';
 import { ACCESSORIES, EMBER_THEMES } from '../core/emberLook';
@@ -145,7 +146,7 @@ export default function SettingsScreen() {
     };
     const json = JSON.stringify(data, null, 2);
     try {
-      const f = new File(Paths.cache, `brain-navigator-${new Date().toISOString().slice(0, 10)}.json`);
+      const f = new File(Paths.cache, `brain-navigator-${dateKey()}.json`);
       if (f.exists) f.delete();
       f.create();
       f.write(json);
