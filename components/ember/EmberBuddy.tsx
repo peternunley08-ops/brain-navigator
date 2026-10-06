@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
-import { type EmberMood, inClassQuiet, lineMs, useEmberStore } from '../../core/emberStore';
+import { emberOnScreen, type EmberMood, inClassQuiet, lineMs, useEmberStore } from '../../core/emberStore';
 import { emberHop, navTucked, scrolling } from '../../core/chrome';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
@@ -143,6 +143,9 @@ export function EmberBuddy() {
   useEffect(() => {
     useEmberStore.getState().load();
   }, []);
+
+  // Each screen visit, Ember may speak once on its own.
+  useEffect(() => emberOnScreen(pathname), [pathname]);
 
   useEffect(() => {
     const a = Keyboard.addListener('keyboardWillShow', () => setKeyboardUp(true));
