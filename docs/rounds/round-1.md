@@ -33,15 +33,15 @@ Legend: [x] built and seen working live · [~] built and type-checked, not yet e
 12. [x] Subtasks — break a big assignment into checkable steps
 13. [x] "Plan it backward" — auto-spread study steps across the days before a test/project
 14. [x] Snooze: push an assignment to tomorrow in one tap (assignment detail)
-15. [~] Duplicate an assignment
+15. [x] Duplicate an assignment — seen 2026-10-05, Simulator, show mode
 16. [~] Repeats weekly (e.g. vocab quiz every Friday) — next one is created when you finish
 17. [x] Overdue triage screen: do tonight / move / drop / ask the teacher
-18. [~] "Ask for an extension" message drafter (Share sheet, you send it)
+18. [x] "Ask for an extension" message drafter (Share sheet, you send it) — seen 2026-10-05, Simulator, show mode
 19. [x] Class page: its work, notes, grades, teacher, room, times
-20. [~] "I was out" helper — what to ask each class for after an absence
+20. [x] "I was out" helper — what to ask each class for after an absence — seen 2026-10-05, Simulator, show mode
 21. [x] Week view: timetable grid of classes Mon–Fri, colored by class
 22. [x] Workload heatmap: next 14 days, minutes due per day vs your cap
-23. [~] Time spent on an assignment (from focus sessions) on its detail page
+23. [x] Time spent on an assignment (from focus sessions) on its detail page — seen 2026-10-05, Simulator, show mode
 24. [~] Finals mode: exam list + countdown + study plan (from countdown kind "finals")
 25. [x] Search across schoolwork
 26. [x] Done this week count on School
@@ -51,7 +51,7 @@ Legend: [x] built and seen working live · [~] built and type-checked, not yet e
 ## C. Grades
 29. [x] Log grades per class (score / out of, category, date)
 30. [x] Running class average with letter grade
-31. [~] Weighted categories per class (tests 50%, homework 30%…)
+31. [x] Weighted categories per class (tests 50%, homework 30%…) — seen 2026-10-05, Simulator, show mode
 32. [x] "What do I need on the final?" calculator
 33. [x] GPA — unweighted and weighted (Honors/AP +1) with class level + credits
 34. [x] Grade trend sparkline per class
@@ -60,8 +60,8 @@ Legend: [x] built and seen working live · [~] built and type-checked, not yet e
 ## D. Focus & study
 36. [x] Focus presets: Pomodoro 25/5, Deep 50/10, Sprint 15/3
 37. [~] "Just 5 minutes" start (beat procrastination)
-38. [~] Distraction catcher: jot a stray thought mid-session, get back to work
-39. [~] Session reflection (how did it go? 3 taps) saved with the session
+38. [x] Distraction catcher: jot a stray thought mid-session, get back to work — seen 2026-10-05, Simulator, show mode
+39. [~] Session reflection (how did it go? 3 taps) saved with the session — works with PR #47 (seen on the Simulator); flip when it merges (2026-10-05)
 40. [x] Weekly focus goal with progress ring
 41. [x] Study techniques library: active recall, spaced repetition, Feynman,
        interleaving, blurting, Pomodoro, elaboration, practice testing
@@ -69,7 +69,7 @@ Legend: [x] built and seen working live · [~] built and type-checked, not yet e
 43. [x] Flashcard study mode: flip card, "got it / again", Leitner boxes (spaced repetition)
 44. [x] Deck stats: mastered / learning / new
 45. [x] Make cards fast: "front :: back" paste-in, one per line
-46. [~] Focus streak-free history: minutes per day this week (exists) + total all-time
+46. [x] Focus streak-free history: minutes per day this week (exists) + total all-time — seen 2026-10-05, Simulator, show mode
 47. [~] Suggested next thing to study (soonest test with a deck or plan)
 
 ## E. Ember
@@ -91,50 +91,50 @@ Legend: [x] built and seen working live · [~] built and type-checked, not yet e
 61. [x] Tomorrow's bag packing list (editable, resets nightly)
 62. [x] Gratitude: three good things, once a day
 63. [x] Wins jar: log small wins, see them fill a jar
-64. [~] Mood calendar: month of check-in moods as colored dots
-65. [~] Stress source insights: what comes up most (from check-in tags)
-66. [~] Test anxiety toolkit: reappraise ("this is excitement"), 4-7-8 breath, 2-minute prep list
+64. [x] Mood calendar: month of check-in moods as colored dots — seen 2026-10-05, Simulator, show mode
+65. [x] Stress source insights: what comes up most (from check-in tags) — seen 2026-10-05, Simulator, show mode
+66. [x] Test anxiety toolkit: reappraise ("this is excitement"), 4-7-8 breath, 2-minute prep list — seen 2026-10-05, Simulator, show mode
 67. [x] Progressive muscle relaxation guided steps
-68. [~] Self-compassion break (3 steps)
-69. [~] Thought reframe helper: pick a thinking trap, rewrite the thought
-70. [~] Worry box: write a worry, schedule it for "worry time", release when handled
-71. [~] Reach out: your trusted people (name + number), one tap to text or call
-72. [~] Habit ideas for students (one-tap add)
+68. [x] Self-compassion break (3 steps) — seen 2026-10-05, Simulator, show mode
+69. [x] Thought reframe helper: pick a thinking trap, rewrite the thought — seen 2026-10-05, Simulator, show mode
+70. [x] Worry box: write a worry, schedule it for "worry time", release when handled — seen 2026-10-05, Simulator, show mode
+71. [x] Reach out: your trusted people (name + number), one tap to text or call — seen 2026-10-05, Simulator, show mode
+72. [x] Habit ideas for students (one-tap add) — seen 2026-10-05, Simulator, show mode
 73. [~] Screen-time reflection? → folded into wind-down ("phone out of the bedroom")
-74. [~] Steady links to the new toolkit, people, worry box
+74. [x] Steady links to the new toolkit, people, worry box — seen 2026-10-05, Simulator, show mode
 
 ## G. Notebook
 75. [x] Search notes
 76. [x] Markdown shortcuts: "# " heading, "- " bullet, "[] " todo, "> " quote, "1. " numbered
 77. [x] New blocks: numbered, quote/callout, divider
-78. [~] Templates: Cornell notes, lab report, reading notes, meeting/club notes
+78. [x] Templates: Cornell notes, lab report, reading notes, meeting/club notes — seen 2026-10-05, Simulator, show mode
 79. [~] Share a note (Share sheet as plain text)
-80. [~] Turn a note's to-do into an assignment
+80. [x] Turn a note's to-do into an assignment — seen 2026-10-05, Simulator, show mode
 81. [x] Pinned notes first + pin toggle
 82. [x] Word count on every note (for essays)
-83. [~] Notes filtered by class (chips)
+83. [x] Notes filtered by class (chips) — seen 2026-10-05, Simulator, show mode
 
 ## H. College
 84. [x] Reach / target / likely tier per college, with a balance bar
 85. [x] Deadline timeline across all colleges
-86. [~] Scholarship tracker: name, amount, deadline, status
-87. [~] Recommendation letters: who, asked on, due, thank-you sent
-88. [~] Activities list builder (Common App: 10 activities, 150-char descriptions, live counter)
-89. [~] Essay word counter with 650 limit (in notes with the essay template)
-90. [~] FAFSA / CSS Profile checklist
-91. [~] Campus visit notes (rating + what stood out)
-92. [~] College countdown on the Desk chips (idea 2)
+86. [x] Scholarship tracker: name, amount, deadline, status — seen 2026-10-05, Simulator, show mode
+87. [x] Recommendation letters: who, asked on, due, thank-you sent — seen 2026-10-05, Simulator, show mode
+88. [x] Activities list builder (Common App: 10 activities, 150-char descriptions, live counter) — seen 2026-10-05, Simulator, show mode
+89. [x] Essay word counter with 650 limit (in notes with the essay template) — seen 2026-10-05, Simulator, show mode
+90. [x] FAFSA / CSS Profile checklist — seen 2026-10-05, Simulator, show mode
+91. [x] Campus visit notes (rating + what stood out) — seen 2026-10-05, Simulator, show mode
+92. [x] College countdown on the Desk chips (idea 2) — seen 2026-10-05, Simulator, show mode
 
 ## I. Student life
 93. [x] Community service hours log with a goal (e.g. 40 hrs)
-94. [~] Driving practice log (learner's permit: total + night hours toward 50/10)
+94. [x] Driving practice log (learner's permit: total + night hours toward 50/10) — seen 2026-10-05, Simulator, show mode
 95. [x] Countdowns: prom, break, game, birthday — your own events
 96. [~] Job shifts as activities (already via schedule) + hours total in Hours
 97. [x] "Your year" stats: assignments done, focus hours, check-ins, wins
 
 ## J. Motivation (gentle, no streak shame)
 98. [x] Achievements (quiet badges): first scan, first focus, 5 check-ins, 10 wins…
-99. [~] Weekly review: what went well, what was hard, one thing next week + stats
+99. [x] Weekly review: what went well, what was hard, one thing next week + stats — seen 2026-10-05, Simulator, show mode
 100. [~] "Days you showed up" (count, not a streak)
 101. [~] Celebrate finishing every subtask of a big project
 
@@ -142,17 +142,17 @@ Legend: [x] built and seen working live · [~] built and type-checked, not yet e
 102. [x] New icons: star, search, grade, cards, gift, car, hands, jar-fill, bag, bed, settings, share, sparkle-star, trophy, list
 103. [x] Progress bar primitive (animated) used across new screens
 104. [x] Segmented control primitive
-105. [~] Toast with Undo (delete an assignment → Undo)
+105. [~] Toast with Undo (delete an assignment → Undo) — Undo bar seen after Delete; the Simulator lags past its 6.5 s, so tapping Undo is a phone check (2026-10-05)
 106. [x] Friendly error boundary with Ember (screen crash → "something tipped over")
 107. [x] Flip-card animation for flashcards
 108. [x] Jar-filling graphic for wins
-109. [~] Month dot grid graphic for moods
+109. [x] Month dot grid graphic for moods — seen 2026-10-05, Simulator, show mode
 110. [x] Heatmap graphic for workload
 111. [x] Timetable graphic for the week
 
 ## L. Settings, data & quality
 112. [x] Settings screen: name, grade, birthday, sleep goal, nightly cap, wind-down time
-113. [~] Export everything (school/hub/life JSON) via Share sheet
+113. [x] Export everything (school/hub/life JSON) via Share sheet — seen 2026-10-05, Simulator, show mode
 114. [~] Reset local data (hold to confirm)
 115. [x] Drawer reorganized with the new tools (School, Study, Wellness, College, Life)
 116. [~] Quick-add sheet: + Grade, + Flashcards, + Win

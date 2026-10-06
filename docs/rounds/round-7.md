@@ -84,6 +84,16 @@ From the Part 1 walk (2026-10-05, Simulator):
 46. [ ] At 10 AM on a Monday the Desk said "School's done for today": check the schedule state behind it (`app/index.tsx:130`)
 47. [ ] The Simulator app is slow even on a production bundle: taps and typing land seconds late, 33–80% CPU at idle (with 9, 10 and 37)
 
+From the Part 2 walk (2026-10-05, Simulator, show mode):
+
+48. [~] Focus: "How did it go?" never showed after a session; a stray `else` cleared the session it rates (`app/focus.tsx`). Fixed in PR #47, seen working there (R1-39, and R3-27 gets its ratings back)
+49. [~] Focus from a note's "Focus on this" picked the next thing due instead of the note's topic (`app/focus.tsx`). Fixed in PR #47, seen working there (R3-82)
+50. [~] Hours said "1 hours" (`app/hours.tsx`). Fixed in PR #48
+51. [~] Helpers and the quota card said Plus gives 400 replies a month; it's 250 (`PLUS_PER_MONTH`). Fixed in PR #49
+52. [ ] Quill's tab label is cut off on a 402-pt-wide phone: "Brainstorm with questi…"
+53. [ ] Pip's "Other time" shows 8:30 PM before you pick one, while the plan still uses Start now (`components/helpers/TonightPlan.tsx`)
+54. [ ] Export a backup names the file with the UTC date, so an evening backup gets tomorrow's date (`app/settings.tsx:148`, `toISOString`)
+
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
 29. [ ] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Peter: decide later (until then, single-user only)

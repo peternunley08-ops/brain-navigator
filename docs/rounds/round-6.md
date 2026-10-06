@@ -82,7 +82,7 @@ checked · [–] decided against (with why)
 23. [x] The room dims a little more each hour after wind-down — seen, subtle (the veil deepens a little each hour); it now also follows the real clock while a page sits open
 24. [x] Ember holds a tiny candle at night and speaks softer (shorter lines) — seen: a tiny candle beside Ember at night
 25. [x] "Put the day down": one tap at night lists what got done, sets down what's left for tomorrow, and says goodnight — seen
-26. [~] A goodnight line from Ember that names one real thing from the day — fixed after the walk: the goodnight line keeps its "Goodnight." (night trimmed it); check live
+26. [x] A goodnight line from Ember that names one real thing from the day — fixed after the walk: the goodnight line keeps its "Goodnight." (night trimmed it); check live — seen 2026-10-05, Simulator, show mode
 27. [x] Late-night writing in Let it out offers "keep it for tomorrow" (the worry box) instead of solving it now — seen: "Keep it for tomorrow" leads after dark
 28. [x] After midnight, Ember's first line is about sleep, never homework — seen at 00:30
 29. [x] Morning light: the first open after wake time shows "first light" (today's first class, one thing, the weather) and fades to the normal Desk — seen, and fixed: it also comes when the Desk was left open overnight (checked 14:00 then 08:00); a school-day first class still to see
@@ -110,7 +110,7 @@ checked · [–] decided against (with why)
 49. [x] What's New gets a Round 5–6 entry with the best changes — seen (it doesn't mention the later surprises: sparks, firsts, weather)
 50. [x] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
 51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
-52. [~] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen — fixed after the walk: the dot clears wherever the page is opened from; check live
+52. [x] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen — fixed after the walk: the dot clears wherever the page is opened from; check live — seen 2026-10-05, Simulator, show mode
 53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/) (needs the Mac; moved to Round 7)
 54. [~] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots (docs/WHAT-THIS-IS.md covers it; screenshots wait on R6-53, which needs the Mac)
 55. [ ] The phone gets a fresh Release build with everything (free signing renews) (needs the Mac; moved to Round 7)
@@ -134,7 +134,7 @@ checked · [–] decided against (with why)
 71. [x] **The good mail**: a note you write to yourself in Wins can be "sealed" until a date, and opens then — seen
 72. [x] **Your constellation**: About you drawn as stars (each pick a star), joined as more is known — seen
 73. [x] **Ember's journal**: Ember writes one line a week about your week (on the phone, no AI) — seen, and fixed: every line has its subject ("You checked in once.")
-74. [~] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it — seen only as a fourth tip; now a nudge (priority 2); check live
+74. [~] **Tiny wins radar**: Ember notices a small good thing in the data ("first time Chem was done a day early") and says it — seen only as a fourth tip; now a nudge (priority 2); check live — wins radar stays silent in show mode; check with real data (2026-10-05)
 75. [x] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk — seen; the check-in page's crash it caused is fixed
 
 ### E. Smoothness, the second pass (76–90)
@@ -144,7 +144,7 @@ checked · [–] decided against (with why)
 79. [x] Pages pushed from a card grow from that card (a zoom-from-card transition where supported) — seen in Notes
 80. [x] The compact bar's title slides up from where the big title was — seen
 81. [x] Chips press with a springy sink like cards — seen
-82. [~] Pull-to-refresh on School and Steady too, with Ember's hop — School seen; Steady got pull to refresh after the walk; check live
+82. [x] Pull-to-refresh on School and Steady too, with Ember's hop — School seen; Steady got pull to refresh after the walk; check live — seen 2026-10-05, Simulator, show mode
 83. [x] The keyboard and the page move together (fields slide, never jump) (Screen already uses automaticallyAdjustKeyboardInsets and interactive dismiss) — seen
 84. [–] Sheets snap to a half height when their content is short (every sheet holds a long scrolling form; fitting to content would squash them, so they stay full height)
 85. [~] Long lists render lazily (Notebook, Search, Badges) so pages open instantly — needs a big data set (Riley has 3 notes; the lazy limit is 30)
