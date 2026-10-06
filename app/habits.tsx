@@ -115,7 +115,7 @@ export default function HabitsScreen() {
             />
             <View style={styles.heroInfo}>
               <Text style={styles.heroStatus}>{todayStatus(todayPct)}</Text>
-              <Text style={styles.heroCaption}>Tap a habit’s circle when you’ve done it today.</Text>
+              <Text style={styles.heroCaption}>{todayPct != null && todayPct >= 100 ? 'Nothing left to tap today.' : 'Tap a habit’s circle when you’ve done it today.'}</Text>
             </View>
           </Card>
         </Reveal>
@@ -324,11 +324,11 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
     gap: 4,
     marginTop: 3,
   },
   habitMeta: {
+    flexShrink: 1,
     fontFamily: fonts.body,
     fontSize: 12,
     color: colors.textFaint,
