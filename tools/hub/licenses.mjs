@@ -32,11 +32,18 @@ for (const dir of dirs) {
   }
   const id = `${pkg.name}@${pkg.version}`;
   if (!pkg.name || seen.has(id)) continue;
+  // Native build tools pinned to one OS (lightningcss-darwin-arm64…) differ by
+  // machine and aren't in the app; skipping them keeps this file stable.
+  if (pkg.os) continue;
   seen.add(id);
-  const file = existsSync(dir) ? readdirSync(dir).find((f) => /^(licen[cs]e|copying)(\.|$)/i.test(f)) : null;
+  // Every license file, not just the first: font packages ship the code's
+  // LICENSE and the fonts' own LICENSE_FONT (OFL or Apache) side by side.
+  const files = existsSync(dir) ? readdirSync(dir).filter((f) => /^(licen[cs]e|copying)([._-]|$)/i.test(f)).sort() : [];
   let t = null;
-  if (file) {
-    const body = readFileSync(join(dir, file), 'utf8').replace(/\r\n/g, '\n').trim();
+  if (files.length) {
+    const body = files
+      .map((f, i) => (i ? `--- ${f} ---\n\n` : '') + readFileSync(join(dir, f), 'utf8').replace(/\r\n/g, '\n').trim())
+      .join('\n\n');
     if (!index.has(body)) {
       index.set(body, texts.length);
       texts.push(body);
