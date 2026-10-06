@@ -6,7 +6,7 @@ import { dueLine, pickLit, urgentTonight, type LitKind } from '../../core/litCar
 import { useLifeStore } from '../../core/lifeStore';
 import { minutesOf, minutesToNight, nightNow, nightStart } from '../../core/night';
 import { nowState, useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { plural } from '../../core/words';
 import { Sparks } from '../ember/Sparks';
 import { NowCard } from '../school/NowCard';
@@ -98,7 +98,7 @@ function DueTonight() {
   if (!a) return null;
   return (
     <Card tint={colors.flame} onPress={() => router.push(`/assignment/${a.id}`)} accessibilityHint="Opens it" style={styles.gap}>
-      <Text style={styles.big} numberOfLines={2}>
+      <Text style={styles.big} numberOfLines={3} maxFontSizeMultiplier={textGrow.heading}>
         {a.title}
       </Text>
       <Text style={styles.body}>{dueLine(a.minutes, a.due, today)}</Text>

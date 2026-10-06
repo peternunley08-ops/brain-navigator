@@ -2,7 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
 import Animated, { cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { Pressy } from './Pressy';
 
 const MOODS = [
@@ -78,7 +78,7 @@ function Face({
           </Svg>
         </Animated.View>
       </Animated.View>
-      <Text style={[styles.label, selected && { color: mood.color, fontFamily: fonts.bodySemi }]}>{mood.label}</Text>
+      <Text style={[styles.label, selected && { color: mood.color, fontFamily: fonts.bodySemi }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.bar}>{mood.label}</Text>
     </Pressy>
   );
 }
