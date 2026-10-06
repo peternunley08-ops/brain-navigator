@@ -9,6 +9,7 @@ import {
   Fraunces_600SemiBold,
 } from '@expo-google-fonts/fraunces';
 import { useFonts } from 'expo-font';
+import { useLinkingURL } from 'expo-linking';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -62,6 +63,11 @@ export default function RootLayout() {
     Figtree_700Bold,
   });
   const [entered, setEntered] = useState(false);
+  // tools/screens.mjs opens brainnavigator://?wake=1 to step past the threshold (development only).
+  const url = useLinkingURL();
+  useEffect(() => {
+    if (__DEV__ && url?.includes('wake=1')) setEntered(true);
+  }, [url]);
 
   useEffect(() => {
     if (fontsLoaded) {

@@ -55,7 +55,8 @@ import { offerUndo } from '../core/undoStore';
 import { selectionAsync } from '../core/haptics';
 import { alpha, colors, fonts, layout, radii, skyGlow, textGrow } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
-import { isShowing } from '../core/showMode';
+import { endShow, startShow } from '../core/show';
+import { dismissTour, isShowing, useShowMode } from '../core/showMode';
 
 const NUMBER_WORDS = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 const MAX_ON_DESK = 9;
@@ -177,12 +178,20 @@ export default function DeskScreen() {
   // Night runs from the wind-down hour (an hour later for a night owl) to 4:30 AM,
   // and the Desk shrinks to a short stack. In development only,
   // brainnavigator://?night=23:30 pretends it is that time and ?night=off stops.
-  const { night: nightParam } = useLocalSearchParams<{ night?: string }>();
+  // ?show=riley opens the sample student with no prompts (for tools/screens.mjs); ?show=off leaves.
+  const { night: nightParam, show: showParam } = useLocalSearchParams<{ night?: string; show?: string }>();
   useSyncExternalStore(subscribeNightClock, nightClockVersion);
+  // Riley's Desk is for showing people (and the store pictures): no dev chip on it.
+  const showing = useShowMode((st) => st.on);
   useEffect(() => {
     const m = parseNightParam(nightParam);
     if (__DEV__ && m !== undefined) setNightClock(m);
   }, [nightParam]);
+  useEffect(() => {
+    if (!__DEV__) return;
+    if (showParam === 'riley' && !isShowing()) startShow().then(dismissTour);
+    if (showParam === 'off') endShow();
+  }, [showParam]);
   const [, setMinute] = useState(0);
   useEffect(() => {
     const iv = setInterval(() => setMinute((m) => m + 1), 60000);
@@ -510,7 +519,7 @@ show('line') ? (
         </View>
       }
     >
-      {__DEV__ && nightClockOverride() != null ? (
+      {__DEV__ && !showing && nightClockOverride() != null ? (
         <ChipRow style={styles.windChip}>
           <Chip label={`Pretend time ${clock(nightClockOverride() ?? 0)}`} icon="clock" onPress={() => setNightClock(null)} accessibilityLabel="Pretend time is on. Tap to use the real clock." />
         </ChipRow>
