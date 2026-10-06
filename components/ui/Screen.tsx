@@ -16,7 +16,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { clearScrollToTop, emberHop, firstOpen, goBack, goHome, keepScroll, keptScroll, navTucked, scrolling, setScrollToTop, wantNav } from '../../core/chrome';
+import { clearScrollToTop, emberHop, firstOpen, goBack, goHome, keepScroll, keptScroll, navTucked, pageDown, scrolling, setScrollToTop, wantNav } from '../../core/chrome';
 import { useEmberStore } from '../../core/emberStore';
 import { timings } from '../../core/motion';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
@@ -28,6 +28,8 @@ import { RevealContext } from './Reveal';
 const GLASS = isLiquidGlassAvailable();
 /** Height of the compact bar under the status bar. */
 const BAR = 50;
+// Scrolled past this, content can pass under Ember's perch by the title.
+const PAGE_DOWN = 24;
 
 interface ScreenProps {
   title?: string;
@@ -143,6 +145,18 @@ export function Screen({
   const reduced = useReducedMotion();
   const y = useSharedValue(0);
   const lastY = useSharedValue(0);
+  // Back in front, tell Ember whether this page is still scrolled down.
+  // Only the page in front speaks for it.
+  const inFront = useSharedValue(0);
+  useFocusEffect(
+    useCallback(() => {
+      inFront.value = 1;
+      pageDown.value = y.value > PAGE_DOWN ? 1 : 0;
+      return () => {
+        inFront.value = 0;
+      };
+    }, [y, inFront]),
+  );
   // How far the page can scroll, and how tall the window is, for the
   // reading line on long pages.
   const roomV = useSharedValue(0);
@@ -157,6 +171,8 @@ export function Screen({
     onScroll: (e) => {
       const at = e.contentOffset.y;
       y.value = at;
+      const down = at > PAGE_DOWN ? 1 : 0;
+      if (inFront.value && pageDown.value !== down) pageDown.value = down;
       const dy = at - lastY.value;
       lastY.value = at;
       const room = e.contentSize.height - e.layoutMeasurement.height;
