@@ -8,6 +8,8 @@ import { buildQuiz, buildTonightPlan } from '../core/helperOffline';
 import { dueOn, firstClassOn, firstLightOpen } from '../core/night';
 import { finalNeeded, gpa, nowState, tonightsLoad, workloadByDay } from '../core/schoolStore';
 import { compassLabel } from '../core/weatherCodes';
+import { clock } from '../core/dates';
+import { widgetDay, widgetTimeline } from '../core/widgetData';
 
 const at = (y: number, m: number, d: number, h = 12, min = 0) => new Date(y, m - 1, d, h, min);
 const hm = (h: number, m = 0) => h * 60 + m;
@@ -172,5 +174,39 @@ describe('weather', () => {
     assert.equal(compassLabel(359), 'N');
     assert.equal(compassLabel(90), 'E');
     assert.equal(compassLabel(-90), 'W');
+  });
+});
+
+describe('home screen widget', () => {
+  const cls = (id: string, name: string, days: number[], start: number) =>
+    ({ id, name, teacher: '', room: '', color: '#fff', kind: 'class', days, start, end: start + 50 }) as never;
+  const hw = (id: string, title: string, due: string, extra = {}) =>
+    ({ id, title, classId: 'chem', kind: 'homework', due, minutes: null, notes: '', done: false, doneAt: null, createdAt: '', ...extra }) as never;
+  const classes = [cls('chem', 'AP Chemistry', [2], 8 * 60), cls('eng', 'English', [2, 3], 9 * 60)];
+  const work = [hw('a', 'Lab report', '2026-10-06'), hw('b', 'Essay', '2026-10-06', { starred: true }), hw('c', 'Old', '2026-10-06', { done: true })];
+
+  it('shows tomorrow: first class and what is due, starred first', () => {
+    // Monday evening, Oct 5 2026: tomorrow is Tuesday.
+    const d = widgetDay(classes, work, at(2026, 10, 5, 20));
+    assert.deepEqual(d.first, { name: 'AP Chemistry', time: clock(480), color: '#fff' });
+    assert.deepEqual(d.due.map((x) => x.title), ['Essay', 'Lab report']);
+    assert.equal(d.due[0].className, 'AP Chemistry');
+    assert.equal(d.dueCount, 2);
+    assert.equal(d.hasClasses, true);
+  });
+
+  it('after midnight it is still tonight until 5 AM', () => {
+    assert.equal(widgetDay(classes, work, at(2026, 10, 6, 1)).first?.name, 'AP Chemistry');
+    // Past 5 AM on Tuesday, tomorrow is Wednesday: English only, nothing due.
+    const wed = widgetDay(classes, work, at(2026, 10, 6, 6));
+    assert.equal(wed.first?.name, 'English');
+    assert.equal(wed.dueCount, 0);
+  });
+
+  it('rolls over at each 5 AM', () => {
+    const t = widgetTimeline(classes, work, at(2026, 10, 5, 20));
+    assert.deepEqual(t.map((e) => [e.date.getDate(), e.date.getHours()]), [[5, 20], [6, 5], [7, 5]]);
+    assert.deepEqual(widgetTimeline(classes, work, at(2026, 10, 6, 2)).map((e) => [e.date.getDate(), e.date.getHours()]), [[6, 2], [6, 5], [7, 5]]);
+    assert.equal(widgetDay([], [], at(2026, 10, 5, 20)).hasClasses, false);
   });
 });

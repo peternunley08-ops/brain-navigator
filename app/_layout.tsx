@@ -30,6 +30,7 @@ import { ShakeToWorry } from '../components/ShakeToWorry';
 import { UndoBar } from '../components/UndoBar';
 import { Celebration } from '../components/Celebration';
 import { useHubStore } from '../core/hubStore';
+import { startHomeWidget } from '../core/homeWidget';
 import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { colors } from '../core/theme';
@@ -75,6 +76,9 @@ export default function RootLayout() {
     useHubStore.getState().load();
     useLifeStore.getState().load();
   }, []);
+
+  // Keep the Home Screen widget on tomorrow's first class and what's due.
+  useEffect(() => startHomeWidget(), []);
 
   if (!fontsLoaded) {
     return null;
