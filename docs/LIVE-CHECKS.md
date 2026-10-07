@@ -107,7 +107,7 @@ text and VoiceOver in iPhone Settings → Accessibility; the phone's date
 - [ ] **40.** Habits' title scrolls away with the list; other pages keep a small header on scroll _(open, [round-7.md:78](rounds/round-7.md#L78))_
 - [ ] **41.** Homework marked done with no steps shows an empty Steps box on its page (`app/assignment/[id].tsx`) _(open, [round-7.md:79](rounds/round-7.md#L79))_
 - [ ] **42.** Open-source licenses: the five `@expo-google-fonts` entries open only Expo's MIT text; the fonts' own OFL-1.1 text (and Material Symbols' Apache-2.0) is missing, and the OFL asks for it to travel with the fonts (`assets/licenses.json`) _(open, [round-7.md:80](rounds/round-7.md#L80))_
-- [ ] **43.** Desk: mid-scroll, the header's search and grid buttons sit over the status bar icons _(open, [round-7.md:81](rounds/round-7.md#L81))_
+- [ ] **43.** Desk: mid-scroll, the header's search and grid buttons sit over the status bar icons — fixed in PR #63: the top-right buttons fade as they reach the status bar (`components/ui/Screen.tsx`); seen 2026-10-06 on the Simulator _(check, [round-7.md:81](rounds/round-7.md#L81))_
 - [ ] **44.** Show mode: Riley's "Take the tour / Not now" card overlaps the Today rows _(open, [round-7.md:82](rounds/round-7.md#L82))_
 - [ ] **45.** `brainnavigator://school` doesn't open School (settings, drawer, habits, about, licenses, companion and ai do) _(open, [round-7.md:83](rounds/round-7.md#L83))_
 - [ ] **46.** At 10 AM on a Monday the Desk said "School's done for today": check the schedule state behind it (`app/index.tsx:130`) _(open, [round-7.md:84](rounds/round-7.md#L84))_
