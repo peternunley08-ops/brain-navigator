@@ -26,7 +26,9 @@ function noteContrast(on: boolean) {
     // Missing the note only means normal contrast; never let it break the app.
   }
 }
-AccessibilityInfo.isDarkerSystemColorsEnabled().then(noteContrast, () => {});
+// The unit tests load this file with a stand-in for React Native that has no
+// promises, so only listen for the answer when there is one.
+AccessibilityInfo.isDarkerSystemColorsEnabled()?.then?.(noteContrast, () => {});
 AccessibilityInfo.addEventListener('darkerSystemColorsChanged', noteContrast);
 
 // Candlelight — a study at night, lit by the things you've set down.
