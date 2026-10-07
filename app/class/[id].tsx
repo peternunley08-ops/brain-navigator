@@ -265,10 +265,12 @@ const styles = StyleSheet.create({
   letterText: {
     fontFamily: fonts.display,
     fontSize: 26,
+    letterSpacing: -0.5,
   },
   pct: {
     fontFamily: fonts.display,
     fontSize: 24,
+    letterSpacing: -0.5,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },

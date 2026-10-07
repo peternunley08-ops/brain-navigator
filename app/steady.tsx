@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { type ReactNode, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { TrustedAdult } from '../components/TrustedAdult';
 import { DidItHelp } from '../components/about/DidItHelp';
@@ -233,7 +234,7 @@ function Grounding() {
   const done = step >= GROUNDING.length;
 
   return (
-    <Animated.View layout={LinearTransition.springify().damping(18)}>
+    <Animated.View layout={sprung(LinearTransition)}>
       <Card tint={colors.secured} style={styles.groundCard}>
         {step < 0 ? (
           <Pressy onPress={start} style={styles.groundIntro} accessibilityRole="button" accessibilityLabel="Start grounding, five four three two one">
@@ -376,6 +377,7 @@ const styles = StyleSheet.create({
   groundBig: {
     fontFamily: fonts.display,
     fontSize: 38,
+    letterSpacing: -0.8,
     color: colors.secured,
   },
   groundHead: {

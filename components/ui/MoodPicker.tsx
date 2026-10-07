@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
 import Animated, { cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { springs } from '../../core/motion';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { Pressy } from './Pressy';
@@ -59,8 +60,8 @@ function Face({
   const bobStyle = useAnimatedStyle(() => ({ transform: [{ translateY: bob.value }] }));
   const lift = useAnimatedStyle(() => ({
     // A lift, not a scale: scaling the glowing face made iOS draw it blurry and blocky.
-    transform: [{ translateY: withSpring(selected ? -5 : 0, { damping: 12, stiffness: 260 }) }],
-    opacity: withSpring(dimmed ? 0.45 : 1),
+    transform: [{ translateY: withSpring(selected ? -5 : 0, springs.snappy) }],
+    opacity: withSpring(dimmed ? 0.45 : 1, springs.snappy),
   }));
   return (
     <Pressy onPress={onPress} onLongPress={onLongPress} depth={0.9} accessibilityRole="radio" accessibilityState={{ selected }} accessibilityLabel={mood.label} accessibilityHint={onLongPress ? 'Double tap and hold for the full check-in' : undefined} style={styles.cell}>

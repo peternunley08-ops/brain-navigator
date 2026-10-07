@@ -111,6 +111,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: fonts.display,
     fontSize: 34,
+    letterSpacing: -0.7,
     color: colors.text,
   },
   capsuleRow: {

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActionSheetIOS, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, useAnimatedStyle, useReducedMotion, withTiming } from 'react-native-reanimated';
 import { AssignmentRow } from '../components/school/AssignmentRow';
 import { EmberPick } from '../components/school/EmberPick';
@@ -10,7 +10,6 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Icon, type IconName } from '../components/ui/Icon';
-import { IconButton } from '../components/ui/IconButton';
 import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
@@ -22,6 +21,7 @@ import { syncCanvas } from '../core/canvas';
 import { smallestStart } from '../core/helperOffline';
 import { useHubStore } from '../core/hubStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
+import { toolFor } from '../core/tools';
 import { useSkyGlow } from '../core/hooks/useSkyGlow';
 import { emberSay } from '../components/ember/EmberBuddy';
 
@@ -32,9 +32,14 @@ function hm(minutes: number) {
   return m ? `${h}h ${m}m` : `${h}h`;
 }
 
+// Every School tool, out on the page in one even grid (your schedule, scan
+// and search used to hide in a pop-up menu behind the Drawer's icon).
 const TOOLS: { label: string; icon: IconName; color: string; path: string }[] = [
+  { label: 'Schedule', icon: 'book', color: toolFor('/classes')?.color ?? colors.textMuted, path: '/classes' },
   { label: 'Week', icon: 'calendar', color: '#8FB4E8', path: '/week' },
   { label: 'Grades', icon: 'grade', color: '#9FD08A', path: '/grades' },
+  { label: 'Search', icon: 'search', color: colors.textMuted, path: '/search' },
+  { label: 'Scan', icon: 'image', color: toolFor('/scan')?.color ?? colors.textMuted, path: '/scan' },
   { label: 'Cards', icon: 'cards', color: '#E89AB8', path: '/flashcards' },
   { label: 'Study tips', icon: 'flask', color: '#AFA2DE', path: '/techniques' },
   { label: 'I was out', icon: 'message', color: '#D99A6C', path: '/absent' },
@@ -131,13 +136,6 @@ export default function SchoolScreen() {
     transform: [{ scaleX: withTiming(Math.min(1, load.minutes / Math.max(1, cap)), { duration: 700 }) }],
   }));
 
-  // The header's tools, folded into one menu.
-  const more = () =>
-    ActionSheetIOS.showActionSheetWithOptions({ options: ['Your schedule', 'Scan a screenshot', 'Search', 'Cancel'], cancelButtonIndex: 3 }, (i) => {
-      const to = ['/classes', '/scan', '/search'][i];
-      if (to) router.push(to as never);
-    });
-
   // Tonight comes first: what the evening holds against the nightly cap.
   const tonightCard =
     load.items.length > 0 ? (
@@ -175,7 +173,6 @@ export default function SchoolScreen() {
       }}
       title="School"
       subtitle={open.length === 0 ? 'Nothing due.' : load.items.length ? `Tonight: ${hm(load.minutes)} of ${hm(cap)}` : 'Nothing due tonight.'}
-      right={<IconButton icon="drawer" label="More: your schedule, scan, search" onPress={more} />}
     >
       {tonightCard}
       <Reveal index={n++}>
@@ -438,13 +435,14 @@ const styles = StyleSheet.create({
   },
   tools: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    rowGap: 16,
     marginTop: 16,
   },
   tool: {
     alignItems: 'center',
     gap: 6,
-    width: 62,
+    width: '25%',
   },
   toolIcon: {
     width: 48,

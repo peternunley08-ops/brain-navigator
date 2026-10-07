@@ -60,7 +60,7 @@ export function EmberBubble({ line, title, actions, footer, onAction, placement,
 
   const pop = useSharedValue(reduced ? 1 : 0);
   useEffect(() => {
-    pop.value = reduced ? withTiming(1, { duration: 150 }) : withSpring(1, { damping: 15, stiffness: 220 });
+    pop.value = reduced ? withTiming(1, { duration: 150 }) : withSpring(1, { mass: 1, damping: 15, stiffness: 220 });
   }, [pop, reduced]);
   const popStyle = useAnimatedStyle(() => ({
     opacity: Math.min(1, pop.value * 1.6),

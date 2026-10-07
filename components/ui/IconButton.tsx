@@ -1,5 +1,6 @@
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
 import { alpha, colors } from '../../core/theme';
+import { GLASS, GlassFill } from './Glass';
 import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
 
@@ -16,9 +17,12 @@ interface IconButtonProps {
   disabled?: boolean;
   onLongPress?: () => void;
   accessibilityHint?: string;
+  /** Liquid Glass, for buttons that float over the page. */
+  glass?: boolean;
 }
 
-export function IconButton({ icon, onPress, onLongPress, accessibilityHint, label, size = 42, color, tint, style, disabled }: IconButtonProps) {
+export function IconButton({ icon, onPress, onLongPress, accessibilityHint, label, size = 42, color, tint, style, disabled, glass }: IconButtonProps) {
+  const lens = glass && GLASS && !tint;
   return (
     <Pressy
       onPress={onPress}
@@ -34,10 +38,12 @@ export function IconButton({ icon, onPress, onLongPress, accessibilityHint, labe
         styles.btn,
         { width: size, height: size, borderRadius: size / 2 },
         tint ? { backgroundColor: alpha(tint, 0.16), borderColor: alpha(tint, 0.5) } : null,
+        lens && styles.lens,
         disabled && styles.disabled,
         style,
       ]}
     >
+      {lens ? <GlassFill radius={size / 2} /> : null}
       <Icon name={icon} size={Math.round(size * 0.5)} color={color ?? tint ?? colors.text} strokeWidth={2} />
     </Pressy>
   );
@@ -46,6 +52,10 @@ export function IconButton({ icon, onPress, onLongPress, accessibilityHint, labe
 const styles = StyleSheet.create({
   disabled: {
     opacity: 0.35,
+  },
+  lens: {
+    backgroundColor: 'transparent',
+    borderColor: colors.line,
   },
   btn: {
     alignItems: 'center',

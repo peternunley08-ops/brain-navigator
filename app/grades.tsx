@@ -569,10 +569,12 @@ const styles = StyleSheet.create({
   letterBigText: {
     fontFamily: fonts.display,
     fontSize: 32,
+    letterSpacing: -0.6,
   },
   pct: {
     fontFamily: fonts.display,
     fontSize: 26,
+    letterSpacing: -0.5,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },
@@ -635,6 +637,7 @@ const styles = StyleSheet.create({
   answerNum: {
     fontFamily: fonts.display,
     fontSize: 34,
+    letterSpacing: -0.7,
     fontVariant: ['tabular-nums'],
   },
   answerText: {

@@ -3,6 +3,7 @@ import { plural } from '../core/words';
 import { useState, memo } from 'react';
 import { Linking, Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -367,7 +368,7 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
   const color = STATUS_COLOR[c.status];
 
   return (
-    <Animated.View entering={FadeInDown.delay(i * 40).duration(320)} layout={LinearTransition.springify().damping(18)}>
+    <Animated.View entering={FadeInDown.delay(i * 40).duration(320)} layout={sprung(LinearTransition)}>
       <Card tint={open ? '#8FB4E8' : undefined}>
         {/* Only the header opens and closes the card, so a stray tap inside the form doesn't fold it away. */}
         <Pressy onPress={onToggle} depth={0.98} accessibilityRole="button" accessibilityState={{ expanded: open }} style={styles.cardHead}>

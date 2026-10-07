@@ -2,11 +2,9 @@ import * as Haptics from '../core/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname, useRootNavigationState } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { type LayoutChangeEvent, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown, FadeOut, SlideInDown, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
-import { GestureDetector, GestureHandlerRootView, usePanGesture } from 'react-native-gesture-handler';
+import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { scheduleOnRN } from 'react-native-worklets';
 import { navTucked, navWanted, scrollFocusedToTop } from '../core/chrome';
 import { useLifeStore } from '../core/lifeStore';
 import { springs, timings } from '../core/motion';
@@ -14,9 +12,11 @@ import { isNight, minutesOf, nightClockVersion, nightNow, nightStart, subscribeN
 import { addOrder } from '../core/quickAddOrder';
 import { dateKey, useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts, gradients, radii, textGrow } from '../core/theme';
+import { GLASS, GLASS_TINT, GlassFill } from './ui/Glass';
 import { Icon, type IconName } from './ui/Icon';
 import { PlusArt, hasPlusArt } from './plus/PlusArt';
 import { Pressy } from './ui/Pressy';
+import { Sheet } from './ui/Sheet';
 
 type NavPath = '/' | '/school' | '/focus' | '/steady';
 
@@ -144,7 +144,8 @@ export function BottomNav() {
 
   return (
     <Animated.View style={[styles.wrap, { paddingBottom: Math.max(16, insets.bottom - 8) }, shown]} pointerEvents="box-none">
-      <View style={[styles.bar, late && styles.barLate]}>
+      <View style={[styles.bar, GLASS ? styles.barGlass : late && styles.barLate]}>
+        <GlassFill radius={34} tint={late ? NIGHT_TINT : GLASS_TINT} />
         <Animated.View style={[styles.pill, pillStyle]} pointerEvents="none" />
         {LEFT.map((item) => (
           <NavSegment
@@ -219,89 +220,51 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
   const nightOwl = useLifeStore((s) => s.about.picks.time === 'b');
   // Re-ordered each time the sheet opens, by the (dev-adjustable) clock.
   const order = useMemo(() => addOrder(nightNow(), windDown, nightOwl), [open, windDown, nightOwl]); // eslint-disable-line react-hooks/exhaustive-deps
-  const insets = useSafeAreaInsets();
-  const drag = useSharedValue(0);
-  const speed = useSharedValue(0);
-  useEffect(() => {
-    if (open) drag.value = 0;
-  }, [open, drag]);
-  const pan = usePanGesture({
-    activeOffsetY: 8,
-    failOffsetX: [-20, 20],
-    onUpdate: (e) => {
-      'worklet';
-      drag.value = Math.max(0, e.translationY);
-      speed.value = e.velocityY;
-    },
-    onFinalize: () => {
-      'worklet';
-      if (drag.value > 140 || speed.value > 900) {
-        drag.value = withTiming(600, timings.base);
-        scheduleOnRN(onClose);
-      } else {
-        drag.value = withSpring(0, springs.gentle);
-      }
-    },
-  });
-  const follow = useAnimatedStyle(() => ({ transform: [{ translateY: drag.value }] }));
-  const dim = useAnimatedStyle(() => ({ opacity: 1 - Math.min(1, drag.value / 400) }));
   return (
-    <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <GestureHandlerRootView style={styles.flexFill}>
-        <Animated.View style={[StyleSheet.absoluteFill, dim]}>
-          <Pressable style={styles.scrim} onPress={onClose} accessibilityLabel="Close" />
-        </Animated.View>
-        <Animated.View entering={SlideInDown.springify().damping(18)} style={styles.sheetSlot}>
-          <GestureDetector gesture={pan}>
-            <Animated.View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }, follow]}>
-              <View style={styles.grabber} />
-              <Text style={styles.sheetTitle} maxFontSizeMultiplier={textGrow.display}>Put something down</Text>
-              {byHref(ADD_OPTIONS, order.main).map((o) => (
-                <Pressy
-                  key={o.href}
-                  style={styles.option}
-                  onPress={() => {
-                    onClose();
-                    router.push(o.href as never);
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={o.title}
-                  accessibilityHint={o.body}
-                >
-                  <View style={[styles.optionIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
-                    {hasPlusArt(o.href) ? <PlusArt href={o.href} size={34} /> : <Icon name={o.icon} size={22} color={o.color} />}
-                  </View>
-                  <View style={styles.optionText}>
-                    <Text style={styles.optionTitle} maxFontSizeMultiplier={2.6}>{o.title}</Text>
-                    <Text style={styles.optionBody}>{o.body}</Text>
-                  </View>
-                  <Icon name="chevron" size={18} color={colors.textFaint} />
-                </Pressy>
-              ))}
-              <View style={styles.moreRow}>
-                {byHref(MORE_OPTIONS, order.more).map((o) => (
-                  <Pressy
-                    key={o.href}
-                    style={styles.more}
-                    onPress={() => {
-                      onClose();
-                      router.push(o.href as never);
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Add ${o.title.toLowerCase()}`}
-                  >
-                    <View style={[styles.moreIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
-                      <Icon name={o.icon} size={20} color={o.color} />
-                    </View>
-                    <Text style={styles.moreText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.bar}>{o.title}</Text>
-                  </Pressy>
-                ))}
-              </View>
-            </Animated.View>
-          </GestureDetector>
-        </Animated.View>
-      </GestureHandlerRootView>
-    </Modal>
+    <Sheet open={open} onClose={onClose}>
+      <Text style={styles.sheetTitle} maxFontSizeMultiplier={textGrow.display}>Put something down</Text>
+      {byHref(ADD_OPTIONS, order.main).map((o) => (
+        <Pressy
+          key={o.href}
+          style={styles.option}
+          onPress={() => {
+            onClose();
+            router.push(o.href as never);
+          }}
+          accessibilityRole="button"
+          accessibilityLabel={o.title}
+          accessibilityHint={o.body}
+        >
+          <View style={[styles.optionIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
+            {hasPlusArt(o.href) ? <PlusArt href={o.href} size={34} /> : <Icon name={o.icon} size={22} color={o.color} />}
+          </View>
+          <View style={styles.optionText}>
+            <Text style={styles.optionTitle} maxFontSizeMultiplier={2.6}>{o.title}</Text>
+            <Text style={styles.optionBody}>{o.body}</Text>
+          </View>
+          <Icon name="chevron" size={18} color={colors.textFaint} />
+        </Pressy>
+      ))}
+      <View style={styles.moreRow}>
+        {byHref(MORE_OPTIONS, order.more).map((o) => (
+          <Pressy
+            key={o.href}
+            style={styles.more}
+            onPress={() => {
+              onClose();
+              router.push(o.href as never);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`Add ${o.title.toLowerCase()}`}
+          >
+            <View style={[styles.moreIcon, { backgroundColor: alpha(o.color, 0.16), borderColor: alpha(o.color, 0.35) }]}>
+              <Icon name={o.icon} size={20} color={o.color} />
+            </View>
+            <Text style={styles.moreText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.bar}>{o.title}</Text>
+          </Pressy>
+        ))}
+      </View>
+    </Sheet>
   );
 }
 
@@ -391,6 +354,10 @@ function NavSegment({
     </Pressy>
   );
 }
+
+// After lights-out the bar sinks back into the dark, and the sheet is a
+// little more solid than the bar so its rows read easily.
+const NIGHT_TINT = alpha(colors.night, 0.7);
 
 const styles = StyleSheet.create({
   hintSlot: {
@@ -483,6 +450,9 @@ const styles = StyleSheet.create({
   barLate: {
     opacity: 0.75,
   },
+  barGlass: {
+    backgroundColor: 'transparent',
+  },
   segment: {
     flex: 1,
     alignItems: 'center',
@@ -549,40 +519,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.45,
     shadowRadius: 14,
     elevation: 8,
-  },
-  scrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(6, 4, 8, 0.6)',
-  },
-  flexFill: {
-    flex: 1,
-  },
-  sheetSlot: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  sheet: {
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    backgroundColor: '#211A25',
-    borderWidth: 1,
-    borderColor: colors.lineStrong,
-  },
-  grabber: {
-    alignSelf: 'center',
-    width: 40,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: colors.lineStrong,
-    marginBottom: 14,
   },
   sheetTitle: {
     fontFamily: fonts.display,

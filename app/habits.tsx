@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { springs, sprung } from '../core/motion';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -200,7 +201,7 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
   const scale = useSharedValue(1);
   const toggle = async () => {
     const logging = !isLoggedToday;
-    if (logging) scale.value = withSequence(withTiming(1.2, { duration: 120 }), withSpring(1, { damping: 8, stiffness: 260 }));
+    if (logging) scale.value = withSequence(withTiming(1.2, { duration: 120 }), withSpring(1, springs.pop));
     await toggleLogToday(habit.id);
     if (logging) {
       const s = useHabitsStore.getState();
@@ -214,7 +215,7 @@ function HabitRow({ habit, index }: { habit: Habit; index: number }) {
   const pop = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 50).duration(360)} exiting={FadeOut.duration(180)} layout={LinearTransition.springify().damping(18)}>
+    <Animated.View entering={FadeInDown.delay(index * 50).duration(360)} exiting={FadeOut.duration(180)} layout={sprung(LinearTransition)}>
       <Card style={styles.habitCard}>
         <Pressy
           onPress={toggle}

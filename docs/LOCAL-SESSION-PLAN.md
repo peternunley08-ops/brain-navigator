@@ -1,7 +1,7 @@
 # Plan for the local session (Mac, phone, Simulator)
 
 > **For Peter:** when your usage resets, open Claude Code in
-> `~/Desktop/brain-navigator` on the Mac, plug in the phone, and paste:
+> `~/Developer/brain-navigator` on the Mac, plug in the phone, and paste:
 >
 > *"Read docs/LOCAL-SESSION-PLAN.md and do it, part by part. Work token-efficiently.
 > Stop and ask me before anything that changes signing, deletes the app from the
@@ -21,7 +21,7 @@ re-explain what this plan already says.
 ## Part 0. Set up (about 20 minutes, mostly waiting)
 
 ```bash
-cd ~/Desktop/brain-navigator && git checkout main && git pull && npm install
+cd ~/Developer/brain-navigator && git checkout main && git pull && npm install
 npx supabase functions deploy ember notion --project-ref jmjdiudekhkrxxontvhc --use-api
 npx expo prebuild -p ios && ./scripts/build-phone.sh
 ```

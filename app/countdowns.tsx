@@ -209,6 +209,7 @@ const styles = StyleSheet.create({
   daysNum: {
     fontFamily: fonts.display,
     fontSize: 28,
+    letterSpacing: -0.6,
     lineHeight: 32,
     fontVariant: ['tabular-nums'],
   },

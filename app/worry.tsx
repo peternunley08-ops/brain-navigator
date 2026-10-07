@@ -201,6 +201,7 @@ const styles = StyleSheet.create({
   timer: {
     fontFamily: fonts.display,
     fontSize: 40,
+    letterSpacing: -0.8,
     color: colors.text,
     textAlign: 'center',
     fontVariant: ['tabular-nums'],

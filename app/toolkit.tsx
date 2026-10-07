@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { Fragment, useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { HelpCard } from '../components/ember/HelpCard';
 import { Button } from '../components/ui/Button';
@@ -53,7 +54,7 @@ export default function ToolkitScreen() {
           <Fragment key={t.key}>
           <View onLayout={jumps.mark(t.key)} />
           <Reveal index={i}>
-            <Animated.View layout={LinearTransition.springify().damping(20)}>
+            <Animated.View layout={sprung(LinearTransition)}>
               <Card tint={isOpen ? t.color : undefined} style={styles.card}>
                 <Pressy onPress={() => setOpen(isOpen ? null : t.key)} style={styles.head} accessibilityRole="button" accessibilityState={{ expanded: isOpen }}>
                   <View style={[styles.icon, { backgroundColor: alpha(t.color, 0.15) }]}>
@@ -522,6 +523,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontVariant: ['tabular-nums'],
     fontSize: 44,
+    letterSpacing: -0.9,
     color: colors.textMuted,
     textAlign: 'center',
   },

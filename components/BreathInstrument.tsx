@@ -14,6 +14,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { spring, springs } from '../core/motion';
 import Svg, { Circle, Defs, Path, RadialGradient, Stop, Text as SvgText } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { BREATH_PATTERNS, cycleLength } from '../core/breathPatterns';
@@ -283,7 +284,7 @@ function BreathInstrumentBase({
       return;
     }
     ringSpin.value = -38;
-    ringSpin.value = withSpring(0, { damping: 13, stiffness: 120 });
+    ringSpin.value = withSpring(0, springs.calm);
   }, [patternIndex, reveal, ringSpin]);
 
   // Props can change every render; the worklets below only ever call these
@@ -336,7 +337,7 @@ function BreathInstrumentBase({
       mode.value = 2;
       touchX.value = e.x;
       touchY.value = e.y;
-      touchStrength.value = withSpring(1, { damping: 20, stiffness: 170 });
+      touchStrength.value = withSpring(1, springs.gentle);
       onFlame.value = r <= g.flameMax * 2.2 + 18 ? 1 : 0;
 
       const s = status.value;
@@ -389,7 +390,7 @@ function BreathInstrumentBase({
         touchX.value = e.x;
         touchY.value = e.y;
         if (hold.value > 0 && hold.value < 1 && travel.value > 18) {
-          hold.value = withSpring(0, { damping: 18, stiffness: 160 });
+          hold.value = withSpring(0, springs.gentle);
         }
       }
     },
@@ -397,22 +398,18 @@ function BreathInstrumentBase({
       'worklet';
       if (mode.value === 1) {
         if (dialLocked.value) {
-          dialAngle.value = withSpring(dialAnchor.value, { damping: 11, stiffness: 240 });
+          dialAngle.value = withSpring(dialAnchor.value, { ...springs.momentum, velocity: angVel.value });
         } else {
           const projected = dialAngle.value + angVel.value * 0.18;
           const target = Math.round(projected / 120) * 120;
-          dialAngle.value = withSpring(target, {
-            velocity: angVel.value,
-            damping: 16,
-            stiffness: 120,
-          });
+          dialAngle.value = withSpring(target, { ...spring(0.5, 0.8), velocity: angVel.value });
           const idx = ((Math.round(-target / 120) % 3) + 3) % 3;
           scheduleOnRN(bridge.pattern, idx);
         }
       } else if (mode.value === 2) {
-        touchStrength.value = withSpring(0, { damping: 18, stiffness: 80 });
+        touchStrength.value = withSpring(0, springs.calm);
         if (hold.value > 0 && hold.value < 1) {
-          hold.value = withSpring(0, { damping: 18, stiffness: 160 });
+          hold.value = withSpring(0, springs.gentle);
         }
         const s = status.value;
         const quick = time.value - beganAt.value < 700;
@@ -580,7 +577,7 @@ function BreathInstrumentBase({
     if (!idle) return;
     const step = e.nativeEvent.actionName === 'increment' ? -120 : 120;
     const target = Math.round(dialAngle.value / 120) * 120 + step;
-    dialAngle.value = withSpring(target, { damping: 16, stiffness: 120 });
+    dialAngle.value = withSpring(target, springs.calm);
     bridge.pattern(((Math.round(-target / 120) % 3) + 3) % 3);
   };
 

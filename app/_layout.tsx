@@ -18,6 +18,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AchievementWatcher } from '../components/AchievementWatcher';
 import { BottomNav } from '../components/BottomNav';
+import { DrawerSheet } from '../components/Drawer';
 import { EmberBuddy } from '../components/ember/EmberBuddy';
 import { EntryThreshold } from '../components/EntryThreshold';
 import { ErrorScreen } from '../components/ErrorScreen';
@@ -119,6 +120,7 @@ export default function RootLayout() {
             </Stack>
             {/* One nav for the whole app; pages say whether they want it. */}
             <BottomNav />
+            <DrawerSheet />
             <UndoBar />
             {/* Ember floats above every screen. */}
             <EmberBuddy />

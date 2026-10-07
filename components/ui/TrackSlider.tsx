@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import { springs } from '../../core/motion';
 import { scheduleOnRN } from 'react-native-worklets';
 import { alpha, colors, fonts } from '../../core/theme';
 
@@ -33,7 +34,7 @@ export function TrackSlider({ min, max, value, onChange, fillColor = colors.flam
 
   useEffect(() => {
     geo.value = { usable, min, span };
-    if (value != null) pos.value = withSpring(((value - min) / span) * usable, { damping: 20, stiffness: 260 });
+    if (value != null) pos.value = withSpring(((value - min) / span) * usable, springs.snappy);
     else pos.value = usable / 2;
     last.value = value ?? -1;
   }, [value, usable, min, span, geo, pos, last]);
@@ -72,7 +73,7 @@ export function TrackSlider({ min, max, value, onChange, fillColor = colors.flam
       startX.value = e.x;
       startY.value = e.y;
       moved.value = 0;
-      pressed.value = withSpring(1, { damping: 15, stiffness: 300 });
+      pressed.value = withSpring(1, springs.press);
     },
     onUpdate: (e) => {
       'worklet';
@@ -81,12 +82,12 @@ export function TrackSlider({ min, max, value, onChange, fillColor = colors.flam
     },
     onFinalize: (e) => {
       'worklet';
-      pressed.value = withSpring(0, { damping: 14, stiffness: 260 });
+      pressed.value = withSpring(0, springs.release);
       if (!moved.value && Math.abs(e.x - startX.value) < 10 && Math.abs(e.y - startY.value) < 10) {
         setFromX(e.x);
       }
       const g = geo.value;
-      if (last.value >= 0) pos.value = withSpring(((last.value - g.min) / g.span) * g.usable, { damping: 18, stiffness: 300 });
+      if (last.value >= 0) pos.value = withSpring(((last.value - g.min) / g.span) * g.usable, springs.snappy);
     },
   });
 

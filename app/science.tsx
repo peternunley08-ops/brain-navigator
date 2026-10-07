@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { springs, sprung } from '../core/motion';
 import { Card } from '../components/ui/Card';
 import { Icon, type IconName } from '../components/ui/Icon';
 import { Reveal } from '../components/ui/Reveal';
@@ -78,9 +79,9 @@ export default function ScienceScreen() {
 
 function TopicCard({ topic, open, onToggle }: { topic: Topic; open: boolean; onToggle: () => void }) {
   const art = ART[topic.id] ?? { icon: 'flask' as IconName, color: colors.flame };
-  const turn = useAnimatedStyle(() => ({ transform: [{ rotate: withSpring(open ? '90deg' : '0deg', { damping: 14, stiffness: 200 }) }] }));
+  const turn = useAnimatedStyle(() => ({ transform: [{ rotate: withSpring(open ? '90deg' : '0deg', springs.snappy) }] }));
   return (
-    <Animated.View layout={LinearTransition.springify().damping(18)}>
+    <Animated.View layout={sprung(LinearTransition)}>
       <Card tint={open ? art.color : undefined} onPress={onToggle} accessibilityState={{ expanded: open }} accessibilityLabel={topic.title}>
         <View style={styles.header}>
           <View style={[styles.icon, { backgroundColor: alpha(art.color, 0.14), borderColor: alpha(art.color, 0.3) }]}>

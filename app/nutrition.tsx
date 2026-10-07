@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, withTiming } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -171,7 +172,7 @@ function MacroBar({ label, value, goal, color }: { label: string; value: number;
 function FoodRow({ entry, index }: { entry: FoodLog; index: number }) {
   const deleteEntry = useNutritionStore((s) => s.deleteEntry);
   return (
-    <Animated.View entering={FadeInDown.delay(index * 40).duration(340)} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(18)}>
+    <Animated.View entering={FadeInDown.delay(index * 40).duration(340)} exiting={FadeOut.duration(160)} layout={sprung(LinearTransition)}>
       <Card style={styles.foodCard}>
         <View style={[styles.foodIcon, { backgroundColor: alpha(colors.flame, 0.12) }]}>
           <Icon name="bowl" size={20} color={colors.flame} />

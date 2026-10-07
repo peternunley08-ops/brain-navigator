@@ -259,6 +259,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.display,
     fontSize: 44,
+    letterSpacing: -0.9,
     lineHeight: 50,
     color: colors.text,
   },
@@ -342,6 +343,7 @@ const styles = StyleSheet.create({
   price: {
     fontFamily: fonts.display,
     fontSize: 26,
+    letterSpacing: -0.5,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },

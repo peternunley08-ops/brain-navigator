@@ -145,7 +145,7 @@ export function useEmberRig({ glance = true, asleep = false }: { glance?: boolea
       sleepy.value = withTiming(target.sleepy, { duration: 520 });
       dizzy.value = withTiming(target.dizzy, cfg);
       smile.value = withTiming(target.smile, cfg);
-      flare.value = withSpring(target.flare, { damping: 11, stiffness: 140 });
+      flare.value = withSpring(target.flare, { mass: 1, damping: 11, stiffness: 140 });
       speed.value = withTiming(target.speed, { duration: 400 });
       if (m === 'listening') {
         lookY.value = withTiming(0.55, cfg);
@@ -167,12 +167,12 @@ export function useEmberRig({ glance = true, asleep = false }: { glance?: boolea
       squash.value = withSequence(
         withTiming(0.86, { duration: 90 }),
         withTiming(1.1, { duration: 150 }),
-        withSpring(1, { damping: 8, stiffness: 220 })
+        withSpring(1, { mass: 1, damping: 8, stiffness: 220 })
       );
       hop.value = withSequence(
         withTiming(0, { duration: 90 }),
         withTiming(-height, { duration: 170, easing: Easing.out(Easing.quad) }),
-        withSpring(0, { damping: 9, stiffness: 190 })
+        withSpring(0, { mass: 1, damping: 9, stiffness: 190 })
       );
     },
     [reduced, flare, squash, hop]
@@ -184,7 +184,7 @@ export function useEmberRig({ glance = true, asleep = false }: { glance?: boolea
       withTiming(0.28, { duration: 90 }),
       withTiming(-0.28, { duration: 140 }),
       withTiming(0.18, { duration: 130 }),
-      withSpring(0, { damping: 6, stiffness: 160 })
+      withSpring(0, { mass: 1, damping: 6, stiffness: 160 })
     );
   }, [reduced, lean]);
 

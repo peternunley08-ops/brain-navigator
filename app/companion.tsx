@@ -670,6 +670,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontFamily: fonts.display,
     fontSize: 24,
+    letterSpacing: -0.5,
     color: colors.text,
   },
   disclosure: {

@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { springs, sprung } from '../core/motion';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -178,11 +179,11 @@ function TaskRow({ task, index }: { task: Task; index: number }) {
   };
 
   const check = useAnimatedStyle(() => ({
-    transform: [{ scale: withSpring(task.completed ? 1 : 0, { damping: 12, stiffness: 320 }) }],
+    transform: [{ scale: withSpring(task.completed ? 1 : 0, springs.pop) }],
   }));
 
   return (
-    <Animated.View entering={FadeInDown.delay(index * 40).duration(360)} exiting={FadeOut.duration(180)} layout={LinearTransition.springify().damping(18)}>
+    <Animated.View entering={FadeInDown.delay(index * 40).duration(360)} exiting={FadeOut.duration(180)} layout={sprung(LinearTransition)}>
       <Card style={styles.taskCard}>
         <Pressy
           onPress={toggle}

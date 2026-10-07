@@ -17,6 +17,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { springs } from '../core/motion';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import { BreathInstrument, STATUS, type BreathValues } from '../components/BreathInstrument';
@@ -49,8 +50,8 @@ function letterIn(delay: number): EntryExitAnimationFunction {
       animations: {
         opacity: withDelay(delay, withTiming(1, { duration: 360, easing: Easing.out(Easing.quad) })),
         transform: [
-          { translateY: withDelay(delay, withSpring(0, { damping: 15, stiffness: 170 })) },
-          { scale: withDelay(delay, withSpring(1, { damping: 15, stiffness: 170 })) },
+          { translateY: withDelay(delay, withSpring(0, springs.gentle)) },
+          { scale: withDelay(delay, withSpring(1, springs.gentle)) },
         ],
       },
     };
@@ -130,7 +131,7 @@ export default function BreatheScreen() {
   const settleBead = useCallback(() => {
     const a = ((beadAngle.value % 360) + 360) % 360;
     beadAngle.value = a;
-    beadAngle.value = withSpring(a > 180 ? 360 : 0, { damping: 16, stiffness: 90 });
+    beadAngle.value = withSpring(a > 180 ? 360 : 0, springs.calm);
     phaseIdx.value = -1;
   }, [beadAngle, phaseIdx]);
 
@@ -382,6 +383,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.display,
     fontSize: 34,
+    letterSpacing: -0.7,
     lineHeight: 40,
     color: colors.text,
   },

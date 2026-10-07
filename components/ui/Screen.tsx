@@ -1,4 +1,4 @@
-import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
+import { GlassView } from 'expo-glass-effect';
 import { useFocusEffect, usePathname } from 'expo-router';
 import { type ReactNode, type RefObject, useCallback, useRef, useState } from 'react';
 import { type LayoutChangeEvent, Pressable, RefreshControl, type ScrollView, StyleSheet, Text, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
@@ -22,10 +22,10 @@ import { timings } from '../../core/motion';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { colors, fonts, layout, textGrow } from '../../core/theme';
 import { Backdrop, type WeatherKind } from './Backdrop';
+import { GLASS } from './Glass';
 import { IconButton } from './IconButton';
 import { RevealContext } from './Reveal';
 
-const GLASS = isLiquidGlassAvailable();
 /** Height of the compact bar under the status bar. */
 const BAR = 50;
 // Scrolled past this, content can pass under Ember's perch by the title.
@@ -274,9 +274,11 @@ export function Screen({
 
   const header = (
     <>
-      {back || right ? (
+      {/* The tabs (no Back) keep the row too, empty, so every tab's title sits
+          at the same height as the Desk's and Ember's perch beside it holds. */}
+      {back || right || (back === false && !centered) ? (
         <View style={styles.topRow}>
-          {back ? <IconButton icon={backIcon} label={backIcon === 'close' ? 'Close' : 'Back'} onPress={onBack} onLongPress={goHome} accessibilityHint="Hold to go to the Desk" /> : <View />}
+          {back ? <IconButton icon={backIcon} label={backIcon === 'close' ? 'Close' : 'Back'} onPress={onBack} onLongPress={goHome} accessibilityHint="Hold to go to the Desk" glass /> : <View />}
           {right ?? <View />}
         </View>
       ) : null}
