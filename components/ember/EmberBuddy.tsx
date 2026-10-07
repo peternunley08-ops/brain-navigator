@@ -193,8 +193,13 @@ export function EmberBuddy() {
   useEffect(() => {
     nap.value = withSpring(napping ? 1 : 0, { damping: 15, stiffness: 120 });
     rig.setMood(napping ? 'sleepy' : 'idle');
-    rig.setActive(true);
   }, [napping, nap, rig]);
+
+  // No frame loop while Ember is out of sight (helpers, Plus, keyboard up…):
+  // nobody sees the sway, and it costs battery.
+  useEffect(() => {
+    rig.setActive(!hidden);
+  }, [hidden, rig]);
 
   // ---- Advice ------------------------------------------------------------
 
