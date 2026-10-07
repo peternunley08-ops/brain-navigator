@@ -245,6 +245,10 @@ export function Screen({
       transform: [{ translateY: interpolate(y.value, [0, titleEnd.value], [0, titleEnd.value * 0.18], 'clamp') }],
     };
   });
+  // The top-right buttons (the Desk's search and grid) aren't carried by the
+  // compact bar, so they fade as they reach the status bar instead of
+  // sliding over the clock and battery (Round 7 G43).
+  const rightStyle = useAnimatedStyle(() => ({ opacity: interpolate(y.value, [0, 28], [1, 0], 'clamp') }));
   // Pulling past the top brightens the candlelight instead of a dead edge.
   const pullGlow = useAnimatedStyle(() => ({
     opacity: interpolate(y.value, [-140, 0], [1, 0], 'clamp'),
@@ -279,7 +283,7 @@ export function Screen({
       {back || right || (back === false && !centered) ? (
         <View style={styles.topRow}>
           {back ? <IconButton icon={backIcon} label={backIcon === 'close' ? 'Close' : 'Back'} onPress={onBack} onLongPress={goHome} accessibilityHint="Hold to go to the Desk" glass /> : <View />}
-          {right ?? <View />}
+          {right ? <Animated.View style={scroll && rightStyle}>{right}</Animated.View> : <View />}
         </View>
       ) : null}
       {title ? (
