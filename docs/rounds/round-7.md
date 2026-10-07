@@ -79,7 +79,7 @@ From the Part 1 walk (2026-10-05, Simulator):
 41. [ ] Homework marked done with no steps shows an empty Steps box on its page (`app/assignment/[id].tsx`)
 42. [ ] Open-source licenses: the five `@expo-google-fonts` entries open only Expo's MIT text; the fonts' own OFL-1.1 text (and Material Symbols' Apache-2.0) is missing, and the OFL asks for it to travel with the fonts (`assets/licenses.json`)
 43. [ ] Desk: mid-scroll, the header's search and grid buttons sit over the status bar icons
-44. [ ] Show mode: Riley's "Take the tour / Not now" card overlaps the Today rows
+44. [~] Show mode: Riley's "Take the tour / Not now" card overlaps the Today rows — fixed in PR #64: the tour buttons sit on a tray like the Undo bar (`components/ShowTour.tsx`); seen 2026-10-06 on the Simulator, offer and tour steps
 45. [ ] `brainnavigator://school` doesn't open School (settings, drawer, habits, about, licenses, companion and ai do)
 46. [ ] At 10 AM on a Monday the Desk said "School's done for today": check the schedule state behind it (`app/index.tsx:130`)
 47. [ ] The Simulator app is slow even on a production bundle: taps and typing land seconds late, 33–80% CPU at idle (with 9, 10 and 37)
