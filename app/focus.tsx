@@ -341,7 +341,7 @@ export default function FocusScreen() {
       : null;
 
   return (
-    <Screen back={false} tone="ember" glowColor={sky} motes={phase !== 'running'} title="Focus" subtitle="One thing. One candle.">
+    <Screen tone="ember" glowColor={sky} motes={phase !== 'running'} title="Focus" subtitle="One thing. One candle.">
       <View style={styles.stage}>
         <View style={styles.candle}>
           <Candle width={132} time={time} intensity={0.55} remaining={remaining} seed={5.5} state={candleState} reducedMotion={reduced} />

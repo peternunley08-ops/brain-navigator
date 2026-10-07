@@ -29,6 +29,7 @@ export default function HelpersScreen() {
 
   return (
     <Screen
+      back={false}
       glowColor="#B79AF0"
       kicker="Ember’s crew"
       title="Helpers"
