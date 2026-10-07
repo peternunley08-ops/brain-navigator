@@ -73,15 +73,15 @@ checked · `[–]` decided against (with why)
 
 From the Part 1 walk (2026-10-05, Simulator):
 
-38. [ ] Habits: the flame icon wraps onto a line of its own under "Kept N of the last 14 days" (`app/habits.tsx`, the meta row)
-39. [ ] Wording: the drawer's Habits tool says "Streaks you keep" (`core/tools.ts`), against the no-streak framing; after every habit is done, Habits' subtitle still says "Tap a habit's circle…"
-40. [ ] Habits' title scrolls away with the list; other pages keep a small header on scroll
-41. [ ] Homework marked done with no steps shows an empty Steps box on its page (`app/assignment/[id].tsx`)
+38. [x] Habits: the flame icon wraps onto a line of its own under "Kept N of the last 14 days" (`app/habits.tsx`, the meta row) — seen 2026-10-06 (Simulator): the flame sits inline before "Kept 0 of the last 14 days"
+39. [x] Wording: the drawer's Habits tool says "Streaks you keep" (`core/tools.ts`), against the no-streak framing; after every habit is done, Habits' subtitle still says "Tap a habit's circle…" — seen 2026-10-06: the drawer says "Small things you keep"; the caption reads "Nothing left to tap today." once all are done
+40. [x] Habits' title scrolls away with the list; other pages keep a small header on scroll — seen 2026-10-06 (Simulator): the compact "Habits" bar comes in on scroll
+41. [x] Homework marked done with no steps shows an empty Steps box on its page (`app/assignment/[id].tsx`) — seen 2026-10-06 in code: done with no steps shows no Steps box (`app/assignment/[id].tsx`)
 42. [ ] Open-source licenses: the five `@expo-google-fonts` entries open only Expo's MIT text; the fonts' own OFL-1.1 text (and Material Symbols' Apache-2.0) is missing, and the OFL asks for it to travel with the fonts (`assets/licenses.json`)
 43. [ ] Desk: mid-scroll, the header's search and grid buttons sit over the status bar icons
 44. [ ] Show mode: Riley's "Take the tour / Not now" card overlaps the Today rows
-45. [ ] `brainnavigator://school` doesn't open School (settings, drawer, habits, about, licenses, companion and ai do)
-46. [ ] At 10 AM on a Monday the Desk said "School's done for today": check the schedule state behind it (`app/index.tsx:130`)
+45. [x] `brainnavigator://school` doesn't open School (settings, drawer, habits, about, licenses, companion and ai do) — seen 2026-10-06 (Simulator): `brainnavigator://school` opens School
+46. [~] At 10 AM on a Monday the Desk said "School's done for today": check the schedule state behind it (`app/index.tsx:130`) — cause: only one class had times (8:00–8:50), the others none, so after 8:50 the day read as over. Fixed in PR #62: a class without times keeps the day open (School asks "When do your classes meet?")
 47. [ ] The Simulator app is slow even on a production bundle: taps and typing land seconds late, 33–80% CPU at idle (with 9, 10 and 37)
 
 From the Part 2 walk (2026-10-05, Simulator, show mode):
