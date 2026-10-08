@@ -30,4 +30,6 @@ Ember says hello, asks what to call you and your grade, helps you add your class
 
 ## Pictures
 
-There are no screenshots in the repo yet. When some exist, add them here.
+Riley, the sample student, on a school afternoon. Retake them with `node tools/screens.mjs` (Simulator, development build); `--full` keeps App Store size.
+
+<table><tr><td align="center"><img src="screens/1-desk.jpg" width="150" alt="Know what’s next."><br><sub>Know what’s next.</sub></td><td align="center"><img src="screens/2-school.jpg" width="150" alt="Tonight, at a glance."><br><sub>Tonight, at a glance.</sub></td><td align="center"><img src="screens/3-focus.jpg" width="150" alt="One candle. One thing."><br><sub>One candle. One thing.</sub></td><td align="center"><img src="screens/4-mind.jpg" width="150" alt="Set it down."><br><sub>Set it down.</sub></td><td align="center"><img src="screens/5-steady.jpg" width="150" alt="Help, always in reach."><br><sub>Help, always in reach.</sub></td></tr></table>

@@ -45,8 +45,21 @@ export function TodayRows({
     <Section title="Today">
       <Card padded={false}>
         {show('due') ? (
-          <Row label="Tonight" onPress={() => router.push(load.items.length ? '/school' : '/add-assignment')} hint={load.items.length ? 'Opens School' : 'Adds homework'} stack={stack}>
-            <Text style={[value, over && { color: colors.unlocked }]}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
+          <Row
+            label="Tonight"
+            // Over the cap, the row offers the fix: Pip's plan fits tonight inside it.
+            onPress={() => router.push(over ? '/helper/pip' : load.items.length ? '/school' : '/add-assignment')}
+            hint={over ? 'Pip plans tonight inside your limit' : load.items.length ? 'Opens School' : 'Adds homework'}
+            stack={stack}
+          >
+            {over ? (
+              <View style={stack ? styles.offerStack : styles.offerCol}>
+                <Text style={[value, { color: colors.unlocked }]}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
+                <Text style={[styles.offer, stack && styles.valueStack]}>Pip can fit it in</Text>
+              </View>
+            ) : (
+              <Text style={value}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
+            )}
           </Row>
         ) : null}
         {show('mind') ? (
@@ -92,6 +105,19 @@ function Row({ label, onPress, hint, line, stack, children }: { label: string; o
 }
 
 const styles = StyleSheet.create({
+  offerCol: {
+    flex: 1,
+    gap: 2,
+  },
+  offerStack: {
+    gap: 2,
+  },
+  offer: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+    color: colors.flame,
+    textAlign: 'right',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
