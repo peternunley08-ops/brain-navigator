@@ -7,6 +7,7 @@ import { dateKey } from '../../core/dates';
 import { buildTonightPlan } from '../../core/helperOffline';
 import { useHubStore } from '../../core/hubStore';
 import { useLifeStore } from '../../core/lifeStore';
+import { nightNow } from '../../core/night';
 import { clock, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
@@ -41,7 +42,8 @@ export function TonightPlan({ rig }: { rig: EmberRig }) {
   const [firstId, setFirstId] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
   // "Busy until…" choices: the next few whole hours before wind-down.
-  const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+  const now = nightNow();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
   const later = [16, 17, 18, 19, 20, 21].map((h) => h * 60).filter((m) => m > nowMin && m < windDown - 30).slice(0, 4);
 
   const plan = useMemo(() => buildTonightPlan(assignments, { cap, windDown, startAt: startAt ?? undefined, first: firstId }), [assignments, cap, windDown, startAt, firstId]);
