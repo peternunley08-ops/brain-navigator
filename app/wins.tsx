@@ -146,7 +146,7 @@ export default function WinsScreen() {
             ))}
           </ChipRow>
           <Button label="Drop it in the jar" icon="jar" onPress={add} disabled={!text.trim()} style={styles.gap} />
-          <Text style={styles.hint}>Turned something in. Asked for help. Got out of bed on a hard day. All count.</Text>
+          <Text style={styles.hint} maxFontSizeMultiplier={2}>Turned something in. Asked for help. Got out of bed on a hard day. All count.</Text>
         </Card>
       </Reveal>
 

@@ -21,7 +21,7 @@ import { Section } from '../../components/ui/Section';
 import { goBack } from '../../core/chrome';
 import { cheerLine } from '../../core/about';
 import { addDays, dateKey, daysUntil, dueLabel, dueWords, KIND_LABEL, planBackward, spreadSteps, type AssignmentKind, type Subtask, uid, useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts, radii } from '../../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { helperById, type HelperId } from '../../core/helpers';
 import { useLifeStore } from '../../core/lifeStore';
 import { celebrate } from '../../core/celebrateStore';
@@ -133,12 +133,12 @@ export default function AssignmentScreen() {
       <Reveal index={0}>
         <View style={styles.head}>
           <View style={[styles.kind, { backgroundColor: alpha(color, 0.16), borderColor: alpha(color, 0.4) }]}>
-            <Text style={[styles.kindText, { color }]}>
+            <Text style={[styles.kindText, { color }]} maxFontSizeMultiplier={textGrow.control}>
               {KIND_LABEL[a.kind]}
               {cls ? `, ${cls.name}` : ''}
             </Text>
           </View>
-          <Text style={[styles.title, a.done && styles.done]}>{a.title}</Text>
+          <Text style={[styles.title, a.done && styles.done]} accessibilityRole="header" maxFontSizeMultiplier={textGrow.display}>{a.title}</Text>
           <Text style={[styles.due, !a.done && n < 0 && { color: colors.danger }, !a.done && n <= 1 && n >= 0 && { color: colors.flame }]}>
             {a.done
               ? !TURN_IN.has(a.kind)
@@ -158,13 +158,13 @@ export default function AssignmentScreen() {
       <Reveal index={1} style={styles.stats}>
         <Card style={styles.stat}>
           <Icon name="clock" size={18} color={colors.textMuted} />
-          <Text style={styles.statValue}>{a.minutes ? (a.minutes >= 60 ? `${+(a.minutes / 60).toFixed(1)} h` : `${a.minutes} min`) : '–'}</Text>
-          <Text style={styles.statLabel}>Estimated</Text>
+          <Text style={styles.statValue} maxFontSizeMultiplier={textGrow.heading}>{a.minutes ? (a.minutes >= 60 ? `${+(a.minutes / 60).toFixed(1)} h` : `${a.minutes} min`) : '–'}</Text>
+          <Text style={styles.statLabel} maxFontSizeMultiplier={2}>Estimated</Text>
         </Card>
         <Card style={styles.stat}>
           <Icon name="timer" size={18} color={colors.textMuted} />
-          <Text style={styles.statValue}>{studied ? `${studied} min` : '–'}</Text>
-          <Text style={styles.statLabel}>Focused on it</Text>
+          <Text style={styles.statValue} maxFontSizeMultiplier={textGrow.heading}>{studied ? `${studied} min` : '–'}</Text>
+          <Text style={styles.statLabel} maxFontSizeMultiplier={2}>Focused on it</Text>
         </Card>
       </Reveal>
       {a.minutes && studied && !a.done ? (
@@ -215,7 +215,7 @@ export default function AssignmentScreen() {
                     {t.done ? <Icon name="check" size={13} color={colors.flameInk} strokeWidth={3} /> : null}
                   </Pressy>
                   <View style={styles.flex}>
-                    <Text style={[styles.stepText, t.done && styles.done]}>{t.text}</Text>
+                    <Text style={[styles.stepText, t.done && styles.done]} maxFontSizeMultiplier={2}>{t.text}</Text>
                     {t.on ? (
                       <Text style={[styles.stepOn, !a.done && !t.done && t.on < dateKey() && { color: colors.danger }, !a.done && !t.done && t.on === dateKey() && { color: colors.flame }]}>
                         {dueLabel(t.on)}
@@ -433,7 +433,8 @@ const styles = StyleSheet.create({
   kind: {
     alignSelf: 'flex-start',
     paddingHorizontal: 12,
-    height: 28,
+    paddingVertical: 4,
+    minHeight: 28,
     borderRadius: 14,
     borderWidth: 1,
     justifyContent: 'center',

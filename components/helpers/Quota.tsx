@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { StyleSheet, Text } from 'react-native';
 import { aiStatus, PLUS_PER_MONTH } from '../../core/aiQuota';
 import { useLifeStore } from '../../core/lifeStore';
-import { alpha, colors, fonts, radii } from '../../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Icon } from '../ui/Icon';
@@ -27,7 +27,7 @@ export function QuotaPill() {
       accessibilityLabel={`${st.left} of ${st.limit} AI replies left ${st.plus ? 'this month' : 'this week'}`}
     >
       <Icon name="sparkle" size={13} color={low ? colors.unlocked : colors.flame} strokeWidth={2} />
-      <Text style={[styles.pillText, low && { color: colors.unlocked }]}>
+      <Text style={[styles.pillText, low && { color: colors.unlocked }]} maxFontSizeMultiplier={textGrow.bar}>
         {st.plus ? `Plus: ${st.left} AI left` : `${st.left} AI left`}
       </Text>
     </Pressy>
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    height: 32,
+    minHeight: 32,
     paddingHorizontal: 12,
     borderRadius: radii.pill,
     borderWidth: 1,

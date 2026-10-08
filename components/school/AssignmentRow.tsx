@@ -1,7 +1,7 @@
 import * as Haptics from '../../core/haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeOut, interpolate, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -27,6 +27,9 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
   const n = daysUntil(a.due);
   const late = !a.done && n < 0;
   const soon = !a.done && n <= 1;
+  // At the largest text sizes the due label beside the title squeezes it to a
+  // letter wide; tuck it under the title instead.
+  const stack = useWindowDimensions().fontScale > 1.5;
   const big = a.kind === 'test' || a.kind === 'quiz' || a.kind === 'project';
 
   const pop = useSharedValue(1);
@@ -95,6 +98,8 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
   }, [a.createdAt, glow]);
   const glowStyle = useAnimatedStyle(() => ({ opacity: glow.value }));
   const doneUnder = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [0, 90], [0, 1], 'clamp') }));
+  // Every row says when; soon and late ones stand out.
+  const due = <Text style={[styles.due, late && { color: colors.danger }, soon && !late && { color: colors.flame }]} maxFontSizeMultiplier={2}>{dueLabel(a.due)}</Text>;
   const laterUnder = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [-90, 0], [1, 0], 'clamp') }));
 
   return (
@@ -130,7 +135,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
           {spark ? <Sparks burst={spark} reach={26} color={color} /> : null}
         </Pressy>
         <View style={styles.body}>
-          <Text style={[styles.title, a.done && styles.done]} numberOfLines={2}>
+          <Text style={[styles.title, a.done && styles.done]} numberOfLines={stack ? undefined : 2} maxFontSizeMultiplier={2}>
             {a.starred && !a.done ? <Text style={styles.star}>★ </Text> : null}
             {a.title}
           </Text>
@@ -138,34 +143,34 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
             {cls ? (
               <View style={styles.classTag}>
                 <View style={[styles.dot, { backgroundColor: color }]} />
-                <Text style={styles.metaText} numberOfLines={1}>
+                <Text style={styles.metaText} numberOfLines={stack ? 2 : 1} maxFontSizeMultiplier={2}>
                   {cls.name}
                 </Text>
               </View>
             ) : null}
             {big ? (
               <View style={[styles.kind, { backgroundColor: alpha(color, 0.16) }]}>
-                <Text style={[styles.kindText, { color }]}>{KIND_LABEL[a.kind]}</Text>
+                <Text style={[styles.kindText, { color }]} maxFontSizeMultiplier={2}>{KIND_LABEL[a.kind]}</Text>
               </View>
             ) : null}
-            {a.minutes && !a.done ? <Text style={styles.metaText}>{a.minutes >= 60 ? `${+(a.minutes / 60).toFixed(1)}h` : `${a.minutes}m`}</Text> : null}
+            {a.minutes && !a.done ? <Text style={styles.metaText} maxFontSizeMultiplier={2}>{a.minutes >= 60 ? `${+(a.minutes / 60).toFixed(1)}h` : `${a.minutes}m`}</Text> : null}
             {focused > 0 && !a.done ? (
               <View style={styles.focused}>
                 <Icon name="timer" size={11} color={colors.flame} />
-                <Text style={[styles.metaText, { color: colors.flame }]}>{focused >= 60 ? `${+(focused / 60).toFixed(1)}h` : `${focused}m`} in</Text>
+                <Text style={[styles.metaText, { color: colors.flame }]} maxFontSizeMultiplier={2}>{focused >= 60 ? `${+(focused / 60).toFixed(1)}h` : `${focused}m`} in</Text>
               </View>
             ) : null}
             {a.subtasks?.length && !a.done ? (
-              <Text style={styles.metaText}>
+              <Text style={styles.metaText} maxFontSizeMultiplier={2}>
                 {a.subtasks.filter((t) => t.done).length}/{a.subtasks.length} steps
               </Text>
             ) : null}
             {a.notes ? <Icon name="pen" size={12} color={colors.textFaint} /> : null}
             {a.repeat === 'weekly' ? <Icon name="repeat" size={12} color={colors.textFaint} /> : null}
           </View>
+          {stack ? due : null}
         </View>
-        {/* Every row says when; soon and late ones stand out. */}
-        <Text style={[styles.due, late && { color: colors.danger }, soon && !late && { color: colors.flame }]}>{dueLabel(a.due)}</Text>
+        {stack ? null : due}
         {!a.done && !compact ? (
           <Pressy
             onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })}

@@ -2,7 +2,7 @@ import * as Haptics from '../core/haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, usePathname, useRootNavigationState } from 'expo-router';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { type LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import { type LayoutChangeEvent, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { navTucked, navWanted, scrollFocusedToTop } from '../core/chrome';
@@ -221,9 +221,14 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
   const nightOwl = useLifeStore((s) => s.about.picks.time === 'b');
   // Re-ordered each time the sheet opens, by the (dev-adjustable) clock.
   const order = useMemo(() => addOrder(nightNow(), windDown, nightOwl), [open, windDown, nightOwl]); // eslint-disable-line react-hooks/exhaustive-deps
-  return (
-    <Sheet open={open} onClose={onClose}>
-      <Text style={styles.sheetTitle} maxFontSizeMultiplier={textGrow.display}>Put something down</Text>
+  const { height, fontScale } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  // At the largest text sizes the options outgrow the screen: the title
+  // becomes the drag handle and the options scroll underneath it.
+  const tall = fontScale > 1.5;
+  const title = <Text style={styles.sheetTitle} maxFontSizeMultiplier={textGrow.display}>Put something down</Text>;
+  const body = (
+    <>
       {byHref(ADD_OPTIONS, order.main).map((o) => (
         <Pressy
           key={o.href}
@@ -240,8 +245,8 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
             {hasPlusArt(o.href) ? <PlusArt href={o.href} size={34} /> : <Icon name={o.icon} size={22} color={o.color} />}
           </View>
           <View style={styles.optionText}>
-            <Text style={styles.optionTitle} maxFontSizeMultiplier={2.6}>{o.title}</Text>
-            <Text style={styles.optionBody}>{o.body}</Text>
+            <Text style={styles.optionTitle} maxFontSizeMultiplier={2}>{o.title}</Text>
+            <Text style={styles.optionBody} maxFontSizeMultiplier={2}>{o.body}</Text>
           </View>
           <Icon name="chevron" size={18} color={colors.textFaint} />
         </Pressy>
@@ -265,6 +270,20 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
           </Pressy>
         ))}
       </View>
+    </>
+  );
+  return (
+    <Sheet open={open} onClose={onClose} head={tall ? title : undefined} style={tall && { maxHeight: height - insets.top - 8 }}>
+      {tall ? (
+        <ScrollView style={styles.sheetScroll} alwaysBounceVertical={false} showsVerticalScrollIndicator={false}>
+          {body}
+        </ScrollView>
+      ) : (
+        <>
+          {title}
+          {body}
+        </>
+      )}
     </Sheet>
   );
 }
@@ -520,6 +539,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.45,
     shadowRadius: 14,
     elevation: 8,
+  },
+  // Hugs its content and only scrolls once the sheet hits its height limit.
+  sheetScroll: {
+    flexGrow: 0,
   },
   sheetTitle: {
     fontFamily: fonts.display,
