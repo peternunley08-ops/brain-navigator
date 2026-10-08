@@ -85,7 +85,22 @@ export function ShowTour() {
 
 const styles = StyleSheet.create({
   wrap: { position: 'absolute', left: 0, right: 0, alignItems: 'center', zIndex: 40 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  // A tray behind the buttons, like the Undo bar, so they read as one
+  // floating control instead of mixing with the page under them (Round 7 G44).
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 6,
+    borderRadius: 999,
+    backgroundColor: colors.surfaceHigh,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+    shadowColor: '#000',
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+  },
   line: {
     maxWidth: 320,
     marginHorizontal: layout.gutter,
