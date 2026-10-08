@@ -15,6 +15,12 @@ export const scrolling = makeMutable(0);
 /** 1 once the page in front has scrolled down from its top; resting Ember
  * peeks from its edge instead of sitting on the page. */
 export const pageDown = makeMutable(0);
+/** Where the big title of the page in front ends, from the top of the
+ * window with the page at its top; 0 when it has none. */
+export const titleBottom = makeMutable(0);
+/** Which side resting Ember sits out beside that title on: -1 left, 1 right,
+ * 0 when it isn't beside it. The title wraps before Ember's spot. */
+export const emberBeside = makeMutable(0);
 /** Bumped when a page is pulled to refresh; Ember hops. */
 export const emberHop = makeMutable(0);
 

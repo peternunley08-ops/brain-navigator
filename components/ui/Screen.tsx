@@ -16,8 +16,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { clearScrollToTop, emberHop, firstOpen, goBack, goHome, keepScroll, keptScroll, navTucked, pageDown, scrolling, setScrollToTop, wantNav } from '../../core/chrome';
-import { useEmberStore } from '../../core/emberStore';
+import { clearScrollToTop, emberBeside, emberHop, firstOpen, goBack, goHome, keepScroll, keptScroll, navTucked, pageDown, scrolling, setScrollToTop, titleBottom, wantNav } from '../../core/chrome';
 import { timings } from '../../core/motion';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
 import { colors, fonts, layout, textGrow } from '../../core/theme';
@@ -115,10 +114,6 @@ export function Screen({
       setRefreshing(false);
     }
   };
-  // Ember perches up by the title on many pages; the title and subtitle
-  // wrap before its spot instead of running underneath it.
-  const perch = useEmberStore((st) => (st.napping || st.y > 0.22 ? null : st.side));
-  const emberRoom = perch === 'right' ? styles.roomRight : perch === 'left' ? styles.roomLeft : null;
   const onBack = typeof back === 'function' ? back : goBack;
   const label = title ?? barTitle;
 
@@ -148,14 +143,25 @@ export function Screen({
   // Back in front, tell Ember whether this page is still scrolled down.
   // Only the page in front speaks for it.
   const inFront = useSharedValue(0);
+  // Where the big title ends, so the compact bar arrives as it leaves.
+  const titleEnd = useSharedValue(title ? 140 : 70);
+  // Ember comes all the way out only beside this title (a centered one
+  // leaves it no room). Kept on this side too: a shared value read right
+  // after it's set can still give the old value.
+  const besideAt = title && !centered;
+  const front = useRef(false);
+  const titleBottomAt = useRef(0);
   useFocusEffect(
     useCallback(() => {
       inFront.value = 1;
+      front.current = true;
       pageDown.value = y.value > PAGE_DOWN ? 1 : 0;
+      titleBottom.value = besideAt ? titleBottomAt.current : 0;
       return () => {
         inFront.value = 0;
+        front.current = false;
       };
-    }, [y, inFront]),
+    }, [y, inFront, besideAt]),
   );
   // How far the page can scroll, and how tall the window is, for the
   // reading line on long pages.
@@ -165,8 +171,6 @@ export function Screen({
   const [restoreY] = useState(() => keptScroll(pathname));
   const restored = useRef(restoreY === 0);
   const keep = useCallback((at: number) => keepScroll(pathname, at), [pathname]);
-  // Where the big title ends, so the compact bar arrives as it leaves.
-  const titleEnd = useSharedValue(title ? 140 : 70);
   const onScroll = useAnimatedScrollHandler({
     onScroll: (e) => {
       const at = e.contentOffset.y;
@@ -276,7 +280,15 @@ export function Screen({
   const onTitleLayout = (e: LayoutChangeEvent) => {
     const { y: top, height } = e.nativeEvent.layout;
     titleEnd.value = top + height;
+    titleBottomAt.current = top + height;
+    if (front.current) titleBottom.value = besideAt ? top + height : 0;
   };
+  // With Ember beside the title, the title and subtitle wrap before its
+  // spot instead of running underneath it.
+  const emberRoom = useAnimatedStyle(() => ({
+    paddingLeft: emberBeside.value < 0 ? 48 : 0,
+    paddingRight: emberBeside.value > 0 ? 48 : 0,
+  }));
 
   const header = (
     <>
@@ -428,12 +440,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     minHeight: 44,
-  },
-  roomRight: {
-    paddingRight: 48,
-  },
-  roomLeft: {
-    paddingLeft: 48,
   },
   titleBlock: {
     marginTop: 18,
