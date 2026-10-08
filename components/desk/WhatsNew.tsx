@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeOut } from 'react-native-reanimated';
 import { useLifeStore } from '../../core/lifeStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { EmberGlyph } from '../ember/EmberSprite';
 import { Card } from '../ui/Card';
 import { Chip, ChipRow } from '../ui/Chip';
@@ -36,8 +36,8 @@ export function WhatsNew() {
         <View style={styles.head}>
           <EmberGlyph size={34} />
           <View style={styles.flex}>
-            <Text style={styles.title}>New in your app</Text>
-            <Text style={styles.body}>The Desk turns quiet at night, Ember gets to know you, and your weeks become candles on a shelf. All of it lives in the Drawer too.</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={textGrow.heading}>New in your app</Text>
+            <Text style={styles.body} maxFontSizeMultiplier={2}>The Desk turns quiet at night, Ember gets to know you, and your weeks become candles on a shelf. All of it lives in the Drawer too.</Text>
           </View>
           <IconButton icon="close" label="Dismiss" size={32} onPress={() => setSettings({ whatsNewSeen: WHATS_NEW_VERSION })} />
         </View>

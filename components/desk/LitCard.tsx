@@ -84,8 +84,8 @@ export function AllClear({ doneToday }: { doneToday: number }) {
       <Sparks burst={1} reach={60} />
       <Icon name="sparkle" size={22} color={colors.secured} />
       <View style={styles.flex}>
-        <Text style={styles.title}>All clear.</Text>
-        <Text style={styles.body}>{plural(doneToday, 'thing')} done today, nothing due by tomorrow. The rest of the day is yours.</Text>
+        <Text style={styles.title} maxFontSizeMultiplier={2}>All clear.</Text>
+        <Text style={styles.body} maxFontSizeMultiplier={2}>{plural(doneToday, 'thing')} done today, nothing due by tomorrow. The rest of the day is yours.</Text>
       </View>
     </Card>
   );
@@ -101,7 +101,7 @@ function DueTonight() {
       <Text style={styles.big} numberOfLines={3} maxFontSizeMultiplier={textGrow.heading}>
         {a.title}
       </Text>
-      <Text style={styles.body}>{dueLine(a.minutes, a.due, today)}</Text>
+      <Text style={styles.body} maxFontSizeMultiplier={2}>{dueLine(a.minutes, a.due, today)}</Text>
       <Button label="Light the candle" icon="candle" size="sm" onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })} style={styles.action} />
     </Card>
   );
@@ -122,8 +122,8 @@ function WindDown() {
           <Icon name="moon" size={20} color={MOON} />
         </View>
         <View style={styles.flex}>
-          <Text style={styles.title}>Wind-down in {plural(left, 'minute')}</Text>
-          <Text style={styles.body}>Tonight’s plan and bedtime are ready when you are.</Text>
+          <Text style={styles.title} maxFontSizeMultiplier={2}>Wind-down in {plural(left, 'minute')}</Text>
+          <Text style={styles.body} maxFontSizeMultiplier={2}>Tonight’s plan and bedtime are ready when you are.</Text>
         </View>
       </View>
       <Button label="Start winding down" icon="moon" variant="secondary" size="sm" onPress={() => router.push('/sleep')} style={styles.action} />
@@ -139,8 +139,8 @@ function FirstHomework() {
           <Icon name="book" size={20} color={colors.flame} />
         </View>
         <View style={styles.flex}>
-          <Text style={styles.title}>Add your first homework</Text>
-          <Text style={styles.body}>Type it in or scan your Classroom to-do list. Then this card knows what’s next.</Text>
+          <Text style={styles.title} maxFontSizeMultiplier={2}>Add your first homework</Text>
+          <Text style={styles.body} maxFontSizeMultiplier={2}>Type it in or scan your Classroom to-do list. Then this card knows what’s next.</Text>
         </View>
       </View>
       <Button label="Add homework" icon="plus" size="sm" onPress={() => router.push('/add-assignment')} style={styles.action} />

@@ -287,8 +287,8 @@ export default function DeskScreen() {
     <Card onPress={() => router.push('/review')} style={styles.clear}>
       <Icon name="star" size={22} color={colors.flame} />
       <View style={styles.promptText}>
-        <Text style={styles.promptTitle}>Look back at your week</Text>
-        <Text style={styles.promptBody}>Five minutes: what went well, what was hard, one thing for next week.</Text>
+        <Text style={styles.promptTitle} maxFontSizeMultiplier={2}>Look back at your week</Text>
+        <Text style={styles.promptBody} maxFontSizeMultiplier={2}>Five minutes: what went well, what was hard, one thing for next week.</Text>
       </View>
       <Icon name="chevron" size={18} color={colors.textFaint} />
     </Card>
@@ -331,8 +331,8 @@ show('due') ? (
                   <Icon name="book" size={22} color="#8FB4E8" />
                 </View>
                 <View style={styles.promptText}>
-                  <Text style={styles.promptTitle}>Nothing due</Text>
-                  <Text style={styles.promptBody}>Add homework or a test, or scan your Classroom to-do list.</Text>
+                  <Text style={styles.promptTitle} maxFontSizeMultiplier={2}>Nothing due</Text>
+                  <Text style={styles.promptBody} maxFontSizeMultiplier={2}>Add homework or a test, or scan your Classroom to-do list.</Text>
                 </View>
                 <Icon name="plus" size={18} color={colors.textFaint} />
               </View>
@@ -382,7 +382,7 @@ show('due') ? (
           </View>
           {overflow > 0 ? (
             <Pressy onPress={() => router.push('/open-loops')} hitSlop={8} style={styles.moreLink}>
-              <Text style={styles.link}>And {overflow} more — see everything that’s open</Text>
+              <Text style={styles.link} maxFontSizeMultiplier={2}>And {overflow} more — see everything that’s open</Text>
             </Pressy>
           ) : null}
         </View>
@@ -432,8 +432,8 @@ show('checkin') ? (
             </Card>
           ) : (
             <Card tint={colors.flame}>
-              <Text style={styles.promptTitle} accessibilityRole="header">How’s today feeling?</Text>
-              <Text style={styles.promptBody}>Tap a face. Hold one for the full check-in.</Text>
+              <Text style={styles.promptTitle} accessibilityRole="header" maxFontSizeMultiplier={2}>How’s today feeling?</Text>
+              <Text style={styles.promptBody} maxFontSizeMultiplier={2}>Tap a face. Hold one for the full check-in.</Text>
               <View style={styles.moodRow}>
                 <MoodPicker value={null} onChange={logMood} onLongPress={() => router.push('/checkin')} />
               </View>
@@ -470,7 +470,7 @@ show('tiles') ? (
     line: (
 show('line') ? (
       <Reveal index={6}>
-        <Text style={styles.dayLine}>{lineForToday()}</Text>
+        <Text style={styles.dayLine} maxFontSizeMultiplier={2}>{lineForToday()}</Text>
       </Reveal>
       ) : null
     ),
@@ -577,8 +577,8 @@ show('line') ? (
                 <Sparks burst={1} reach={60} />
                 <Icon name="sparkle" size={22} color={colors.secured} />
                 <View style={styles.promptText}>
-                  <Text style={styles.promptTitle}>All clear.</Text>
-                  <Text style={styles.promptBody}>
+                  <Text style={styles.promptTitle} maxFontSizeMultiplier={2}>All clear.</Text>
+                  <Text style={styles.promptBody} maxFontSizeMultiplier={2}>
                     {doneToday} thing{doneToday === 1 ? '' : 's'} done today, nothing due by tomorrow. The rest of the day is yours.
                   </Text>
                 </View>
@@ -619,7 +619,7 @@ function Tile({
       </View>
       <Text style={styles.tileTitle} maxFontSizeMultiplier={textGrow.control}>{title}</Text>
       <Text style={styles.tileValue} maxFontSizeMultiplier={textGrow.display}>{value}</Text>
-      <Text style={styles.tileNote}>{note}</Text>
+      <Text style={styles.tileNote} maxFontSizeMultiplier={2}>{note}</Text>
     </Card>
   );
 }
@@ -660,10 +660,10 @@ function DeskCandle({
           reducedMotion={reducedMotion}
           igniteDelay={reducedMotion ? 0 : 260 + index * 170}
         />
-        <Text style={styles.candleLabel} numberOfLines={2}>
+        <Text style={styles.candleLabel} numberOfLines={2} maxFontSizeMultiplier={2}>
           {entry.mood || 'Untitled'}
         </Text>
-        <Text style={styles.candleAge}>{ageLabel(entry.created_at)}</Text>
+        <Text style={styles.candleAge} maxFontSizeMultiplier={2}>{ageLabel(entry.created_at)}</Text>
       </Pressy>
     </Animated.View>
   );

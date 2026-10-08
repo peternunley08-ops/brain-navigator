@@ -12,7 +12,7 @@ import { useHubStore } from '../../core/hubStore';
 import { learnedNotes } from '../../core/learned';
 import { useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
-import { colors, fonts } from '../../core/theme';
+import { colors, fonts, textGrow } from '../../core/theme';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { IconButton } from '../ui/IconButton';
 import { Pressy } from '../ui/Pressy';
@@ -134,7 +134,7 @@ export function EmberNote({ deskHidden }: { deskHidden: string[] }) {
       <Note key={shown} />
       {rest.length ? (
         <Pressy onPress={() => setOpen(true)} hitSlop={8} style={styles.more} accessibilityRole="button" accessibilityHint="Opens Ember’s other notes for today">
-          <Text style={styles.link}>{moreLine(rest.length)}</Text>
+          <Text style={styles.link} maxFontSizeMultiplier={2}>{moreLine(rest.length)}</Text>
         </Pressy>
       ) : null}
       <NotesSheet open={open && rest.length > 0} ids={rest} onClose={() => setOpen(false)} />
@@ -153,7 +153,7 @@ function NotesSheet({ open, ids, onClose }: { open: boolean; ids: DeskNoteId[]; 
         <KeyboardAvoidingView behavior="padding" style={styles.slot} pointerEvents="box-none">
           <Animated.View entering={reduced ? undefined : sprung(SlideInDown)} style={[styles.sheet, { paddingBottom: insets.bottom + 16, maxHeight: height * 0.8 }]}>
             <View style={styles.head}>
-              <Text style={styles.title} accessibilityRole="header">
+              <Text style={styles.title} accessibilityRole="header" maxFontSizeMultiplier={textGrow.heading}>
                 Ember’s notes
               </Text>
               <IconButton icon="close" label="Close" size={34} onPress={onClose} />
@@ -164,7 +164,7 @@ function NotesSheet({ open, ids, onClose }: { open: boolean; ids: DeskNoteId[]; 
                   const Note = NOTES[id];
                   return <Note key={id} />;
                 })}
-                <Text style={styles.end}>{moreLine(0)}</Text>
+                <Text style={styles.end} maxFontSizeMultiplier={2}>{moreLine(0)}</Text>
               </ScrollView>
             </LeaveNoteSheet.Provider>
           </Animated.View>

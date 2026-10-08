@@ -59,7 +59,8 @@ export function Sheet({
   const lens = <GlassFill radius={28} style={styles.lens} tint={SHEET_TINT} />;
   return (
     <Modal visible={open} transparent animationType="fade" onRequestClose={onClose}>
-      <GestureHandlerRootView style={styles.fill}>
+      {/* VoiceOver's escape gesture (two-finger scrub) puts it away too. */}
+      <GestureHandlerRootView style={styles.fill} onAccessibilityEscape={onClose}>
         <Animated.View style={[StyleSheet.absoluteFill, dim]}>
           <Pressy style={styles.scrim} onPress={onClose} depth={1} haptic="none" accessibilityLabel="Close" />
         </Animated.View>

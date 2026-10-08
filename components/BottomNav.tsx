@@ -145,7 +145,7 @@ export function BottomNav() {
 
   return (
     <Animated.View style={[styles.wrap, { paddingBottom: Math.max(16, insets.bottom - 8) }, shown]} pointerEvents="box-none">
-      <View style={[styles.bar, GLASS ? styles.barGlass : late && styles.barLate]}>
+      <View style={[styles.bar, GLASS ? styles.barGlass : late && styles.barLate]} accessibilityRole="tablist">
         <GlassFill radius={34} tint={late ? NIGHT_TINT : GLASS_TINT} />
         <Animated.View style={[styles.pill, pillStyle]} pointerEvents="none" />
         {LEFT.map((item) => (
@@ -226,7 +226,7 @@ function QuickAdd({ open, onClose }: { open: boolean; onClose: () => void }) {
   // At the largest text sizes the options outgrow the screen: the title
   // becomes the drag handle and the options scroll underneath it.
   const tall = fontScale > 1.5;
-  const title = <Text style={styles.sheetTitle} maxFontSizeMultiplier={textGrow.display}>Put something down</Text>;
+  const title = <Text style={styles.sheetTitle} accessibilityRole="header" maxFontSizeMultiplier={textGrow.display}>Put something down</Text>;
   const body = (
     <>
       {byHref(ADD_OPTIONS, order.main).map((o) => (

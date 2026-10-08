@@ -5,7 +5,7 @@ import { clock, dateKey } from '../../core/dates';
 import { useLifeStore } from '../../core/lifeStore';
 import { firstClassOn, firstLightOpen, nightNow, subscribeNightClock } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
-import { colors, fonts } from '../../core/theme';
+import { colors, fonts, textGrow } from '../../core/theme';
 import { weatherCodeLabel } from '../../core/weatherCodes';
 import { useWeatherStore } from '../../core/weatherStore';
 import { Card } from '../ui/Card';
@@ -57,28 +57,28 @@ export function FirstLight({ seen, onSeen }: { seen: string | undefined; onSeen:
   return (
     <Animated.View exiting={reduced ? undefined : FadeOut.duration(400)} style={styles.stack}>
       <Card tint={colors.flame} style={styles.card}>
-        <Text style={styles.greeting} accessibilityRole="header">
+        <Text style={styles.greeting} accessibilityRole="header" maxFontSizeMultiplier={textGrow.heading}>
           {name ? `Good morning, ${name}` : 'Good morning'}
         </Text>
-        <Text style={styles.line}>A gentle start. Here is the shape of today.</Text>
-        {weather ? <Text style={styles.sub}>{weather}</Text> : null}
+        <Text style={styles.line} maxFontSizeMultiplier={2}>A gentle start. Here is the shape of today.</Text>
+        {weather ? <Text style={styles.sub} maxFontSizeMultiplier={2}>{weather}</Text> : null}
       </Card>
       {first ? (
         <Card style={styles.card}>
-          <Text style={styles.sub}>First class</Text>
-          <Text style={styles.line}>
+          <Text style={styles.sub} maxFontSizeMultiplier={2}>First class</Text>
+          <Text style={styles.line} maxFontSizeMultiplier={2}>
             {first.name} at {clock(first.start)}
           </Text>
         </Card>
       ) : null}
       {one ? (
         <Card style={styles.card}>
-          <Text style={styles.sub}>The one thing</Text>
-          <Text style={styles.line}>{one}</Text>
+          <Text style={styles.sub} maxFontSizeMultiplier={2}>The one thing</Text>
+          <Text style={styles.line} maxFontSizeMultiplier={2}>{one}</Text>
         </Card>
       ) : null}
       <Pressy onPress={close} accessibilityRole="button" hitSlop={10} style={styles.open}>
-        <Text style={styles.openText}>Open the Desk</Text>
+        <Text style={styles.openText} maxFontSizeMultiplier={textGrow.control}>Open the Desk</Text>
       </Pressy>
     </Animated.View>
   );
