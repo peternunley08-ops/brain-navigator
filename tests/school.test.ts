@@ -35,6 +35,15 @@ describe('nowState', () => {
     assert.deepEqual(nowState([]), { kind: 'none' });
   });
 
+  it('a class without times means the day is not known to be over (G46)', () => {
+    const partial = [cls('chem', hm(8), hm(8, 50)), cls('english', 0, 0, { days: [] })];
+    assert.deepEqual(nowState(partial, at(2026, 10, 5, 10)), { kind: 'unscheduled' });
+    assert.deepEqual(nowState(partial, at(2026, 10, 4, 10)), { kind: 'unscheduled' });
+    assert.equal(nowState(partial, at(2026, 10, 5, 8, 20)).kind, 'in');
+    // An activity without times doesn't hold the school day open.
+    assert.deepEqual(nowState([...day, cls('club', 0, 0, { days: [], kind: 'activity' })], at(2026, 10, 5, 15)), { kind: 'done' });
+  });
+
   it('the bell at the end of a class means it is over', () => {
     assert.equal(nowState(day, at(2026, 10, 5, 8, 50)).kind, 'next');
   });
