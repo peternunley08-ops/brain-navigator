@@ -10,6 +10,8 @@ It lives in a candlelit night room. **Ember**, a small flame, keeps you company:
 
 ## The app at a glance
 
+<table><tr><td align="center"><img src="docs/screens/1-desk.jpg" width="150" alt="Know what’s next."><br><sub>Know what’s next.</sub></td><td align="center"><img src="docs/screens/2-school.jpg" width="150" alt="Tonight, at a glance."><br><sub>Tonight, at a glance.</sub></td><td align="center"><img src="docs/screens/3-focus.jpg" width="150" alt="One candle. One thing."><br><sub>One candle. One thing.</sub></td><td align="center"><img src="docs/screens/4-mind.jpg" width="150" alt="Set it down."><br><sub>Set it down.</sub></td><td align="center"><img src="docs/screens/5-steady.jpg" width="150" alt="Help, always in reach."><br><sub>Help, always in reach.</sub></td></tr></table>
+
 | Tab | What it's for |
 |---|---|
 | **Desk** | The front page: what's next, one thing to start with, countdowns, pinned notes. At night it becomes a short, quiet stack; in the morning, First light. |
