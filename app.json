@@ -8,7 +8,8 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.peternunley.brainnavigator"
+      "bundleIdentifier": "com.peternunley.brainnavigator",
+      "appleTeamId": "PQLSGT6XTP"
     },
     "android": {
       "adaptiveIcon": {
@@ -71,7 +72,28 @@
           "motionPermission": false
         }
       ],
-      "./plugins/withSceneLifecycle"
+      "./plugins/withSceneLifecycle",
+      "./plugins/withoutPushEntitlement",
+      [
+        "expo-widgets",
+        {
+          "bundleIdentifier": "com.peternunley.brainnavigator.widget",
+          "groupIdentifier": "group.com.peternunley.brainnavigator",
+          "widgets": [
+            {
+              "name": "TomorrowWidget",
+              "displayName": "Tomorrow",
+              "description": "Your first class and what's due tomorrow.",
+              "ios": {
+                "supportedFamilies": [
+                  "systemSmall",
+                  "systemMedium"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     ],
     "scheme": "brainnavigator"
   }
