@@ -148,12 +148,16 @@ export function Screen({
   // Back in front, tell Ember whether this page is still scrolled down.
   // Only the page in front speaks for it.
   const inFront = useSharedValue(0);
+  // Under another page, the room holds still (Round 7 G47).
+  const [front, setFront] = useState(true);
   useFocusEffect(
     useCallback(() => {
       inFront.value = 1;
+      setFront(true);
       pageDown.value = y.value > PAGE_DOWN ? 1 : 0;
       return () => {
         inFront.value = 0;
+        setFront(false);
       };
     }, [y, inFront]),
   );
@@ -313,7 +317,7 @@ export function Screen({
     <RevealContext.Provider value={settle}>
       <View style={styles.root} onLayout={onRootLayout} collapsable={false}>
         <Animated.View style={[styles.backdrop, depth]} pointerEvents="none">
-          <Backdrop tone={tone} glowColor={glowColor} motes={motes} weather={weather} />
+          <Backdrop tone={tone} glowColor={glowColor} motes={motes} weather={weather} active={front} />
         </Animated.View>
         {scroll ? (
           <Animated.View style={[styles.pullGlow, pullGlow]} pointerEvents="none">

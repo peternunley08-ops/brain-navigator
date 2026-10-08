@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { create } from 'zustand';
 import { useLifeStore } from './lifeStore';
-import { isNight, minutesOf, nightNow, nightStart } from './night';
+import { isNight, minutesOf, nightNow, nightStart, tonightKey } from './night';
 import { nowState, useSchoolStore } from './schoolStore';
 import { isShowing } from './showMode';
 import { useUndoStore } from './undoStore';
@@ -93,6 +93,20 @@ function persist(p: EmberPrefs) {
 }
 
 let toastSeq = 0;
+
+// The quieter floating Ember: on its own it speaks at most once per screen
+// visit, and not at all where its line is already on the page (the Desk,
+// Steady) or after Goodnight. Lines the student asked for always come.
+const QUIET_HERE = new Set(['/', '/steady']);
+let here = '';
+let spokeHere = false;
+
+/** Ember's screen changed: a new visit, so it may speak once again. */
+export function emberOnScreen(path: string) {
+  if (path === here) return;
+  here = path;
+  spokeHere = false;
+}
 /** Lines waiting for the one being read (two at most; asked lines never wait). */
 let queue: { text: string; mood: EmberMood }[] = [];
 /** The latest line held back while the Undo bar is up. */
@@ -153,6 +167,7 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
     // Quiet mode keeps only the big moments; class time keeps nothing (unless they asked).
     if (!asked && inClassQuiet()) return;
     if (!asked && useLifeStore.getState().settings.emberQuiet && mood !== 'cheer') return;
+    if (!asked && (spokeHere || QUIET_HERE.has(here) || useLifeStore.getState().settings.putDown === tonightKey())) return;
     // The Undo bar and Ember's line share the bottom of the screen: one at a time.
     if (useUndoStore.getState().item) {
       waiting = { text, mood, asked };
@@ -173,6 +188,7 @@ export const useEmberStore = create<EmberStore>((set, get) => ({
         if (i > 0) text = text.slice(0, i + 1);
       }
     }
+    if (!asked) spokeHere = true;
     toastSeq += 1;
     set({ toast: { id: toastSeq, text, mood, at: Date.now() } });
   },

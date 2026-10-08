@@ -1,16 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { memo, useEffect, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useReducedMotion,
-  useSharedValue,
-  withDelay,
-  withRepeat,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { type SharedValue, useAnimatedStyle, useReducedMotion } from 'react-native-reanimated';
 import Svg, { Defs, Ellipse, Line, RadialGradient, Stop } from 'react-native-svg';
+import { useAmbientClock } from '../../core/ambient';
 import { useLifeStore } from '../../core/lifeStore';
 import { hoursIntoNight, isNight, minutesOf, nightClockVersion, nightNow, nightStart, subscribeNightClock } from '../../core/night';
 import { colors, gradients } from '../../core/theme';
@@ -24,6 +17,8 @@ interface BackdropProps {
   glowColor?: string;
   /** A few slow specks of dust drifting through the light. */
   motes?: boolean;
+  /** False when the page is under another one: the room holds still. */
+  active?: boolean;
   /** Faint weather in the window. */
   weather?: WeatherKind;
 }
@@ -50,6 +45,7 @@ export const Backdrop = memo(function Backdrop({
   glowColor = '#F5B45C',
   motes = false,
   weather = null,
+  active = true,
 }: BackdropProps) {
   const { width, height } = useWindowDimensions();
   const windDown = useLifeStore((s) => s.settings.windDown);
@@ -62,6 +58,9 @@ export const Backdrop = memo(function Backdrop({
     const t = setInterval(() => setTick((n) => n + 1), TICK_MS);
     return () => clearInterval(t);
   }, []);
+  // One clock for the motes, stars and rain, on the ambient beat; paused
+  // under another page.
+  const clock = useAmbientClock(active);
   const now = minutesOf(nightNow());
   const start = nightStart(windDown, nightOwl);
   const night = isNight(now, start);
@@ -80,9 +79,9 @@ export const Backdrop = memo(function Backdrop({
         <Ellipse cx={width / 2} cy={height * glowAt} rx={width * 0.95} ry={height * 0.38} fill="url(#pool)" />
       </Svg>
       {veil > 0 ? <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: colors.night, opacity: veil }]} /> : null}
-      {motes ? <Motes width={width} height={height} /> : null}
-      {weather === 'rain' || weather === 'snow' ? <Weather kind={weather} width={width} height={height} /> : null}
-      {night ? <Stars width={width} height={height} /> : null}
+      {motes ? <Motes width={width} height={height} clock={clock} /> : null}
+      {weather === 'rain' || weather === 'snow' ? <Weather kind={weather} width={width} height={height} clock={clock} /> : null}
+      {night ? <Stars width={width} height={height} clock={clock} /> : null}
     </View>
   );
 });
@@ -116,14 +115,23 @@ const SEASON_LOOK: Record<Season, { color: string; w: number; h: number; drift: 
   spring: { color: '#F2B8C6', w: 1.5, h: 0.9, drift: 16, slow: 1.1, tilt: '-20deg' },
 };
 
-function Motes({ width, height }: { width: number; height: number }) {
+type Clock = SharedValue<number>;
+
+// withRepeat(withTiming(1, inOut sine), -1, reverse) as a function of time:
+// 0 → 1 → 0 every 2 × dur.
+function swing(t: number, dur: number, delay: number) {
+  'worklet';
+  return (1 - Math.cos((Math.PI * (t - delay)) / dur)) / 2;
+}
+
+function Motes({ width, height, clock }: { width: number; height: number; clock: Clock }) {
   const reduced = useReducedMotion();
   if (reduced) return null;
   const look = SEASON_LOOK[seasonOf()];
   return (
     <>
       {MOTES.map((m, i) => (
-        <Mote key={i} {...m} look={look} width={width} height={height} />
+        <Mote key={i} {...m} look={look} width={width} height={height} clock={clock} />
       ))}
     </>
   );
@@ -138,16 +146,16 @@ function Mote({
   look,
   width,
   height,
-}: (typeof MOTES)[number] & { look: (typeof SEASON_LOOK)[Season]; width: number; height: number }) {
-  const p = useSharedValue(0);
+  clock,
+}: (typeof MOTES)[number] & { look: (typeof SEASON_LOOK)[Season]; width: number; height: number; clock: Clock }) {
   const dur = d * look.slow;
-  useEffect(() => {
-    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: dur, easing: Easing.inOut(Easing.sin) }), -1, true));
-  }, [p, dur, delay]);
-  const style = useAnimatedStyle(() => ({
-    opacity: 0.15 + 0.5 * Math.sin(p.value * Math.PI),
-    transform: [{ translateX: (p.value * 2 - 1) * look.drift }, { translateY: -p.value * 60 }, { rotate: look.tilt }],
-  }));
+  const style = useAnimatedStyle(() => {
+    const p = swing(clock.value, dur, delay);
+    return {
+      opacity: 0.15 + 0.5 * Math.sin(p * Math.PI),
+      transform: [{ translateX: (p * 2 - 1) * look.drift }, { translateY: -p * 60 }, { rotate: look.tilt }],
+    };
+  });
   return (
     <Animated.View
       style={[
@@ -167,35 +175,35 @@ const DROPS = [0.06, 0.17, 0.28, 0.4, 0.5, 0.61, 0.72, 0.83, 0.93, 0.34, 0.77, 0
   y: (i * 0.17) % 0.6,
 }));
 
-function Weather({ kind, width, height }: { kind: 'rain' | 'snow'; width: number; height: number }) {
+function Weather({ kind, width, height, clock }: { kind: 'rain' | 'snow'; width: number; height: number; clock: Clock }) {
   const reduced = useReducedMotion();
   return (
     <>
       {DROPS.map((dr, i) => (
-        <Drop key={i} {...dr} kind={kind} width={width} height={height} still={reduced} />
+        <Drop key={i} {...dr} kind={kind} width={width} height={height} still={reduced} clock={clock} />
       ))}
     </>
   );
 }
 
 function Drop({
-  x, y, d, delay, kind, width, height, still,
-}: (typeof DROPS)[number] & { kind: 'rain' | 'snow'; width: number; height: number; still: boolean }) {
-  const p = useSharedValue(0);
+  x, y, d, delay, kind, width, height, still, clock,
+}: (typeof DROPS)[number] & { kind: 'rain' | 'snow'; width: number; height: number; still: boolean; clock: Clock }) {
   const rain = kind === 'rain';
   const travel = height * 0.5;
-  useEffect(() => {
-    if (still) return;
-    const dur = rain ? d * 0.45 : d;
-    p.value = withDelay(delay, withRepeat(withTiming(1, { duration: dur, easing: Easing.linear }), -1, false));
-  }, [p, d, delay, still, rain]);
-  const style = useAnimatedStyle(() => ({
-    opacity: still ? 0.06 : 0.12 * Math.sin(p.value * Math.PI),
-    transform: [
-      { translateY: still ? 0 : p.value * travel },
-      { translateX: still ? 0 : (rain ? p.value * -travel * 0.2 : Math.sin(p.value * 6.28) * 10) },
-    ],
-  }));
+  const dur = rain ? d * 0.45 : d;
+  const style = useAnimatedStyle(() => {
+    // Falls 0 → 1 over dur, then starts again at the top.
+    const t = (clock.value - delay) / dur;
+    const p = t - Math.floor(t);
+    return {
+      opacity: still ? 0.06 : 0.12 * Math.sin(p * Math.PI),
+      transform: [
+        { translateY: still ? 0 : p * travel },
+        { translateX: still ? 0 : (rain ? p * -travel * 0.2 : Math.sin(p * 6.28) * 10) },
+      ],
+    };
+  });
   return (
     <Animated.View style={[{ position: 'absolute', left: x * width, top: y * height }, style]}>
       <Svg width={14} height={22}>
@@ -227,12 +235,12 @@ const STARS = [
   { x: 0.84, y: 0.37, r: 1.3, d: 4600, delay: 1200 },
 ];
 
-function Stars({ width, height }: { width: number; height: number }) {
+function Stars({ width, height, clock }: { width: number; height: number; clock: Clock }) {
   const reduced = useReducedMotion();
   return (
     <>
       {STARS.map((st, i) => (
-        <Star key={i} {...st} width={width} height={height} still={reduced} />
+        <Star key={i} {...st} width={width} height={height} still={reduced} clock={clock} />
       ))}
     </>
   );
@@ -248,14 +256,10 @@ function Star({
   width,
   height,
   still,
-}: (typeof STARS)[number] & { width: number; height: number; still: boolean }) {
-  const p = useSharedValue(0);
-  useEffect(() => {
-    if (still) return;
-    p.value = withDelay(delay * STAR_SLOW, withRepeat(withTiming(1, { duration: d * STAR_SLOW, easing: Easing.inOut(Easing.sin) }), -1, true));
-  }, [p, d, delay, still]);
+  clock,
+}: (typeof STARS)[number] & { width: number; height: number; still: boolean; clock: Clock }) {
   const style = useAnimatedStyle(() => ({
-    opacity: still ? 0.3 : 0.12 + 0.38 * p.value,
+    opacity: still ? 0.3 : 0.12 + 0.38 * swing(clock.value, d * STAR_SLOW, delay * STAR_SLOW),
   }));
   return (
     <Animated.View

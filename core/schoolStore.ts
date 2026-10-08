@@ -75,6 +75,8 @@ export interface Assignment {
   repeat?: 'weekly' | null;
   /** Done is "I finished it"; this is "the teacher has it". */
   turnedIn?: boolean;
+  /** Swiped off the Desk's lit card until this time (ms). Due date unchanged. */
+  snoozedUntil?: number;
 }
 
 export interface FocusSession {
@@ -348,7 +350,10 @@ export function nowState(classes: SchoolClass[], d = new Date()): NowState {
   const day = isoDay(d);
   const mins = d.getHours() * 60 + d.getMinutes();
   const today = classes.filter((c) => c.days.includes(day)).sort((a, b) => a.start - b.start);
-  if (today.length === 0) return { kind: 'free' };
+  // A class still without days or times could meet later today, so the day
+  // can't be called free or over while one is missing (Round 7 G46).
+  const partial = classes.some((c) => c.kind === 'class' && c.days.length === 0);
+  if (today.length === 0) return partial ? { kind: 'unscheduled' } : { kind: 'free' };
   const current = today.find((c) => c.start <= mins && mins < c.end);
   if (current) {
     const next = today.find((c) => c.start >= current.end) ?? null;
@@ -356,7 +361,7 @@ export function nowState(classes: SchoolClass[], d = new Date()): NowState {
   }
   const upcoming = today.find((c) => c.start > mins);
   if (upcoming) return { kind: 'next', cls: upcoming, minsUntil: upcoming.start - mins };
-  return { kind: 'done' };
+  return partial ? { kind: 'unscheduled' } : { kind: 'done' };
 }
 
 /** Open work due today or tomorrow, and the minutes it adds up to. */

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, useReducedMotion } from 'react-native-reanimated';
 import { EmberSprite } from '../components/ember/EmberSprite';
+import { emberSay } from '../components/ember/EmberBuddy';
 import { Sparks } from '../components/ember/Sparks';
 import { useEmberRig } from '../components/ember/useEmberRig';
 import { Button } from '../components/ui/Button';
@@ -12,9 +13,10 @@ import { Field } from '../components/ui/Field';
 import { Icon } from '../components/ui/Icon';
 import { Screen } from '../components/ui/Screen';
 import { Stepper } from '../components/ui/Stepper';
-import { goBack } from '../core/chrome';
+import { goBack, goHome } from '../core/chrome';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
+import { startShow } from '../core/show';
 import { useSchoolStore } from '../core/schoolStore';
 import { alpha, colors, fonts } from '../core/theme';
 
@@ -75,6 +77,16 @@ export default function WelcomeScreen() {
     setProfile({ name: name.trim(), grade, onboarded: true });
     startFirstWeek();
     goBack();
+  };
+
+  // Value before setup: a look at a real Desk (Riley's, the sample student)
+  // before any questions. Nothing saves while showing; the gold pill comes
+  // back here, since the welcome isn't finished.
+  const peek = async () => {
+    setProfile({ name: name.trim(), grade });
+    await startShow();
+    goHome();
+    emberSay('This is Riley’s Desk. Riley is made up, so tap anything; nothing saves. The gold pill at the top brings you back.', 'cheer');
   };
 
   const line =
@@ -159,6 +171,7 @@ export default function WelcomeScreen() {
       </Animated.View>
 
       <Button label={step === STEPS - 1 ? 'Let’s go' : step === 1 && !classes.length ? 'Later' : 'Continue'} icon={step === STEPS - 1 ? 'flame' : 'arrow'} onPress={next} style={styles.next} />
+      {step === 0 ? <Button label="See a sample Desk first" variant="ghost" size="sm" onPress={peek} style={styles.peek} /> : null}
     </Screen>
   );
 }
@@ -244,5 +257,9 @@ const styles = StyleSheet.create({
   },
   next: {
     marginTop: 24,
+  },
+  peek: {
+    alignSelf: 'center',
+    marginTop: 8,
   },
 });
