@@ -21,9 +21,11 @@ export function ShowBanner() {
 
   const leave = async () => {
     setLeaving(true);
+    // Home first, then your own data: if the welcome isn't finished (a first
+    // run that peeked at Riley), the Desk opens it again once it's back.
+    goHome();
     await endShow();
     setLeaving(false);
-    goHome();
     emberSay('Back to your own app. Everything is just as you left it.', 'happy');
   };
 

@@ -1,5 +1,6 @@
 import { addDays, dateKey, daysUntil } from './dates';
 import type { Deck, Flashcard } from './lifeStore';
+import { nightNow } from './night';
 import type { Assignment, SchoolClass } from './schoolStore';
 
 // What each helper can do with no AI at all. Pure functions over the
@@ -28,7 +29,7 @@ export function buildTonightPlan(
   assignments: Assignment[],
   opts: { cap: number; windDown: number; now?: Date; startAt?: number; first?: string | null }
 ): { steps: PlanStep[]; workMinutes: number; leftOut: Assignment[] } {
-  const now = opts.now ?? new Date();
+  const now = opts.now ?? nightNow();
   const today = dateKey(now);
   let t = now.getHours() * 60 + now.getMinutes();
   // Before school's out, plan from 3:30.

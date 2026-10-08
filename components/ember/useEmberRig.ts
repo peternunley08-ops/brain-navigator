@@ -12,6 +12,7 @@ import {
   withTiming,
 } from 'react-native-reanimated';
 import type { EmberMood } from '../../core/emberStore';
+import { ambientBeat } from '../../core/ambient';
 
 // Everything that makes Ember move, as shared values the sprite reads on
 // the UI thread. Screens hold a rig and pull its strings — set a mood, make
@@ -78,9 +79,19 @@ export function useEmberRig({ glance = true, asleep = false }: { glance?: boolea
   const hop = useSharedValue(0);
   const squash = useSharedValue(1);
 
+  // Ember's sway and flicker read `time`, and every write redraws the whole
+  // drawing. Written every display frame, that was up to 120 redraws a second
+  // on a ProMotion phone, on every page, all day (Round 7 G47). It now moves on
+  // the ambient beat (core/ambient.ts); hops, talking and blinks run on their
+  // own values at full rate.
+  const owed = useSharedValue(0);
+  const beat = useSharedValue(-1);
   const clock = useFrameCallback((frame) => {
     'worklet';
-    time.value += Math.min(frame.timeSincePreviousFrame ?? 16, 64) * speed.value;
+    owed.value += Math.min(frame.timeSincePreviousFrame ?? 16, 64) * speed.value;
+    if (!ambientBeat(frame.timestamp, beat)) return;
+    time.value += owed.value;
+    owed.value = 0;
   }, true);
 
   const gazeHeld = useRef(false);
