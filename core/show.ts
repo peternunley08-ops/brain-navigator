@@ -8,7 +8,7 @@ import { EMPTY_HUB, useHubStore } from './hubStore';
 import { EMPTY_LIFE, useLifeStore } from './lifeStore';
 import { useNutritionStore } from './nutritionStore';
 import { clearSampleDb, fillSampleDb } from './sampleDb';
-import { sampleEvents, sampleHub, sampleLife, sampleSchool, sampleTables } from './sampleData';
+import { sampleEvents, sampleHub, sampleLife, sampleSchool, sampleTables, spreadBadgeDates } from './sampleData';
 import { EMPTY_SCHOOL, useSchoolStore } from './schoolStore';
 import { isShowing, setShowing } from './showMode';
 import { useSleepAmbientStore } from './sleepAmbientStore';
@@ -112,8 +112,9 @@ export async function startShow() {
   });
   useWeatherStore.setState({ isAuthorized: true, locationLabel: 'Riverside', temperatureF: 64, weatherCode: 2, windMph: 6, humidityPct: 58, hasMarineData: false, isLoading: false, error: null });
   await refetchOnline();
-  // The sample student's badges, quietly (nothing saves).
+  // The sample student's badges, quietly (nothing saves), dated over the past weeks rather than all today.
   checkAchievements();
+  useLifeStore.setState({ achievements: spreadBadgeDates(Object.keys(useLifeStore.getState().achievements)) });
 }
 
 export async function endShow() {

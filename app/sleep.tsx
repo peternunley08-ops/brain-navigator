@@ -28,6 +28,7 @@ const MOON = '#8FB4E8';
 export default function SleepScreen() {
   const settings = useLifeStore((s) => s.settings);
   const setSettings = useLifeStore((s) => s.setSettings);
+  const followWindDown = useLifeStore((s) => s.followWindDown);
   const goal = useSchoolStore((s) => s.profile.sleepGoal);
   const earn = useLifeStore((s) => s.earn);
 
@@ -58,7 +59,15 @@ export default function SleepScreen() {
 
       <Reveal index={1}>
         <View style={styles.gap}>
-          <TimeField label="I wake up at" value={wake} onChange={(v) => setSettings({ wake: v })} hours={MORNING_HOURS} />
+          <TimeField
+            label="I wake up at"
+            value={wake}
+            onChange={(v) => {
+              setSettings({ wake: v });
+              followWindDown(goal);
+            }}
+            hours={MORNING_HOURS}
+          />
         </View>
       </Reveal>
 

@@ -89,6 +89,14 @@ export function lightsOutMinutes(wake: number, sleepGoalHours: number) {
   return wrap(Math.round(wake - sleepGoalHours * 60 - FALL_ASLEEP));
 }
 
+/** Minutes between the start of the wind-down and lights out, by default. */
+export const WIND_DOWN_LEAD = 30;
+
+/** The suggested wind-down start: before lights out, never after it. */
+export function defaultWindDown(wake: number, sleepGoalHours: number) {
+  return wrap(lightsOutMinutes(wake, sleepGoalHours) - WIND_DOWN_LEAD);
+}
+
 /** The wind-down time (minutes after midnight), an hour later for a night owl. */
 export function nightStart(windDown: number, nightOwl: boolean) {
   return wrap(windDown + (nightOwl ? 60 : 0));
