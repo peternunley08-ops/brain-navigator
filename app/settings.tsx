@@ -234,7 +234,7 @@ export default function SettingsScreen() {
     useHubStore.setState({ notes: [], colleges: [], plan: [], scholarships: [], recs: [], activities: [], aid: {} });
     setProfile({ onboarded: false });
     emberSay('Fresh start. I’m still here.', 'happy');
-    router.replace('/welcome');
+    router.replace('/age');
   };
 
   // The page reads like a story: you, your Desk, Ember, AI, then your data

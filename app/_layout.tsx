@@ -123,6 +123,7 @@ export default function RootLayout() {
               <Stack.Screen name="ai-consent" options={SHEET} />
               {/* Your day swipes between days, so back stays on the edge there. */}
               <Stack.Screen name="today" options={{ fullScreenGestureEnabled: false }} />
+              <Stack.Screen name="age" options={{ gestureEnabled: false }} />
             </Stack>
             {/* One nav for the whole app; pages say whether they want it. */}
             <BottomNav />

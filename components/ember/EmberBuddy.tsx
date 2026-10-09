@@ -54,10 +54,10 @@ const NAP_SCALE = 0.5;
 // stays on screen, inside the page margin.
 const PEEK = S * 0.6;
 
-// Screens where Ember steps aside: the companion, welcome, and focus
+// Screens where Ember steps aside: the companion, welcome, the age ask, and focus
 // screens already have Ember on stage, and Breathe needs your whole
 // attention.
-const HIDDEN = new Set(['/companion', '/breathe', '/welcome', '/focus', '/scan']);
+const HIDDEN = new Set(['/companion', '/breathe', '/welcome', '/age', '/focus', '/scan']);
 
 /** True on the pages where the floating Ember steps aside (its lines don't show there). */
 export function emberStepsAside(path: string) {

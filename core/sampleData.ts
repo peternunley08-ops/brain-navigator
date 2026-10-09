@@ -223,7 +223,7 @@ export function sampleLife(real: LifeSettings): LifeData {
   return {
     ...EMPTY_LIFE,
     // Keep how the app feels (haptics, Ember's look); drop anything personal; AI off.
-    settings: { ...real, birthday: null, aiOff: true, memoryOff: true, deskHidden: [], deskFolded: [], deskOrder: undefined, whatsNewSeen: real.whatsNewSeen } as LifeSettings,
+    settings: { ...real, birthday: null, age: { band: '16-17', source: 'sample', at: new Date().toISOString() }, aiOff: true, memoryOff: true, deskHidden: [], deskFolded: [], deskOrder: undefined, whatsNewSeen: real.whatsNewSeen } as LifeSettings,
     wins: [
       { id: id('w'), text: 'Asked Mr. Alvarez for help with my thesis', at: at(-1, 15) },
       { id: id('w'), text: 'New best in the 800: 2:21', at: at(-3, 17) },

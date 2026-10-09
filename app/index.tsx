@@ -20,6 +20,7 @@ import { EmberNote } from '../components/desk/EmberNote';
 import { LitCard, useLitKind } from '../components/desk/LitCard';
 import { TodayRows } from '../components/desk/TodayRows';
 import { checkAchievements } from '../core/achievements';
+import { ageAllowed } from '../core/age';
 import { QuickCapture } from '../components/desk/QuickCapture';
 import { OneThing } from '../components/desk/OneThing';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -212,10 +213,14 @@ export default function DeskScreen() {
     if (!night) setShowAll(false);
   }, [night]);
 
-  // First time here: Ember says hello and helps set things up.
+  // First time here: the age range (once), then Ember says hello and helps
+  // set things up. The age screen goes on to the welcome itself.
+  const lifeLoaded = useLifeStore((s) => s.loaded);
   useEffect(() => {
-    if (schoolLoaded && !profile.onboarded) router.push('/welcome');
-  }, [schoolLoaded, profile.onboarded]);
+    if (!schoolLoaded || !lifeLoaded) return;
+    if (!ageAllowed(useLifeStore.getState().settings.age)) router.push('/age');
+    else if (!profile.onboarded) router.push('/welcome');
+  }, [schoolLoaded, lifeLoaded, profile.onboarded]);
 
   useEffect(() => {
     fetchCheckins();
