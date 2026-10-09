@@ -37,7 +37,7 @@ export function Section({ title, note, action, icon, iconColor = colors.flame, c
           </Animated.View>
         ) : null}
       </View>
-      {note ? <Text style={styles.note}>{note}</Text> : null}
+      {note ? <Text style={styles.note} maxFontSizeMultiplier={2}>{note}</Text> : null}
     </View>
   );
   return (
@@ -59,7 +59,7 @@ export function Section({ title, note, action, icon, iconColor = colors.flame, c
         )}
         {action ? (
           <Pressy onPress={action.onPress} hitSlop={10} accessibilityRole="button">
-            <Text style={styles.action}>{action.label}</Text>
+            <Text style={styles.action} maxFontSizeMultiplier={textGrow.control}>{action.label}</Text>
           </Pressy>
         ) : null}
       </View>
@@ -76,11 +76,15 @@ const styles = StyleSheet.create({
   head: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    flexWrap: 'wrap',
     marginBottom: 12,
     gap: 12,
   },
+  // The heading keeps most of the row; at the largest text sizes the action
+  // drops to its own line instead of squeezing the heading to a letter wide.
   headText: {
     flex: 1,
+    minWidth: '60%',
   },
   titleRow: {
     flexDirection: 'row',

@@ -1,7 +1,7 @@
 import * as Haptics from '../core/haptics';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { EmberSprite } from '../components/ember/EmberSprite';
 import { Sparks } from '../components/ember/Sparks';
 import { useEmberRig } from '../components/ember/useEmberRig';
@@ -15,7 +15,7 @@ import { PLUS_PER_MONTH } from '../core/aiQuota';
 import { type Helper, HELPERS } from '../core/helpers';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
-import { alpha, colors, fonts } from '../core/theme';
+import { alpha, colors, fonts, textGrow } from '../core/theme';
 
 // Ember's crew. Each card holds a little living helper; tap one and it
 // bursts out to help. `about` (an assignment id) rides along so the helper
@@ -23,6 +23,8 @@ import { alpha, colors, fonts } from '../core/theme';
 export default function HelpersScreen() {
   const { about } = useLocalSearchParams<{ about?: string }>();
   const chats = useLifeStore((s) => s.helperChats);
+  // At the largest text sizes two cards side by side break names mid-word; stack them.
+  const stack = useWindowDimensions().fontScale > 1.5;
   const combo = useLifeStore((s) => s.settings.combo);
   const resume = combo && combo.day === dateKey() && combo.step > 0 && combo.step < 3 ? combo.step : null;
   const st = useAIStatus();
@@ -38,7 +40,7 @@ export default function HelpersScreen() {
     >
       <View style={styles.grid}>
         {HELPERS.map((h, i) => (
-          <Reveal key={h.id} index={i} style={styles.cell}>
+          <Reveal key={h.id} index={i} style={[styles.cell, stack && styles.cellWide]}>
             <HelperCard helper={h} talked={(chats[h.id]?.length ?? 0) > 1} about={about} />
           </Reveal>
         ))}
@@ -54,8 +56,8 @@ export default function HelpersScreen() {
         >
           <Icon name="people" size={20} color="#7CC4F2" />
           <View style={styles.flex}>
-            <Text style={styles.planTitle}>{resume != null ? `Pick up your study session: step ${resume + 1} of 3` : 'Study session'}</Text>
-            <Text style={styles.planBody}>Pip plans tonight, Quizzo warms you up, Spark gets you started. All free.</Text>
+            <Text style={styles.planTitle} maxFontSizeMultiplier={2}>{resume != null ? `Pick up your study session: step ${resume + 1} of 3` : 'Study session'}</Text>
+            <Text style={styles.planBody} maxFontSizeMultiplier={2}>Pip plans tonight, Quizzo warms you up, Spark gets you started. All free.</Text>
           </View>
           <Icon name="chevron" size={16} color={colors.textFaint} />
         </Card>
@@ -64,10 +66,10 @@ export default function HelpersScreen() {
         <Card onPress={() => router.push('/plus')} style={styles.plan}>
           <Icon name="sparkle" size={20} color={colors.flame} />
           <View style={styles.flex}>
-            <Text style={styles.planTitle}>
+            <Text style={styles.planTitle} maxFontSizeMultiplier={2}>
               {st.left} of {st.limit} AI replies left {st.plus ? 'this month' : 'this week'}
             </Text>
-            <Text style={styles.planBody}>{st.plus ? `Plus. Resets ${st.resets}.` : `Resets ${st.resets}. Plus gives you ${PLUS_PER_MONTH} a month.`}</Text>
+            <Text style={styles.planBody} maxFontSizeMultiplier={2}>{st.plus ? `Plus. Resets ${st.resets}.` : `Resets ${st.resets}. Plus gives you ${PLUS_PER_MONTH} a month.`}</Text>
           </View>
           <Icon name="chevron" size={16} color={colors.textFaint} />
         </Card>
@@ -104,10 +106,10 @@ function HelperCard({ helper, talked, about }: { helper: Helper; talked: boolean
         <Sparks burst={burst} reach={50} />
         <EmberSprite rig={rig} size={62} theme={helper.theme} accessory={helper.accessory} seed={helper.id.length * 1.7} />
       </View>
-      <Text style={styles.name}>{helper.name}</Text>
-      <Text style={[styles.role, { color: helper.color }]}>{helper.role}</Text>
-      <Text style={styles.tagline}>{helper.tagline}</Text>
-      {talked ? <Text style={styles.talked}>Chat saved</Text> : null}
+      <Text style={styles.name} maxFontSizeMultiplier={textGrow.heading}>{helper.name}</Text>
+      <Text style={[styles.role, { color: helper.color }]} maxFontSizeMultiplier={2}>{helper.role}</Text>
+      <Text style={styles.tagline} maxFontSizeMultiplier={2}>{helper.tagline}</Text>
+      {talked ? <Text style={styles.talked} maxFontSizeMultiplier={2}>Chat saved</Text> : null}
     </Pressy>
   );
 }
@@ -125,6 +127,9 @@ const styles = StyleSheet.create({
   cell: {
     flexBasis: '46%',
     flexGrow: 1,
+  },
+  cellWide: {
+    flexBasis: '100%',
   },
   card: {
     borderRadius: 22,

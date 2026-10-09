@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { create } from 'zustand';
 import { useLifeStore } from '../core/lifeStore';
 import { sprung } from '../core/motion';
-import { alpha, colors, fonts } from '../core/theme';
+import { alpha, colors, fonts, textGrow } from '../core/theme';
 import { GROUPS, type Tool, toolFor } from '../core/tools';
 import { Chip } from './ui/Chip';
 import { Field } from './ui/Field';
@@ -70,7 +70,7 @@ export function DrawerSheet() {
   const head = (
     <View style={styles.head}>
       {tray ? <IconButton icon="back" label="Back to the Drawer" size={36} onPress={() => pick(null)} /> : null}
-      <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
+      <Text style={styles.title} accessibilityRole="header" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.display}>
         {tray ? tray.name : 'The Drawer'}
       </Text>
       <IconButton icon="settings" label="Settings" size={36} onPress={() => go('/settings')} />
@@ -90,8 +90,8 @@ export function DrawerSheet() {
         <Icon name={t.icon} size={20} color={t.color} />
       </View>
       <View style={styles.rowText}>
-        <Text style={styles.rowTitle} numberOfLines={1} maxFontSizeMultiplier={2}>{t.title}</Text>
-        <Text style={styles.rowBody} numberOfLines={1} maxFontSizeMultiplier={2}>{t.body}</Text>
+        <Text style={styles.rowTitle} numberOfLines={2} maxFontSizeMultiplier={2}>{t.title}</Text>
+        <Text style={styles.rowBody} numberOfLines={2} maxFontSizeMultiplier={2}>{t.body}</Text>
       </View>
       {isNew(t) ? <View style={styles.dot} /> : null}
       <Icon name="chevron" size={16} color={colors.textFaint} />
@@ -120,7 +120,7 @@ export function DrawerSheet() {
         {fresh ? <View style={[styles.dot, styles.boxDot]} /> : null}
         <View>
           <View style={styles.boxName}>
-            <Text style={styles.boxTitle} numberOfLines={2} maxFontSizeMultiplier={1.6}>{g.name}</Text>
+            <Text style={styles.boxTitle} numberOfLines={3} maxFontSizeMultiplier={1.6}>{g.name}</Text>
           </View>
           <Text style={styles.boxCount} maxFontSizeMultiplier={1.6}>{g.tools.length} tools</Text>
         </View>
@@ -143,7 +143,7 @@ export function DrawerSheet() {
       </View>
       <View>
         <View style={styles.boxName}>
-          <Text style={styles.boxTitle} numberOfLines={2} maxFontSizeMultiplier={1.6}>{help.title}</Text>
+          <Text style={styles.boxTitle} numberOfLines={3} maxFontSizeMultiplier={1.6}>{help.title}</Text>
         </View>
         <Text style={styles.boxCount} maxFontSizeMultiplier={1.6}>{help.body}</Text>
       </View>

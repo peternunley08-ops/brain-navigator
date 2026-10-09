@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { clock, nowState, useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { Card } from '../ui/Card';
 import { Icon } from '../ui/Icon';
 
@@ -39,8 +39,8 @@ export function NowCard() {
           <Icon name="book" size={22} color={colors.flame} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>{now.kind === 'none' ? 'Add your schedule' : 'When do your classes meet?'}</Text>
-          <Text style={styles.sub}>
+          <Text style={styles.title} maxFontSizeMultiplier={textGrow.heading}>{now.kind === 'none' ? 'Add your schedule' : 'When do your classes meet?'}</Text>
+          <Text style={styles.sub} maxFontSizeMultiplier={2}>
             {now.kind === 'none' ? 'Then this card always knows what’s next.' : 'Add days and times, and this card will know what’s next.'}
           </Text>
         </View>
@@ -56,8 +56,8 @@ export function NowCard() {
           <Icon name={now.kind === 'free' ? 'sun' : 'moon'} size={22} color={colors.secured} />
         </View>
         <View style={styles.body}>
-          <Text style={styles.title}>{now.kind === 'free' ? 'No classes today' : 'Done with classes for today'}</Text>
-          <Text style={styles.sub}>{now.kind === 'free' ? 'A day that’s yours.' : 'The rest of the day is yours.'}</Text>
+          <Text style={styles.title} maxFontSizeMultiplier={textGrow.heading}>{now.kind === 'free' ? 'No classes today' : 'Done with classes for today'}</Text>
+          <Text style={styles.sub} maxFontSizeMultiplier={2}>{now.kind === 'free' ? 'A day that’s yours.' : 'The rest of the day is yours.'}</Text>
         </View>
       </Card>
     );
@@ -71,16 +71,16 @@ export function NowCard() {
       <View style={styles.body}>
         <View style={styles.labelRow}>
           {inClass ? <Animated.View style={[styles.liveDot, { backgroundColor: c.color }, live]} /> : null}
-          <Text style={[styles.label, { color: c.color }]}>{inClass ? 'Now' : `Next, in ${mins(now.minsUntil)}`}</Text>
+          <Text style={[styles.label, { color: c.color }]} maxFontSizeMultiplier={2}>{inClass ? 'Now' : `Next, in ${mins(now.minsUntil)}`}</Text>
         </View>
-        <Text style={styles.title} numberOfLines={1}>
+        <Text style={styles.title} maxFontSizeMultiplier={textGrow.heading} numberOfLines={1}>
           {c.name}
         </Text>
-        <Text style={styles.sub}>
+        <Text style={styles.sub} maxFontSizeMultiplier={2}>
           {inClass ? `Until ${clock(c.end)}, ${mins(now.minsLeft)} left` : `${clock(c.start)} – ${clock(c.end)}`}
           {c.room ? `, room ${c.room}` : ''}
         </Text>
-        {inClass && now.next ? <Text style={styles.next}>Then {now.next.name} at {clock(now.next.start)}</Text> : null}
+        {inClass && now.next ? <Text style={styles.next} maxFontSizeMultiplier={2}>Then {now.next.name} at {clock(now.next.start)}</Text> : null}
       </View>
     </Card>
   );

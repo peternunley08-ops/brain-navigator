@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
 import { project, sprung } from '../core/motion';
@@ -23,7 +23,7 @@ import { useGoogleCalendarStore } from '../core/googleCalendarStore';
 import { useHubStore } from '../core/hubStore';
 import { KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { offerUndo } from '../core/undoStore';
-import { alpha, colors, fonts, radii } from '../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../core/theme';
 
 interface Item {
   key: string;
@@ -172,7 +172,7 @@ export default function TodayScreen() {
       {!isToday ? (
         <Pressy onPress={() => go(today, sel > today ? -1 : 1)} style={styles.backChip} accessibilityLabel="Back to today">
           <Icon name="calendar" size={13} color={colors.flame} />
-          <Text style={styles.backText}>Back to today</Text>
+          <Text style={styles.backText} maxFontSizeMultiplier={textGrow.control}>Back to today</Text>
         </Pressy>
       ) : null}
 
@@ -182,7 +182,7 @@ export default function TodayScreen() {
             {dueToday.map((a) => (
               <Pressy key={a.id} onPress={() => router.push(`/assignment/${a.id}`)} style={styles.duePill}>
                 <Icon name="flag" size={13} color={colors.flame} />
-                <Text style={styles.dueText} numberOfLines={1}>
+                <Text style={styles.dueText} numberOfLines={1} maxFontSizeMultiplier={textGrow.control}>
                   {withKind(a.title, KIND_LABEL[a.kind])}
                 </Text>
               </Pressy>
@@ -214,7 +214,7 @@ export default function TodayScreen() {
             </View>
           ))}
           {isToday && items.length && nowIndex === -1 ? <NowLine mins={nowMins} /> : null}
-          {!items.length ? <Text style={styles.empty}>{isToday ? 'Nothing scheduled yet today.' : 'Nothing scheduled this day.'}</Text> : null}
+          {!items.length ? <Text style={styles.empty} maxFontSizeMultiplier={2}>{isToday ? 'Nothing scheduled yet today.' : 'Nothing scheduled this day.'}</Text> : null}
         </Animated.View>
         </GestureDetector>
       </Reveal>
@@ -260,7 +260,7 @@ export default function TodayScreen() {
 function NowLine({ mins }: { mins: number }) {
   return (
     <View style={styles.now}>
-      <Text style={styles.nowTime}>{clock(mins)}</Text>
+      <Text style={styles.nowTime} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.bar}>{clock(mins)}</Text>
       <View style={styles.nowDot} />
       <View style={styles.nowRule} />
     </View>
@@ -270,11 +270,13 @@ function NowLine({ mins }: { mins: number }) {
 function TimelineItem({ it, past, onToggle, onDelete }: { it: Item; past: boolean; onToggle?: () => void; onDelete?: () => void }) {
   const length = Math.max(10, it.end - it.start);
   const height = Math.min(130, Math.max(56, length * 1.1));
+  // At the largest text sizes, show the whole title rather than cutting it off.
+  const stack = useWindowDimensions().fontScale > 1.5;
   return (
     // Dimming lives on an inner view so it doesn't fight the fade-in.
     <Animated.View entering={FadeInDown.duration(300)} exiting={FadeOut.duration(160)} layout={sprung(LinearTransition)}>
       <View style={[styles.item, past && styles.past]}>
-        <Text style={styles.time}>{clock(it.start)}</Text>
+        <Text style={styles.time} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.bar}>{clock(it.start)}</Text>
         <Pressy
           onPress={onToggle}
           disabled={!onToggle}
@@ -287,10 +289,10 @@ function TimelineItem({ it, past, onToggle, onDelete }: { it: Item; past: boolea
           <Icon name={it.done && it.kind === 'block' ? 'check' : it.icon} size={18} color={it.done ? colors.flameInk : it.color} strokeWidth={2.2} />
         </Pressy>
         <View style={styles.itemBody}>
-          <Text style={[styles.itemTitle, it.done && it.kind === 'block' && styles.doneText]} numberOfLines={2}>
+          <Text style={[styles.itemTitle, it.done && it.kind === 'block' && styles.doneText]} numberOfLines={stack ? undefined : 2} maxFontSizeMultiplier={2}>
             {it.title}
           </Text>
-          <Text style={styles.itemSub}>
+          <Text style={styles.itemSub} maxFontSizeMultiplier={2}>
             {clock(it.start)} – {clock(it.end)}, {it.sub}
           </Text>
         </View>
@@ -312,7 +314,8 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: 14,
     paddingHorizontal: 12,
-    height: 32,
+    paddingVertical: 6,
+    minHeight: 32,
     borderRadius: radii.pill,
     backgroundColor: alpha(colors.flame, 0.12),
     borderWidth: 1,
@@ -335,7 +338,8 @@ const styles = StyleSheet.create({
     gap: 6,
     maxWidth: '100%',
     paddingHorizontal: 12,
-    height: 32,
+    paddingVertical: 6,
+    minHeight: 32,
     borderRadius: radii.pill,
     backgroundColor: alpha(colors.flame, 0.12),
     borderWidth: 1,

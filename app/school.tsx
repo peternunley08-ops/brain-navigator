@@ -20,7 +20,7 @@ import { plural } from '../core/words';
 import { syncCanvas } from '../core/canvas';
 import { smallestStart } from '../core/helperOffline';
 import { useHubStore } from '../core/hubStore';
-import { alpha, colors, fonts, radii } from '../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../core/theme';
 import { toolFor } from '../core/tools';
 import { useSkyGlow } from '../core/hooks/useSkyGlow';
 import { emberSay } from '../components/ember/EmberBuddy';
@@ -180,7 +180,7 @@ export default function SchoolScreen() {
         {next ? (
           <Card onPress={() => router.push({ pathname: '/focus', params: { assignment: next.id } })} style={styles.next}>
             <Icon name="bolt" size={18} color={colors.flame} />
-            <Text style={styles.nextText} numberOfLines={2}>
+            <Text style={styles.nextText} numberOfLines={3} maxFontSizeMultiplier={2}>
               <Text style={styles.nextLabel}>Do this now: </Text>
               {next.title}
               {next.minutes ? `, about ${next.minutes} min` : ''}
@@ -205,8 +205,8 @@ export default function SchoolScreen() {
                 accessibilityLabel={`${d.letter} ${d.num}, ${d.items.length} due`}
                 accessibilityState={{ selected: on }}
               >
-                <Text style={[styles.weekLetter, on && styles.weekTextOn]}>{d.letter}</Text>
-                <Text style={[styles.weekNum, on && styles.weekTextOn]}>{d.num}</Text>
+                <Text style={[styles.weekLetter, on && styles.weekTextOn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.bar}>{d.letter}</Text>
+                <Text style={[styles.weekNum, on && styles.weekTextOn]} numberOfLines={1} maxFontSizeMultiplier={textGrow.bar}>{d.num}</Text>
                 <View style={styles.weekDots}>
                   {d.items.slice(0, 3).map((a) => (
                     <View key={a.id} style={[styles.weekDot, { backgroundColor: classes.find((c) => c.id === a.classId)?.color ?? colors.flame }]} />
@@ -229,7 +229,7 @@ export default function SchoolScreen() {
               <View style={[styles.toolIcon, { backgroundColor: alpha(t.color, 0.14) }]}>
                 <Icon name={t.icon} size={19} color={t.color} />
               </View>
-              <Text style={styles.toolLabel} numberOfLines={1}>
+              <Text style={styles.toolLabel} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.bar}>
                 {t.label}
               </Text>
             </Pressy>

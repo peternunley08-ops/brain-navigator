@@ -246,7 +246,9 @@ export function Screen({
     const start = Math.max(4, end - 90);
     return {
       opacity: interpolate(y.value, [start, end], [1, 0.1], 'clamp'),
-      transform: [{ translateY: interpolate(y.value, [0, titleEnd.value], [0, titleEnd.value * 0.18], 'clamp') }],
+      // A gentle drift, capped so a tall block (large text) never slides
+      // under the content below it.
+      transform: [{ translateY: interpolate(y.value, [0, titleEnd.value], [0, Math.min(titleEnd.value * 0.18, 36)], 'clamp') }],
     };
   });
   // The top-right buttons (the Desk's search and grid) aren't carried by the
@@ -301,7 +303,7 @@ export function Screen({
             <Text style={[styles.title, centered && styles.textCenter]} accessibilityRole="header" numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.display}>
               {title}
             </Text>
-            {subtitle ? <Text style={[styles.subtitle, centered && styles.textCenter]}>{subtitle}</Text> : null}
+            {subtitle ? <Text style={[styles.subtitle, centered && styles.textCenter]} maxFontSizeMultiplier={2}>{subtitle}</Text> : null}
           </Animated.View>
         </Animated.View>
       ) : null}
