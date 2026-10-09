@@ -220,8 +220,41 @@ button { font: inherit; color: inherit; }
 #hint { left: 50%; bottom: 120px; transform: translateX(-50%); padding: 14px 22px; text-align: center; font-size: 14px; color: var(--dim); transition: opacity .8s; pointer-events: none; }
 #hint b { color: var(--ink); font-family: Fraunces, serif; font-size: 20px; display: block; margin-bottom: 4px; font-weight: 600; }
 
+/* ---------- Today card: usage, merge queue, this wave ---------- */
+#today { right: 16px; top: 84px; width: 300px; max-height: calc(100vh - 396px); overflow-y: auto; padding: 12px 14px 14px; transition: right .45s cubic-bezier(.2,.85,.2,1); }
+#panel.open ~ #today { right: 432px; }
+#today.min { overflow: hidden; padding-bottom: 12px; }
+#today.min .tbody { display: none; }
+#today .thead { display: flex; align-items: center; gap: 8px; }
+#today .thead h2 { font-size: 18px; line-height: 1.1; flex: 1; }
+#today .thead small { font-size: 11.5px; color: var(--faint); }
+#today .tx { width: 28px; height: 28px; border-radius: 9px; border: 0; background: #ffffff12; cursor: pointer; font-size: 16px; line-height: 1; color: var(--dim); }
+#today .tx:hover { background: #ffffff1e; color: var(--ink); }
+#today h3 { font-family: Figtree, sans-serif; font-size: 11.5px; font-weight: 700; color: var(--faint); margin: 14px 0 6px; }
+#today .meter { margin: 0 0 8px; }
+#today .meter div { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--dim); }
+#today .meter b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+#today .meter i { display: block; height: 5px; border-radius: 99px; background: #ffffff14; margin-top: 4px; overflow: hidden; }
+#today .meter i u { display: block; height: 100%; border-radius: 99px; background: var(--mc); transition: width .6s cubic-bezier(.2,.85,.2,1), background .3s; }
+#today .note { font-size: 12px; color: var(--faint); margin: 4px 0 0; line-height: 1.4; }
+#today .prs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+#today .prs li { font-size: 12.5px; line-height: 1.3; }
+#today .prs .pt { display: flex; gap: 6px; align-items: baseline; min-width: 0; }
+#today .prs .pt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+#today .prs .pt b { color: var(--dim); font-weight: 600; flex: none; font-variant-numeric: tabular-nums; }
+#today .prs .tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 3px; }
+#today .tag { font-size: 11.5px; padding: 1px 8px; border-radius: 99px; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; background: color-mix(in srgb, var(--tc) 20%, transparent); color: var(--tc); font-weight: 600; }
+#today .copy { margin-top: 10px; width: 100%; height: 34px; border-radius: 11px; border: 0; background: var(--gold); color: #1B1520; font-weight: 700; font-size: 13px; cursor: pointer; }
+#today .copy.done { background: #8CE0A8; }
+#today .ag { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; }
+#today .ag li { display: grid; grid-template-columns: 10px 1fr auto; gap: 0 8px; align-items: baseline; font-size: 12.5px; }
+#today .ag li i { width: 10px; height: 10px; border-radius: 50%; background: var(--ac); align-self: center; }
+#today .ag li.on i { box-shadow: 0 0 8px var(--ac); }
+#today .ag li em { font-style: normal; color: var(--dim); font-size: 12px; white-space: nowrap; }
+#today .ag li small { grid-column: 2 / 4; color: var(--faint); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
 @media (max-width: 900px) {
-  #kpis .kpi:nth-child(n+4), #mini, #lod, #tick, .lnk, #dock { display: none; }
+  #kpis .kpi:nth-child(n+4), #mini, #lod, #tick, .lnk, #dock, #today { display: none; }
   #zoom { left: 16px; }
   #search { width: 120px; }
   #top { flex-wrap: wrap; }
@@ -247,6 +280,7 @@ button { font: inherit; color: inherit; }
 <div id="tick" class="hud"></div>
 <div id="mini" class="hud glass"><canvas width="340" height="340"></canvas></div>
 <aside id="panel" class="hud glass"></aside>
+<aside id="today" class="hud glass" aria-label="Today"></aside>
 <div id="tip" class="hud glass"></div>
 <div id="bottom" class="hud glass">
   <button id="play">Replay the day</button>
@@ -340,7 +374,7 @@ function agentState(a, now) {
   if (e.type === 'bye') return { label: 'Done for the wave', active: false };
   if (e.type === 'blocked') return { label: 'Blocked', active: true };
   const word = e.state ? { reading: 'Reading', building: 'Building', checking: 'Checking', waiting: 'Waiting', done: 'Done', idle: 'Idle' }[e.state] || e.state
-    : { hello: 'Starting', claim: 'Building', step: 'Building', file: 'Writing', check: 'Checking', commit: 'Committing', done: 'Handed off', note: 'Thinking', idea: 'Filing ideas', queue: 'Assigning', integrated: 'Merging', verified: 'Verifying', shot: 'Verifying', shipped: 'Shipping' }[e.type] || e.type;
+    : { hello: 'Starting', claim: 'Building', step: 'Building', file: 'Writing', check: 'Checking', commit: 'Committing', done: 'Handed off', note: 'Thinking', idea: 'Filing ideas', queue: 'Assigning', integrated: 'Merging', verified: 'Verifying', shot: 'Verifying', shipped: 'Shipping', usage: 'Checking usage' }[e.type] || e.type;
   return { label: age > 600 ? `${word} (quiet ${Math.floor(age / 60)}m)` : word, active: age < 240 };
 }
 
@@ -633,6 +667,7 @@ function render(fresh = []) {
   drawLinks();
   kpis();
   dock();
+  today();
   ticker(evs, fresh);
   timeline(evs);
   fresh.forEach(launch);
@@ -702,6 +737,66 @@ function dock() {
   const box = document.getElementById('dock');
   if (box._h !== h) { const st = box.scrollTop; box.innerHTML = h; box.scrollTop = st; box._h = h; }
 }
+// Today card: usage meters, the merge queue, and who is doing what this wave.
+const todayEl = document.getElementById('today');
+let todayMin = false, copiedUntil = 0, todayT = 0;
+try { todayMin = localStorage.getItem('hubTodayMin') === '1'; } catch {}
+function meter(label, v) {
+  const n = Math.max(0, Math.min(100, Number(v) || 0));
+  const c = n >= 90 ? '#F07060' : n >= 75 ? '#F5B45C' : '#8CE0A8';
+  return `<div class="meter" style="--mc:${c}"><div><span>${label}</span><b>${n}%</b></div><i><u style="width:${n}%"></u></i></div>`;
+}
+function today() {
+  const evs = cursor == null ? S.events : S.events.slice(0, cursor);
+  const u = [...evs].reverse().find((e) => e.type === 'usage') || (cursor == null ? S.usage : null);
+  const q = S.queue;
+  let h = `<div class="thead"><h2>Today</h2><small>${esc(S.team.round || '')}${S.team.wave ? ', ' + esc(S.team.wave) : ''}</small><button class="tx" data-act="min" aria-expanded="${!todayMin}" aria-label="${todayMin ? 'Expand' : 'Collapse'} Today card">${todayMin ? '+' : '−'}</button></div><div class="tbody">`;
+
+  h += '<h3>Usage</h3>';
+  h += u ? meter('5-hour', u.five) + meter('This week', u.week) + `<p class="note">Read ${esc(ago(u.t))}</p>` : '<p class="note">No reading yet. Atlas logs one when it checks usage.</p>';
+
+  h += '<h3>Merge queue</h3>';
+  if (!q) h += '<p class="note">Not checked yet. Run node tools/hub/queue.mjs.</p>';
+  else {
+    if (!q.prs.length) h += '<p class="note">No open PRs.</p>';
+    else h += '<ul class="prs">' + q.prs.map((r) => {
+      const bad = r.conflicts.length ? `clashes: ${r.conflicts[0].split('/').pop()}${r.conflicts.length > 1 ? ` +${r.conflicts.length - 1}` : ''}` : '';
+      return `<li><div class="pt"><b>#${r.number}</b><span title="${esc(r.title)}">${esc(r.title)}</span></div><div class="tags">${r.clean ? '<span class="tag" style="--tc:#8CE0A8">clean</span>' : `<span class="tag" style="--tc:#F07060" title="${esc(r.conflicts.join(', '))}">${esc(bad)}</span>`}${r.stackedOn.length ? `<span class="tag" style="--tc:#AFA2DE" title="Sits on ${esc(r.stackedOn.map((n) => '#' + n).join(', '))}">stacked</span>` : ''}</div></li>`;
+    }).join('') + '</ul>';
+    if (q.command) h += `<button class="copy${Date.now() < copiedUntil ? ' done' : ''}" data-act="copy">${Date.now() < copiedUntil ? 'Copied' : 'Copy merge command'}</button>`;
+    else h += '<p class="note">Nothing to merge.</p>';
+    h += `<p class="note">Checked ${esc(ago(q.checkedAt))}</p>`;
+  }
+
+  h += '<h3>This wave</h3><ul class="ag">' + [...D.agents.values()].map((a) => {
+    const st = agentState(a, NOW);
+    return `<li class="${st.active ? 'on' : ''}" style="--ac:${a.color}"><i></i><b>${esc(a.name)}</b><em>${esc(st.label)}</em>${a.last?.msg ? `<small title="${esc(a.last.msg)}">${esc(a.last.msg)}</small>` : ''}</li>`;
+  }).join('') + '</ul></div>';
+
+  todayEl.classList.toggle('min', todayMin);
+  if (todayEl._h !== h) { const st = todayEl.scrollTop; todayEl.innerHTML = h; todayEl.scrollTop = st; todayEl._h = h; }
+}
+todayEl.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-act]');
+  if (!b) return;
+  if (b.dataset.act === 'min') {
+    todayMin = !todayMin;
+    try { localStorage.setItem('hubTodayMin', todayMin ? '1' : '0'); } catch {}
+    today();
+  } else if (b.dataset.act === 'copy' && S.queue?.command) {
+    const text = S.queue.command;
+    const done = () => { copiedUntil = Date.now() + 2000; today(); clearTimeout(todayT); todayT = setTimeout(today, 2100); };
+    const fallback = () => {
+      const t = document.createElement('textarea');
+      t.value = text; t.style.cssText = 'position:fixed;opacity:0';
+      document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); done(); } catch {}
+      t.remove();
+    };
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(done, fallback);
+    else fallback();
+  }
+});
 let tickT = 0, ticked = false;
 function ticker(evs, fresh) {
   const box = document.getElementById('tick');

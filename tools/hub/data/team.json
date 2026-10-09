@@ -1,7 +1,7 @@
 {
-  "round": "Round 6",
-  "wave": "Wave 1 (lean mode)",
-  "started": "2026-10-02T14:20:00.000Z",
+  "round": "Round 7",
+  "wave": "Wave 2 (lean)",
+  "started": "2026-10-09T17:46:59.613Z",
   "pipeline": [
     {
       "key": "backlog",
@@ -46,34 +46,11 @@
   ],
   "agents": [
     {
-      "id": "atlas",
-      "name": "Atlas",
-      "role": "Mastermind",
-      "color": "#F5B45C",
-      "mission": "Writes the plan and the idea bank, assigns the waves, merges every branch, verifies every piece live in the Simulator with real taps, and ships (commit + push).",
-      "workflow": [
-        "Plan",
-        "Assign",
-        "Merge",
-        "Verify live",
-        "Ship"
-      ],
-      "owns": [
-        "main branch",
-        "the Simulator",
-        "Metro",
-        "docs/",
-        "CLAUDE.md",
-        "integration wiring"
-      ],
-      "model": "Opus 5.5"
-    },
-    {
-      "id": "nocturne",
-      "name": "Nocturne",
-      "role": "Night designer",
-      "color": "#AFA2DE",
-      "mission": "Makes night the app's best hour: the Night Desk, Put the day down, a room that dims by the hour, stars, a night owl's later night, Sunday night.",
+      "id": "forge",
+      "name": "Forge",
+      "role": "Team tools and dashboard",
+      "color": "#6FD0C8",
+      "mission": "Builds the tools that keep the team cheap and the merges calm: the merge-queue checker, the usage reading, and the Today card on the dashboard.",
       "workflow": [
         "Claim",
         "Read",
@@ -83,22 +60,21 @@
         "Hand off"
       ],
       "owns": [
-        "app/index.tsx",
-        "components/desk/NightDesk.tsx",
-        "app/goodnight.tsx",
-        "core/night.ts",
-        "components/ui/Backdrop.tsx",
-        "app/vent.tsx",
-        "core/ember.ts"
+        "tools/hub/queue.mjs",
+        "tools/hub/hub.mjs",
+        "tools/hub/server.mjs",
+        "tools/hub/map.html",
+        "tools/hub/BRIEFING.md",
+        "tools/hub/data/team.json"
       ],
       "model": "Sonnet 5.5"
     },
     {
-      "id": "lumen",
-      "name": "Lumen",
-      "role": "Polish and presentable",
-      "color": "#8CC0A8",
-      "mission": "Makes every page agree: empty states with Ember art, one card and spacing scale, numbers that line up, Settings that reads like a story, What's New, jump chips, the new dot.",
+      "id": "fixer",
+      "name": "Fixer",
+      "role": "Round 7 small fixes",
+      "color": "#D98FD0",
+      "mission": "Takes the small, separate fixes Atlas hands out this round. One branch, one small PR each, based on the latest main.",
       "workflow": [
         "Claim",
         "Read",
@@ -108,184 +84,9 @@
         "Hand off"
       ],
       "owns": [
-        "components/ui/EmptyState.tsx",
-        "components/ui/Card.tsx",
-        "components/ui/Section.tsx",
-        "components/ui/StatTile.tsx",
-        "app/settings.tsx",
-        "app/drawer.tsx",
-        "app/whats-new.tsx",
-        "components/desk/WhatsNew.tsx",
-        "app/toolkit.tsx",
-        "core/theme.ts (add only)"
+        "small fixes Atlas assigns"
       ],
       "model": "Sonnet 5.5"
-    },
-    {
-      "id": "spark",
-      "name": "Spark",
-      "role": "Surprise and delight",
-      "color": "#F0845A",
-      "mission": "Builds the things that make it feel like nothing else: the candle shelf of weeks, Ember remembering firsts, the streak of light, sealed notes, the tiny wins radar, a study buddy.",
-      "workflow": [
-        "Claim",
-        "Read",
-        "Build",
-        "Gate",
-        "Commit",
-        "Hand off"
-      ],
-      "owns": [
-        "app/year.tsx",
-        "components/year/",
-        "core/firsts.ts",
-        "core/radar.ts",
-        "components/desk/StreakOfLight.tsx",
-        "app/wins.tsx",
-        "app/focus.tsx",
-        "components/ember/EmberSprite.tsx",
-        "app/about.tsx",
-        "core/emberLook.ts"
-      ],
-      "model": "Sonnet 5.5"
-    },
-    {
-      "id": "glide",
-      "name": "Glide",
-      "role": "Motion and smoothness",
-      "color": "#7FB8F0",
-      "mission": "Makes everything glide: numbers that move when they change, rows that travel between groups, a liquid tab pill, springy chips, lazy long lists, haptic ticks, one queue for toasts, hold-the-flame calm.",
-      "workflow": [
-        "Claim",
-        "Read",
-        "Build",
-        "Gate",
-        "Commit",
-        "Hand off"
-      ],
-      "owns": [
-        "components/BottomNav.tsx",
-        "components/ui/Chip.tsx",
-        "components/ui/TrackSlider.tsx",
-        "components/UndoBar.tsx",
-        "components/Celebration.tsx",
-        "components/ember/EmberBuddy.tsx",
-        "app/school.tsx",
-        "app/steady.tsx",
-        "app/today.tsx",
-        "app/notes.tsx",
-        "app/search.tsx",
-        "app/achievements.tsx",
-        "core/hooks/useCountUp.ts",
-        "core/motion.ts",
-        "app/_layout.tsx",
-        "components/ui/Screen.tsx",
-        "core/chrome.ts"
-      ],
-      "model": "Sonnet 5.5"
-    },
-    {
-      "id": "guide",
-      "name": "Guide",
-      "role": "First impressions",
-      "color": "#F28BA8",
-      "mission": "Makes the app show well: a guided tour in show mode, the wake screen, a welcome that ends with This-or-that, a screenshot script, and a one-page story of the app.",
-      "workflow": [
-        "Claim",
-        "Read",
-        "Build",
-        "Gate",
-        "Commit",
-        "Hand off"
-      ],
-      "owns": [
-        "components/ShowBanner.tsx",
-        "components/ShowTour.tsx",
-        "core/show.ts",
-        "core/sampleData.ts",
-        "components/EntryThreshold.tsx",
-        "app/welcome.tsx",
-        "scripts/screens.sh",
-        "docs/about-the-app.md"
-      ],
-      "model": "Sonnet 5.5"
-    },
-    {
-      "id": "sentinel",
-      "name": "Sentinel",
-      "role": "Quality guard",
-      "color": "#B9D98A",
-      "mission": "Sweeps the whole codebase for crash risks, unstable selectors, missing labels, Reduce Motion gaps, and house-rule breaks; fixes the safe ones in files nobody else owns and files the rest as ideas.",
-      "workflow": [
-        "Sweep",
-        "Triage",
-        "Fix safe",
-        "Gate",
-        "Commit",
-        "Report"
-      ],
-      "owns": [
-        "tests/ (new)",
-        "any file not owned by another agent this wave"
-      ],
-      "model": "qwen2.5-coder:7b (local Ollama)"
-    },
-    {
-      "id": "scout",
-      "name": "Scout",
-      "role": "Idea researcher",
-      "color": "#D9B98A",
-      "mission": "Reads every screen and the stores behind them, and adds grounded ideas to the bank: each one names the page, what's missing, and why it would help a high schooler.",
-      "workflow": [
-        "Read pages",
-        "Imagine",
-        "Ground in code",
-        "File ideas"
-      ],
-      "owns": [
-        "read-only (writes ideas to the hub)"
-      ],
-      "model": "qwen2.5-coder:7b (local Ollama)"
-    },
-    {
-      "id": "scribe",
-      "name": "Scribe",
-      "role": "Docs and copy",
-      "color": "#E8D6B0",
-      "model": "qwen2.5-coder:7b (local Ollama)",
-      "mission": "Writes the words around the work: What's New entries, docs/about-the-app.md, the session log draft, and idea-bank housekeeping, from facts Atlas hands it.",
-      "workflow": [
-        "Claim",
-        "Read",
-        "Write",
-        "Gate",
-        "Commit",
-        "Hand off"
-      ],
-      "owns": [
-        "docs drafts Atlas assigns"
-      ]
-    },
-    {
-      "id": "shield",
-      "name": "Shield",
-      "role": "Security",
-      "color": "#7FB3E8",
-      "model": "Sonnet 4.6 (scan is free)",
-      "mission": "Hunts security flags and patches them. A free scanner (tools/hub/security.mjs) finds leaked keys, secrets baked into the app, unchecked links, risky web views, cleartext traffic, leaky function logs and vulnerable packages. Shield triages each flag, patches what code can fix, proves it with a rescan and the gate, and hands Peter the steps only he can do (rotating keys, dashboard secrets).",
-      "workflow": [
-        "Scan",
-        "Triage",
-        "Patch",
-        "Gate",
-        "Rescan",
-        "Hand off"
-      ],
-      "owns": [
-        "tools/hub/security.mjs",
-        "tools/hub/SECURITY.md",
-        "security flags in any file (smallest fix)"
-      ]
     }
   ],
   "rules": [

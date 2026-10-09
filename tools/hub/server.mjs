@@ -1,7 +1,8 @@
 // The work hub's server. Serves the dashboard (index.html), and one live
 // JSON endpoint that folds together: the team, the idea bank, the event
 // log every agent writes to, the git state of every agent's worktree, and
-// a fresh Simulator screenshot. No dependencies; run with
+// the merge queue (queue.json), the latest usage reading, and a fresh
+// Simulator screenshot. No dependencies; run with
 //   node tools/hub/server.mjs   (port 4410)
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
@@ -73,6 +74,15 @@ async function readEvents() {
     } catch {}
   }
   return out;
+}
+
+// ---------- merge queue (live/queue.json, written by queue.mjs) ----------
+function readQueue() {
+  try {
+    return JSON.parse(readFileSync(join(LIVE, 'queue.json'), 'utf8'));
+  } catch {
+    return null;
+  }
 }
 
 // ---------- git: main + every worktree ----------
@@ -158,7 +168,8 @@ createServer(async (req, res) => {
   try {
     if (url.pathname === '/api/state') {
       const [events, gitState] = await Promise.all([readEvents(), readGit()]);
-      const body = JSON.stringify({ now: new Date().toISOString(), team: team(), ...readBank(), events, git: gitState });
+      const usage = [...events].reverse().find((e) => e.type === 'usage') || null;
+      const body = JSON.stringify({ now: new Date().toISOString(), team: team(), ...readBank(), events, git: gitState, queue: readQueue(), usage });
       res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
       return res.end(body);
     }
