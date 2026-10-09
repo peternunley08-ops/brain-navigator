@@ -7,7 +7,7 @@ import Animated, { FadeInDown, FadeOut, interpolate, useAnimatedStyle, useShared
 import { scheduleOnRN } from 'react-native-worklets';
 import { cheerLine } from '../../core/about';
 import { addDays, dateKey, daysUntil, dueLabel, KIND_LABEL, type Assignment, useSchoolStore } from '../../core/schoolStore';
-import { glide } from '../../core/motion';
+import { glide, project, springs } from '../../core/motion';
 import { offerUndo } from '../../core/undoStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
@@ -36,7 +36,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
 
   const check = () => {
     const finishing = !a.done;
-    if (finishing) pop.value = withSequence(withTiming(1.25, { duration: 110 }), withSpring(1, { damping: 8, stiffness: 260 }));
+    if (finishing) pop.value = withSequence(withTiming(1.25, { duration: 110 }), withSpring(1, springs.pop));
     if (finishing) setSpark((n) => n + 1);
     Haptics.impactAsync(finishing ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     toggle(a.id);
@@ -58,6 +58,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
   };
   // A tick under the finger the moment a swipe will act, and again if it won't.
   const armed = useSharedValue(0);
+  const vx = useSharedValue(0);
   const tick = () => Haptics.selectionAsync().catch(() => {});
   const pan = usePanGesture({
     activeOffsetX: [-14, 14],
@@ -66,6 +67,7 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     onUpdate: (e) => {
       'worklet';
       tx.value = e.translationX;
+      vx.value = e.velocityX;
       const over = e.translationX > 90 ? 1 : e.translationX < -90 ? -1 : 0;
       if (over !== armed.value) {
         armed.value = over;
@@ -75,10 +77,12 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     onFinalize: () => {
       'worklet';
       armed.value = 0;
-      const v = tx.value;
-      if (v > 90) scheduleOnRN(check);
-      else if (v < -90) scheduleOnRN(swipeLater);
-      tx.value = withSpring(0, { damping: 18, stiffness: 220 });
+      // Where the flick was heading, not just where the finger stopped, so a
+      // quick short swipe counts too.
+      const end = tx.value + project(vx.value);
+      if (end > 90) scheduleOnRN(check);
+      else if (end < -90) scheduleOnRN(swipeLater);
+      tx.value = withSpring(0, { ...springs.momentum, velocity: vx.value });
     },
   });
   const slide = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));

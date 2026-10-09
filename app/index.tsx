@@ -3,8 +3,10 @@ import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 import { CountdownChips } from '../components/desk/CountdownChips';
+import { openDrawer } from '../components/Drawer';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { ExamSeason } from '../components/desk/ExamSeason';
 import { FirstLight } from '../components/desk/FirstLight';
@@ -514,8 +516,8 @@ show('line') ? (
       }
       right={
         <View style={styles.headerBtns}>
-          <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} />
-          <IconButton icon="drawer" label="Open the Drawer" onPress={() => router.push('/drawer')} />
+          <IconButton icon="search" label="Search everything" onPress={() => router.push('/search')} glass />
+          <IconButton icon="drawer" label="Open the Drawer" onPress={openDrawer} glass />
         </View>
       }
     >
@@ -649,7 +651,7 @@ function DeskCandle({
   const intensity = Math.min(1, ((entry.intensity ?? 5) / 10) * (0.8 + 0.35 * dayLift));
 
   return (
-    <Animated.View layout={LinearTransition.springify().damping(18)} exiting={FadeOut.duration(260)} style={{ width }}>
+    <Animated.View layout={sprung(LinearTransition)} exiting={FadeOut.duration(260)} style={{ width }}>
       <Pressy
         onPress={() => router.push(`/entry/${entry.id}`)}
         accessibilityRole="button"

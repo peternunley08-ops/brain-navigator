@@ -2,6 +2,7 @@ import { useState, type ComponentType } from 'react';
 import { KeyboardAvoidingView, Modal, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { SlideInDown, useReducedMotion } from 'react-native-reanimated';
+import { sprung } from '../../core/motion';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { nextBadge } from '../../core/achievements';
 import { dateKey } from '../../core/dates';
@@ -150,7 +151,7 @@ function NotesSheet({ open, ids, onClose }: { open: boolean; ids: DeskNoteId[]; 
       <GestureHandlerRootView style={styles.fill}>
         <Pressy style={styles.scrim} onPress={onClose} depth={1} haptic="none" accessibilityLabel="Close" />
         <KeyboardAvoidingView behavior="padding" style={styles.slot} pointerEvents="box-none">
-          <Animated.View entering={reduced ? undefined : SlideInDown.springify().damping(18)} style={[styles.sheet, { paddingBottom: insets.bottom + 16, maxHeight: height * 0.8 }]}>
+          <Animated.View entering={reduced ? undefined : sprung(SlideInDown)} style={[styles.sheet, { paddingBottom: insets.bottom + 16, maxHeight: height * 0.8 }]}>
             <View style={styles.head}>
               <Text style={styles.title} accessibilityRole="header">
                 Ember’s notes

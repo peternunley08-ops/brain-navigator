@@ -247,6 +247,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: fonts.display,
     fontSize: 38,
+    letterSpacing: -0.8,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },
@@ -337,6 +338,7 @@ const styles = StyleSheet.create({
   sleepWell: {
     fontFamily: fonts.display,
     fontSize: 32,
+    letterSpacing: -0.6,
     color: colors.text,
     textAlign: 'center',
   },

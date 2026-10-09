@@ -235,6 +235,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     fontFamily: fonts.display,
     fontSize: 38,
+    letterSpacing: -0.8,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },

@@ -98,9 +98,9 @@ export const fonts = {
 } as const;
 
 export const type = {
-  hero: { fontFamily: fonts.display, fontSize: 34, lineHeight: 40, color: colors.text },
-  title: { fontFamily: fonts.display, fontSize: 22, lineHeight: 28, color: colors.text },
-  section: { fontFamily: fonts.display, fontSize: 19, lineHeight: 25, color: colors.text },
+  hero: { fontFamily: fonts.display, fontSize: 34, lineHeight: 40, letterSpacing: -0.6, color: colors.text },
+  title: { fontFamily: fonts.display, fontSize: 22, lineHeight: 28, letterSpacing: -0.3, color: colors.text },
+  section: { fontFamily: fonts.display, fontSize: 19, lineHeight: 25, letterSpacing: -0.2, color: colors.text },
   body: { fontFamily: fonts.body, fontSize: 16, lineHeight: 23, color: colors.text },
   bodyMuted: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.textMuted },
   small: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: colors.textFaint },

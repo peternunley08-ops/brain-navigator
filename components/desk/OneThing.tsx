@@ -2,6 +2,7 @@ import * as Haptics from '../../core/haptics';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSequence, withSpring, withTiming, useSharedValue } from 'react-native-reanimated';
+import { springs } from '../../core/motion';
 import { cheerLine } from '../../core/about';
 import { dateKey } from '../../core/dates';
 import { useLifeStore } from '../../core/lifeStore';
@@ -69,7 +70,7 @@ export function OneThing() {
           const finishing = !done;
           setDone(today, finishing);
           if (finishing) {
-            pop.value = withSequence(withTiming(1.2, { duration: 110 }), withSpring(1, { damping: 8, stiffness: 260 }));
+            pop.value = withSequence(withTiming(1.2, { duration: 110 }), withSpring(1, springs.pop));
             setBurst((b) => b + 1);
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
             emberSay(cheerLine('The one thing: done. Today’s already a win.'), 'cheer');

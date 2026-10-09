@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import * as Haptics from '../core/haptics';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -149,7 +150,7 @@ export default function TechniquesScreen() {
         const isOpen = open === t.key;
         return (
           <Reveal key={t.key} index={i}>
-            <Animated.View layout={LinearTransition.springify().damping(20)}>
+            <Animated.View layout={sprung(LinearTransition)}>
               <Card
                 tint={isOpen ? t.color : undefined}
                 onPress={() => setOpen(isOpen ? null : t.key)}

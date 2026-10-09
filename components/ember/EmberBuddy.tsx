@@ -1,5 +1,5 @@
 import * as Haptics from '../../core/haptics';
-import { router, usePathname } from 'expo-router';
+import { usePathname } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Keyboard, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
@@ -37,6 +37,7 @@ import { useSchoolStore } from '../../core/schoolStore';
 import { EmberSprite } from './EmberSprite';
 import { Confetti, Sparks } from './Sparks';
 import { useEmberRig } from './useEmberRig';
+import { goTo } from '../Drawer';
 
 // Ember lives on top of every screen. Drag it anywhere and it swings back
 // to the nearest edge, its flame trailing behind the way a real flame does
@@ -184,8 +185,8 @@ export function EmberBuddy() {
   perch.current = { restX, restY };
   useEffect(() => {
     if (!loaded) return;
-    x.value = withSpring(perch.current.restX, { damping: 18, stiffness: 160 });
-    y.value = withSpring(perch.current.restY, { damping: 18, stiffness: 160 });
+    x.value = withSpring(perch.current.restX, { mass: 1, damping: 18, stiffness: 160 });
+    y.value = withSpring(perch.current.restY, { mass: 1, damping: 18, stiffness: 160 });
   }, [loaded, W, H, insets.top, x, y]);
 
   useEffect(() => {
@@ -194,7 +195,7 @@ export function EmberBuddy() {
   }, [hidden, loaded, show]);
 
   useEffect(() => {
-    nap.value = withSpring(napping ? 1 : 0, { damping: 15, stiffness: 120 });
+    nap.value = withSpring(napping ? 1 : 0, { mass: 1, damping: 15, stiffness: 120 });
     rig.setMood(napping ? 'sleepy' : 'idle');
   }, [napping, nap, rig]);
 
@@ -270,7 +271,7 @@ export function EmberBuddy() {
     (a: EmberAction) => {
       closeBubble();
       rig.hopUp(8);
-      if (a.href !== pathname) router.push(a.href as never);
+      if (a.href !== pathname) goTo(a.href);
     },
     [closeBubble, pathname, rig]
   );
@@ -520,7 +521,7 @@ export function EmberBuddy() {
   useAnimatedReaction(
     () => (awake ? 0 : byTitle ? pageDown.value : 1),
     (to, was) => {
-      if (to !== was) peek.value = withSpring(to, { damping: 18, stiffness: 160 });
+      if (to !== was) peek.value = withSpring(to, { mass: 1, damping: 18, stiffness: 160 });
     },
   );
   const offY = useSharedValue(0);
@@ -537,7 +538,7 @@ export function EmberBuddy() {
     enabled: !hidden,
     onBegin: () => {
       'worklet';
-      press.value = withSpring(1, { damping: 16, stiffness: 400 });
+      press.value = withSpring(1, { mass: 1, damping: 16, stiffness: 400 });
       startX.value = x.value;
       startY.value = y.value;
       dragging.value = 0;
@@ -568,8 +569,8 @@ export function EmberBuddy() {
         // Restart the follow from where the shown spot is now, behind the finger.
         offX.value = offX.value - (x.value - px);
         offY.value = offY.value - (y.value - py);
-        offX.value = withSpring(0, { damping: 18, stiffness: 260 });
-        offY.value = withSpring(0, { damping: 18, stiffness: 260 });
+        offX.value = withSpring(0, { mass: 1, damping: 18, stiffness: 260 });
+        offY.value = withSpring(0, { mass: 1, damping: 18, stiffness: 260 });
         tilt.value += (Math.max(-6, Math.min(6, e.velocityX / 350)) - tilt.value) * 0.25;
       }
 
@@ -597,8 +598,8 @@ export function EmberBuddy() {
     },
     onFinalize: () => {
       'worklet';
-      press.value = withSpring(0, { damping: 12, stiffness: 300 });
-      tilt.value = withSpring(0, { damping: 12, stiffness: 140 });
+      press.value = withSpring(0, { mass: 1, damping: 12, stiffness: 300 });
+      tilt.value = withSpring(0, { mass: 1, damping: 12, stiffness: 140 });
       if (!dragging.value) {
         // A pan that never moved ends as "failed", so `canceled` is set on
         // an ordinary tap too — any touch that didn't travel is a tap.
@@ -611,10 +612,10 @@ export function EmberBuddy() {
       const tx = toRight ? g.rightX : g.leftX;
       const ty = Math.max(g.minY, Math.min(g.maxY, y.value + lastVy.value * 0.08));
       x.value = withSpring(tx, { velocity: lastVx.value, damping: 14, stiffness: 170, mass: 0.9 });
-      y.value = withSpring(ty, { velocity: lastVy.value, damping: 16, stiffness: 170 });
+      y.value = withSpring(ty, { mass: 1, velocity: lastVy.value, damping: 16, stiffness: 170 });
       // Swing back upright past center and settle, like a pendulum.
-      lean.value = withSpring(0, { velocity: -lastVx.value / 900, damping: 5, stiffness: 120 });
-      stretch.value = withSpring(1, { damping: 7, stiffness: 180 });
+      lean.value = withSpring(0, { mass: 1, velocity: -lastVx.value / 900, damping: 5, stiffness: 120 });
+      stretch.value = withSpring(1, { mass: 1, damping: 7, stiffness: 180 });
       scheduleOnRN(dropped, toRight ? 'right' : 'left', (ty - g.minY) / Math.max(1, g.maxY - g.minY));
     },
   });

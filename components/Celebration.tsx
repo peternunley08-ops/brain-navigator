@@ -2,6 +2,7 @@ import * as Haptics from '../core/haptics';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, ZoomIn } from 'react-native-reanimated';
+import { sprung, springs } from '../core/motion';
 import { useCelebrateStore } from '../core/celebrateStore';
 import { alpha, colors, fonts } from '../core/theme';
 import { Sparks } from './ember/Sparks';
@@ -47,7 +48,7 @@ export function Celebration() {
           </View>
         ))}
         <View style={styles.center} pointerEvents="none">
-          <Animated.Text entering={ZoomIn.springify().damping(12)} style={[styles.title, { color }]}>
+          <Animated.Text entering={sprung(ZoomIn, springs.pop)} style={[styles.title, { color }]}>
             {moment.title}
           </Animated.Text>
           {moment.body ? (
@@ -84,6 +85,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: fonts.display,
     fontSize: 34,
+    letterSpacing: -0.7,
     lineHeight: 40,
     textAlign: 'center',
   },

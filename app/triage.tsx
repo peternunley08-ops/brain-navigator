@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Share, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutLeft, LinearTransition } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -94,7 +95,7 @@ export default function TriageScreen() {
         const color = cls?.color ?? colors.flame;
         const ago = -daysUntil(a.due);
         return (
-          <Animated.View key={a.id} entering={FadeInDown.delay(i * 60).duration(300)} exiting={FadeOutLeft.duration(220)} layout={LinearTransition.springify().damping(18)}>
+          <Animated.View key={a.id} entering={FadeInDown.delay(i * 60).duration(300)} exiting={FadeOutLeft.duration(220)} layout={sprung(LinearTransition)}>
             <Card tint={colors.danger} style={styles.card}>
               <View style={styles.head}>
                 <View style={[styles.dot, { backgroundColor: color }]} />

@@ -2,6 +2,7 @@ import * as Haptics from '../core/haptics';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedProps, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
+import { springs } from '../core/motion';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -247,7 +248,7 @@ function Jar({ count, reduced }: { count: number; reduced: boolean }) {
   const drop = useSharedValue(0);
   useEffect(() => {
     drop.value = -60;
-    drop.value = reduced ? 0 : withSpring(0, { damping: 9, stiffness: 140 });
+    drop.value = reduced ? 0 : withSpring(0, springs.pop);
   }, [count, drop, reduced]);
 
   // Pack marbles in rows from the bottom of the jar.
@@ -299,6 +300,7 @@ const styles = StyleSheet.create({
     marginTop: -4,
     fontFamily: fonts.display,
     fontSize: 30,
+    letterSpacing: -0.6,
     color: colors.text,
   },
   jarLabel: {

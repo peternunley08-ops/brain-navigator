@@ -6,7 +6,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { THIS_OR_THAT, type ThisOrThat } from '../../core/about';
 import * as Haptics from '../../core/haptics';
 import { useLifeStore } from '../../core/lifeStore';
-import { springs, timings } from '../../core/motion';
+import { project, springs, timings } from '../../core/motion';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
@@ -72,6 +72,8 @@ function SwipeCard({ card, onAnswer }: { card: ThisOrThat; onAnswer: (side: 'a' 
   const tx = useSharedValue(0);
   const ty = useSharedValue(0);
   const armed = useSharedValue(0);
+  const vx = useSharedValue(0);
+  const vy = useSharedValue(0);
   const gone = useSharedValue(0);
   const edge = Math.min(120, width * 0.28);
   const tick = () => Haptics.selectionAsync().catch(() => {});
@@ -95,6 +97,8 @@ function SwipeCard({ card, onAnswer }: { card: ThisOrThat; onAnswer: (side: 'a' 
       if (gone.value) return;
       tx.value = e.translationX;
       ty.value = e.translationY * 0.2;
+      vx.value = e.velocityX;
+      vy.value = e.velocityY * 0.2;
       const over = e.translationX > edge ? 1 : e.translationX < -edge ? -1 : 0;
       if (over !== armed.value) {
         armed.value = over;
@@ -104,11 +108,13 @@ function SwipeCard({ card, onAnswer }: { card: ThisOrThat; onAnswer: (side: 'a' 
     onFinalize: () => {
       'worklet';
       if (gone.value) return;
-      if (tx.value > edge) fly('b');
-      else if (tx.value < -edge) fly('a');
+      // Decide from where the flick was heading, so a quick flick counts.
+      const end = tx.value + project(vx.value);
+      if (end > edge) fly('b');
+      else if (end < -edge) fly('a');
       else {
-        tx.value = withSpring(0, springs.gentle);
-        ty.value = withSpring(0, springs.gentle);
+        tx.value = withSpring(0, { ...springs.momentum, velocity: vx.value });
+        ty.value = withSpring(0, { ...springs.momentum, velocity: vy.value });
       }
       armed.value = 0;
     },

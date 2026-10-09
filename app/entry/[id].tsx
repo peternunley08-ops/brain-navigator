@@ -377,6 +377,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontFamily: fonts.display,
     fontSize: 30,
+    letterSpacing: -0.6,
     lineHeight: 36,
     color: colors.text,
     textAlign: 'center',

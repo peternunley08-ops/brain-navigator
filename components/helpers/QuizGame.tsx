@@ -3,6 +3,7 @@ import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInRight, ZoomIn } from 'react-native-reanimated';
+import { sprung, springs } from '../../core/motion';
 import { buildQuiz, type QuizQuestion } from '../../core/helperOffline';
 import { celebrate } from '../../core/celebrateStore';
 import { useLifeStore } from '../../core/lifeStore';
@@ -153,7 +154,7 @@ export function QuizGame({
   if (over || i >= qs.length) {
     const pct = qs.length ? right / qs.length : 0;
     return (
-      <Animated.View entering={ZoomIn.springify().damping(14)} style={styles.end}>
+      <Animated.View entering={sprung(ZoomIn, springs.pop)} style={styles.end}>
         <Sparks burst={burst} reach={90} />
         <Icon name="trophy" size={46} color={VIOLET} />
         <Text style={styles.endScore}>{score}</Text>
@@ -401,6 +402,7 @@ const styles = StyleSheet.create({
   qText: {
     fontFamily: fonts.display,
     fontSize: 24,
+    letterSpacing: -0.5,
     lineHeight: 31,
     color: colors.text,
     textAlign: 'center',
@@ -452,6 +454,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontFamily: fonts.display,
     fontSize: 56,
+    letterSpacing: -1.1,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },

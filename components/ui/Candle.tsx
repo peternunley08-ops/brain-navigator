@@ -10,6 +10,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
+import { springs } from '../../core/motion';
 import Svg, {
   Circle,
   Defs,
@@ -112,7 +113,7 @@ function CandleBase({
       sealed.value = 0;
       lit.value = withDelay(
         initial ? igniteDelay : 0,
-        withSpring(1, { damping: 9, stiffness: 120, mass: 0.8 })
+        withSpring(1, springs.pop)
       );
       return;
     }
@@ -135,7 +136,7 @@ function CandleBase({
     if (state === 'snuffed') {
       lit.value = withTiming(0, { duration: 620, easing: Easing.in(Easing.quad) });
       smoke.value = withDelay(260, withTiming(1, { duration: 2200, easing: Easing.out(Easing.quad) }));
-      sealed.value = withDelay(820, withSpring(1, { damping: 11, stiffness: 190 }));
+      sealed.value = withDelay(820, withSpring(1, springs.pop));
     } else if (state === 'floated') {
       lift.value = withTiming(1, { duration: 2800, easing: Easing.inOut(Easing.cubic) });
     }

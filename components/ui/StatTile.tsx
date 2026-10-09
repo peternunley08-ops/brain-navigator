@@ -40,6 +40,7 @@ const styles = StyleSheet.create({
   value: {
     fontFamily: fonts.display,
     fontSize: 24,
+    letterSpacing: -0.5,
     fontVariant: ['tabular-nums'],
   },
   unit: {

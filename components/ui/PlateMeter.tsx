@@ -88,6 +88,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.display,
     fontVariant: ['tabular-nums'],
     fontSize: 34,
+    letterSpacing: -0.7,
     color: colors.text,
   },
   of: {

@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { sprung } from '../core/motion';
 import { Button } from '../components/ui/Button';
 import { candleRemaining } from '../components/ui/Candle';
 import { CandleGlyph } from '../components/ui/CandleGlyph';
@@ -47,7 +48,7 @@ export default function OpenLoopsScreen() {
                 key={entry.id}
                 entering={FadeInDown.delay(80 + i * 50).duration(420)}
                 exiting={FadeOut.duration(200)}
-                layout={LinearTransition.springify().damping(18)}
+                layout={sprung(LinearTransition)}
               >
                 <Card onPress={() => router.push(`/entry/${entry.id}`)} style={styles.card} accessibilityLabel={`${entry.mood || 'Untitled'}, ${age(entry.created_at)}`}>
                   <View style={styles.row}>

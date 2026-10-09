@@ -938,6 +938,7 @@ const styles = StyleSheet.create({
   timer: {
     fontFamily: fonts.display,
     fontSize: 54,
+    letterSpacing: -1.1,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },
@@ -951,6 +952,7 @@ const styles = StyleSheet.create({
   doneTitle: {
     fontFamily: fonts.display,
     fontSize: 26,
+    letterSpacing: -0.5,
     color: colors.text,
     textAlign: 'center',
   },

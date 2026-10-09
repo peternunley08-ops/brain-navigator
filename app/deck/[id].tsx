@@ -493,6 +493,7 @@ const styles = StyleSheet.create({
   faceText: {
     fontFamily: fonts.display,
     fontSize: 26,
+    letterSpacing: -0.5,
     lineHeight: 33,
     color: colors.text,
     textAlign: 'center',
@@ -525,6 +526,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontFamily: fonts.display,
     fontSize: 26,
+    letterSpacing: -0.5,
     color: colors.text,
   },
   doneBody: {

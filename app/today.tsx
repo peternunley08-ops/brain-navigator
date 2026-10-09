@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeOut, LinearTransition, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { project, sprung } from '../core/motion';
 import { scheduleOnRN } from 'react-native-worklets';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -110,8 +111,10 @@ export default function TodayScreen() {
     failOffsetY: [-12, 12],
     onDeactivate: (e) => {
       'worklet';
-      if (e.translationX < -50) scheduleOnRN(step, 1);
-      else if (e.translationX > 50) scheduleOnRN(step, -1);
+      // Where the flick was heading, so a quick short flick turns the day too.
+      const end = e.translationX + project(e.velocityX);
+      if (end < -50) scheduleOnRN(step, 1);
+      else if (end > 50) scheduleOnRN(step, -1);
     },
   });
   const slideStyle = useAnimatedStyle(() => {
@@ -269,7 +272,7 @@ function TimelineItem({ it, past, onToggle, onDelete }: { it: Item; past: boolea
   const height = Math.min(130, Math.max(56, length * 1.1));
   return (
     // Dimming lives on an inner view so it doesn't fight the fade-in.
-    <Animated.View entering={FadeInDown.duration(300)} exiting={FadeOut.duration(160)} layout={LinearTransition.springify().damping(18)}>
+    <Animated.View entering={FadeInDown.duration(300)} exiting={FadeOut.duration(160)} layout={sprung(LinearTransition)}>
       <View style={[styles.item, past && styles.past]}>
         <Text style={styles.time}>{clock(it.start)}</Text>
         <Pressy

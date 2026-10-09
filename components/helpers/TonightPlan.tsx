@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
   big: {
     fontFamily: fonts.display,
     fontSize: 24,
+    letterSpacing: -0.5,
     color: colors.text,
     fontVariant: ['tabular-nums'],
   },

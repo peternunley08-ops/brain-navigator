@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { springs } from '../../core/motion';
 import { EmberSprite } from '../../components/ember/EmberSprite';
 import { Sparks } from '../../components/ember/Sparks';
 import { useEmberRig } from '../../components/ember/useEmberRig';
@@ -82,7 +83,7 @@ export default function HelperScreen() {
   // The spawn: shrink to nothing, then spring out with a burst.
   const pop = useSharedValue(reduced ? 1 : 0);
   useEffect(() => {
-    if (!reduced) pop.value = withDelay(120, withSequence(withSpring(1.15, { damping: 7, stiffness: 220 }), withTiming(1, { duration: 180 })));
+    if (!reduced) pop.value = withDelay(120, withSequence(withSpring(1.15, springs.pop), withTiming(1, { duration: 180 })));
     const t = setTimeout(() => {
       setBurst((b) => b + 1);
       rig.setMood('cheer');
@@ -242,6 +243,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontFamily: fonts.display,
     fontSize: 32,
+    letterSpacing: -0.6,
     color: colors.text,
   },
   role: {

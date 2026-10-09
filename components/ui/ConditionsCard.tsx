@@ -146,6 +146,7 @@ const styles = StyleSheet.create({
   tempText: {
     fontFamily: fonts.display,
     fontSize: 28,
+    letterSpacing: -0.6,
     color: colors.text,
   },
   conditionText: {
