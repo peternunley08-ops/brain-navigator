@@ -36,13 +36,13 @@ checked · `[–]` decided against (with why)
 ## D. Native batch (one rebuild, done together)
 
 14. [~] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63). Three hard jolts in 0.8 s open a small sheet; off switch in Settings → Privacy
-15. [ ] Home screen widget: tonight's first class and what's due
+15. [~] Home screen widget: tonight's first class and what's due (Built in PR #66, waiting for Atlas's live check)
 16. [x] A speaker icon in the kit for Fire crackle (drawn in code, no rebuild needed) — seen on and off
 28. [~] The Canvas token moves into the iPhone keychain (`expo-secure-store`); an existing connection carries over on first launch
 
 ## E. Show it well
 
-17. [ ] Screenshots script for the hero pages into `docs/screens/` (R6-53), in show mode only
+17. [~] Screenshots script for the hero pages into `docs/screens/` (R6-53), in show mode only (Built in PR #59, waiting for Atlas's live check)
 18. [ ] Put the screenshots in `docs/WHAT-THIS-IS.md` and the README
 19. [x] The show tour's lines checked against Riley's sample data — two were wrong (the dentist, Steady's habits) and Focus's never showed; fixed and seen
 
@@ -54,21 +54,21 @@ checked · `[–]` decided against (with why)
     3. [~] X122 Label every icon button for VoiceOver. Audit: IconButton already requires a label; one bare control found (Your day's color swatches, now named); text fields now keep their label after they're filled. Listen with VoiceOver on the phone
     4. [x] X174 Tests for the core helpers: `npm test` (Node's built-in runner, no new packages), 16 tests over dates, plural, the night clock, classAverage, letterFor, planBackward. Part of the gate now
     5. [x] X038 Turned in: homework, projects and essays marked done show "Done, not turned in yet" and a Mark turned in chip on their page (`turnedIn`, optional) — seen 2026-10-05 (Simulator): Mark done → "Done, not turned in yet", Mark turned in → "Done and turned in" (bug found: 41)
-    6. [ ] X013 Snooze a Desk card to tonight or tomorrow (optional field). A swipe on the Desk: build it where it can be felt (desktop session, Simulator)
+    6. [~] X013 Snooze a Desk card to tonight or tomorrow (optional field). A swipe on the Desk: build it where it can be felt (desktop session, Simulator) (Built in PR #57, waiting for Atlas's live check)
     7. [–] X057 Calm kit: already built (Steady orders its doors and tools by About you's calmers and what you said helped)
     8. [–] X003 Brain dump before bed: covered by Put the day down ("Anything still on your mind?" into the worry box, "Tomorrow starts with" into First light's one thing)
-    9. [ ] X125 Increase Contrast: muted text gets stronger when the iPhone setting is on. Bigger than it looked: theme colors are plain strings used by SVG and alpha(), so iOS's DynamicColorIOS can't drop in; needs a theme that re-renders on the setting
+    9. [~] X125 Increase Contrast: muted text gets stronger when the iPhone setting is on. Bigger than it looked: theme colors are plain strings used by SVG and alpha(), so iOS's DynamicColorIOS can't drop in; needs a theme that re-renders on the setting (Built in PR #56 (web fix #72), waiting for Atlas's live check)
     10. [~] X084 Shake the jar: on Wins, a shake has Ember read out a past win or gratitude (never a sealed letter early). Shared `core/hooks/useShake.ts`; the pocket worry stays quiet on Wins
 
 ## G. From the live walk (2026-10-03)
 
 21. [x] Supabase: `.env` points at project `cvkx…`, but Ember and Notion are deployed on `jmjd…` (the session log's project); use that project's key, or deploy the functions to `cvkx…` — fixed 2026-10-05: ember and notion redeployed to `jmjd…`; Ember replies in chat (Simulator)
 22. [ ] Weather loads only from Check-in's "Show conditions", so the window's weather (R6-61) and the real sunset sky (R6-30) are gone after every cold start. Loading it at launch sends your location to the weather service on each open: decide first (privacy)
-23. [ ] Defaults: lights out (9:30 PM, from wake and sleep goal) comes before wind-down (10 PM), so the night card always says "Lights out was", never "Lights out by"
+23. [~] Defaults: lights out (9:30 PM, from wake and sleep goal) comes before wind-down (10 PM), so the night card always says "Lights out was", never "Lights out by" (Built (team/r7-fixes): the default wind-down is now 30 minutes before lights out and follows wake and sleep goal until you set one; saved times are kept. Waiting for Atlas's live check)
 24. [ ] Exam season (R6-67) is a lead card with rings, not a whole-Desk study view: decide whether that's enough
-25. [ ] Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge — also the x on Ember's note on the Desk (seen 2026-10-05)
+25. [~] Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge — also the x on Ember's note on the Desk (seen 2026-10-05) (Built in PR #54 and #71, waiting for Atlas's live check)
 26. [ ] What's New's October entry could name the later surprises (sparks, firsts, weather, the shelf)
-27. [ ] Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today
+27. [~] Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today (Built (team/r7-fixes): today's times never pass the clock and badges are dated over the past five weeks. Waiting for Atlas's live check)
 37. [ ] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10)
 
 From the Part 1 walk (2026-10-05, Simulator):
@@ -90,9 +90,9 @@ From the Part 2 walk (2026-10-05, Simulator, show mode):
 49. [~] Focus from a note's "Focus on this" picked the next thing due instead of the note's topic (`app/focus.tsx`). Fixed in PR #47, seen working there (R3-82)
 50. [~] Hours said "1 hours" (`app/hours.tsx`). Fixed in PR #48
 51. [~] Helpers and the quota card said Plus gives 400 replies a month; it's 250 (`PLUS_PER_MONTH`). Fixed in PR #49
-52. [ ] Quill's tab label is cut off on a 402-pt-wide phone: "Brainstorm with questi…"
-53. [ ] Pip's "Other time" shows 8:30 PM before you pick one, while the plan still uses Start now (`components/helpers/TonightPlan.tsx`)
-54. [ ] Export a backup names the file with the UTC date, so an evening backup gets tomorrow's date (`app/settings.tsx:148`, `toISOString`)
+52. [~] Quill's tab label is cut off on a 402-pt-wide phone: "Brainstorm with questi…" (Built (team/r7-fixes): the label is now "Ask me questions" (already in main as #51). Waiting for Atlas's live check)
+53. [~] Pip's "Other time" shows 8:30 PM before you pick one, while the plan still uses Start now (`components/helpers/TonightPlan.tsx`) (Built (team/r7-fixes): Other time uses the time it shows (already in main as #52). Waiting for Atlas's live check)
+54. [~] Export a backup names the file with the UTC date, so an evening backup gets tomorrow's date (`app/settings.tsx:148`, `toISOString`) (Built (team/r7-fixes): the file name uses the local date (already in main as #50). Waiting for Atlas's live check)
 
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
