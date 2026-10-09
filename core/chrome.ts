@@ -63,7 +63,7 @@ export function goHome() {
 
 // Coming back to a tab lands where you were, for a while (tabs other than
 // the Desk are fresh pages each time, so their scroll is kept here).
-const TAB_ROOTS = new Set(['/school', '/focus', '/steady']);
+const TAB_ROOTS = new Set(['/school', '/helpers', '/steady']);
 const kept = new Map<string, { y: number; at: number }>();
 export function keepScroll(path: string, y: number) {
   if (TAB_ROOTS.has(path)) kept.set(path, { y, at: Date.now() });

@@ -12,7 +12,7 @@ on a phone yet; every phase ends with a live check.
 | Surface | What's there now | Count |
 |---|---|---|
 | Routes | `app/*.tsx` file routes, including 6 dynamic ones (`class/[id]`, `deck/[id]`…) | 71 files, about 70 screens |
-| Tab bar (`components/BottomNav.tsx`) | Desk, School, **+**, Focus, Steady; each tab has a hold shortcut (Search, Add homework, 5 minutes, Need help now); School shows a due badge | 4 tabs + 1 add button + 4 hidden holds |
+| Tab bar (`components/BottomNav.tsx`) | Desk, School, **+**, Helpers, Steady; each tab has a hold shortcut (Search, Add homework, Quiz me with Quizzo, Need help now); School shows a due badge | 4 tabs + 1 add button + 4 hidden holds |
 | + quick add | 4 big options (homework, on my mind, focus, scan) + 5 small (helper, grade, flashcards, win, hours) | 9 entry points |
 | Desk (`app/index.tsx`, 817 lines) | Greeting, summary line, Search and Drawer icons; then StreakOfLight, ExamSeason, FirstLight, wind-down chip, countdowns, DayBrief, WhatsNew, OneThing, NowCard, QuickCapture, PinnedNotes, then 12 day cards (Birthday, WelcomeBack, PickUp, FollowUp, AboutCards, TryThisWeek, OneKindThing, HelperNudge, PlanTest, TagTool, WorryTime, Resurface, NextBadge), All-clear; then 5 ordered sections (Due soon, On your mind + 2 buttons, How you're doing, 3 tiles: Focus / Warmth / Habits, the day line) | about 29 possible blocks above the fold and below it |
 | Night Desk (`components/desk/NightDesk.tsx`) | After wind-down: a short stack; after Goodnight, only "Sleep well" | the one place the app already does what this direction asks |
@@ -94,9 +94,11 @@ night's calm into the day.
 
 ### The top level
 
-Unchanged tab bar, because it is right and it is learned:
+The tab bar (Helpers replaced Focus on 2026-10-07, Peter's call: the helpers were
+buried two taps deep, while Focus is reachable from School's "Do this now", the
++ sheet and the Drawer):
 
-**Desk · School · + · Focus · Steady**
+**Desk · School · + · Helpers · Steady**
 
 What changes is what each holds first, and the Drawer gets a front door.
 
@@ -104,7 +106,7 @@ What changes is what each holds first, and the Drawer gets a front door.
   your desk" folded.
 - **School** = the work. Tonight first, then everything due.
 - **+** = put something down. Ordered by the time of day.
-- **Focus** = sit down and work. Already one focal point.
+- **Helpers** = Ember's crew. Each opens in its free mode; AI stays opt-in.
 - **Steady** = the other part of being a student. Help is always first.
 - **The Drawer** (from the Desk header) = find anything. A search field at the
   top, then five groups by need, each showing its four most-used tiles and

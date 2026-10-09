@@ -1,4 +1,5 @@
 import type { IconName } from '../components/ui/Icon';
+import { colors } from './theme';
 
 // Every tool in the Drawer, grouped. Kept here (not in the Drawer page) so
 // the app can tell when one is opened, for "Recently opened" and "Most used".
@@ -29,7 +30,7 @@ export const GROUPS: { name: string; tools: Tool[] }[] = [
       { title: 'I was out', body: 'Catch up after an absence', path: '/absent', icon: 'message', color: '#D99A6C' },
       { title: 'Connections', body: 'Canvas, Classroom, more', path: '/connections', icon: 'sparkle', color: '#AFA2DE' },
       { title: 'Scan a screenshot', body: 'Import from Classroom', path: '/scan', icon: 'image', color: '#D99A6C' },
-      { title: 'Helpers', body: 'Ember’s crew, on call', path: '/helpers', icon: 'people', color: '#B79AF0' },
+      { title: 'Focus', body: 'Light the study candle', path: '/focus', icon: 'timer', color: colors.flame },
       { title: 'Flashcards', body: 'Spaced repetition decks', path: '/flashcards', icon: 'cards', color: '#E89AB8' },
       { title: 'How to study', body: 'Methods that work', path: '/techniques', icon: 'flask', color: '#AFA2DE' },
       { title: 'Notebook', body: 'Notes and study guides', path: '/notes', icon: 'pen', color: '#E6C46A' },

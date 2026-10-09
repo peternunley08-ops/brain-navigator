@@ -18,7 +18,7 @@ import { PlusArt, hasPlusArt } from './plus/PlusArt';
 import { Pressy } from './ui/Pressy';
 import { Sheet } from './ui/Sheet';
 
-type NavPath = '/' | '/school' | '/focus' | '/steady';
+type NavPath = '/' | '/school' | '/helpers' | '/steady';
 
 interface NavItem {
   label: string;
@@ -33,7 +33,8 @@ const LEFT: NavItem[] = [
   { label: 'School', path: '/school', icon: 'book', hold: { href: '/add-assignment', label: 'Add homework or a test' } },
 ];
 const RIGHT: NavItem[] = [
-  { label: 'Focus', path: '/focus', icon: 'timer', hold: { href: '/focus', label: 'Start five minutes', params: { quick: '5' } } },
+  // Ember's crew. Each helper has a free mode, so the tab never pushes AI.
+  { label: 'Helpers', path: '/helpers', icon: 'people', hold: { href: '/helper/[id]', label: 'Quiz me with Quizzo', params: { id: 'quizzo' } } },
   // Holding Steady always reaches real people, from anywhere.
   { label: 'Steady', path: '/steady', icon: 'steady', hold: { href: '/help', label: 'Need help now' } },
 ];
@@ -47,7 +48,7 @@ const RIGHT: NavItem[] = [
 const ROUTE_NAME: Record<NavPath, string> = {
   '/': 'index',
   '/school': 'school',
-  '/focus': 'focus',
+  '/helpers': 'helpers',
   '/steady': 'steady',
 };
 
