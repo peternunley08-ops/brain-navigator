@@ -58,7 +58,10 @@ export default function WelcomeScreen() {
 
   const next = () => {
     if (step === 0) setProfile({ name: name.trim(), grade });
-    if (step === 2) setProfile({ sleepGoal, nightlyCap: cap });
+    if (step === 2) {
+      setProfile({ sleepGoal, nightlyCap: cap });
+      useLifeStore.getState().followWindDown(sleepGoal);
+    }
     rig.hopUp(10);
     rig.talk(true);
     setTimeout(() => rig.talk(false), 900);

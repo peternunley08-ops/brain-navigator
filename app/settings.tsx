@@ -84,6 +84,11 @@ export default function SettingsScreen() {
       ]
     );
   const setSettings = useLifeStore((s) => s.setSettings);
+  const followWindDown = useLifeStore((s) => s.followWindDown);
+  const changeSleepGoal = (hours: number) => {
+    setProfile({ sleepGoal: hours });
+    followWindDown(hours);
+  };
   const deskOrder = settings.deskOrder ?? DESK_ORDER;
   const moveDesk = (i: number, by: number) => {
     const next = [...deskOrder];
@@ -285,16 +290,24 @@ export default function SettingsScreen() {
         <Section title="Nights" icon="moon" iconColor="#8FB4E8" note="Teens need 8–10 hours. Homework shouldn’t eat all of them.">
           <Card>
             <Row label="Sleep goal" hint="Hours a night">
-              <Stepper value={`${profile.sleepGoal}h`} onDecrement={() => setProfile({ sleepGoal: Math.max(6, profile.sleepGoal - 0.5) })} onIncrement={() => setProfile({ sleepGoal: Math.min(11, profile.sleepGoal + 0.5) })} label="sleep goal" minWidth={52} />
+              <Stepper value={`${profile.sleepGoal}h`} onDecrement={() => changeSleepGoal(Math.max(6, profile.sleepGoal - 0.5))} onIncrement={() => changeSleepGoal(Math.min(11, profile.sleepGoal + 0.5))} label="sleep goal" minWidth={52} />
             </Row>
             <Row label="Homework cap" hint="What fits in a school night">
               <Stepper value={`${profile.nightlyCap}m`} onDecrement={() => setProfile({ nightlyCap: Math.max(30, profile.nightlyCap - 15) })} onIncrement={() => setProfile({ nightlyCap: Math.min(300, profile.nightlyCap + 15) })} label="homework cap" minWidth={56} />
             </Row>
             <View style={styles.gap}>
-              <TimeField label="Wind down at" value={settings.windDown} onChange={(v) => setSettings({ windDown: v })} hours={EVENING_HOURS} />
+              <TimeField label="Wind down at" value={settings.windDown} onChange={(v) => setSettings({ windDown: v, windDownSet: true })} hours={EVENING_HOURS} />
             </View>
             <View style={styles.gap}>
-              <TimeField label="Wake up at" value={settings.wake} onChange={(v) => setSettings({ wake: v })} hours={MORNING_HOURS} />
+              <TimeField
+                label="Wake up at"
+                value={settings.wake}
+                onChange={(v) => {
+                  setSettings({ wake: v });
+                  followWindDown(profile.sleepGoal);
+                }}
+                hours={MORNING_HOURS}
+              />
             </View>
           </Card>
         </Section>

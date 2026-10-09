@@ -4,7 +4,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { addDays, dateKey, daysUntil, dueLabel, dueWords, isoDay } from '../core/dates';
-import { beforeNight, isNight, lightsOutMinutes, minutesToNight, morningKey, nightStart, pastLightsOut, tonightKey, tonightWeekday, wrap } from '../core/night';
+import { beforeNight, defaultWindDown, isNight, lightsOutMinutes, minutesToNight, morningKey, nightStart, pastLightsOut, tonightKey, tonightWeekday, wrap } from '../core/night';
+import { mergeSettings } from '../core/lifeStore';
 import { classAverage, letterFor, planBackward } from '../core/schoolStore';
 import { plural } from '../core/words';
 
@@ -76,6 +77,25 @@ describe('night clock', () => {
   it('lights out is wake minus sleep goal minus time to fall asleep', () => {
     assert.equal(lightsOutMinutes(hm(7), 8), hm(22, 45));
     assert.equal(lightsOutMinutes(hm(6, 30), 9), hm(21, 15));
+  });
+
+  it('the default wind-down starts 30 minutes before lights out, so the night card can say "by"', () => {
+    // The app's own defaults: wake 6:45, nine hours of sleep.
+    assert.equal(lightsOutMinutes(hm(6, 45), 9), hm(21, 30));
+    assert.equal(defaultWindDown(hm(6, 45), 9), hm(21));
+    assert.equal(mergeSettings().windDown, defaultWindDown(mergeSettings().wake, 9));
+    assert.ok(defaultWindDown(hm(7), 8) < lightsOutMinutes(hm(7), 8));
+    // It follows a later lights out and wraps past midnight.
+    assert.equal(defaultWindDown(hm(7), 8), hm(22, 15));
+    assert.equal(defaultWindDown(hm(9), 8), hm(0, 15));
+    assert.equal(defaultWindDown(hm(3), 6), hm(20, 15));
+  });
+
+  it('a saved wind-down time is kept as the student set it; a fresh start follows lights out', () => {
+    assert.equal(mergeSettings().windDownSet, false);
+    assert.equal(mergeSettings({ windDown: hm(22) } as never).windDown, hm(22));
+    assert.equal(mergeSettings({ windDown: hm(22) } as never).windDownSet, true);
+    assert.equal(mergeSettings({ windDown: hm(21, 15), windDownSet: false } as never).windDownSet, false);
   });
 
   it('night runs from wind-down across midnight to 4:30 AM', () => {

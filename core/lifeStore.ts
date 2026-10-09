@@ -2,6 +2,7 @@ import { File, Paths } from 'expo-file-system';
 import type { IconName } from '../components/ui/Icon';
 import { create } from 'zustand';
 import { addDays, dateKey } from './dates';
+import { defaultWindDown } from './night';
 import { saveAside } from './saveAside';
 import { isShowing } from './showMode';
 
@@ -206,6 +207,11 @@ export interface LifeSettings {
   checkinDraft?: string;
   /** The last note editor left: its id and when (ISO). */
   lastNote?: { id: string; at: string };
+  /**
+   * False while the wind-down time is the app's own suggestion (30 minutes before lights out, so it
+   * follows wake time and sleep goal); true once the student picks one. Older saves read as true.
+   */
+  windDownSet?: boolean;
 }
 
 /**
@@ -422,6 +428,8 @@ interface LifeStore extends LifeData {
   /** Returns true the first time a key is earned. */
   earn: (key: string) => boolean;
   setSettings: (patch: Partial<LifeSettings>) => void;
+  /** Moves the wind-down to 30 minutes before lights out, unless the student has set their own. */
+  followWindDown: (sleepGoal: number) => void;
   setAI: (ai: AIUsage) => void;
   setHelperChat: (id: string, turns: HelperTurn[]) => void;
   remember: (m: Omit<EmberMemory, 'id' | 'at'>) => EmberMemory;
@@ -475,7 +483,8 @@ const BOX_DAYS = [0, 1, 2, 4, 8, 16];
 
 const DEFAULT_SETTINGS: LifeSettings = {
   birthday: null,
-  windDown: 22 * 60,
+  // 9:00 PM: 30 minutes before the lights-out time that the default wake (6:45) and sleep goal (9h) give.
+  windDown: 21 * 60,
   wake: 6 * 60 + 45,
   serviceGoal: 40,
   drivingGoal: 50,
@@ -487,7 +496,13 @@ const DEFAULT_SETTINGS: LifeSettings = {
   plus: false,
   plusPlan: null,
   deskHidden: [],
+  windDownSet: false,
 };
+
+/** Saved settings over the defaults. A save from before `windDownSet` keeps its wind-down time as chosen. */
+export function mergeSettings(saved?: Partial<LifeSettings>): LifeSettings {
+  return { ...DEFAULT_SETTINGS, ...(saved ?? {}), windDownSet: saved ? (saved.windDownSet ?? true) : false };
+}
 
 export const EMPTY_LIFE: LifeData = {
   wins: [],
@@ -626,7 +641,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
             ...d,
             pack: d.pack?.length ? d.pack : DEFAULT_PACK,
             windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
-            settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
+            settings: mergeSettings(d.settings),
             about: { ...EMPTY_ABOUT, ...(d.about ?? {}) },
             safetyPlan: { ...EMPTY_SAFETY, ...(d.safetyPlan ?? {}) },
             helperChats: chats,
@@ -762,6 +777,12 @@ export const useLifeStore = create<LifeStore>((set, get) => {
     },
 
     setSettings: (patch) => commit({ settings: { ...get().settings, ...patch } }),
+    followWindDown: (sleepGoal) => {
+      const { settings } = get();
+      if (settings.windDownSet !== false) return;
+      const next = defaultWindDown(settings.wake, sleepGoal);
+      if (next !== settings.windDown) commit({ settings: { ...settings, windDown: next } });
+    },
     setAI: (ai) => commit({ ai }),
     // Only the last 40 turns are kept per helper.
     setHelperChat: (id, turns) =>
@@ -824,7 +845,7 @@ export const useLifeStore = create<LifeStore>((set, get) => {
         ...d,
         pack: d.pack?.length ? d.pack : DEFAULT_PACK,
         windDownItems: d.windDownItems?.length ? d.windDownItems : DEFAULT_WIND_DOWN,
-        settings: { ...DEFAULT_SETTINGS, ...(d.settings ?? {}) },
+        settings: mergeSettings(d.settings),
         about: { ...EMPTY_ABOUT, ...(d.about ?? {}) },
         safetyPlan: { ...EMPTY_SAFETY, ...(d.safetyPlan ?? {}) },
       }),
