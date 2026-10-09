@@ -7,7 +7,7 @@
 //
 // types:  hello · state · claim · step · file · check · commit · done
 //         blocked · dropped · note · idea · queue · integrated · verified
-//         shipped · shot · bye
+//         shipped · shot · usage · bye
 // flags:  --idea ID[,ID]   which idea(s) this is about
 //         --pct N          progress on the current idea, 0-100
 //         --state S        reading | building | checking | waiting | done | idle
@@ -16,6 +16,7 @@
 //         --to AGENT       (queue) who the idea goes to
 //         --area K --size S|M|L --impact 1-3 --title T   (idea) a new idea
 //         --shot PATH      (shot) a screenshot to show in the gallery
+//         --five N --week N   (usage) percent used of the 5-hour and weekly limits
 import { fileURLToPath } from 'node:url';
 import { appendFileSync, copyFileSync, mkdirSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
@@ -43,7 +44,7 @@ for (let i = 0; i < rest.length; i++) {
     const val = rest[++i];
     if (key === 'idea') ev.ideas = String(val).split(',').map((s) => s.trim()).filter(Boolean);
     else if (key === 'file') (ev.files ||= []).push(val);
-    else if (key === 'pct' || key === 'impact') ev[key] = Number(val);
+    else if (key === 'pct' || key === 'impact' || key === 'five' || key === 'week') ev[key] = Number(val);
     else ev[key] = val;
   }
 }
