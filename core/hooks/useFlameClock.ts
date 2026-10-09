@@ -1,6 +1,7 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback } from 'react';
 import { useFrameCallback, useSharedValue } from 'react-native-reanimated';
+import { ambientBeat } from '../ambient';
 
 // One UI-thread clock per screen, in milliseconds, that every flame on it
 // reads — so a desk of candles costs one frame loop, not one per candle.
@@ -9,9 +10,15 @@ import { useFrameCallback, useSharedValue } from 'react-native-reanimated';
 // candles would otherwise keep costing battery.
 export function useFlameClock() {
   const time = useSharedValue(0);
+  const owed = useSharedValue(0);
+  const beat = useSharedValue(-1);
+  // Flickers on the ambient beat (core/ambient.ts), with Ember and the room.
   const clock = useFrameCallback((frame) => {
     'worklet';
-    time.value += Math.min(frame.timeSincePreviousFrame ?? 16, 64);
+    owed.value += Math.min(frame.timeSincePreviousFrame ?? 16, 64);
+    if (!ambientBeat(frame.timestamp, beat)) return;
+    time.value += owed.value;
+    owed.value = 0;
   }, false);
 
   useFocusEffect(

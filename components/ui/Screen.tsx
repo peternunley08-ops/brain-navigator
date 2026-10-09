@@ -149,17 +149,21 @@ export function Screen({
   // leaves it no room). Kept on this side too: a shared value read right
   // after it's set can still give the old value.
   const besideAt = title && !centered;
-  const front = useRef(false);
+  const frontNow = useRef(false);
   const titleBottomAt = useRef(0);
+  // Under another page, the room holds still (Round 7 G47).
+  const [front, setFront] = useState(true);
   useFocusEffect(
     useCallback(() => {
       inFront.value = 1;
-      front.current = true;
+      frontNow.current = true;
+      setFront(true);
       pageDown.value = y.value > PAGE_DOWN ? 1 : 0;
       titleBottom.value = besideAt ? titleBottomAt.current : 0;
       return () => {
         inFront.value = 0;
-        front.current = false;
+        frontNow.current = false;
+        setFront(false);
       };
     }, [y, inFront, besideAt]),
   );
@@ -281,7 +285,7 @@ export function Screen({
     const { y: top, height } = e.nativeEvent.layout;
     titleEnd.value = top + height;
     titleBottomAt.current = top + height;
-    if (front.current) titleBottom.value = besideAt ? top + height : 0;
+    if (frontNow.current) titleBottom.value = besideAt ? top + height : 0;
   };
   // With Ember beside the title, the title and subtitle wrap before its
   // spot instead of running underneath it.
@@ -327,7 +331,7 @@ export function Screen({
     <RevealContext.Provider value={settle}>
       <View style={styles.root} onLayout={onRootLayout} collapsable={false}>
         <Animated.View style={[styles.backdrop, depth]} pointerEvents="none">
-          <Backdrop tone={tone} glowColor={glowColor} motes={motes} weather={weather} />
+          <Backdrop tone={tone} glowColor={glowColor} motes={motes} weather={weather} active={front} />
         </Animated.View>
         {scroll ? (
           <Animated.View style={[styles.pullGlow, pullGlow]} pointerEvents="none">

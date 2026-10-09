@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
-import { type EmberMood, inClassQuiet, lineMs, useEmberStore } from '../../core/emberStore';
+import { emberOnScreen, type EmberMood, inClassQuiet, lineMs, useEmberStore } from '../../core/emberStore';
 import { emberBeside, emberHop, navTucked, pageDown, scrolling, titleBottom } from '../../core/chrome';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
@@ -148,6 +148,9 @@ export function EmberBuddy() {
     useEmberStore.getState().load();
   }, []);
 
+  // Each screen visit, Ember may speak once on its own.
+  useEffect(() => emberOnScreen(pathname), [pathname]);
+
   useEffect(() => {
     const a = Keyboard.addListener('keyboardWillShow', () => setKeyboardUp(true));
     const b = Keyboard.addListener('keyboardWillHide', () => setKeyboardUp(false));
@@ -194,8 +197,13 @@ export function EmberBuddy() {
   useEffect(() => {
     nap.value = withSpring(napping ? 1 : 0, { mass: 1, damping: 15, stiffness: 120 });
     rig.setMood(napping ? 'sleepy' : 'idle');
-    rig.setActive(true);
   }, [napping, nap, rig]);
+
+  // No frame loop while Ember is out of sight (helpers, Plus, keyboard up…):
+  // nobody sees the sway, and it costs battery.
+  useEffect(() => {
+    rig.setActive(!hidden);
+  }, [hidden, rig]);
 
   // ---- Advice ------------------------------------------------------------
 
