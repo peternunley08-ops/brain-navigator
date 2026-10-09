@@ -13,6 +13,7 @@
     "@react-native-google-signin/google-signin": "^16.1.5",
     "@supabase/supabase-js": "^2.116.0",
     "expo": "~57.0.26",
+    "expo-age-range": "^57.0.5",
     "expo-audio": "~57.0.5",
     "expo-constants": "~57.0.20",
     "expo-file-system": "~57.0.7",

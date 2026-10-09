@@ -1,5 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import type { IconName } from '../components/ui/Icon';
+import type { AgeRecord } from './age';
 import { create } from 'zustand';
 import { addDays, dateKey } from './dates';
 import { defaultWindDown } from './night';
@@ -127,6 +128,8 @@ export type EmberAccessory = 'auto' | 'none' | 'glasses' | 'cap' | 'headphones' 
 export interface LifeSettings {
   /** MM-DD, for Ember's birthday wish. */
   birthday: string | null;
+  /** The age range, from Apple or picked (core/age.ts); unset until asked. */
+  age?: AgeRecord | null;
   /** Minutes after midnight when the wind-down starts. */
   windDown: number;
   /** Wake-up time for the sleep calculator. */
