@@ -22,7 +22,7 @@ import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import { scheduleOnRN } from 'react-native-worklets';
 import { adviseFor, type EmberAction } from '../../core/ember';
 import { emberOnScreen, type EmberMood, inClassQuiet, lineMs, useEmberStore } from '../../core/emberStore';
-import { emberHop, navTucked, pageDown, scrolling } from '../../core/chrome';
+import { emberBeside, emberHop, navTucked, pageDown, scrolling, titleBottom } from '../../core/chrome';
 import { useHabitsStore } from '../../core/habitsStore';
 import { useBrainNavigatorStore } from '../../core/store';
 import { useTasksStore } from '../../core/tasksStore';
@@ -513,13 +513,19 @@ export function EmberBuddy() {
   // Drag weight: the shown spot trails the finger a few frames, and a tiny tilt leans with the motion.
   const offX = useSharedValue(0);
   // Resting Ember peeks from its edge so it never sits on words or buttons.
-  // It comes all the way out by the title at the top of a page (the title
-  // leaves it room), while it talks, and while you touch it.
+  // It comes all the way out beside the title at the top of a page (the
+  // title leaves it room), while it talks, and while you touch it. Beside
+  // means the whole of it fits by the title, not just its top.
   const awake = bubbleOpen || !!toast;
-  const byTitle = !napping && yFrac <= 0.22;
+  useAnimatedReaction(
+    () => (!hidden && !napping && titleBottom.value > 0 && restY + H_BOX <= titleBottom.value + 12 ? (side === 'left' ? -1 : 1) : 0),
+    (b, was) => {
+      if (b !== was) emberBeside.value = b;
+    },
+  );
   const peek = useSharedValue(0);
   useAnimatedReaction(
-    () => (awake ? 0 : byTitle ? pageDown.value : 1),
+    () => (awake ? 0 : emberBeside.value !== 0 ? pageDown.value : 1),
     (to, was) => {
       if (to !== was) peek.value = withSpring(to, { mass: 1, damping: 18, stiffness: 160 });
     },
