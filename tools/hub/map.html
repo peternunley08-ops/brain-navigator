@@ -721,7 +721,7 @@ function kpis() {
   const count = (...st) => ideas.filter((i) => st.includes(i.status)).length;
   const active = [...D.agents.values()].filter((a) => agentState(a, NOW).active).length;
   const evs = cursor == null ? S.events : S.events.slice(0, cursor);
-  const bud = [...evs].reverse().find((e) => e.type === 'budget');
+  const bud = [...evs].reverse().find((e) => e.type === 'budget' || e.type === 'usage');
   const k = (v, l, warn) => `<div class="kpi${warn ? ' warn' : ''}"><b>${v}</b><span>${l}</span></div>`;
   document.getElementById('kpis').innerHTML =
     k(ideas.length, 'ideas') + k(count('building'), 'building') + k(count('checked', 'review', 'integrated'), 'in review') + k(count('verified', 'shipped'), 'landed') + k(`${active}/${D.agents.size}`, 'agents active') +

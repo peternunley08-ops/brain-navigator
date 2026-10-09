@@ -46,6 +46,25 @@
   ],
   "agents": [
     {
+      "id": "atlas",
+      "name": "Atlas",
+      "role": "Orchestrator",
+      "color": "#F2B661",
+      "mission": "Plans each wave, writes the task packets, checks every change live in the Simulator, runs the merge checker, and hands Peter one merge command.",
+      "workflow": [
+        "Plan",
+        "Packets",
+        "Live check",
+        "Merge queue",
+        "Hand to Peter"
+      ],
+      "owns": [
+        "main",
+        "docs/rounds"
+      ],
+      "model": "Opus 5.5"
+    },
+    {
       "id": "forge",
       "name": "Forge",
       "role": "Team tools and dashboard",
