@@ -54,11 +54,11 @@ export function TodayRows({
           >
             {over ? (
               <View style={stack ? styles.offerStack : styles.offerCol}>
-                <Text style={[value, { color: colors.unlocked }]}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
-                <Text style={[styles.offer, stack && styles.valueStack]}>Pip can fit it in</Text>
+                <Text style={[value, { color: colors.unlocked }]} maxFontSizeMultiplier={2}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
+                <Text style={[styles.offer, stack && styles.valueStack]} maxFontSizeMultiplier={2}>Pip can fit it in</Text>
               </View>
             ) : (
-              <Text style={value}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
+              <Text style={value} maxFontSizeMultiplier={2}>{tonightLine(load.minutes, cap, load.items.length)}</Text>
             )}
           </Row>
         ) : null}
@@ -69,20 +69,20 @@ export function TodayRows({
                 <View key={i} style={styles.dot} />
               ))}
             </View>
-            <Text style={value}>{open ? plural(open, 'candle') : 'Nothing open'}</Text>
+            <Text style={value} maxFontSizeMultiplier={2}>{open ? plural(open, 'candle') : 'Nothing open'}</Text>
           </Row>
         ) : null}
         {show('checkin') ? (
           checkin?.mood != null ? (
             <Row label="How you’re doing" onPress={() => router.push('/checkin')} hint="Opens today’s check-in" line={show('due') || show('mind')} stack={stack}>
-              <Text style={value}>
+              <Text style={value} maxFontSizeMultiplier={2}>
                 {[MOOD_WORDS[checkin.mood - 1], checkin.sleep_hours != null ? `${plural(checkin.sleep_hours, 'hour')} of sleep` : null].filter(Boolean).join(', ')}
               </Text>
             </Row>
           ) : (
             <View style={[styles.mood, (show('due') || show('mind')) && styles.line]}>
-              <Text style={styles.label}>How you’re doing</Text>
-              <Text style={styles.hint}>Tap a face. Hold one for the full check-in.</Text>
+              <Text style={styles.label} maxFontSizeMultiplier={2}>How you’re doing</Text>
+              <Text style={styles.hint} maxFontSizeMultiplier={2}>Tap a face. Hold one for the full check-in.</Text>
               <View style={styles.picker}>
                 <MoodPicker value={null} onChange={onMood} onLongPress={() => router.push('/checkin')} />
               </View>
@@ -97,7 +97,7 @@ export function TodayRows({
 function Row({ label, onPress, hint, line, stack, children }: { label: string; onPress: () => void; hint: string; line?: boolean; stack?: boolean; children: ReactNode }) {
   return (
     <Pressy onPress={onPress} style={[styles.row, stack && styles.rowStack, line && styles.line]} depth={0.98} accessibilityRole="button" accessibilityHint={hint}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={styles.label} maxFontSizeMultiplier={2}>{label}</Text>
       <View style={[styles.right, stack && styles.rightStack]}>{children}</View>
       {stack ? null : <Icon name="chevron" size={16} color={colors.textFaint} />}
     </Pressy>

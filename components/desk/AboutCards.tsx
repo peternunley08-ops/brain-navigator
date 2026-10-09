@@ -9,7 +9,7 @@ import { learnedNotes } from '../../core/learned';
 import { useLifeStore, weekOf, type AboutMe } from '../../core/lifeStore';
 import { tonightKey, tonightWeekday } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
-import { colors, fonts } from '../../core/theme';
+import { colors, fonts, textGrow } from '../../core/theme';
 import { ThisOrThatDeck } from '../about/ThisOrThatDeck';
 import { emberSay } from '../ember/EmberBuddy';
 import { Button } from '../ui/Button';
@@ -83,8 +83,8 @@ function Noticed() {
         <View style={styles.noticeRow}>
           <Icon name={note.icon} size={18} color={VIOLET} />
           <View style={styles.flex}>
-            <Text style={styles.notice}>{note.text}</Text>
-            <Text style={styles.basis}>{note.basis}</Text>
+            <Text style={styles.notice} maxFontSizeMultiplier={2}>{note.text}</Text>
+            <Text style={styles.basis} maxFontSizeMultiplier={2}>{note.basis}</Text>
           </View>
         </View>
         <View style={styles.actions}>
@@ -106,7 +106,7 @@ function Header({ title, onClose }: { title: string; onClose: () => void }) {
           <Icon name="person" size={14} color={VIOLET} />
         </View>
       </Pressy>
-      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.title} maxFontSizeMultiplier={2}>{title}</Text>
       <IconButton icon="close" label="Not now" size={30} onPress={onClose} />
     </View>
   );
@@ -148,7 +148,7 @@ function Question({ q }: { q: string }) {
     <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
       <Card tint={VIOLET} style={styles.card}>
         <Header title="A question for today" onClose={() => mark()} />
-        <Text style={styles.q}>{q}</Text>
+        <Text style={styles.q} maxFontSizeMultiplier={textGrow.heading}>{q}</Text>
         <Field
           value={text}
           onChangeText={setText}
@@ -194,7 +194,7 @@ function WeekSentence() {
     <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
       <Card tint={VIOLET} style={styles.card}>
         <Header title="Your week in a sentence" onClose={() => done()} />
-        <Text style={styles.q}>If this week were one sentence, what would it be?</Text>
+        <Text style={styles.q} maxFontSizeMultiplier={textGrow.heading}>If this week were one sentence, what would it be?</Text>
         <Field
           value={text}
           onChangeText={setText}
@@ -240,7 +240,7 @@ function StillTrue({ id, side, label, other }: { id: string; side: string; label
     <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
       <Card tint={VIOLET} style={styles.card}>
         <Header title="Checking in on an old answer" onClose={() => answer(true)} />
-        <Text style={styles.q}>Still a {label.toLowerCase()}?</Text>
+        <Text style={styles.q} maxFontSizeMultiplier={textGrow.heading}>Still a {label.toLowerCase()}?</Text>
         <View style={styles.actions}>
           <Button label={`More ${other.toLowerCase()} now`} variant="ghost" size="sm" onPress={() => answer(false)} />
           <Button label="Still true" size="sm" onPress={() => answer(true)} />

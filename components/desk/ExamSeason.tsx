@@ -8,7 +8,7 @@ import { Ring } from '../ui/Ring';
 import { daysUntil } from '../../core/dates';
 import { useClosedToday } from './DayCards';
 import { useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { plural } from '../../core/words';
 
 const ID = 'ExamSeason';
@@ -52,8 +52,8 @@ export function ExamSeason() {
     <Card tint={colors.flame} style={styles.card}>
       <View style={styles.head}>
         <View style={styles.flex}>
-          <Text accessibilityRole="header" style={styles.title}>Exam season</Text>
-          <Text style={styles.sub}>{plural(tests.length, 'test')} in the next week. One at a time.</Text>
+          <Text accessibilityRole="header" style={styles.title} maxFontSizeMultiplier={textGrow.heading}>Exam season</Text>
+          <Text style={styles.sub} maxFontSizeMultiplier={2}>{plural(tests.length, 'test')} in the next week. One at a time.</Text>
         </View>
         <IconButton icon="close" label="Hide for today" size={30} onPress={close} />
       </View>
@@ -75,15 +75,15 @@ export function ExamSeason() {
                 value={subs.length ? `${done}/${subs.length}` : String(d)}
               />
               <View style={styles.flex}>
-                <Text style={styles.name} numberOfLines={1}>{a.title}</Text>
-                <Text style={styles.meta} numberOfLines={1}>{cls ? `${cls.name}. ` : ''}{inWords(a.due)}</Text>
+                <Text style={styles.name} numberOfLines={1} maxFontSizeMultiplier={2}>{a.title}</Text>
+                <Text style={styles.meta} numberOfLines={1} maxFontSizeMultiplier={2}>{cls ? `${cls.name}. ` : ''}{inWords(a.due)}</Text>
               </View>
             </View>
           </Pressy>
         );
       })}
       <Pressy onPress={() => router.push(`/assignment/${first.id}`)} accessibilityRole="button">
-        <Text style={styles.hint}>{hint}</Text>
+        <Text style={styles.hint} maxFontSizeMultiplier={2}>{hint}</Text>
       </Pressy>
     </Card>
   );

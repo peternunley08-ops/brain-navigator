@@ -5,7 +5,7 @@ import { clock } from '../../core/dates';
 import { useLifeStore, weekOf } from '../../core/lifeStore';
 import { dueOn, firstClassOn, lightsOutMinutes, minutesOf, morningKey, nightNow, pastLightsOut, tonightKey, tonightWeekday } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, dimensionColor, fonts, radii } from '../../core/theme';
+import { alpha, colors, dimensionColor, fonts, radii, textGrow } from '../../core/theme';
 import { plural } from '../../core/words';
 import { emberSay } from '../ember/EmberBuddy';
 import { Button } from '../ui/Button';
@@ -49,7 +49,7 @@ function Stack({ onShowAll }: { onShowAll: () => void }) {
       <Reveal index={4}>
         <Button label="Put the day down" icon="moon" onPress={() => router.push('/goodnight')} style={styles.primary} />
         <Pressy onPress={onShowAll} hitSlop={10} accessibilityRole="button" style={styles.link}>
-          <Text style={styles.linkText}>Open the day desk</Text>
+          <Text style={styles.linkText} maxFontSizeMultiplier={2}>Open the day desk</Text>
         </Pressy>
       </Reveal>
     </>
@@ -78,8 +78,8 @@ function WeekCard() {
     <Card tint={MOON} onPress={() => router.push('/review')} style={styles.hero}>
       <Icon name="book" size={24} color={MOON} />
       <View style={styles.flex}>
-        <Text style={styles.label}>Your week, in your words</Text>
-        <Text style={styles.sub}>{`\u201c${line}\u201d`}</Text>
+        <Text style={styles.label} maxFontSizeMultiplier={2}>Your week, in your words</Text>
+        <Text style={styles.sub} maxFontSizeMultiplier={2}>{`\u201c${line}\u201d`}</Text>
       </View>
       <Icon name="chevron" size={16} color={colors.textFaint} />
     </Card>
@@ -100,15 +100,15 @@ function TonightCard() {
     <Card tint={MOON} onPress={() => router.push('/sleep')} style={styles.hero}>
       <Icon name="bed" size={26} color={MOON} />
       <View style={styles.flex}>
-        <Text style={styles.label}>{past ? 'Lights out was' : 'Lights out by'}</Text>
+        <Text style={styles.label} maxFontSizeMultiplier={2}>{past ? 'Lights out was' : 'Lights out by'}</Text>
         <Text style={styles.time} maxFontSizeMultiplier={1.3}>
           {clock(out)}
         </Text>
-        <Text style={styles.sub}>Wake at {clock(wake)}</Text>
+        <Text style={styles.sub} maxFontSizeMultiplier={2}>Wake at {clock(wake)}</Text>
         {list.length ? (
           <View style={styles.progress}>
             <ProgressBar value={count / list.length} color={MOON} height={5} />
-            <Text style={styles.sub}>{count === list.length ? 'Wind-down done' : `Wind-down: ${count} of ${list.length} done`}</Text>
+            <Text style={styles.sub} maxFontSizeMultiplier={2}>{count === list.length ? 'Wind-down done' : `Wind-down: ${count} of ${list.length} done`}</Text>
           </View>
         ) : null}
       </View>
@@ -133,29 +133,29 @@ function TomorrowCard() {
           <Pressy onPress={() => router.push(`/class/${first.id}`)} style={styles.row} accessibilityRole="button">
             <View style={[styles.dot, { backgroundColor: first.color }]} />
             <View style={styles.flex}>
-              <Text style={styles.rowTitle}>{first.name}</Text>
-              <Text style={styles.sub}>First class at {clock(first.start)}</Text>
+              <Text style={styles.rowTitle} maxFontSizeMultiplier={2}>{first.name}</Text>
+              <Text style={styles.sub} maxFontSizeMultiplier={2}>First class at {clock(first.start)}</Text>
             </View>
           </Pressy>
         ) : classes.length ? (
-          <Text style={styles.plain}>No classes tomorrow.</Text>
+          <Text style={styles.plain} maxFontSizeMultiplier={2}>No classes tomorrow.</Text>
         ) : null}
         {shown.length ? (
           shown.map((a) => (
             <Pressy key={a.id} onPress={() => router.push(`/assignment/${a.id}`)} style={styles.row} accessibilityRole="button">
               <View style={[styles.dot, { backgroundColor: colors.textFaint }]} />
               <View style={styles.flex}>
-                <Text style={styles.rowTitle}>{a.title}</Text>
-                {className(a.classId) ? <Text style={styles.sub}>Due tomorrow, {className(a.classId)}</Text> : <Text style={styles.sub}>Due tomorrow</Text>}
+                <Text style={styles.rowTitle} maxFontSizeMultiplier={2}>{a.title}</Text>
+                {className(a.classId) ? <Text style={styles.sub} maxFontSizeMultiplier={2}>Due tomorrow, {className(a.classId)}</Text> : <Text style={styles.sub} maxFontSizeMultiplier={2}>Due tomorrow</Text>}
               </View>
             </Pressy>
           ))
         ) : (
-          <Text style={styles.plain}>Nothing due tomorrow.</Text>
+          <Text style={styles.plain} maxFontSizeMultiplier={2}>Nothing due tomorrow.</Text>
         )}
         {due.length > shown.length ? (
           <Pressy onPress={() => router.push('/school')} hitSlop={8} accessibilityRole="button">
-            <Text style={styles.sub}>And {plural(due.length - shown.length, 'more thing')} due</Text>
+            <Text style={styles.sub} maxFontSizeMultiplier={2}>And {plural(due.length - shown.length, 'more thing')} due</Text>
           </Pressy>
         ) : null}
       </Card>
@@ -193,7 +193,7 @@ function PackCard() {
               <View style={[styles.box, { borderColor: on ? colors.flame : colors.lineStrong }, on && { backgroundColor: colors.flame }]}>
                 {on ? <Icon name="check" size={13} color={colors.flameInk} strokeWidth={3} /> : null}
               </View>
-              <Text style={[styles.itemText, on && styles.itemDone]}>{item.text}</Text>
+              <Text style={[styles.itemText, on && styles.itemDone]} maxFontSizeMultiplier={2}>{item.text}</Text>
             </Pressy>
           );
         })}
@@ -210,18 +210,18 @@ function PutDown({ onShowAll }: { onShowAll: () => void }) {
     <Reveal index={0}>
       <View style={styles.quiet}>
         <Icon name="moon" size={28} color={MOON} />
-        <Text style={styles.sleepWell} accessibilityRole="header">
+        <Text style={styles.sleepWell} accessibilityRole="header" maxFontSizeMultiplier={textGrow.display}>
           Sleep well
         </Text>
         {first ? (
-          <Text style={[styles.plain, styles.centered]}>
+          <Text style={[styles.plain, styles.centered]} maxFontSizeMultiplier={2}>
             Your first class tomorrow is {first.name} at {clock(first.start)}.
           </Text>
         ) : classes.length ? (
-          <Text style={[styles.plain, styles.centered]}>No classes tomorrow.</Text>
+          <Text style={[styles.plain, styles.centered]} maxFontSizeMultiplier={2}>No classes tomorrow.</Text>
         ) : null}
         <Pressy onPress={onShowAll} hitSlop={10} accessibilityRole="button" style={styles.link}>
-          <Text style={styles.linkText}>Open the Desk anyway</Text>
+          <Text style={styles.linkText} maxFontSizeMultiplier={2}>Open the Desk anyway</Text>
         </Pressy>
       </View>
     </Reveal>

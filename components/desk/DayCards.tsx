@@ -48,7 +48,7 @@ export function Row({ icon, color, title, body, onPress, onClose }: { icon: Icon
         </View>
         <View style={styles.flex}>
           <Text style={styles.title} maxFontSizeMultiplier={2.6}>{title}</Text>
-          <Text style={styles.body}>{body}</Text>
+          <Text style={styles.body} maxFontSizeMultiplier={2}>{body}</Text>
         </View>
         {onClose ? <IconButton icon="close" label="Hide for today" size={30} onPress={onClose} /> : <Icon name="chevron" size={16} color={colors.textFaint} />}
       </Card>

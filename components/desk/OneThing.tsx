@@ -6,7 +6,7 @@ import { springs } from '../../core/motion';
 import { cheerLine } from '../../core/about';
 import { dateKey } from '../../core/dates';
 import { useLifeStore } from '../../core/lifeStore';
-import { alpha, colors, fonts, radii } from '../../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
 import { Sparks } from '../ember/Sparks';
 import { Icon } from '../ui/Icon';
@@ -91,8 +91,8 @@ export function OneThing() {
           {done ? <Icon name="check" size={15} color={colors.flameInk} strokeWidth={3} /> : <Icon name="star" size={14} color={colors.flame} />}
         </Animated.View>
         <View style={styles.flex}>
-          <Text style={styles.kicker}>Today’s one thing</Text>
-          <Text style={[styles.text, done && styles.textDone]}>{text}</Text>
+          <Text style={styles.kicker} maxFontSizeMultiplier={2}>Today’s one thing</Text>
+          <Text style={[styles.text, done && styles.textDone]} maxFontSizeMultiplier={textGrow.heading}>{text}</Text>
         </View>
       </Pressy>
     </Animated.View>

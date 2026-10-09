@@ -44,8 +44,8 @@ export function Crew() {
             <Icon name="people" size={20} color={colors.flame} />
           </View>
           <View style={styles.flex}>
-            <Text style={styles.title}>Meet the helper crew</Text>
-            <Text style={styles.body}>Each one helps with a different part of studying. Their games and plans are free and work on your phone.</Text>
+            <Text style={styles.title} maxFontSizeMultiplier={2}>Meet the helper crew</Text>
+            <Text style={styles.body} maxFontSizeMultiplier={2}>Each one helps with a different part of studying. Their games and plans are free and work on your phone.</Text>
           </View>
           <IconButton icon="close" label="Skip the crew" size={30} onPress={() => markDone('crew')} />
         </View>

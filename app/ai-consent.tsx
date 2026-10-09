@@ -9,7 +9,7 @@ import { Screen } from '../components/ui/Screen';
 import { goBack } from '../core/chrome';
 import * as Haptics from '../core/haptics';
 import { useLifeStore } from '../core/lifeStore';
-import { colors, fonts } from '../core/theme';
+import { colors, fonts, textGrow } from '../core/theme';
 
 // Asked once, before anything is ever sent to the AI (App Store guideline
 // 5.1.2(i) and health-data consent laws): what goes, to whom, what doesn't,
@@ -37,7 +37,7 @@ export default function AIConsentScreen() {
     <Screen sheet back={notNow} backIcon="close" nav={false} tone="dusk" title="Before Ember thinks with AI" subtitle="Ember’s replies are written by Claude, an AI made by Anthropic. Ember is a computer program, not a person.">
       <Reveal index={0}>
         <Card>
-          <Text style={styles.head}>What’s sent when you ask</Text>
+          <Text style={styles.head} accessibilityRole="header" maxFontSizeMultiplier={textGrow.heading}>What’s sent when you ask</Text>
           {SENT.map((s) => (
             <Row key={s} icon="arrow" text={s} />
           ))}
@@ -45,7 +45,7 @@ export default function AIConsentScreen() {
       </Reveal>
       <Reveal index={1}>
         <Card style={styles.gap}>
-          <Text style={styles.head}>What isn’t</Text>
+          <Text style={styles.head} accessibilityRole="header" maxFontSizeMultiplier={textGrow.heading}>What isn’t</Text>
           {NOT_SENT.map((s) => (
             <Row key={s} icon="check" text={s} />
           ))}
@@ -53,11 +53,11 @@ export default function AIConsentScreen() {
       </Reveal>
       <Reveal index={2}>
         <Card style={styles.gap}>
-          <Text style={styles.head}>Where it goes</Text>
-          <Text style={styles.body}>
+          <Text style={styles.head} accessibilityRole="header" maxFontSizeMultiplier={textGrow.heading}>Where it goes</Text>
+          <Text style={styles.body} maxFontSizeMultiplier={2}>
             Through this app’s server to Anthropic, which writes the reply. Anthropic doesn’t use it to train its models and keeps it only for a limited time for safety. Nothing is sold or used for ads.
           </Text>
-          <Text style={[styles.body, styles.gapSmall]}>
+          <Text style={[styles.body, styles.gapSmall]} maxFontSizeMultiplier={2}>
             Ember isn’t a therapist or a doctor. If you’re in danger or thinking about hurting yourself, call or text 988, or tell an adult you trust.
           </Text>
         </Card>
@@ -65,7 +65,7 @@ export default function AIConsentScreen() {
       <Reveal index={3}>
         <Button label="Allow AI replies" icon="sparkle" onPress={agree} style={styles.gap} />
         <Button label="Not now" variant="ghost" onPress={notNow} style={styles.gapSmall} />
-        <Text style={styles.foot} accessibilityRole="link" onPress={() => router.push('/ai')}>
+        <Text style={styles.foot} accessibilityRole="link" maxFontSizeMultiplier={2} onPress={() => router.push('/ai')}>
           You can change this any time in How AI works here.
         </Text>
       </Reveal>
@@ -77,7 +77,7 @@ function Row({ icon, text }: { icon: 'arrow' | 'check'; text: string }) {
   return (
     <View style={styles.row}>
       <Icon name={icon} size={14} color={icon === 'check' ? colors.secured : colors.flame} />
-      <Text style={styles.rowText}>{text}</Text>
+      <Text style={styles.rowText} maxFontSizeMultiplier={2}>{text}</Text>
     </View>
   );
 }

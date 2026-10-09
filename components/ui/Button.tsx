@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ActivityIndicator, type PressableProps, type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, type PressableProps, type StyleProp, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from 'react-native';
 import { alpha, colors, fonts, gradients, radii, textGrow } from '../../core/theme';
 import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
@@ -35,17 +35,24 @@ export function Button({
   const v = variant === 'pill' ? 'secondary' : variant;
   const s = size ?? (variant === 'pill' ? 'sm' : 'md');
   const small = s === 'sm';
+  // At the largest text sizes a long label takes a second line instead of
+  // trailing off.
+  const wrap = useWindowDimensions().fontScale > 1.5;
   const fg =
     v === 'primary' ? colors.flameInk : tint ?? (v === 'ghost' ? colors.flame : colors.text);
 
   const content = (
-    <View style={[styles.row, small && styles.rowSmall]}>
+    <View style={[styles.row, small && styles.rowSmall, wrap && styles.rowWrap]}>
       {loading ? (
         <ActivityIndicator size="small" color={fg} />
       ) : icon ? (
         <Icon name={icon} size={small ? 16 : 19} color={fg} strokeWidth={2} />
       ) : null}
-      <Text style={[styles.text, small && styles.textSmall, { color: fg }]} numberOfLines={1} maxFontSizeMultiplier={textGrow.control}>
+      <Text
+        style={[styles.text, small && styles.textSmall, wrap && styles.textWrap, { color: fg }]}
+        numberOfLines={wrap ? 2 : 1}
+        maxFontSizeMultiplier={textGrow.control}
+      >
         {label}
       </Text>
     </View>
@@ -119,6 +126,9 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 16,
   },
+  rowWrap: {
+    paddingVertical: 8,
+  },
   secondary: {
     backgroundColor: colors.surfaceHigh,
     borderWidth: 1,
@@ -137,5 +147,9 @@ const styles = StyleSheet.create({
   },
   textSmall: {
     fontSize: 14,
+  },
+  textWrap: {
+    flexShrink: 1,
+    textAlign: 'center',
   },
 });

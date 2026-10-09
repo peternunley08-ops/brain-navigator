@@ -1,9 +1,9 @@
 import * as Haptics from '../core/haptics';
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { alpha, colors, fonts, radii } from '../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../core/theme';
 import { useUndoStore } from '../core/undoStore';
 import { Icon } from './ui/Icon';
 import { Pressy } from './ui/Pressy';
@@ -17,9 +17,21 @@ export function UndoBar() {
   useEffect(() => {
     if (!item) return;
     const id = item.id;
-    // Long enough to notice and reach for it.
-    const t = setTimeout(() => clear(id), 6500);
-    return () => clearTimeout(t);
+    let t: ReturnType<typeof setTimeout> | undefined;
+    let gone = false;
+    // Long enough to notice and reach for it. With VoiceOver on, say what
+    // happened and leave more time to swipe over to the button.
+    AccessibilityInfo.isScreenReaderEnabled()
+      .catch(() => false)
+      .then((reader) => {
+        if (gone) return;
+        if (reader) AccessibilityInfo.announceForAccessibility(`${item.label}. Undo available.`);
+        t = setTimeout(() => clear(id), reader ? 20000 : 6500);
+      });
+    return () => {
+      gone = true;
+      if (t) clearTimeout(t);
+    };
   }, [item, clear]);
 
   if (!item) return null;
@@ -27,7 +39,7 @@ export function UndoBar() {
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: insets.bottom + 96 }]}>
       <Animated.View key={item.id} entering={FadeInDown.duration(220)} exiting={FadeOutDown.duration(180)} style={styles.bar}>
         <Icon name={item.icon} size={16} color={colors.textMuted} />
-        <Text style={styles.label} numberOfLines={1}>
+        <Text style={styles.label} numberOfLines={1} maxFontSizeMultiplier={2}>
           {item.label}
         </Text>
         <Pressy
@@ -41,7 +53,7 @@ export function UndoBar() {
           accessibilityLabel="Undo"
           style={styles.btn}
         >
-          <Text style={styles.btnText}>Undo</Text>
+          <Text style={styles.btnText} maxFontSizeMultiplier={textGrow.control}>Undo</Text>
         </Pressy>
       </Animated.View>
     </View>
