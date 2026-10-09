@@ -20,6 +20,25 @@ function at(n: number, h: number, m = 0) {
   d.setHours(h, m, 0, 0);
   return d.toISOString();
 }
+/** Like at(), but never later than now: what happened today has already happened. `spare` is minutes kept before now. */
+function past(n: number, h: number, m = 0, spare = 5) {
+  return new Date(Math.min(Date.parse(at(n, h, m)), Date.now() - spare * 60000)).toISOString();
+}
+
+/**
+ * Dates for the badges the sample student has earned, oldest first, spread over the last five weeks
+ * instead of all landing today. Always at least a day back, at different times of day.
+ */
+export function spreadBadgeDates(keys: string[], now = Date.now()): Record<string, string> {
+  const out: Record<string, string> = {};
+  keys.forEach((k, i) => {
+    const back = keys.length > 1 ? Math.round(35 - (i * 34) / (keys.length - 1)) : 1;
+    const d = new Date(now - back * DAY);
+    d.setHours(8 + ((i * 5) % 13), (i * 17) % 60, 0, 0);
+    out[k] = d.toISOString();
+  });
+  return out;
+}
 let seq = 0;
 const id = (p: string) => `${p}-${++seq}`;
 
@@ -96,7 +115,7 @@ export function sampleSchool(): SchoolData {
     [-1, 19, 25, hw('Problem set 4.1')],
     [-1, 20, 25, hw('Genetics unit test')],
     [0, 16, 25, hw('Genetics unit test')],
-  ].map(([d, h, m, aid]) => ({ id: id('f'), assignmentId: aid as string | null, minutes: m as number, at: at(d as number, h as number, m as number), rating: 'great' as const }));
+  ].map(([d, h, m, aid]) => ({ id: id('f'), assignmentId: aid as string | null, minutes: m as number, at: past(d as number, h as number, m as number, (m as number) + 5), rating: 'great' as const }));
   return {
     ...EMPTY_SCHOOL,
     profile: { name: 'Riley', grade: 11, sleepGoal: 9, nightlyCap: 120, onboarded: true },
@@ -158,7 +177,7 @@ export function sampleHub(): HubData {
         classId: BIO,
         pinned: false,
         createdAt: at(-2, 19),
-        updatedAt: at(0, 16),
+        updatedAt: past(0, 16),
         blocks: [
           t('heading', 'Know cold'),
           t('bullet', 'Dominant vs. recessive, genotype vs. phenotype'),
@@ -307,7 +326,7 @@ export function sampleTables(): Record<string, Record<string, unknown>[]> {
       sleep_quality: Math.max(1, Math.min(5, Math.round(sleep - 4))),
       stress_level: [4, 3, 5, 7, 3, 4, 2, 5, 6, 4, 8, 4, 5, 5][i],
       notes: null,
-      created_at: at(n, 21, 10),
+      created_at: past(n, 21, 10),
       notion_page_id: null,
     };
   });
@@ -318,9 +337,9 @@ export function sampleTables(): Record<string, Record<string, unknown>[]> {
   ];
   const habitLogs: Record<string, unknown>[] = [];
   for (let n = -9; n <= 0; n++) {
-    if (n !== -4) habitLogs.push({ id: `hl-1-${n}`, habit_id: 'hab-1', log_date: on(n), created_at: at(n, 7, 30) });
-    if (n % 2 === 0 || n === -1) habitLogs.push({ id: `hl-2-${n}`, habit_id: 'hab-2', log_date: on(n), created_at: at(n, 21) });
-    if (n < -1 && n !== -6) habitLogs.push({ id: `hl-3-${n}`, habit_id: 'hab-3', log_date: on(n), created_at: at(n, 22) });
+    if (n !== -4) habitLogs.push({ id: `hl-1-${n}`, habit_id: 'hab-1', log_date: on(n), created_at: past(n, 7, 30) });
+    if (n % 2 === 0 || n === -1) habitLogs.push({ id: `hl-2-${n}`, habit_id: 'hab-2', log_date: on(n), created_at: past(n, 21) });
+    if (n < -1 && n !== -6) habitLogs.push({ id: `hl-3-${n}`, habit_id: 'hab-3', log_date: on(n), created_at: past(n, 22) });
   }
   const entry = (i: number, state: string, mood: string, intensity: number, daysAgo: number, extra: Record<string, unknown> = {}) => ({
     id: `cs-${i}`,
@@ -328,7 +347,7 @@ export function sampleTables(): Record<string, Record<string, unknown>[]> {
     mood,
     intensity,
     notes: null,
-    created_at: at(-daysAgo, 20),
+    created_at: past(-daysAgo, 20),
     in_trove: false,
     notion_page_id: null,
     image_url: null,
@@ -351,14 +370,14 @@ export function sampleTables(): Record<string, Record<string, unknown>[]> {
     habits,
     habit_logs: habitLogs,
     tasks: [
-      { id: 'task-1', title: 'Return library books', category: 'occupational', planned_date: on(0), completed: true, completed_at: at(0, 15), created_at: at(0, 7), time_budget_minutes: 15, notion_page_id: null },
-      { id: 'task-2', title: 'Call Grandma', category: 'social', planned_date: on(0), completed: false, completed_at: null, created_at: at(0, 7), time_budget_minutes: 20, notion_page_id: null },
-      { id: 'task-3', title: 'Stretch after practice', category: 'physical', planned_date: on(0), completed: false, completed_at: null, created_at: at(0, 7), time_budget_minutes: 10, notion_page_id: null },
+      { id: 'task-1', title: 'Return library books', category: 'occupational', planned_date: on(0), completed: true, completed_at: past(0, 15), created_at: past(0, 7, 0, 60), time_budget_minutes: 15, notion_page_id: null },
+      { id: 'task-2', title: 'Call Grandma', category: 'social', planned_date: on(0), completed: false, completed_at: null, created_at: past(0, 7, 0, 60), time_budget_minutes: 20, notion_page_id: null },
+      { id: 'task-3', title: 'Stretch after practice', category: 'physical', planned_date: on(0), completed: false, completed_at: null, created_at: past(0, 7, 0, 60), time_budget_minutes: 10, notion_page_id: null },
     ],
     plate_settings: [{ id: true, daily_cap: 6, updated_at: at(-10, 9) }],
     food_logs: [
-      { id: 'food-1', name: 'Oatmeal and banana', calories: 380, protein_g: 12, carbs_g: 68, fat_g: 7, logged_date: on(0), created_at: at(0, 7, 15) },
-      { id: 'food-2', name: 'Turkey sandwich', calories: 520, protein_g: 32, carbs_g: 54, fat_g: 18, logged_date: on(0), created_at: at(0, 12, 40) },
+      { id: 'food-1', name: 'Oatmeal and banana', calories: 380, protein_g: 12, carbs_g: 68, fat_g: 7, logged_date: on(0), created_at: past(0, 7, 15, 45) },
+      { id: 'food-2', name: 'Turkey sandwich', calories: 520, protein_g: 32, carbs_g: 54, fat_g: 18, logged_date: on(0), created_at: past(0, 12, 40, 20) },
     ],
     macro_goals: [{ id: true, calories: 2400, protein_g: 110, carbs_g: 300, fat_g: 75, updated_at: at(-10, 9) }],
     sleep_ambient_checks: [],

@@ -3,6 +3,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { aboutFilled, calmOrder, helperChips, questionOfTheDay } from '../core/about';
+import { sampleSchool, sampleTables, spreadBadgeDates } from '../core/sampleData';
 import { checkAnswer, deckStats, dueCards, hoursTotal, isSealed, parseCards, weekOf } from '../core/lifeStore';
 
 const card = (box: number, due: string, seen: number) => ({ id: `${box}${due}${seen}`, front: 'f', back: 'b', box, due, seen });
@@ -98,5 +99,50 @@ describe('AI companion rules', () => {
     const t0 = 1_000_000;
     assert.equal(reminderDue(t0, t0 + REMINDER_EVERY_MS - 1), false);
     assert.equal(reminderDue(t0, t0 + REMINDER_EVERY_MS), true);
+  });
+});
+
+describe("Riley's sample data", () => {
+  const withClock = (h: number, fn: (now: number) => void) => {
+    const realNow = Date.now;
+    const d = new Date();
+    d.setHours(h, 0, 0, 0);
+    const now = d.getTime();
+    Date.now = () => now;
+    try {
+      fn(now);
+    } finally {
+      Date.now = realNow;
+    }
+  };
+
+  it('has nothing dated after the clock, even at 2 PM', () => {
+    withClock(14, (now) => {
+      const school = sampleSchool();
+      for (const f of school.focus) assert.ok(Date.parse(f.at) <= now, `focus ${f.at}`);
+      for (const a of school.assignments) if (a.doneAt) assert.ok(Date.parse(a.doneAt) <= now, `done ${a.title}`);
+      for (const [table, rows] of Object.entries(sampleTables())) {
+        for (const row of rows) {
+          for (const k of ['created_at', 'completed_at', 'updated_at']) {
+            const v = row[k];
+            if (typeof v === 'string') assert.ok(Date.parse(v) <= now, `${table}.${k} ${v}`);
+          }
+        }
+      }
+    });
+  });
+
+  it('spreads badge dates over the past weeks, oldest first, none today', () => {
+    withClock(14, (now) => {
+      const keys = ['a', 'b', 'c', 'd', 'e', 'f'];
+      const dates = spreadBadgeDates(keys);
+      const times = keys.map((k) => Date.parse(dates[k]));
+      assert.ok(times.every((t) => t < now - 86400000 / 2));
+      assert.deepEqual([...times].sort((x, y) => x - y), times);
+      assert.ok(now - times[0] > 14 * 86400000);
+      assert.equal(new Set(keys.map((k) => dates[k].slice(0, 10))).size, keys.length);
+      assert.deepEqual(spreadBadgeDates([]), {});
+      assert.equal(Object.keys(spreadBadgeDates(['only'])).length, 1);
+    });
   });
 });
