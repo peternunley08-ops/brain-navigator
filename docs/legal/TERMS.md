@@ -17,14 +17,28 @@ Effective date: [date]. These terms are between you and [LLC name] ("we").
 4. **Your content is yours.** You give us only the permission needed to store and
    process it to run the app, as described in the privacy policy.
 5. **Acceptable use.** Don't misuse the app or its servers, try to access other
-   people's data, or use it to harm anyone.
+   people's data, use it to harm anyone, or add photos, recordings or text you
+   don't have the right to use.
 6. **Connections.** Canvas, Google, Notion and Apple Health are other companies'
    services under their own terms; we're not responsible for them.
-7. **Paid features.** [Plus isn't available yet. When it is: billed by Apple, cancel in
-   iPhone Settings, Apple's refund rules apply.]
+7. **Paid features.** [Plus isn't available yet. When it is: before you buy, the app
+   shows the price, how often it renews, and how to cancel, and asks for a separate
+   OK to the renewal. Billed by Apple; cancel any time in iPhone Settings →
+   Subscriptions (linked from the app). A yearly reminder of the cost and how to
+   cancel, notice before any price change, and Apple's refund rules apply.
+   Help and the help lines are never behind Plus.]
 8. **No warranty.** The app is provided as is. [Lawyer: limitation of liability,
    indemnity, governing law ([state]), dispute resolution; note limits on enforcing
    these against minors.]
 9. **Changes and ending.** We may update these terms with notice in the app. You can
    stop using the app and delete your data at any time (see the privacy policy).
-10. **Contact.** [email]
+10. **Copyright complaints.** If you think something stored in the app infringes
+   your copyright, write to our designated agent: [name, address, email, as
+   registered with the U.S. Copyright Office]. Include the work, where it is in the
+   app, your contact details, a statement that you believe in good faith the use
+   isn't authorized, and a statement under penalty of perjury that your notice is
+   accurate and that you own the copyright or may act for the owner, with your
+   signature. We remove infringing material and stop storing content for anyone
+   who infringes repeatedly. If something of yours was removed by mistake, send a
+   counter-notice to the same address. [Lawyer to review.]
+11. **Contact.** [email]
