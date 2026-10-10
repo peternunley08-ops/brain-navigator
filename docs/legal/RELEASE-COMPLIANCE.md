@@ -40,7 +40,7 @@ the App Store listing before release.**
 | S4 | Retention policy: COPPA and MHMDA expect a written one | In the draft policy; enforce it on the server (e.g. delete AI-free server rows after N months) |
 | S5 | Medical claims (Apple 1.4.1): wellness, not treatment | Keep the "not a therapist or doctor" lines; never claim to diagnose or treat; the App Store text must say the same |
 | S6 | App Privacy "nutrition label" in App Store Connect | Fill from the table in `PRIVACY-POLICY.md` §2 |
-| S7 | Payments: Plus isn't connected | Don't show prices or a paywall in the release build until StoreKit is in (Apple 3.1.1) |
+| S7 | Payments: Plus isn't connected | Don't show prices or a paywall in the release build until StoreKit is in (Apple 3.1.1) | When Plus ships (California's renewal law, in force since July 2025; the federal click-to-cancel rule was struck down): price, renewal and how to cancel shown before buying, a separate OK to the renewal, cancel in the app's own medium (link to iPhone Settings → Subscriptions), a yearly reminder, notice before price changes, proof of consent kept 3 years. Draft in `TERMS.md` §7
 | S8 | Open-source licenses: MIT/BSD notices must ship; Fraunces and Figtree fonts are OFL | Built: Settings → Open-source licenses (`app/licenses.tsx`, data from `node tools/hub/licenses.mjs`; re-run after package changes) |
 | S9 | Names and marks: "Brain Navigator", "Ember" | Search USPTO and the App Store for conflicts; use Canvas, Google, Notion names only to describe connections |
 | S10 | Crisis numbers: 988 and text HOME to 741741 are US-only | Limit release to the US at first, or localize the help page |
@@ -68,6 +68,19 @@ the App Store listing before release.**
 | Contact email for privacy requests | Open |
 | Release region | Open (US only at first recommended; the help lines are US) |
 
+## Four common app-law traps (checked 2026-10-09)
+
+A video listed four ways apps get fined. Where this app stands on each:
+
+| # | Trap | This app | What keeps it that way |
+|---|---|---|---|
+| T1 | **A policy that says "we don't sell" while running trackers.** Under California law an ad pixel (Meta, Google Ads) or analytics a vendor can reuse for ads counts as selling or sharing; for anyone known to be under 16 that needs their own opt-in, and fines run $7,500 per violation | No analytics, ad, crash or tracking SDKs (checked `package.json`). The policy's "we don't sell … no tracking or analytics" is true. California's law likely doesn't reach the app yet (about $26.6M revenue or 100,000 Californians), but Washington's health-data law has no threshold (B4, B5) | `tests/no-trackers.test.ts` fails if a known tracker or ads package is added. Adding one means rewriting the policy, the App Privacy label (S6), and an under-16 opt-in first |
+| T2 | **Copyright in what people upload** (up to $150,000 per work, willful) | Only entry photos go to the server, privately, for their owner (B2). Nothing is shown to other people | Peter: register a DMCA designated agent at copyright.gov ($6, free account, renew every 3 years or it lapses). Takedown clause drafted in `TERMS.md` §10, with a repeat-infringer line (needed for the safe harbor) |
+| T3 | **Marketing email** (CAN-SPAM: unsubscribe link, honest subject, a mailing address; about $53,000 per email) | The app sends no email (no mail service in the code) | If email is ever added: those three things in every promotional email, and no marketing email to anyone under 18 without a parent's say |
+| T4 | **Subscriptions** (California: clear terms before checkout, easy cancel) | Plus isn't built (S7) | The rules are in S7 and `TERMS.md` §7, ready for when StoreKit goes in |
+
+Not in the video, and bigger for this app: open data (B1), public photos (B2), no published policy (B4), the AI companion laws for minors (B7), Anthropic's rules for minors (B8), and Washington's health-data law, which lets people sue directly. GDPR (fines up to €20M) applies only if the app is offered in Europe; S10 keeps the release US-only.
+
 ## Sources (checked 2026-10-05)
 
 - Apple App Review Guidelines 1.4.1, 5.1.1, 5.1.2(i), 5.1.3, 5.1.4: <https://developer.apple.com/app-store/review/guidelines/>
@@ -79,3 +92,4 @@ the App Store listing before release.**
 - COPPA amended rule: <https://www.finnegan.com/en/insights/articles/coppas-amended-rule-is-now-in-full-effect-what-operators-need-to-know.html>
 - Washington My Health My Data Act: <https://www.atg.wa.gov/protecting-washingtonians-personal-health-data-and-privacy>, <https://cdp.cooley.com/understanding-washingtons-my-health-my-data-mhmd-act-applicability-scope-and-requirements/>
 - Anthropic and minors: <https://www.anthropic.com/policy>, <https://www.techloy.com/anthropic-now-lets-kids-use-its-ai-tech-within-limits/>, Anthropic support article 9307344 "Responsible use of Anthropic's models: guidelines for organizations serving minors" (couldn't be fetched from here; read it before release)
+- Checked 2026-10-09 (T1 to T4): [California renewal law amendments (Barnes & Thornburg)](https://btlaw.com/en/insights/alerts/2025/california-expands-automatic-renewal-law-new-requirements-now-in-effect), [FTC click-to-cancel vacated (Greenberg Traurig)](https://www.gtlaw.com/en/insights/2025/7/eighth-circuit-vacates-ftcs-click-to-cancel-rule), [DMCA agent directory, $6 and 3-year renewal (Copyright Office)](https://copyright.gov/newsnet/2016/640.html), [CCPA 2026 rules (Latham)](https://lw.com/en/insights/navigating-new-obligations-under-the-ccpa-updated-regulations), [CCPA under-16 opt-in (TrueVault)](https://truevault.com/learn/broader-protections-for-kids-under-new-ccpa-amendment)
