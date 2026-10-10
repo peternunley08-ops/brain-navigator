@@ -42,8 +42,8 @@ checked · `[–]` decided against (with why)
 
 ## E. Show it well
 
-17. [~] Screenshots script for the hero pages into `docs/screens/` (R6-53), in show mode only (Built in PR #59, waiting for Atlas's live check)
-18. [ ] Put the screenshots in `docs/WHAT-THIS-IS.md` and the README
+17. [x] Screenshots script for the hero pages into `docs/screens/` (R6-53), in show mode only (PR #59) — seen 2026-10-09 (Simulator): all five as Riley at 9:41, real files untouched. Fixed: with two Simulators on, "booted" picked the one without the app; it now finds the one with the app (or takes --device), and a failed cleanup no longer hides the first error. Open: the gold "Showing Riley" pill is in every frame; hide it before these go to the App Store
+18. [x] Put the screenshots in `docs/WHAT-THIS-IS.md` and the README — seen 2026-10-09: both show all five, and the refreshed pictures land there on their own
 19. [x] The show tour's lines checked against Riley's sample data — two were wrong (the dentist, Steady's habits) and Focus's never showed; fixed and seen
 
 ## F. From the idea bank
