@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/peternunley08-ops/brain-navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/peternunley08-ops/brain-navigator/actions/workflows/ci.yml)
 [![Unit Tests](https://img.shields.io/badge/tests-133_passed_(38_suites)-f59e0b)](./tests)
+[![Interactive Web Simulator](https://img.shields.io/badge/🕯️_live_demo-interactive_iPhone_simulator-E8A855)](https://peternunley08-ops.github.io/peternunley08-ops/brain-navigator-demo/)
 [![Platform](https://img.shields.io/badge/platform-iOS_(Expo_SDK_57)-181717?logo=apple)](./app.json)
 
 A small, quiet iPhone app for one high school student. It keeps school, and the rest of life around it, from piling up.
