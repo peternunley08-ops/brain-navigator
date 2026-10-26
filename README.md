@@ -1,5 +1,9 @@
 # Brain Navigator
 
+[![CI](https://github.com/peternunley08-ops/brain-navigator/actions/workflows/ci.yml/badge.svg)](https://github.com/peternunley08-ops/brain-navigator/actions/workflows/ci.yml)
+[![Unit Tests](https://img.shields.io/badge/tests-133_passed_(38_suites)-f59e0b)](./tests)
+[![Platform](https://img.shields.io/badge/platform-iOS_(Expo_SDK_57)-181717?logo=apple)](./app.json)
+
 A small, quiet iPhone app for one high school student. It keeps school, and the rest of life around it, from piling up.
 
 It lives in a candlelit night room. **Ember**, a small flame, keeps you company: it notices what's going on, says things in plain words, and never nags. No streaks, no guilt, no scoreboard.
