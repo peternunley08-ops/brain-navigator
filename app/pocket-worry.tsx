@@ -27,7 +27,7 @@ export default function PocketWorryScreen() {
   };
 
   return (
-    <Screen sheet back={goBack} backIcon="close" nav={false} tone="dusk" title="Drop a worry" subtitle="Write it down and put it away for later.">
+    <Screen sheet back={goBack} backIcon="close" nav={false} tone="dusk" kicker="Worry box" title="Drop a worry" subtitle="Write it down and put it away for later.">
       <Reveal index={0}>
         <Field
           big

@@ -91,6 +91,7 @@ export default function NewEntryScreen() {
       backIcon="close"
       nav={false}
       tone="ember"
+      kicker="Your mind"
       title="Set something down"
       subtitle="Name it. A few words is enough."
     >

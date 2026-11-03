@@ -85,6 +85,8 @@ export default function ClassEditScreen() {
       sheet
       nav={false}
       backIcon="close"
+      glowColor={color}
+      kicker="Schedule"
       title={existing ? 'Edit class' : kind === 'activity' ? 'Add an activity' : 'Add a class'}
       subtitle={kind === 'activity' ? 'Practice, club, job, lessons — anything on your weekly schedule.' : 'So Ember knows what’s next, and homework can belong to it.'}
     >

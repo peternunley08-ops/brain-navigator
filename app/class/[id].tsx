@@ -188,11 +188,18 @@ export default function ClassScreen() {
 
       <Reveal index={n++}>
         <Button
+          label="Scan the board or handout"
+          icon="image"
+          variant="secondary"
+          onPress={() => router.push({ pathname: '/scan', params: { classId: cls.id } })}
+          style={styles.focus}
+        />
+        <Button
           label="Focus on this class"
           icon="timer"
-          variant="secondary"
+          variant="ghost"
           onPress={() => router.push({ pathname: '/focus', params: open[0] ? { assignment: open[0].id } : {} })}
-          style={styles.focus}
+          style={styles.focusSub}
         />
       </Reveal>
     </Screen>
@@ -294,5 +301,8 @@ const styles = StyleSheet.create({
   },
   focus: {
     marginTop: 28,
+  },
+  focusSub: {
+    marginTop: 10,
   },
 });

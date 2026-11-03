@@ -108,6 +108,7 @@ export default function AddAssignmentScreen() {
       nav={false}
       backIcon="close"
       glowColor={accent}
+      kicker={cls ? cls.name : 'School'}
       title={existing ? 'Edit' : 'What’s due?'}
       subtitle={existing ? undefined : 'Homework, a test, a project. Get it out of your head.'}
     >

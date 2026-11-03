@@ -31,10 +31,10 @@ checked · `[–]` decided against (with why)
 
 ## C. Craft and micro-interactions
 
-11. [ ] **Widget deep-links**: tapping tomorrow's first class or due count on the Home Screen widget (`widgets/TomorrowWidget.tsx`) opens straight to `brainnavigator://school` or `brainnavigator://today`
-12. [ ] **Break-time flashcards in Pip's plan**: during a 5-minute break between Pip's study blocks, offer "Flip 5 cards" if a deck has cards due today
-13. [ ] **Class page quick-scan**: add a "Scan the board or handout" action inside a class page so scanned homework and notes already belong to that class
-14. [ ] **Candlelight sheet headers**: give the four quick-add sheets (`add-assignment`, `class-edit`, `new-entry`, `pocket-worry`) the same warm top-edge light and quiet kicker as the main tabs
+11. [x] **Widget deep-links**: tapping tomorrow's first class or due count on the Home Screen widget (`widgets/TomorrowWidget.tsx`) opens straight to `brainnavigator://school` or `brainnavigator://today` — built in `widgets/TomorrowWidget.tsx` (`widgetURL`) and verified 2026-11-03
+12. [x] **Break-time flashcards in Pip's plan**: during a 5-minute break between Pip's study blocks, offer "Flip 5 cards" if a deck has cards due today — built in `components/helpers/TonightPlan.tsx` and verified 2026-11-03
+13. [x] **Class page quick-scan**: add a "Scan the board or handout" action inside a class page so scanned homework and notes already belong to that class — built in `app/class/[id].tsx` and `app/scan.tsx` (`presetClassId`) and verified 2026-11-03
+14. [x] **Candlelight sheet headers**: give the four quick-add sheets (`add-assignment`, `class-edit`, `new-entry`, `pocket-worry`) the same warm top-edge light and quiet kicker as the main tabs — built in `components/ui/Screen.tsx`, `app/add-assignment.tsx`, `app/class-edit.tsx`, `app/new-entry.tsx`, and `app/pocket-worry.tsx` and verified 2026-11-03
 15. [ ] **Over-the-air updates (`expo-updates`)**: ship JS-only rounds to the phone without plugging into the Mac (from R7-C12)
 
 ## D. Privacy, offline, and release readiness

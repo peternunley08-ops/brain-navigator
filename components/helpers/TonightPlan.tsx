@@ -6,10 +6,10 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { dateKey } from '../../core/dates';
 import { buildTonightPlan } from '../../core/helperOffline';
 import { useHubStore } from '../../core/hubStore';
-import { useLifeStore } from '../../core/lifeStore';
+import { dueCards, useLifeStore } from '../../core/lifeStore';
 import { nightNow } from '../../core/night';
 import { clock, useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, radii } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
 import type { EmberRig } from '../ember/useEmberRig';
 import { Button } from '../ui/Button';
@@ -36,6 +36,8 @@ export function TonightPlan({ rig }: { rig: EmberRig }) {
   const classes = useSchoolStore((s) => s.classes);
   const cap = useSchoolStore((s) => s.profile.nightlyCap);
   const windDown = useLifeStore((s) => s.settings.windDown);
+  const decks = useLifeStore((s) => s.decks);
+  const cardsDue = useMemo(() => decks.reduce((n, d) => n + dueCards(d).length, 0), [decks]);
   const addBlock = useHubStore((s) => s.addBlock);
   const [added, setAdded] = useState(false);
   const [startAt, setStartAt] = useState<number | null>(null);
@@ -114,15 +116,19 @@ export function TonightPlan({ rig }: { rig: EmberRig }) {
       <View style={styles.steps}>
         {plan.steps.map((s, i) => {
           const color = s.kind === 'break' ? colors.textFaint : classes.find((c) => c.id === s.classId)?.color ?? OCEAN;
+          const canFlip = s.kind === 'break' && cardsDue > 0;
           return (
             <Animated.View key={i} entering={FadeInDown.delay(i * 50).duration(260)}>
               <Pressy
-                onPress={() => s.kind === 'work' && s.assignmentId && setFirstId(s.assignmentId)}
-                disabled={s.kind !== 'work'}
+                onPress={() => {
+                  if (s.kind === 'work' && s.assignmentId) setFirstId(s.assignmentId);
+                  else if (canFlip) router.push('/flashcards');
+                }}
+                disabled={s.kind !== 'work' && !canFlip}
                 depth={0.98}
                 style={styles.step}
-                accessibilityRole={s.kind === 'work' ? 'button' : undefined}
-                accessibilityHint={s.kind === 'work' ? 'Tap to do this one first' : undefined}
+                accessibilityRole={s.kind === 'work' || canFlip ? 'button' : undefined}
+                accessibilityHint={s.kind === 'work' ? 'Tap to do this one first' : canFlip ? 'Flip 5 flashcards during your break' : undefined}
               >
                 <Text style={styles.time}>{clock(s.start)}</Text>
                 <View style={[styles.rail, { backgroundColor: alpha(color, s.kind === 'break' ? 0.3 : 0.9) }]} />
@@ -132,6 +138,12 @@ export function TonightPlan({ rig }: { rig: EmberRig }) {
                   </Text>
                   <Text style={styles.len}>{s.end - s.start} min</Text>
                 </View>
+                {canFlip ? (
+                  <View style={styles.flipPill}>
+                    <Icon name="cards" size={13} color={colors.flame} />
+                    <Text style={styles.flipText} maxFontSizeMultiplier={2}>Flip 5 cards</Text>
+                  </View>
+                ) : null}
               </Pressy>
             </Animated.View>
           );
@@ -234,6 +246,21 @@ const styles = StyleSheet.create({
     fontFamily: fonts.body,
     fontSize: 12,
     color: colors.textFaint,
+  },
+  flipPill: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: radii.pill,
+    backgroundColor: alpha(colors.flame, 0.14),
+  },
+  flipText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: colors.flame,
   },
   left: {
     marginTop: 12,
