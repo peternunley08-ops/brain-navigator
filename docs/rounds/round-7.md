@@ -97,7 +97,7 @@ From the Part 2 walk (2026-10-05, Simulator, show mode):
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
 29. [ ] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Peter: decide later (until then, single-user only)
-30. [~] B2 Entry photos: signed links (built); then run schema Phase 20 to make the bucket private
+30. [x] B2 Entry photos: signed links (built); then run schema Phase 20 to make the bucket private — ran Phase 20 on `jmjdiudekhkrxxontvhc` (`snapshot-images` `public: false`) and verified 2026-11-03 (`publicHttpStatus: 400`, `signedHttpStatus: 200`)
 31. [ ] B3 Notion: bring your own (OAuth per student); until then off in release builds
 32. [ ] B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app
 33. [x] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here — seen 2026-10-05 (Simulator): the sheet opens on the first AI request; Not now sends nothing; Allow, then Ember answers (that same message too, since PR #42); How AI works here takes the OK back

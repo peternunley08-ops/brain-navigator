@@ -65,6 +65,14 @@ log "Building and installing (a few minutes; keep the phone unlocked)"
 BUILD_LOG="$(mktemp "${TMPDIR:-/tmp}/bn-build.XXXXXX")"
 trap 'rm -f "$BUILD_LOG"' EXIT
 if ! npx expo run:ios --configuration Release --device "$DEVICE" 2>&1 | tee "$BUILD_LOG"; then
+  if grep -q "allowProvisioningUpdates" "$BUILD_LOG"; then
+    log "Retrying xcodebuild with -allowProvisioningUpdates and installing via devicectl"
+    xcodebuild -workspace ios/brainnavigator.xcworkspace -scheme brainnavigator -configuration Release -destination "id=$DEVICE" -allowProvisioningUpdates -allowProvisioningDeviceRegistration -derivedDataPath ios/build build
+    xcrun devicectl device install app --device "$DEVICE" ios/build/Build/Products/Release-iphoneos/brainnavigator.app
+    xcrun devicectl device process launch --device "$DEVICE" com.peternunley.brainnavigator || true
+    log "Done. If the phone says Untrusted Developer: Settings → General → VPN & Device Management → your Apple ID → Trust."
+    exit 0
+  fi
   # The usual failures are signing, not code. Say what to do in plain steps.
   if grep -q "No Accounts" "$BUILD_LOG"; then
     printf '\n✗ Xcode isn'"'"'t signed in to your Apple ID.\n'

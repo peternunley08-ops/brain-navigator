@@ -9,10 +9,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.peternunley.brainnavigator",
-      "appleTeamId": "PQLSGT6XTP",
-      "entitlements": {
-        "com.apple.developer.declared-age-range": true
-      }
+      "appleTeamId": "PQLSGT6XTP"
     },
     "android": {
       "adaptiveIcon": {
