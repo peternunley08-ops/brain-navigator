@@ -36,6 +36,7 @@ import { startHomeWidget } from '../core/homeWidget';
 import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
 import { colors } from '../core/theme';
+import { useWeatherStore } from '../core/weatherStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -82,6 +83,7 @@ export default function RootLayout() {
     useSchoolStore.getState().load();
     useHubStore.getState().load();
     useLifeStore.getState().load();
+    useWeatherStore.getState().load();
   }, []);
 
   // Keep the Home Screen widget on tomorrow's first class and what's due.

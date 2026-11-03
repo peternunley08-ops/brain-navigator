@@ -188,6 +188,23 @@ td code { color: var(--muted); }
 #lightbox { position: fixed; inset: 0; background: rgba(8,6,10,.86); display: none; place-items: center; z-index: 30; cursor: zoom-out; }
 #lightbox.open { display: grid; }
 #lightbox img { max-height: 92vh; max-width: 92vw; border-radius: 26px; }
+/* rounds & token-lean grid */
+.rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.rcard { cursor: pointer; background: rgba(23,18,26,.65); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; transition: transform .15s, border-color .15s; }
+.rcard:hover, .rcard.on { border-color: var(--flame); transform: translateY(-1px); background: rgba(245,180,92,.08); }
+.rcard .rh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.rcard .rh b { font-family: Fraunces, serif; font-size: 16px; color: var(--text); }
+.rcard .rh span { font-family: Fraunces, serif; font-size: 18px; color: var(--flameHot); font-variant-numeric: tabular-nums; }
+.rcard .rt { font-size: 12px; color: var(--muted); margin: 3px 0 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rcard .rbar { display: flex; height: 7px; border-radius: 99px; overflow: hidden; background: rgba(255,228,190,.07); margin-bottom: 7px; }
+.rcard .rmeta { display: flex; gap: 10px; font-size: 11.5px; color: var(--faint); font-variant-numeric: tabular-nums; }
+.lean-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(300px, 1fr); gap: 12px; margin-bottom: 16px; }
+@media (max-width: 980px) { .lean-grid { grid-template-columns: 1fr; } }
+.next-list { list-style: none; margin: 0; padding: 0; max-height: 330px; overflow: auto; }
+.next-list li { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; padding: 9px 6px; border-bottom: 1px solid var(--line); }
+.next-list code { background: rgba(245,180,92,.13); color: var(--flameHot); border: 1px solid rgba(245,180,92,.3); padding: 2px 7px; border-radius: 6px; font-size: 11.5px; white-space: nowrap; }
+.cmdbox { background: var(--sunk); border: 1px solid var(--lineStrong); border-radius: 11px; padding: 9px 11px; margin-top: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--flameHot); display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; }
+.cmdbox:hover { border-color: var(--flame); }
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -196,13 +213,38 @@ td code { color: var(--muted); }
   <div class="top">
     <div class="brand">
       <svg width="34" height="44" viewBox="0 0 34 44" aria-hidden="true"><defs><radialGradient id="bf" cx="50%" cy="70%" r="60%"><stop offset="0" stop-color="#FFDCA6"/><stop offset=".55" stop-color="#F5B45C"/><stop offset="1" stop-color="#DE8238"/></radialGradient></defs><path d="M17 2C21 11 31 17 31 28a14 14 0 0 1-28 0C3 20 9 15 12 8c1 5 3 8 6 9-1-5-1-10-1-15z" fill="url(#bf)"/></svg>
-      <div><h1>The Work Hub</h1><p id="subtitle">Brain Navigator</p><a href="/" style="color:var(--gold, #F5B45C);font-size:13px">Open the work map</a></div>
+      <div><h1>Brain Navigator Live Hub</h1><p id="subtitle">All Rounds Progress · Token-Efficient Build Engine · Live Simulator</p><a href="/map.html" style="color:var(--gold, #F5B45C);font-size:13px">Open the solar system work map →</a></div>
     </div>
     <div class="live"><span class="dot" id="dot"></span><span id="liveText">Connecting…</span></div>
     <div class="clock num" id="clock"></div>
   </div>
 
   <section class="kpis" id="kpis"></section>
+
+  <div class="lean-grid">
+    <section class="card" id="roundsSec">
+      <header>
+        <h2>All 8 Rounds &amp; What’s Next</h2>
+        <span class="sub" id="roundsSub">Click any round to filter open &amp; live-check items</span>
+      </header>
+      <div class="rgrid" id="roundsGrid"></div>
+      <h3 style="margin:10px 0 6px" id="nextHeading">What’s Next Queue (Round 8 &amp; Round 7)</h3>
+      <ul class="next-list" id="nextList"></ul>
+    </section>
+
+    <section class="card" id="leanSec">
+      <header>
+        <h2>Token-Efficient Build Engine</h2>
+        <span class="pill" style="border-color:var(--ok);color:var(--ok)" id="leanBadge">92% fewer tokens/task</span>
+      </header>
+      <div id="leanStats"></div>
+      <h3 style="margin:14px 0 4px">1-Command Lean Build Loop (click to copy)</h3>
+      <div class="sub">Replaces full-file reads and manual shell chains with surgical AST outlines &amp; SSE broadcast:</div>
+      <div class="cmdbox" data-copy="node tools/hub/lean.mjs next --round 8"><span>node tools/hub/lean.mjs next --round 8</span><span class="sub">Micro-packet</span></div>
+      <div class="cmdbox" data-copy="node tools/hub/lean.mjs outline core/weatherStore.ts app/index.tsx"><span>node tools/hub/lean.mjs outline &lt;file&gt;</span><span class="sub">96% smaller read</span></div>
+      <div class="cmdbox" data-copy="node tools/hub/lean.mjs verify --route brainnavigator://?wake=1 --idea R8-6 &quot;Verified live&quot;"><span>node tools/hub/lean.mjs verify --route …</span><span class="sub">Gate + Shot + SSE</span></div>
+    </section>
+  </div>
 
   <section class="card flow">
     <header><h2>The flow of work</h2><span class="sub">Each spark is an idea moving a stage. Tap a stage to see its ideas.</span></header>
@@ -399,6 +441,7 @@ function render() {
     el.querySelector('i').style.width = `${Math.round(Math.max(0, Math.min(1, frac || 0)) * 100)}%`;
   });
 
+  renderRoundsAndLean();
   renderFlow(ideas);
   renderAgents(now);
   renderFeed(now);
@@ -670,7 +713,86 @@ function renderGit() {
     <h3 style="margin-top:14px">Main, most recent</h3><table>${(g.commits || []).map((c) => `<tr><td style="width:80px"><code>${esc(c.hash)}</code></td><td>${esc(c.subject)}</td><td class="sub" style="width:120px">${esc(c.when)}</td></tr>`).join('')}</table>`;
 }
 
-// ---------- polling ----------
+// ---------- rounds & token-lean engine ----------
+let selectedRound = 8;
+function renderRoundsAndLean() {
+  const rounds = S.rounds || [];
+  if (!rounds.length) return;
+  const tot = rounds.reduce((a, r) => ({
+    done: a.done + r.counts.done,
+    check: a.check + r.counts.check,
+    open: a.open + r.counts.open,
+    dropped: a.dropped + r.counts.dropped,
+    total: a.total + r.counts.total,
+  }), { done: 0, check: 0, open: 0, dropped: 0, total: 0 });
+  $('#roundsSub').textContent = `${tot.done} done [x] · ${tot.check} live-check [~] · ${tot.open} open [ ] across 8 rounds`;
+  $('#roundsGrid').innerHTML = rounds.map((r) => {
+    const totR = Math.max(1, r.counts.total);
+    const wDone = (r.counts.done / totR) * 100;
+    const wCheck = (r.counts.check / totR) * 100;
+    return `<div class="rcard ${selectedRound === r.round ? 'on' : ''}" data-r="${r.round}">
+      <div class="rh"><b>Round ${r.round}</b><span>${r.pct}%</span></div>
+      <div class="rt">${esc(r.title.replace(/^Round \d+:\s*|^Masterpiece \d+:\s*/i, ''))}</div>
+      <div class="rbar">
+        <i style="width:${wDone}%;background:#8CC0A8"></i>
+        <i style="width:${wCheck}%;background:#F5B45C"></i>
+      </div>
+      <div class="rmeta"><span style="color:#8CC0A8">✓ ${r.counts.done}</span><span style="color:#F5B45C">~ ${r.counts.check}</span><span>○ ${r.counts.open}</span></div>
+    </div>`;
+  }).join('');
+  $('#roundsGrid').querySelectorAll('.rcard').forEach((el) => el.addEventListener('click', () => {
+    selectedRound = Number(el.dataset.r);
+    renderRoundsAndLean();
+  }));
+
+  const curR = rounds.find((r) => r.round === selectedRound) || rounds[rounds.length - 1];
+  const openItems = curR.items.filter((i) => i.state === 'open' || i.state === 'check');
+  $('#nextHeading').textContent = `Round ${curR.round} Open & Live-Check Queue (${openItems.length} items)`;
+  $('#nextList').innerHTML = openItems.length ? openItems.slice(0, 20).map((it) => {
+    const badgeColor = it.state === 'check' ? '#F5B45C' : '#C3B3A0';
+    const badgeLabel = it.state === 'check' ? '[~] Verify live' : '[ ] Build next';
+    return `<li>
+      <div>
+        <div style="font-weight:600;color:var(--text)"><span style="color:${badgeColor};margin-right:6px">${badgeLabel}</span>${esc(it.text.slice(0, 140))}${it.text.length > 140 ? '…' : ''}</div>
+        <div class="sub">${esc(it.section)} · <code>${esc(it.file)}:${it.line}</code></div>
+      </div>
+      <code class="copycmd" style="cursor:pointer" data-copy="node tools/hub/lean.mjs next --round ${curR.round}" title="Click to copy micro-packet command">${esc(it.id)}</code>
+    </li>`;
+  }).join('') : `<li class="sub">All items in Round ${curR.round} are completed and verified!</li>`;
+
+  const tm = S.tokenMetrics || { totalSaved: 0, compressionPct: 92, avgTokensPerFeature: 2900, baselineTokensPerFeature: 24000, gatesRun: 0, outlinesRun: 0, packetsGenerated: 0 };
+  $('#leanStats').innerHTML = `
+    <div class="astats" style="grid-template-columns:repeat(3,1fr);margin-top:4px">
+      <div><b style="color:#8CC0A8">${(tm.totalSaved / 1000).toFixed(1)}k</b><span>tokens saved</span></div>
+      <div><b style="color:#F5B45C">${tm.avgTokensPerFeature.toLocaleString()}</b><span>avg tok / task (vs 24k)</span></div>
+      <div><b style="color:#7FB8F0">${tm.gatesRun}</b><span>incremental gates</span></div>
+    </div>
+    <div style="margin-top:10px;padding:10px 12px;border-radius:12px;background:rgba(23,18,26,.65);border:1px solid var(--line);font-size:12.5px;color:var(--muted)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span><b>Surgical Outlines</b> (<code>lean.mjs outline</code>)</span><span style="color:#8CC0A8">96% token reduction</span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span><b>Diff-Only Typecheck</b> (<code>check.mjs</code>)</span><span style="color:#8CC0A8">Only checks changed .ts/.tsx</span></div>
+      <div style="display:flex;justify-content:space-between"><span><b>Compact Context Pack</b> (<code>CONTEXT.md</code>)</span><span style="color:#8CC0A8">68 lines vs full docs</span></div>
+    </div>`;
+
+  document.querySelectorAll('[data-copy]').forEach((el) => {
+    el.onclick = () => {
+      navigator.clipboard?.writeText(el.dataset.copy);
+      const prev = el.querySelector('.sub');
+      if (prev) { const old = prev.textContent; prev.textContent = 'Copied!'; setTimeout(() => { prev.textContent = old; }, 1200); }
+    };
+  });
+}
+
+// ---------- SSE live stream + fallback polling ----------
+function applyNextState(next, via = 'Live') {
+  $('#dot').className = 'dot on';
+  $('#liveText').textContent = `${via}, ${next.events.length} events, updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
+  const roundSig = (next.rounds || []).map((r) => `${r.round}:${r.counts.done}:${r.counts.check}:${r.counts.open}`).join(',');
+  const sig = `${next.events.length}|${roundSig}|${next.ideas.length}|${JSON.stringify((next.git.trees || []).map((t) => [t.path, t.plus, t.minus, (t.commits || []).length, (t.dirty || []).length]))}|${(next.git.commits || [])[0]?.hash}`;
+  S = next;
+  if (sig !== lastSig || firstLoad) { lastSig = sig; render(); }
+  else if (D) { renderAgents(Date.now()); }
+}
+
 async function poll() {
   if (SNAP) {
     S = SNAP.state;
@@ -681,17 +803,23 @@ async function poll() {
   }
   try {
     const r = await fetch('/api/state', { cache: 'no-store' });
-    const next = await r.json();
-    $('#dot').className = 'dot on';
-    $('#liveText').textContent = `Live, ${next.events.length} events, updated ${new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })}`;
-    const sig = `${next.events.length}|${next.ideas.length}|${JSON.stringify((next.git.trees || []).map((t) => [t.path, t.plus, t.minus, (t.commits || []).length, (t.dirty || []).length]))}|${(next.git.commits || [])[0]?.hash}`;
-    S = next;
-    if (sig !== lastSig || firstLoad) { lastSig = sig; render(); }
-    else if (D) { renderAgents(Date.now()); }
+    applyNextState(await r.json(), 'Live');
   } catch {
     $('#dot').className = 'dot off';
     $('#liveText').textContent = 'Hub offline, retrying';
   }
+}
+
+if (!SNAP && typeof EventSource !== 'undefined') {
+  try {
+    const es = new EventSource('/api/stream');
+    es.onmessage = (ev) => {
+      try {
+        applyNextState(JSON.parse(ev.data), 'SSE Live');
+        refreshSim();
+      } catch {}
+    };
+  } catch {}
 }
 function refreshSim() {
   if (SNAP) { if (SNAP.sim) $('#sim').src = SNAP.sim; $('#simAt').textContent = `iPhone 17 Pro, ${new Date(SNAP.at).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`; return; }

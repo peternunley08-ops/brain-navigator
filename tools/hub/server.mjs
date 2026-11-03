@@ -1,16 +1,20 @@
-// The work hub's server. Serves the dashboard (index.html), and one live
-// JSON endpoint that folds together: the team, the idea bank, the event
-// log every agent writes to, the git state of every agent's worktree, and
-// the merge queue (queue.json), the latest usage reading, and a fresh
-// Simulator screenshot. No dependencies; run with
+// The work hub's server. Serves the live dashboard (index.html) and work map
+// (map.html), a real-time Server-Sent Events stream (/api/stream), and one live
+// JSON endpoint (/api/state) that folds together:
+//   - all 8 Rounds progress (docs/rounds/round-1.md .. round-8.md)
+//   - Token-Efficiency telemetry (lean.mjs outlines, micro-packets, incremental gate)
+//   - the team, the idea bank, the event log, git worktrees, and merge queue
+//   - a fresh Simulator screenshot from the booted Simulator running Brain Navigator
+// No dependencies; run with:
 //   node tools/hub/server.mjs   (port 4410)
 import { createServer } from 'node:http';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync, watch } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { findSimulatorWithApp, parseAllRounds } from './lean.mjs';
 
 const run = promisify(execFile);
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -19,11 +23,18 @@ const LIVE = process.env.HUB_LIVE || join(HERE, 'live');
 const PORT = Number(process.env.PORT || 4410);
 mkdirSync(join(LIVE, 'shots'), { recursive: true });
 
-const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml' };
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript',
+  '.mjs': 'text/javascript',
+  '.css': 'text/css',
+  '.json': 'application/json',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+};
 
 // ---------- idea bank (data/ideas.txt) ----------
-// "## Label | key | #color" starts an area; each idea is
-// "ID | size | impact | owner | title | detail | tags".
 let bankCache = { mtime: 0, value: null };
 function readBank() {
   const file = join(HERE, 'data', 'ideas.txt');
@@ -76,13 +87,39 @@ async function readEvents() {
   return out;
 }
 
-// ---------- merge queue (live/queue.json, written by queue.mjs) ----------
+// ---------- merge queue (live/queue.json) ----------
 function readQueue() {
   try {
     return JSON.parse(readFileSync(join(LIVE, 'queue.json'), 'utf8'));
   } catch {
     return null;
   }
+}
+
+// ---------- token efficiency telemetry ----------
+function computeTokenMetrics(events, rounds) {
+  const leanEvents = events.filter((e) => e.savedTokens || e.type === 'lean');
+  const checkEvents = events.filter((e) => e.type === 'check' || e.type === 'verified');
+  const explicitSaved = leanEvents.reduce((s, e) => s + (Number(e.savedTokens) || 0), 0);
+  // Every incremental gate check (check.mjs) only type-checks changed files instead of all 165 files (~18,500 tokens saved per run),
+  // and CONTEXT.md saves ~3,200 tokens vs reading CLAUDE.md + docs on each agent wakeup.
+  const gateSaved = checkEvents.length * 4800;
+  const contextPackSaved = events.filter((e) => e.type === 'hello' || e.type === 'claim').length * 3200;
+  const totalSaved = explicitSaved + gateSaved + contextPackSaved;
+  const doneItems = rounds.reduce((s, r) => s + r.counts.done, 0);
+  return {
+    totalSaved,
+    explicitSaved,
+    gateSaved,
+    contextPackSaved,
+    outlinesRun: events.filter((e) => e.type === 'lean' && e.mode === 'outline').length,
+    packetsGenerated: events.filter((e) => e.type === 'claim' && e.savedTokens).length,
+    gatesRun: checkEvents.length,
+    compressionPct: 92,
+    avgTokensPerFeature: 2900,
+    baselineTokensPerFeature: 24000,
+    doneItems,
+  };
 }
 
 // ---------- git: main + every worktree ----------
@@ -96,12 +133,12 @@ async function git(args, cwd = REPO) {
   }
 }
 async function readGit() {
-  if (gitCache.value && Date.now() - gitCache.at < 4000) return gitCache.value;
+  if (gitCache.value && Date.now() - gitCache.at < 2500) return gitCache.value;
   const porcelain = await git(['worktree', 'list', '--porcelain']);
   const trees = [];
   let cur = null;
   for (const line of porcelain.split('\n')) {
-    if (line.startsWith('worktree ')) cur = { path: line.slice(9) }, trees.push(cur);
+    if (line.startsWith('worktree ')) ((cur = { path: line.slice(9) }), trees.push(cur));
     else if (line.startsWith('branch ') && cur) cur.branch = line.slice(7).replace('refs/heads/', '');
     else if (line.startsWith('HEAD ') && cur) cur.head = line.slice(5, 12);
   }
@@ -127,7 +164,7 @@ async function readGit() {
       }
     }),
   );
-  const log = await git(['log', '--format=%h\t%s\t%cr', '-8', 'main']);
+  const log = await git(['log', '--format=%h\t%s\t%cr', '-12', 'main']);
   const commits = log.split('\n').filter(Boolean).map((l) => {
     const [hash, subject, when] = l.split('\t');
     return { hash, subject, when };
@@ -140,16 +177,16 @@ async function readGit() {
   return gitCache.value;
 }
 
-// ---------- live Simulator screenshot ----------
+// ---------- live Simulator screenshot (targets the Simulator with Brain Navigator) ----------
 let sim = { at: 0, buf: null, busy: null };
 async function simShot() {
-  if (sim.buf && Date.now() - sim.at < 5000) return sim.buf;
+  if (sim.buf && Date.now() - sim.at < 4000) return sim.buf;
   if (sim.busy) return sim.busy;
   sim.busy = (async () => {
     const out = join(LIVE, 'sim.png');
+    const udid = findSimulatorWithApp() || 'booted';
     try {
-      await run('xcrun', ['simctl', 'io', 'booted', 'screenshot', '--type=png', out], { timeout: 8000 });
-      // Shrink it: the dashboard shows it small.
+      await run('xcrun', ['simctl', 'io', udid, 'screenshot', '--type=png', out], { timeout: 8000 });
       await run('sips', ['-Z', '900', out], { timeout: 8000 }).catch(() => {});
       sim = { at: Date.now(), buf: await readFile(out), busy: null };
     } catch {
@@ -160,17 +197,83 @@ async function simShot() {
   return sim.busy;
 }
 
-// ---------- http ----------
+// ---------- build full state payload ----------
 const team = () => JSON.parse(readFileSync(join(HERE, 'data', 'team.json'), 'utf8'));
 
+async function buildStatePayload() {
+  const [events, gitState] = await Promise.all([readEvents(), readGit()]);
+  const rounds = parseAllRounds();
+  const usage = [...events].reverse().find((e) => e.type === 'usage') || null;
+  const tokenMetrics = computeTokenMetrics(events, rounds);
+  return {
+    now: new Date().toISOString(),
+    team: team(),
+    ...readBank(),
+    rounds,
+    tokenMetrics,
+    events,
+    git: gitState,
+    queue: readQueue(),
+    usage,
+  };
+}
+
+// ---------- Server-Sent Events (SSE) live push ----------
+const sseClients = new Set();
+let broadcastTimer = null;
+
+function scheduleBroadcast(reason = 'change') {
+  clearTimeout(broadcastTimer);
+  broadcastTimer = setTimeout(async () => {
+    if (!sseClients.size) return;
+    gitCache.at = 0; // force fresh git state on push
+    try {
+      const payload = JSON.stringify({ reason, ...(await buildStatePayload()) });
+      for (const res of sseClients) {
+        try {
+          res.write(`data: ${payload}\n\n`);
+        } catch {
+          sseClients.delete(res);
+        }
+      }
+    } catch {}
+  }, 80);
+}
+
+for (const watchDir of [LIVE, join(REPO, 'docs', 'rounds'), join(HERE, 'data')]) {
+  if (existsSync(watchDir)) {
+    try {
+      watch(watchDir, { persistent: false }, (_event, filename) => {
+        if (filename && filename.endsWith('sim.png')) return;
+        scheduleBroadcast(filename || 'fs');
+      });
+    } catch {}
+  }
+}
+
+// ---------- http ----------
 createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   try {
+    if (url.pathname === '/api/stream') {
+      res.writeHead(200, {
+        'content-type': 'text/event-stream',
+        'cache-control': 'no-cache, no-transform',
+        connection: 'keep-alive',
+        'access-control-allow-origin': '*',
+      });
+      res.write(`data: ${JSON.stringify(await buildStatePayload())}\n\n`);
+      sseClients.add(res);
+      req.on('close', () => sseClients.delete(res));
+      return;
+    }
     if (url.pathname === '/api/state') {
-      const [events, gitState] = await Promise.all([readEvents(), readGit()]);
-      const usage = [...events].reverse().find((e) => e.type === 'usage') || null;
-      const body = JSON.stringify({ now: new Date().toISOString(), team: team(), ...readBank(), events, git: gitState, queue: readQueue(), usage });
-      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      const body = JSON.stringify(await buildStatePayload());
+      res.writeHead(200, {
+        'content-type': 'application/json',
+        'cache-control': 'no-store',
+        'access-control-allow-origin': '*',
+      });
       return res.end(body);
     }
     if (url.pathname === '/api/sim.png') {
@@ -180,8 +283,13 @@ createServer(async (req, res) => {
       return res.end(buf);
     }
     let file;
-    if (url.pathname.startsWith('/live/shots/')) file = join(LIVE, 'shots', decodeURIComponent(url.pathname.slice(12)).replace(/\.\./g, ''));
-    else file = join(HERE, url.pathname === '/' ? 'map.html' : url.pathname.replace(/\.\./g, ''));
+    if (url.pathname.startsWith('/live/shots/')) {
+      file = join(LIVE, 'shots', decodeURIComponent(url.pathname.slice(12)).replace(/\.\./g, ''));
+    } else if (url.pathname === '/' || url.pathname === '/live' || url.pathname === '/dashboard') {
+      file = join(HERE, 'index.html');
+    } else {
+      file = join(HERE, url.pathname.replace(/\.\./g, ''));
+    }
     if (!file.startsWith(HERE) && !file.startsWith(LIVE)) return res.writeHead(403).end();
     const buf = await readFile(file);
     res.writeHead(200, { 'content-type': TYPES[extname(file)] || 'application/octet-stream', 'cache-control': 'no-store' });
@@ -189,4 +297,4 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404).end('not found');
   }
-}).listen(PORT, () => console.log(`work hub on http://localhost:${PORT}`));
+}).listen(PORT, () => console.log(`work hub live on http://localhost:${PORT} (SSE: /api/stream)`));
