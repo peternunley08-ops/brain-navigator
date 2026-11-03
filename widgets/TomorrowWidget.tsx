@@ -1,5 +1,5 @@
 import { HStack, Spacer, Text, VStack } from '@expo/ui/swift-ui';
-import { containerBackground, font, foregroundStyle, lineLimit } from '@expo/ui/swift-ui/modifiers';
+import { containerBackground, font, foregroundStyle, lineLimit, widgetURL } from '@expo/ui/swift-ui/modifiers';
 import { createWidget, type WidgetEnvironment } from 'expo-widgets';
 import type { WidgetProps } from '../core/homeWidget';
 
@@ -15,7 +15,7 @@ const TomorrowWidget = (props: WidgetProps, env: WidgetEnvironment) => {
   const head = <Text modifiers={[font({ design: 'serif', size: 15, weight: 'semibold' }), foregroundStyle(ink.gold)]}>Tomorrow</Text>;
   if (!props || !props.hasClasses) {
     return (
-      <HStack modifiers={[room]}>
+      <HStack modifiers={[room, widgetURL('brainnavigator://school')]}>
         <VStack alignment="leading" spacing={4}>
           {head}
           <Text modifiers={[font({ size: 13 }), foregroundStyle(ink.muted)]}>Add your classes in Brain Navigator to see your first class here.</Text>
@@ -27,6 +27,7 @@ const TomorrowWidget = (props: WidgetProps, env: WidgetEnvironment) => {
   }
   const first = props.first;
   const n = props.dueCount;
+  const target = widgetURL(n > 0 ? 'brainnavigator://school' : 'brainnavigator://today');
   const day = (
     <VStack alignment="leading" spacing={3}>
       {head}
@@ -38,14 +39,14 @@ const TomorrowWidget = (props: WidgetProps, env: WidgetEnvironment) => {
   );
   if (env.widgetFamily !== 'systemMedium') {
     return (
-      <HStack modifiers={[room]}>
+      <HStack modifiers={[room, target]}>
         {day}
         <Spacer />
       </HStack>
     );
   }
   return (
-    <HStack alignment="top" spacing={16} modifiers={[room]}>
+    <HStack alignment="top" spacing={16} modifiers={[room, target]}>
       {day}
       <VStack alignment="leading" spacing={6}>
         {n === 0 ? <Text modifiers={[font({ size: 13 }), foregroundStyle(ink.muted)]}>Nothing due tomorrow.</Text> : null}

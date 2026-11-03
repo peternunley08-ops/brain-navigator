@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { clearScrollToTop, emberBeside, emberHop, firstOpen, goBack, goHome, keepScroll, keptScroll, navTucked, pageDown, scrolling, setScrollToTop, titleBottom, wantNav } from '../../core/chrome';
 import { timings } from '../../core/motion';
 import Svg, { Defs, Ellipse, RadialGradient, Stop } from 'react-native-svg';
-import { colors, fonts, layout, textGrow } from '../../core/theme';
+import { alpha, colors, fonts, layout, textGrow } from '../../core/theme';
 import { Backdrop, type WeatherKind } from './Backdrop';
 import { GLASS } from './Glass';
 import { IconButton } from './IconButton';
@@ -329,7 +329,14 @@ export function Screen({
 
   return (
     <RevealContext.Provider value={settle}>
-      <View style={styles.root} onLayout={onRootLayout} collapsable={false}>
+      <View
+        style={[
+          styles.root,
+          sheet && { borderTopWidth: 1, borderTopColor: alpha(glowColor ?? colors.flame, 0.28) },
+        ]}
+        onLayout={onRootLayout}
+        collapsable={false}
+      >
         <Animated.View style={[styles.backdrop, depth]} pointerEvents="none">
           <Backdrop tone={tone} glowColor={glowColor} motes={motes} weather={weather} active={front} />
         </Animated.View>

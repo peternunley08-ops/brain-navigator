@@ -1,4 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
+import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { goBack } from '../core/chrome';
 import { plural } from '../core/words';
@@ -34,6 +35,7 @@ type Stage = 'intro' | 'paste' | 'reading' | 'review';
 // modules/text-recognition) — nothing is uploaded — and the student checks
 // what was found before anything is saved.
 export default function ScanScreen() {
+  const { classId: presetClassId } = useLocalSearchParams<{ classId?: string }>();
   const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
   const saveClass = useSchoolStore((s) => s.saveClass);
@@ -226,7 +228,9 @@ export default function ScanScreen() {
       addAssignment({
         title: a.title,
         kind: a.kind,
-        classId: a.className ? nameToId.get(a.className.toLowerCase()) ?? mapClass(a.className)?.id ?? null : null,
+        classId: a.className
+          ? nameToId.get(a.className.toLowerCase()) ?? mapClass(a.className)?.id ?? presetClassId ?? null
+          : presetClassId ?? null,
         due: dates[a.key] ?? addDays(dateKey(), 1),
         minutes: null,
         notes: '',
