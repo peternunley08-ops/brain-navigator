@@ -44,6 +44,14 @@ export function AssignmentRow({ a, index = 0, compact }: { a: Assignment; index?
     Haptics.impactAsync(finishing ? Haptics.ImpactFeedbackStyle.Medium : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
     toggle(a.id);
     if (finishing) {
+      offerUndo(
+        `Finished “${a.title}”`,
+        () => toggle(a.id),
+        'check',
+        a.kind !== 'test' && a.kind !== 'quiz' && !a.turnedIn
+          ? { label: 'Turned in too', onPress: () => useSchoolStore.getState().updateAssignment(a.id, { turnedIn: true }) }
+          : undefined
+      );
       const left = useSchoolStore.getState().assignments.filter((x) => !x.done && daysUntil(x.due) <= 1).length;
       if (left === 0) emberSay(cheerLine('That’s everything due by tomorrow. Go do something that isn’t school.'), 'cheer');
     }

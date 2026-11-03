@@ -215,6 +215,8 @@ export interface LifeSettings {
    * follows wake time and sleep goal); true once the student picks one. Older saves read as true.
    */
   windDownSet?: boolean;
+  /** True when the student turns on the focused Exam Season study view on the Desk. */
+  examFocus?: boolean;
 }
 
 /**

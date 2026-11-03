@@ -22,6 +22,7 @@ import {
   awayOnOpen,
   Birthday,
   FollowUp,
+  FridayWrap,
   HelperNudge,
   LeaveNoteSheet,
   NextBadge,
@@ -35,6 +36,7 @@ import {
   WelcomeBack,
   whenBirthday,
   whenFollowUp,
+  whenFridayWrap,
   whenHelperNudge,
   whenNextBadge,
   whenOneKindThing,
@@ -59,6 +61,7 @@ const NOTES: Record<DeskNoteId, ComponentType> = {
   PlanTest,
   TagTool,
   WorryTime,
+  FridayWrap,
   WelcomeBack,
   TryThisWeek,
   OneKindThing,
@@ -69,10 +72,11 @@ const NOTES: Record<DeskNoteId, ComponentType> = {
 };
 
 // Cards the student can turn off in Settings → Your Desk, by section.
-const NUDGES: DeskNoteId[] = ['TryThisWeek', 'OneKindThing', 'HelperNudge', 'PlanTest', 'TagTool', 'WorryTime', 'Resurface', 'NextBadge'];
+const NUDGES: DeskNoteId[] = ['TryThisWeek', 'OneKindThing', 'HelperNudge', 'PlanTest', 'TagTool', 'WorryTime', 'FridayWrap', 'Resurface', 'NextBadge'];
 
 /** Every day card that would show right now, asking each card's own when…() check. */
 export function useDeskNoteIds(deskHidden: string[]): DeskNoteId[] {
+  const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
   const tags = useSchoolStore((s) => s.stressTags[dateKey()]);
   const onboarded = useSchoolStore((s) => s.profile.onboarded);
@@ -113,6 +117,7 @@ export function useDeskNoteIds(deskHidden: string[]): DeskNoteId[] {
   add('PlanTest', whenPlanTest(assignments, shut('PlanTest')));
   add('TagTool', whenTagTool(tags, closed, today));
   add('WorryTime', whenWorryTime(worries, shut('WorryTime')));
+  add('FridayWrap', whenFridayWrap(classes, shut('FridayWrap')));
   add('WelcomeBack', whenWelcomeBack(awayOnOpen(), shut('WelcomeBack')));
   add('TryThisWeek', whenTryThisWeek(reviews, shut('TryThisWeek')));
   add('OneKindThing', whenOneKindThing(people, kindWeek, shut('OneKindThing')));

@@ -24,10 +24,10 @@ checked · `[–]` decided against (with why)
 ## B. One Lit Thing, phase two
 
 6. [x] **Weather memory across cold starts (solves R7-G22)**: cache the last known weather code, temperature, and sunrise/sunset on the phone (`weather.json` in `core/weatherStore.ts`, loaded at launch in `app/_layout.tsx` with a 3-hour freshness window and same-day sunrise/sunset) so the room's window sky and real sunset work on cold start without asking for location at launch — built and verified 2026-11-03
-7. [ ] **Exam season focus view (solves R7-G24)**: when 3+ tests land within 7 days, let the Exam Season lead card expand into a calm "Study plan for this week" view right on the Desk, folding non-essential cards until the last test passes
-8. [ ] **Lit card "Turned in" follow-through**: when marking a homework done from the Desk's lit card, offer a quiet "Turned in too" pill inside the Undo bar so students can mark both in two taps
-9. [ ] **Steady's "Right now" lead**: when today's check-in logged high stress (7+) or low sleep (<6 h), highlight the single tool that helped most in the past (`about.helped`) at the top of Steady with one calm sentence
-10. [ ] **Friday afternoon wrap**: after the last class on Friday, a Desk note bridges the finished school week into Your week's one-line reflection and lights the week's shelf candle
+7. [x] **Exam season focus view (solves R7-G24)**: when 3+ tests land within 7 days, let the Exam Season lead card expand into a calm "Study plan for this week" view right on the Desk, folding non-essential cards until the last test passes — built in `components/desk/ExamSeason.tsx`, `core/lifeStore.ts` (`examFocus`), and `app/index.tsx` and verified 2026-11-03
+8. [x] **Lit card "Turned in" follow-through**: when marking a homework done from the Desk's lit card, offer a quiet "Turned in too" pill inside the Undo bar so students can mark both in two taps — built in `core/undoStore.ts`, `components/UndoBar.tsx`, `components/desk/LitCard.tsx`, and `components/school/AssignmentRow.tsx` and verified 2026-11-03
+9. [x] **Steady's "Right now" lead**: when today's check-in logged high stress (7+) or low sleep (<6 h), highlight the single tool that helped most in the past (`about.helped`) at the top of Steady with one calm sentence — built in `app/steady.tsx` and verified 2026-11-03
+10. [x] **Friday afternoon wrap**: after the last class on Friday, a Desk note bridges the finished school week into Your week's one-line reflection and lights the week's shelf candle — built in `core/deskNotes.ts`, `components/desk/DayCards.tsx` (`FridayWrap`), and `components/desk/EmberNote.tsx` and verified 2026-11-03
 
 ## C. Craft and micro-interactions
 

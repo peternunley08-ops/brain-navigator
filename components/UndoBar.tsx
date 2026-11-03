@@ -42,6 +42,22 @@ export function UndoBar() {
         <Text style={styles.label} numberOfLines={1} maxFontSizeMultiplier={2}>
           {item.label}
         </Text>
+        {item.also ? (
+          <Pressy
+            onPress={() => {
+              const fn = item.also?.onPress;
+              clear(item.id);
+              fn?.();
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+            }}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={item.also.label}
+            style={styles.alsoBtn}
+          >
+            <Text style={styles.alsoText} maxFontSizeMultiplier={textGrow.control}>{item.also.label}</Text>
+          </Pressy>
+        ) : null}
         <Pressy
           onPress={() => {
             item.undo();
@@ -90,6 +106,17 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 14,
     color: colors.text,
+  },
+  alsoBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: radii.pill,
+    backgroundColor: alpha(colors.secured, 0.16),
+  },
+  alsoText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+    color: colors.secured,
   },
   btn: {
     paddingHorizontal: 16,

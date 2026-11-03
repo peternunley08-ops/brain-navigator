@@ -144,6 +144,19 @@ function DueTonight() {
   }, [shownId, tx]);
   const under = useAnimatedStyle(() => ({ opacity: interpolate(tx.value, [-SNOOZE_AT, 0], [1, 0], 'clamp') }));
   if (!a) return null;
+  const markDone = () => {
+    const { id, title, kind, turnedIn } = a;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+    useSchoolStore.getState().toggleAssignment(id);
+    offerUndo(
+      `Finished “${title}”`,
+      () => useSchoolStore.getState().toggleAssignment(id),
+      'check',
+      kind !== 'test' && kind !== 'quiz' && !turnedIn
+        ? { label: 'Turned in too', onPress: () => useSchoolStore.getState().updateAssignment(id, { turnedIn: true }) }
+        : undefined
+    );
+  };
   return (
     <View style={styles.gap}>
       <Animated.View pointerEvents="none" style={[styles.under, under]}>
@@ -163,7 +176,10 @@ function DueTonight() {
               {a.title}
             </Text>
             <Text style={styles.body} maxFontSizeMultiplier={2}>{dueLine(a.minutes, a.due, today)}</Text>
-            <Button label="Light the candle" icon="candle" size="sm" onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })} style={styles.action} />
+            <View style={styles.actions}>
+              <Button label="Light the candle" icon="candle" size="sm" onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })} />
+              <Button label="Mark done" icon="check" variant="secondary" size="sm" onPress={markDone} />
+            </View>
           </Card>
         </Animated.View>
       </GestureDetector>
@@ -275,5 +291,12 @@ const styles = StyleSheet.create({
   action: {
     marginTop: 14,
     alignSelf: 'flex-start',
+  },
+  actions: {
+    marginTop: 14,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 10,
   },
 });
