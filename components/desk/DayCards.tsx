@@ -14,7 +14,8 @@ import { helperById } from '../../core/helpers';
 import { useHubStore } from '../../core/hubStore';
 import { useLifeStore, weekOf, type Person, type Worry } from '../../core/lifeStore';
 import { useWellnessStore } from '../../core/wellnessStore';
-import { clock, isoDay, useSchoolStore } from '../../core/schoolStore';
+import { nightNow } from '../../core/night';
+import { clock, isoDay, nowState, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts } from '../../core/theme';
 import { Card } from '../ui/Card';
 import { Icon, type IconName } from '../ui/Icon';
@@ -556,6 +557,36 @@ export function OneKindThing() {
         setSettings({ kindWeek: week });
         Linking.openURL('sms:' + person.phone.replace(/[^\d+]/g, '') + '&body=' + encodeURIComponent(line)).catch(() => {});
       }}
+      onClose={setHidden}
+    />
+  );
+}
+
+/** Friday afternoon after the last class (or 3 PM if no Friday classes): bridges the finished week into /week. */
+export function whenFridayWrap(classes: ReturnType<typeof useSchoolStore.getState>['classes'], hidden: boolean, now = nightNow()) {
+  if (hidden || isoDay(now) !== 5) return false;
+  const st = nowState(classes, now);
+  return st.kind === 'done' || now.getHours() >= 15;
+}
+
+export function FridayWrap() {
+  const classes = useSchoolStore((s) => s.classes);
+  const assignments = useSchoolStore((s) => s.assignments);
+  const [hidden, setHidden] = useClosedToday('FridayWrap');
+  if (!whenFridayWrap(classes, hidden)) return null;
+  const week = weekOf();
+  const doneWeek = assignments.filter((a) => a.doneAt && a.doneAt.slice(0, 10) >= week).length;
+  return (
+    <Row
+      icon="candle"
+      color={colors.flame}
+      title="School’s done for the week"
+      body={
+        doneWeek > 0
+          ? `${plural(doneWeek, 'thing')} finished this week. Tap to look at your week and light the shelf candle.`
+          : 'You made it to Friday afternoon. Tap to look back at your week and set it down.'
+      }
+      onPress={() => router.push('/week')}
       onClose={setHidden}
     />
   );

@@ -20,7 +20,7 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { useFlameClock } from '../core/hooks/useFlameClock';
 import { useWellnessStore } from '../core/wellnessStore';
-import { calmOrder } from '../core/about';
+import { CALMERS, calmOrder } from '../core/about';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../core/theme';
@@ -54,6 +54,19 @@ export default function SteadyScreen() {
   const breathedThisMonth = (breathDays ?? []).filter((d) => d.startsWith(month)).length;
   // What calms this student goes first (About you), then the usual order.
   const about = useLifeStore((st) => st.about);
+  const checkins = useWellnessStore((st) => st.checkins);
+  const todayCheckin = checkins.find((c) => c.checkin_date === dateKey()) ?? null;
+  const rightNowReason =
+    (todayCheckin?.stress_level ?? 0) >= 7
+      ? 'You logged a heavy stress day today.'
+      : todayCheckin?.sleep_hours != null && todayCheckin.sleep_hours < 6
+        ? 'You got a short night of sleep.'
+        : null;
+  const topCalmerId = calmOrder(
+    about,
+    CALMERS.filter((c) => c.id !== 'ground').map((c) => c.id)
+  )[0];
+  const topCalmer = CALMERS.find((c) => c.id === topCalmerId);
   const doors = calmOrder(about, DOORS);
   const smallTools = calmOrder(about, SMALL.map((t) => t.id)).map((id) => SMALL.find((t) => t.id === id)!);
   const reordered = doors.join() !== DOORS.join() || smallTools[0].id !== SMALL[0].id;
@@ -71,6 +84,24 @@ export default function SteadyScreen() {
       subtitle="For when it’s a lot, right now."
     >
       <View style={styles.list}>
+        {rightNowReason && topCalmer ? (
+          <Reveal index={0}>
+            <Card
+              tint={colors.flame}
+              onPress={() => router.push(topCalmer.path as never)}
+              style={styles.help}
+              accessibilityLabel={`Start with ${topCalmer.label.toLowerCase()}`}
+              accessibilityHint={`${rightNowReason} This helped you most before.`}
+            >
+              <Icon name={topCalmer.icon} size={20} color={colors.flame} />
+              <View style={styles.doorText}>
+                <Text style={styles.doorTitle} maxFontSizeMultiplier={2}>Start with {topCalmer.label.toLowerCase()}</Text>
+                <Text style={styles.doorBody} maxFontSizeMultiplier={2}>{rightNowReason} This helped you most before.</Text>
+              </View>
+              <Icon name="chevron" size={18} color={colors.flame} />
+            </Card>
+          </Reveal>
+        ) : null}
         <Reveal index={0}>
           <Card tint="#F07060" onPress={() => router.push('/help')} style={styles.help} accessibilityLabel="Need help now">
             <Icon name="phone" size={20} color="#F07060" />

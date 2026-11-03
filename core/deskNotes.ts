@@ -12,6 +12,7 @@ export type DeskNoteId =
   | 'PlanTest'
   | 'TagTool'
   | 'WorryTime'
+  | 'FridayWrap'
   | 'WelcomeBack'
   | 'TryThisWeek'
   | 'OneKindThing'
@@ -36,6 +37,7 @@ export const NOTE_ORDER: readonly DeskNoteId[] = [
   'PlanTest',
   'TagTool',
   'WorryTime',
+  'FridayWrap',
   'WelcomeBack',
   'TryThisWeek',
   'OneKindThing',

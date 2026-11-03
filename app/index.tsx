@@ -282,11 +282,15 @@ export default function DeskScreen() {
 
   // Lit (default) or the classic long page (Settings → Your Desk).
   const lit = useLifeStore((s) => s.settings.deskLayout) !== 'classic';
+  const examFocus = useLifeStore((s) => Boolean(s.settings.examFocus));
   const windSoon = beforeNight(nowMin, startMin);
   const litKind = useLitKind({ allClear, windDownSoon: windSoon, deskHidden });
   // "More on your desk" starts folded; 'more' in deskFolded means it was opened.
-  const moreOpen = deskFolded.includes('more');
-  const toggleMore = () => useLifeStore.getState().setSettings({ deskFolded: moreOpen ? deskFolded.filter((k) => k !== 'more') : [...deskFolded, 'more'] });
+  const moreOpen = !examFocus && deskFolded.includes('more');
+  const toggleMore = () => {
+    if (examFocus) useLifeStore.getState().setSettings({ examFocus: false, deskFolded: [...deskFolded.filter((k) => k !== 'more'), 'more'] });
+    else useLifeStore.getState().setSettings({ deskFolded: moreOpen ? deskFolded.filter((k) => k !== 'more') : [...deskFolded, 'more'] });
+  };
   const windChip = (
     <ChipRow style={styles.windChip}>
       <Chip
@@ -541,6 +545,7 @@ show('line') ? (
           <Reveal index={0}>
             {windSoon && litKind !== 'windDown' ? windChip : null}
             <LitCard kind={litKind} doneToday={doneToday} />
+            {examFocus && litKind !== 'exams' ? <View style={styles.foldGap}><ExamSeason /></View> : null}
             <EmberNote deskHidden={deskHidden} />
           </Reveal>
           <Reveal index={1}>
@@ -552,7 +557,7 @@ show('line') ? (
               {litKind !== 'oneThing' && show('onething') ? <OneThing /> : null}
               {litKind !== 'class' && litKind !== 'nextClass' ? <NowCard /> : null}
               {litKind !== 'brief' && show('brief') ? <DayBrief /> : null}
-              {litKind !== 'exams' ? <View style={styles.foldGap}><ExamSeason /></View> : null}
+              {!examFocus && litKind !== 'exams' ? <View style={styles.foldGap}><ExamSeason /></View> : null}
               {show('countdowns') ? <CountdownChips /> : null}
               {show('capture') ? <QuickCapture /> : null}
               {show('pinned') ? <PinnedNotes /> : null}
