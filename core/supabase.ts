@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { sampleChannel, sampleFrom } from './sampleDb';
+import { File, Paths } from 'expo-file-system';
+import { useLifeStore } from './lifeStore';
+import { clearLocalDb, fillLocalDb, localFrom, sampleChannel, sampleFrom } from './sampleDb';
+import { saveAside } from './saveAside';
 import { isShowing } from './showMode';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
@@ -13,9 +16,55 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 const real = createClient(supabaseUrl, supabaseAnonKey);
 
+function localDbFile() {
+  return new File(Paths.document, 'localDb.json');
+}
+
+function persistLocalDb(next: Record<string, Record<string, unknown>[]>) {
+  if (isShowing()) return;
+  try {
+    const f = localDbFile();
+    if (!f.exists) f.create({ intermediates: true });
+    f.write(JSON.stringify(next));
+  } catch {
+    // Keep in-memory state.
+  }
+}
+
+export async function loadPhoneOnlyDb() {
+  try {
+    const f = localDbFile();
+    if (!f.exists) {
+      fillLocalDb({}, persistLocalDb);
+      return;
+    }
+    const raw = await f.text();
+    let parsed: Record<string, Record<string, unknown>[]> = {};
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      saveAside('localDb.json', raw);
+    }
+    fillLocalDb(parsed && typeof parsed === 'object' ? parsed : {}, persistLocalDb);
+  } catch {
+    fillLocalDb({}, persistLocalDb);
+  }
+}
+
+export function wipePhoneOnlyDb() {
+  clearLocalDb();
+  try {
+    const f = localDbFile();
+    if (f.exists) f.delete();
+  } catch {
+    // Best-effort cleanup.
+  }
+}
+
 // While "Show someone the app" is on, every query goes to the in-memory
 // sample database instead, so nothing real is read or written; AI calls,
-// realtime, and uploads are switched off. Otherwise this is the real client.
+// realtime, and uploads are switched off. When "On this phone only" is on,
+// table queries and realtime stay on the phone in localDb.json.
 const failed = { data: null, error: { message: 'Showing sample data' } };
 export const supabase = new Proxy(real, {
   get(target, prop, receiver) {
@@ -28,6 +77,10 @@ export const supabase = new Proxy(real, {
       if (prop === 'channel') return () => sampleChannel;
       if (prop === 'functions') return { invoke: async () => ({ data: null, error: new Error('Showing sample data') }) };
       if (prop === 'storage') return { from: () => ({ upload: async () => failed, getPublicUrl: () => ({ data: { publicUrl: '' } }), createSignedUrl: async () => ({ data: null, error: failed.error }) }) };
+    }
+    if (useLifeStore.getState().settings.phoneOnly) {
+      if (prop === 'from') return (table: string) => localFrom(table);
+      if (prop === 'channel') return () => sampleChannel;
     }
     const v = Reflect.get(target, prop, receiver);
     return typeof v === 'function' ? v.bind(target) : v;

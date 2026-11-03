@@ -9,6 +9,8 @@ type Row = Record<string, unknown>;
 type Result = { data: unknown; error: { message: string } | null; count: number | null };
 
 let tables: Record<string, Row[]> = {};
+let localTables: Record<string, Row[]> = {};
+let onLocalChange: ((t: Record<string, Row[]>) => void) | null = null;
 
 export function fillSampleDb(next: Record<string, Row[]>) {
   tables = JSON.parse(JSON.stringify(next));
@@ -16,6 +18,16 @@ export function fillSampleDb(next: Record<string, Row[]>) {
 
 export function clearSampleDb() {
   tables = {};
+}
+
+export function fillLocalDb(next: Record<string, Row[]>, onChange?: (t: Record<string, Row[]>) => void) {
+  localTables = JSON.parse(JSON.stringify(next));
+  if (onChange) onLocalChange = onChange;
+}
+
+export function clearLocalDb() {
+  localTables = {};
+  onLocalChange?.(localTables);
 }
 
 const DEFAULTS: Record<string, Row> = {
@@ -49,7 +61,11 @@ class SampleQuery implements PromiseLike<Result> {
   private returning = false;
   private conflict = 'id';
 
-  constructor(private table: string) {}
+  constructor(
+    private table: string,
+    private store: Record<string, Row[]> = tables,
+    private afterWrite?: () => void
+  ) {}
 
   select(_cols?: string, _opts?: unknown) {
     if (this.mode !== 'select') this.returning = true;
@@ -171,16 +187,18 @@ class SampleQuery implements PromiseLike<Result> {
   }
 
   private run(): Result {
-    const t = (tables[this.table] ??= []);
+    const t = (this.store[this.table] ??= []);
     const now = new Date().toISOString();
     if (this.mode === 'select') return this.shape(t.filter((r) => this.matches(r)));
     if (this.mode === 'delete') {
-      tables[this.table] = t.filter((r) => !this.matches(r));
+      this.store[this.table] = t.filter((r) => !this.matches(r));
+      this.afterWrite?.();
       return { data: null, error: null, count: null };
     }
     if (this.mode === 'update') {
       const hit = t.filter((r) => this.matches(r));
       for (const r of hit) Object.assign(r, this.payload);
+      this.afterWrite?.();
       return this.returning ? this.shape(hit) : { data: null, error: null, count: null };
     }
     const list = (Array.isArray(this.payload) ? this.payload : [this.payload ?? {}]) as Row[];
@@ -196,12 +214,17 @@ class SampleQuery implements PromiseLike<Result> {
         written.push(row);
       }
     }
+    this.afterWrite?.();
     return this.returning ? this.shape(written) : { data: null, error: null, count: null };
   }
 }
 
 export function sampleFrom(table: string) {
-  return new SampleQuery(table);
+  return new SampleQuery(table, tables);
+}
+
+export function localFrom(table: string) {
+  return new SampleQuery(table, localTables, () => onLocalChange?.(localTables));
 }
 
 /** Realtime does nothing while showing. */

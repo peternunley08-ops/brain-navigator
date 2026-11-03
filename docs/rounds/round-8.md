@@ -39,11 +39,11 @@ checked · `[–]` decided against (with why)
 
 ## D. Privacy, offline, and release readiness
 
-16. [ ] **On-this-phone-only mode**: let the student run check-ins, habits, vents, and open loops entirely on-device (persisted to local JSON, using the `sampleDb` query engine) when offline or when they prefer no cloud sync (solves R7-H29 / B1 for single-device use)
+16. [x] **On-this-phone-only mode**: let the student run check-ins, habits, vents, and open loops entirely on-device (persisted to local JSON, using the `sampleDb` query engine) when offline or when they prefer no cloud sync (solves R7-H29 / B1 for single-device use) — built in `core/sampleDb.ts` (`localFrom`, `fillLocalDb`), `core/supabase.ts` (`loadPhoneOnlyDb`, `phoneOnly` proxy), `core/lifeStore.ts` (`phoneOnly`), and `app/settings.tsx` and verified 2026-11-03
 17. [ ] **Private entry-photo bucket**: run Supabase schema Phase 20 and verify old and new entry photos over signed URLs (from R7-H30 / B2)
-18. [ ] **Full data wipe on "Start over"**: clear both on-device files and the server tables when starting fresh (from `RELEASE-COMPLIANCE.md` S3)
-19. [ ] **Privacy policy and terms in Settings**: link the hosted policy and consumer-health-data notice from Settings → Privacy (from R7-H32 / B4)
-20. [ ] **3-hour companion break check**: verify the 3-hour AI companion break nudge in a long chat session and link the crisis protocol from How AI works here (from R7-H35 / B7)
+18. [x] **Full data wipe on "Start over"**: clear both on-device files and the server tables when starting fresh (from `RELEASE-COMPLIANCE.md` S3) — built in `app/settings.tsx` (`resetAll` wipes all on-device JSON files, `localDb.json`, and online tables) and `app/privacy.tsx` and verified 2026-11-03
+19. [x] **Privacy policy and terms in Settings**: link the hosted policy and consumer-health-data notice from Settings → Privacy (from R7-H32 / B4) — built in `app/privacy.tsx` and `app/settings.tsx` and verified 2026-11-03
+20. [x] **3-hour companion break check**: verify the 3-hour AI companion break nudge in a long chat session and link the crisis protocol from How AI works here (from R7-H35 / B7) — built in `app/ai.tsx` ("Safety and break reminders" linking `CRISIS-PROTOCOL.md` and `/help`) and verified 2026-11-03
 
 ## Ground rules
 

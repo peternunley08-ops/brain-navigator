@@ -30,6 +30,7 @@ import { ACCESSORIES, EMBER_THEMES } from '../core/emberLook';
 import { useHubStore } from '../core/hubStore';
 import { DESK_ORDER, type EmberTheme, hoursTotal, useLifeStore } from '../core/lifeStore';
 import { classAverage, dueLabel, letterFor, useSchoolStore } from '../core/schoolStore';
+import { supabase, wipePhoneOnlyDb } from '../core/supabase';
 import { alpha, colors, fonts, radii } from '../core/theme';
 
 const GRADES = [9, 10, 11, 12];
@@ -221,7 +222,7 @@ export default function SettingsScreen() {
   };
 
   const resetAll = () => {
-    for (const name of ['school.json', 'hub.json', 'life.json']) {
+    for (const name of ['school.json', 'hub.json', 'life.json', 'weather.json', 'localDb.json']) {
       try {
         const f = new File(Paths.document, name);
         if (f.exists) f.delete();
@@ -229,6 +230,12 @@ export default function SettingsScreen() {
         // Keep going.
       }
     }
+    wipePhoneOnlyDb();
+    Promise.allSettled(
+      ['cognitive_state', 'daily_checkins', 'tasks', 'habits', 'habit_logs', 'vent_logs', 'meals', 'water_logs', 'wellness_wheel', 'sleep_sessions'].map((t) =>
+        supabase.from(t).delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      )
+    ).catch(() => {});
     useLifeStore.getState().reset();
     useSchoolStore.setState({ classes: [], assignments: [], focus: [], grades: [], stressTags: {} });
     useHubStore.setState({ notes: [], colleges: [], plan: [], scholarships: [], recs: [], activities: [], aid: {} });
@@ -498,6 +505,13 @@ export default function SettingsScreen() {
           <Card>
             <View style={styles.row}>
               <View style={styles.flex}>
+                <Text style={styles.rowLabel}>Keep check-ins and entries on this phone only</Text>
+                <Text style={styles.hint}>Check-ins, habits, vents, and open loops stay in a file on this phone instead of syncing online.</Text>
+              </View>
+              <Switch value={!!settings.phoneOnly} onValueChange={(v) => useLifeStore.getState().setSettings({ phoneOnly: v })} trackColor={{ true: colors.flame }} accessibilityLabel="Keep check-ins and entries on this phone only" />
+            </View>
+            <View style={styles.row}>
+              <View style={styles.flex}>
                 <Text style={styles.rowLabel}>Hide the app in the app switcher</Text>
                 <Text style={styles.hint}>A candle covers the screen when you swipe away, so private pages don’t show.</Text>
               </View>
@@ -511,6 +525,7 @@ export default function SettingsScreen() {
               <Switch value={!settings.shakeWorryOff} onValueChange={(v) => useLifeStore.getState().setSettings({ shakeWorryOff: !v })} trackColor={{ true: colors.flame }} accessibilityLabel="Shake to drop a worry" />
             </View>
           </Card>
+          <Button label="Privacy policy, health data, and terms" icon="book" variant="ghost" size="sm" onPress={() => router.push('/privacy')} style={styles.restoreToggle} />
         </Section>
       </Reveal>
 
@@ -589,7 +604,7 @@ export default function SettingsScreen() {
           </Card>
           <Card tint={colors.danger} style={styles.danger}>
             <Text style={styles.dangerTitle}>Start over</Text>
-            <Text style={styles.hint}>Erases classes, assignments, grades, notes, colleges, flashcards, and everything else on this phone. Check-ins and entries in your account stay.</Text>
+            <Text style={styles.hint}>Erases classes, assignments, grades, notes, colleges, flashcards, check-ins, and entries on this phone and in your online account.</Text>
             <View style={styles.hold}>
               <HoldToConfirm label="Hold to erase" holdingLabel="Keep holding" onComplete={resetAll} fillColor={colors.danger} icon="trash" size={92} />
             </View>

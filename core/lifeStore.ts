@@ -217,6 +217,8 @@ export interface LifeSettings {
   windDownSet?: boolean;
   /** True when the student turns on the focused Exam Season study view on the Desk. */
   examFocus?: boolean;
+  /** True when check-ins, habits, vents, and open loops stay in a file on this phone instead of syncing online. */
+  phoneOnly?: boolean;
 }
 
 /**
