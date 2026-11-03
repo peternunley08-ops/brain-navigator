@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Share, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Linking, Share, StyleSheet, Switch, Text, View } from 'react-native';
 import { InfoList } from '../components/InfoList';
 import { useAIStatus } from '../components/helpers/Quota';
 import { Button } from '../components/ui/Button';
@@ -245,6 +245,25 @@ export default function AIScreen() {
               <Button label="Clear every AI chat" variant="ghost" size="sm" tint={colors.danger} onPress={clearChats} />
             </View>
             {test.line ? <Text style={[styles.body, styles.testLine]}>{test.line}</Text> : null}
+          </Card>
+        </Section>
+      </Reveal>
+      <Reveal index={n++}>
+        <Section title="Safety and break reminders">
+          <Card>
+            <Text style={styles.body}>
+              Ember and the helpers are computer programs, not people or counselors. Every 3 hours of chatting, the app reminds you and suggests a break. If a message ever sounds like you might be in crisis, the app immediately surfaces 988 and Crisis Text Line on screen.
+            </Text>
+            <View style={styles.btnRow}>
+              <Button
+                label="Crisis protocol"
+                icon="heart"
+                variant="secondary"
+                size="sm"
+                onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/CRISIS-PROTOCOL.md').catch(() => {})}
+              />
+              <Button label="Need help now" icon="phone" variant="ghost" size="sm" onPress={() => router.push('/help')} />
+            </View>
           </Card>
         </Section>
       </Reveal>

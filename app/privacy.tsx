@@ -1,5 +1,6 @@
-import { StyleSheet, Text } from 'react-native';
+import { Linking, StyleSheet, Text } from 'react-native';
 import { InfoList } from '../components/InfoList';
+import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
@@ -57,7 +58,40 @@ export default function PrivacyScreen() {
         </Section>
       </Reveal>
       <Reveal index={n++}>
-        <Text style={styles.foot}>A backup from Settings holds everything on this phone. Erasing in Settings clears this phone; your online check-ins and entries stay.</Text>
+        <Section title="Privacy policy, health data, and terms">
+          <Card>
+            <Text style={styles.policyBody}>
+              Brain Navigator has no ads, no tracking pixels, and never sells or shares your schoolwork, mood, sleep, or consumer health data. AI features run only after your explicit consent and can be turned off at any time in Settings.
+            </Text>
+            <Button
+              label="Read the Privacy Policy"
+              icon="book"
+              variant="secondary"
+              size="sm"
+              onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/PRIVACY-POLICY.md').catch(() => {})}
+              style={styles.policyBtn}
+            />
+            <Button
+              label="Consumer Health Data Notice"
+              icon="heart"
+              variant="ghost"
+              size="sm"
+              onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/CONSUMER-HEALTH-DATA-POLICY.md').catch(() => {})}
+              style={styles.policyBtn}
+            />
+            <Button
+              label="Terms of Service"
+              icon="list"
+              variant="ghost"
+              size="sm"
+              onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/TERMS-OF-SERVICE.md').catch(() => {})}
+              style={styles.policyBtn}
+            />
+          </Card>
+        </Section>
+      </Reveal>
+      <Reveal index={n++}>
+        <Text style={styles.foot}>A backup from Settings holds everything on this phone. Erasing in Settings clears both this phone and your online check-ins and entries.</Text>
       </Reveal>
     </Screen>
   );
@@ -70,6 +104,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     color: colors.unlocked,
+  },
+  policyBody: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textMuted,
+  },
+  policyBtn: {
+    marginTop: 10,
+    alignSelf: 'flex-start',
   },
   foot: {
     marginTop: 18,

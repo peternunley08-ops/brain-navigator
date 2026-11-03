@@ -35,6 +35,7 @@ import { useHubStore } from '../core/hubStore';
 import { startHomeWidget } from '../core/homeWidget';
 import { useLifeStore } from '../core/lifeStore';
 import { useSchoolStore } from '../core/schoolStore';
+import { loadPhoneOnlyDb } from '../core/supabase';
 import { colors } from '../core/theme';
 import { useWeatherStore } from '../core/weatherStore';
 
@@ -84,6 +85,7 @@ export default function RootLayout() {
     useHubStore.getState().load();
     useLifeStore.getState().load();
     useWeatherStore.getState().load();
+    loadPhoneOnlyDb();
   }, []);
 
   // Keep the Home Screen widget on tomorrow's first class and what's due.
