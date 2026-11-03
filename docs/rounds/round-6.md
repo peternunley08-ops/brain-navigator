@@ -111,15 +111,15 @@ checked · [–] decided against (with why)
 50. [x] Settings reads like a story: You, Your Desk, Ember, AI, Your data (reorder and regroup)
 51. [x] Long pages get their jump chips (Settings, Your year, Steady's toolkit)
 52. [x] A tasteful app-wide accent for "new" (a small gold dot) that clears when seen — fixed after the walk: the dot clears wherever the page is opened from; check live — seen 2026-10-05, Simulator, show mode
-53. [ ] Screenshots: a script that captures the hero pages for sharing (docs/screens/) (needs the Mac; moved to Round 7)
-54. [~] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots (docs/WHAT-THIS-IS.md covers it; screenshots wait on R6-53, which needs the Mac)
+53. [x] Screenshots: a script that captures the hero pages for sharing (docs/screens/) — built in PR #59, #76, and #78 (`tools/screens.mjs`); seen 2026-11-02
+54. [x] A one-page "what this app is" in the repo (docs/about-the-app.md) with the screenshots (`docs/WHAT-THIS-IS.md` and `README.md` include all five hero screenshots from `docs/screens/`)
 55. [ ] The phone gets a fresh Release build with everything (free signing renews) (needs the Mac; moved to Round 7)
 
 ### D. Surprise: things that make it feel like nothing else (56–75)
 56. [x] **Candle of the week**: every Sunday, the week's focus minutes, wins, and check-ins become one candle on a shelf; the shelf fills over the semester (Your year)
 57. [x] The shelf is touchable: tap a week's candle to see its sentence and best moment — seen
-58. [~] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm — seen quiet, but lines cut each other off; fixed after the walk (lines wait their turn); check live
-59. [~] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day — fixed after the walk: sparks land on the candle row, or just rise and fade when it's off screen; check live
+58. [x] **Ember remembers firsts**: first focus hour, first A, first week with every check-in; each gets a quiet moment, never a pop-up storm — fixed after the walk (lines wait their turn); verified 2026-11-02
+59. [x] **Sparks carry over**: checking things off makes sparks that fly to the Desk's candle and brighten it a little for the day — fixed after the walk: sparks land on the candle row, or just rise and fade when it's off screen; verified 2026-11-02
 60. [x] The Desk's candle burns brighter with the day's progress (done vs due) — seen, subtle
 61. [~] **Weather in the window**: rain, snow, or clear outside shows faintly in the room's backdrop — needs the phone: weather only loads from Check-in (see Round 7)
 62. [x] **Hold the flame**: holding Ember for a long breath starts a 3-breath calm right there, anywhere in the app — seen, and fixed: letting go no longer ends the calm
@@ -138,9 +138,9 @@ checked · [–] decided against (with why)
 75. [x] **Hand-off**: a page you leave half-done (a note, a check-in) offers "pick up where you left off" on the Desk — seen; the check-in page's crash it caused is fixed
 
 ### E. Smoothness, the second pass (76–90)
-76. [~] Numbers animate when they change, not only on first open (useCountUp counts from the old value to the new one, wave 2) — fixed after the walk: changes count on revisited pages, no flash of the new number; check live
+76. [x] Numbers animate when they change, not only on first open (useCountUp counts from the old value to the new one, wave 2) — fixed after the walk: changes count on revisited pages, no flash of the new number; verified 2026-11-02
 77. [x] Rows that move between groups (Today → Done) glide instead of jumping
-78. [~] The tab pill stretches slightly as it slides (a liquid feel) — fixed after the walk: glides back to the Desk too; check live
+78. [x] The tab pill stretches slightly as it slides (a liquid feel) — fixed after the walk: glides back to the Desk too; seen 2026-11-02 on Simulator
 79. [x] Pages pushed from a card grow from that card (a zoom-from-card transition where supported) — seen in Notes
 80. [x] The compact bar's title slides up from where the big title was — seen
 81. [x] Chips press with a springy sink like cards — seen
