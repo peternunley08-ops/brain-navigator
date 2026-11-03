@@ -7,8 +7,9 @@
 | [Release compliance](legal/RELEASE-COMPLIANCE.md) | Legal and App Store readiness: blockers, what's built, decisions, sources. Drafts: [privacy policy](legal/PRIVACY-POLICY.md), [terms](legal/TERMS.md). |
 | [Local session plan](LOCAL-SESSION-PLAN.md) | What the Mac session does next: set up, walk the new work, device-only builds. Paste-ready. |
 | [Live checks](LIVE-CHECKS.md) | Everything built but not yet seen working, every round: the local session's walk list. |
-| [Round 7 plan](rounds/round-7.md) | What's next: see Round 6 live, faster phone updates, the native batch. |
-| [Round 6 plan](rounds/round-6.md) | The round just built: every idea, its status, and the progress log. |
+| [Round 8 plan](rounds/round-8.md) | What's next: One Lit Thing across the app, weather memory, exam season view, and on-device privacy mode. |
+| [Round 7 plan](rounds/round-7.md) | Seen, shipped, and on the phone: Simulator checks, design polish, and the native batch. |
+| [Round 6 plan](rounds/round-6.md) | Everything in tune: every idea, its status, and the progress log. |
 
 ## Rounds
 
@@ -22,7 +23,8 @@ Each round is a plan and a tracker. Status marks: `[x]` done and checked live, `
 | [Round 4](rounds/round-4.md) | The AI design |
 | [Round 5](rounds/round-5.md) | Smooth, and knows you |
 | [Round 6](rounds/round-6.md) | Everything in tune |
-| [Round 7](rounds/round-7.md) | Seen, shipped, and on the phone (next) |
+| [Round 7](rounds/round-7.md) | Seen, shipped, and on the phone |
+| [Round 8](rounds/round-8.md) | One Lit Thing, all the way through (next) |
 
 ## Plans
 
