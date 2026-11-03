@@ -71,7 +71,7 @@ function Body({ kind, doneToday }: { kind: LitKind; doneToday: number }) {
     case 'windDown':
       return <WindDown />;
     case 'oneThing':
-      return <OneThing />;
+      return <OneThing lit />;
     case 'due':
       return <DueTonight />;
     case 'exams':

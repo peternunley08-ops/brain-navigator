@@ -15,6 +15,7 @@ const RELEASES: { title: string; when: string; lines: string[]; links: { label: 
       'After wind-down the Desk becomes one quiet stack: tomorrow’s first class, what’s due, and lights out by.',
       'Put the day down: see what got done, leave what’s on your mind in the worry box, say goodnight.',
       'The room dims a little each hour at night, and a few stars come out.',
+      'Sparks fly to your Desk candles when you finish work, Ember remembers your firsts, and the window reflects the sky and weather outside.',
       'About you cards and This-or-that, so Ember knows how you like things.',
       'Each week becomes a candle on a shelf in Your year.',
       'Settings reads in order, long pages have jump chips, and every delete can be undone.',

@@ -1,4 +1,6 @@
 import * as Haptics from '../../core/haptics';
+import { LinearGradient } from 'expo-linear-gradient';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSequence, withSpring, withTiming, useSharedValue } from 'react-native-reanimated';
@@ -9,11 +11,12 @@ import { useLifeStore } from '../../core/lifeStore';
 import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { emberSay } from '../ember/EmberBuddy';
 import { Sparks } from '../ember/Sparks';
+import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Pressy } from '../ui/Pressy';
 
 // The one thing that would make today a win. Not a to-do list — one line.
-export function OneThing() {
+export function OneThing({ lit = false }: { lit?: boolean }) {
   const today = dateKey();
   const text = useLifeStore((s) => s.oneThing[today] ?? '');
   const done = useLifeStore((s) => !!s.oneThingDone[today]);
@@ -80,20 +83,44 @@ export function OneThing() {
           setDraft(text);
           setEditing(true);
         }}
-        style={[styles.card, done && styles.cardDone]}
+        style={[styles.card, lit && styles.cardLit, done && styles.cardDone]}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: done }}
         accessibilityLabel={`Today’s one thing: ${text}`}
         accessibilityHint="Hold to change it"
       >
-        <Animated.View style={[styles.check, done && styles.checkOn, popStyle]}>
-          <Sparks burst={burst} reach={34} />
-          {done ? <Icon name="check" size={15} color={colors.flameInk} strokeWidth={3} /> : <Icon name="star" size={14} color={colors.flame} />}
-        </Animated.View>
-        <View style={styles.flex}>
-          <Text style={styles.kicker} maxFontSizeMultiplier={2}>Today’s one thing</Text>
-          <Text style={[styles.text, done && styles.textDone]} maxFontSizeMultiplier={textGrow.heading}>{text}</Text>
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            alpha(done ? colors.secured : colors.flame, lit ? 0.14 : 0.08),
+            alpha(done ? colors.secured : colors.flame, 0.02),
+          ]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.wash}
+        />
+        <View style={styles.topRow}>
+          <Animated.View style={[styles.check, lit && styles.checkLit, done && styles.checkOn, popStyle]}>
+            <Sparks burst={burst} reach={34} />
+            {done ? <Icon name="check" size={15} color={colors.flameInk} strokeWidth={3} /> : <Icon name="star" size={lit ? 16 : 14} color={colors.flame} />}
+          </Animated.View>
+          <View style={styles.flex}>
+            <Text style={styles.kicker} maxFontSizeMultiplier={2}>Today’s one thing</Text>
+            <Text style={[styles.text, lit && styles.textLit, done && styles.textDone]} maxFontSizeMultiplier={textGrow.heading}>{text}</Text>
+            {lit && !done ? (
+              <Text style={styles.sub} maxFontSizeMultiplier={2}>Tap to mark it done, or light a study candle.</Text>
+            ) : null}
+          </View>
         </View>
+        {lit && !done ? (
+          <Button
+            label="Light the candle"
+            icon="candle"
+            size="sm"
+            onPress={() => router.push({ pathname: '/focus', params: { topic: text } })}
+            style={styles.action}
+          />
+        ) : null}
       </Pressy>
     </Animated.View>
   );
@@ -105,24 +132,42 @@ const styles = StyleSheet.create({
   },
   card: {
     marginTop: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: alpha(colors.flame, 0.35),
-    backgroundColor: alpha(colors.flame, 0.06),
+    borderColor: alpha(colors.flame, 0.32),
+    borderTopColor: alpha(colors.flame, 0.52),
+    backgroundColor: colors.surface,
+    overflow: 'hidden',
+  },
+  cardLit: {
+    paddingHorizontal: 18,
+    paddingVertical: 18,
+  },
+  wash: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   empty: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     borderStyle: 'dashed',
     backgroundColor: 'transparent',
     paddingVertical: 4,
   },
   cardDone: {
     borderColor: alpha(colors.secured, 0.4),
-    backgroundColor: alpha(colors.secured, 0.06),
+    borderTopColor: alpha(colors.secured, 0.55),
   },
   input: {
     flex: 1,
@@ -140,6 +185,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  checkLit: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: alpha(colors.flame, 0.12),
+  },
   checkOn: {
     backgroundColor: colors.secured,
     borderColor: colors.secured,
@@ -155,6 +206,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     lineHeight: 24,
     color: colors.text,
+  },
+  textLit: {
+    fontSize: 21,
+    lineHeight: 27,
+  },
+  sub: {
+    marginTop: 3,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  action: {
+    marginTop: 14,
+    alignSelf: 'flex-start',
   },
   textDone: {
     color: colors.textFaint,

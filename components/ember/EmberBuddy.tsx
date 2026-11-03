@@ -181,13 +181,14 @@ export function EmberBuddy() {
   // Settle onto the saved perch once it's loaded, and after the screen
   // changes size. (Not on every perch change — a drop already springs
   // Ember there, carrying the fling's velocity.)
+  const showing = useShowMode((st) => st.on);
   const perch = useRef({ restX, restY });
   perch.current = { restX, restY };
   useEffect(() => {
     if (!loaded) return;
     x.value = withSpring(perch.current.restX, { mass: 1, damping: 18, stiffness: 160 });
     y.value = withSpring(perch.current.restY, { mass: 1, damping: 18, stiffness: 160 });
-  }, [loaded, W, H, insets.top, x, y]);
+  }, [loaded, showing, W, H, insets.top, x, y]);
 
   useEffect(() => {
     show.value = withTiming(hidden || !loaded ? 0 : 1, { duration: hidden ? 180 : 360, easing: Easing.out(Easing.cubic) });

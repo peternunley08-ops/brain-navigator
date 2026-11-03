@@ -3,11 +3,11 @@ import type { ReactNode, RefObject } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { tonightLine } from '../../core/litCard';
 import { tonightsLoad, useSchoolStore } from '../../core/schoolStore';
-import { colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts } from '../../core/theme';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { plural } from '../../core/words';
 import { Card } from '../ui/Card';
-import { Icon } from '../ui/Icon';
+import { Icon, type IconName } from '../ui/Icon';
 import { MoodPicker } from '../ui/MoodPicker';
 import { Pressy } from '../ui/Pressy';
 import { Section } from '../ui/Section';
@@ -47,6 +47,8 @@ export function TodayRows({
         {show('due') ? (
           <Row
             label="Tonight"
+            icon="book"
+            iconColor={over ? colors.unlocked : colors.flame}
             // Over the cap, the row offers the fix: Pip's plan fits tonight inside it.
             onPress={() => router.push(over ? '/helper/pip' : load.items.length ? '/school' : '/add-assignment')}
             hint={over ? 'Pip plans tonight inside your limit' : load.items.length ? 'Opens School' : 'Adds homework'}
@@ -63,7 +65,7 @@ export function TodayRows({
           </Row>
         ) : null}
         {show('mind') ? (
-          <Row label="On your mind" onPress={() => router.push(open ? '/open-loops' : '/new-entry')} hint={open ? 'Opens everything on your mind' : 'Sets something down'} line={show('due')} stack={stack}>
+          <Row label="On your mind" icon="candle" iconColor={colors.flame} onPress={() => router.push(open ? '/open-loops' : '/new-entry')} hint={open ? 'Opens everything on your mind' : 'Sets something down'} line={show('due')} stack={stack}>
             <View ref={candleRow} style={styles.dots}>
               {Array.from({ length: Math.min(open, DOTS) }, (_, i) => (
                 <View key={i} style={styles.dot} />
@@ -74,14 +76,19 @@ export function TodayRows({
         ) : null}
         {show('checkin') ? (
           checkin?.mood != null ? (
-            <Row label="How you’re doing" onPress={() => router.push('/checkin')} hint="Opens today’s check-in" line={show('due') || show('mind')} stack={stack}>
+            <Row label="How you’re doing" icon="heart" iconColor={colors.secured} onPress={() => router.push('/checkin')} hint="Opens today’s check-in" line={show('due') || show('mind')} stack={stack}>
               <Text style={value} maxFontSizeMultiplier={2}>
                 {[MOOD_WORDS[checkin.mood - 1], checkin.sleep_hours != null ? `${plural(checkin.sleep_hours, 'hour')} of sleep` : null].filter(Boolean).join(', ')}
               </Text>
             </Row>
           ) : (
             <View style={[styles.mood, (show('due') || show('mind')) && styles.line]}>
-              <Text style={styles.label} maxFontSizeMultiplier={2}>How you’re doing</Text>
+              <View style={styles.labelWrap}>
+                <View style={[styles.badge, { backgroundColor: alpha(colors.secured, 0.14) }]}>
+                  <Icon name="heart" size={15} color={colors.secured} />
+                </View>
+                <Text style={styles.label} maxFontSizeMultiplier={2}>How you’re doing</Text>
+              </View>
               <Text style={styles.hint} maxFontSizeMultiplier={2}>Tap a face. Hold one for the full check-in.</Text>
               <View style={styles.picker}>
                 <MoodPicker value={null} onChange={onMood} onLongPress={() => router.push('/checkin')} />
@@ -94,10 +101,15 @@ export function TodayRows({
   );
 }
 
-function Row({ label, onPress, hint, line, stack, children }: { label: string; onPress: () => void; hint: string; line?: boolean; stack?: boolean; children: ReactNode }) {
+function Row({ label, icon, iconColor, onPress, hint, line, stack, children }: { label: string; icon: IconName; iconColor: string; onPress: () => void; hint: string; line?: boolean; stack?: boolean; children: ReactNode }) {
   return (
     <Pressy onPress={onPress} style={[styles.row, stack && styles.rowStack, line && styles.line]} depth={0.98} accessibilityRole="button" accessibilityHint={hint}>
-      <Text style={styles.label} maxFontSizeMultiplier={2}>{label}</Text>
+      <View style={styles.labelWrap}>
+        <View style={[styles.badge, { backgroundColor: alpha(iconColor, 0.14) }]}>
+          <Icon name={icon} size={15} color={iconColor} />
+        </View>
+        <Text style={styles.label} maxFontSizeMultiplier={2}>{label}</Text>
+      </View>
       <View style={[styles.right, stack && styles.rightStack]}>{children}</View>
       {stack ? null : <Icon name="chevron" size={16} color={colors.textFaint} />}
     </Pressy>
@@ -121,9 +133,21 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
+    gap: 8,
+    paddingHorizontal: 14,
     paddingVertical: 14,
+  },
+  labelWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  badge: {
+    width: 24,
+    height: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   line: {
     borderTopWidth: StyleSheet.hairlineWidth,

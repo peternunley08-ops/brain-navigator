@@ -219,7 +219,7 @@ export default function SchoolScreen() {
       </Reveal>
 
       <Reveal index={n++}>
-        <Button label="Add homework or a test" icon="plus" onPress={() => router.push('/add-assignment')} style={styles.add} />
+        <Button label="Add homework or a test" icon="plus" variant="secondary" tint={colors.flame} onPress={() => router.push('/add-assignment')} style={styles.add} />
       </Reveal>
 
       <Reveal index={n++}>

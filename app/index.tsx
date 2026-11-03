@@ -151,6 +151,20 @@ export default function DeskScreen() {
   const { width } = useWindowDimensions();
   const reducedMotion = useReducedMotion();
   const time = useFlameClock();
+  // Night runs from the wind-down hour (an hour later for a night owl) to 4:30 AM,
+  // and the Desk shrinks to a short stack. In development only,
+  // brainnavigator://?night=23:30 pretends it is that time and ?night=off stops.
+  // ?show=riley opens the sample student with no prompts (for tools/screens.mjs); ?show=off leaves.
+  const { night: nightParam, show: showParam } = useLocalSearchParams<{ night?: string; show?: string }>();
+  useEffect(() => {
+    const m = parseNightParam(nightParam);
+    if (__DEV__ && m !== undefined) setNightClock(m);
+  }, [nightParam]);
+  useEffect(() => {
+    if (!__DEV__) return;
+    if (showParam === 'riley' && !isShowing()) void startShow(true).then(dismissTour);
+    if (showParam === 'off') void endShow();
+  }, [showParam]);
   const openLoops = useOpenLoops();
 
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
@@ -178,23 +192,9 @@ export default function DeskScreen() {
   const briefFirst = (timePick === 'b' && hourNow >= 17) || (timePick === 'a' && hourNow >= 5 && hourNow < 11);
   const schoolLoaded = useSchoolStore((s) => s.loaded);
 
-  // Night runs from the wind-down hour (an hour later for a night owl) to 4:30 AM,
-  // and the Desk shrinks to a short stack. In development only,
-  // brainnavigator://?night=23:30 pretends it is that time and ?night=off stops.
-  // ?show=riley opens the sample student with no prompts (for tools/screens.mjs); ?show=off leaves.
-  const { night: nightParam, show: showParam } = useLocalSearchParams<{ night?: string; show?: string }>();
   useSyncExternalStore(subscribeNightClock, nightClockVersion);
   // Riley's Desk is for showing people (and the store pictures): no dev chip on it.
   const showing = useShowMode((st) => st.on);
-  useEffect(() => {
-    const m = parseNightParam(nightParam);
-    if (__DEV__ && m !== undefined) setNightClock(m);
-  }, [nightParam]);
-  useEffect(() => {
-    if (!__DEV__) return;
-    if (showParam === 'riley' && !isShowing()) startShow().then(dismissTour);
-    if (showParam === 'off') endShow();
-  }, [showParam]);
   const [, setMinute] = useState(0);
   useEffect(() => {
     const iv = setInterval(() => setMinute((m) => m + 1), 60000);
