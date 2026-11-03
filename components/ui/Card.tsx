@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { type ReactNode, useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 import { alpha, colors, radii } from '../../core/theme';
@@ -21,11 +22,17 @@ export function Card({ style, children, tint, onPress, onLongPress, padded = tru
   const look = [
     styles.card,
     padded && styles.padded,
-    tint ? { borderColor: alpha(tint, 0.3), borderTopColor: alpha(tint, 0.45) } : null,
+    tint ? { borderColor: alpha(tint, 0.3), borderTopColor: alpha(tint, 0.52) } : null,
     style,
   ];
   const wash = tint ? (
-    <View pointerEvents="none" style={[styles.wash, { backgroundColor: alpha(tint, pressed ? 0.14 : 0.07) }]} />
+    <LinearGradient
+      pointerEvents="none"
+      colors={[alpha(tint, pressed ? 0.16 : 0.11), alpha(tint, pressed ? 0.05 : 0.02)]}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.wash}
+    />
   ) : null;
 
   if (onPress) {

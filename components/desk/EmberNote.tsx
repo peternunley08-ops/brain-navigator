@@ -12,8 +12,9 @@ import { useHubStore } from '../../core/hubStore';
 import { learnedNotes } from '../../core/learned';
 import { useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
-import { colors, fonts, textGrow } from '../../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { useWellnessStore } from '../../core/wellnessStore';
+import { Icon } from '../ui/Icon';
 import { IconButton } from '../ui/IconButton';
 import { Pressy } from '../ui/Pressy';
 import { AboutCards, whenAboutCards } from './AboutCards';
@@ -134,7 +135,9 @@ export function EmberNote({ deskHidden }: { deskHidden: string[] }) {
       <Note key={shown} />
       {rest.length ? (
         <Pressy onPress={() => setOpen(true)} hitSlop={8} style={styles.more} accessibilityRole="button" accessibilityHint="Opens Ember’s other notes for today">
+          <Icon name="sparkle" size={13} color={colors.flame} />
           <Text style={styles.link} maxFontSizeMultiplier={2}>{moreLine(rest.length)}</Text>
+          <Icon name="chevron" size={13} color={colors.flame} />
         </Pressy>
       ) : null}
       <NotesSheet open={open && rest.length > 0} ids={rest} onClose={() => setOpen(false)} />
@@ -178,11 +181,19 @@ const styles = StyleSheet.create({
   more: {
     alignSelf: 'flex-start',
     marginTop: 10,
-    marginLeft: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    backgroundColor: alpha(colors.flame, 0.08),
+    borderWidth: 1,
+    borderColor: alpha(colors.flame, 0.22),
   },
   link: {
-    fontFamily: fonts.bodyMedium,
-    fontSize: 14,
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
     color: colors.flame,
   },
   fill: {

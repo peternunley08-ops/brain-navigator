@@ -14,7 +14,7 @@ import { Pressy } from './ui/Pressy';
 // so, and the way back. Always on top, so it's never in doubt whose app
 // this is right now.
 export function ShowBanner() {
-  const on = useShowMode((s) => s.on);
+  const on = useShowMode((s) => s.on && !s.quietBanner);
   const insets = useSafeAreaInsets();
   const [leaving, setLeaving] = useState(false);
   if (!on) return null;

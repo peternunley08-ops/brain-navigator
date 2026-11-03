@@ -1,7 +1,8 @@
 import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { nightClockVersion, nightNow, subscribeNightClock } from '../../core/night';
 import { clock, nowState, useSchoolStore } from '../../core/schoolStore';
 import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { Card } from '../ui/Card';
@@ -17,13 +18,14 @@ function mins(n: number) {
 // Where you are in the school day, updated every minute.
 export function NowCard() {
   const classes = useSchoolStore((s) => s.classes);
+  useSyncExternalStore(subscribeNightClock, nightClockVersion);
   const [, tick] = useState(0);
   useEffect(() => {
     const t = setInterval(() => tick((x) => x + 1), 60_000);
     return () => clearInterval(t);
   }, []);
 
-  const now = nowState(classes);
+  const now = nowState(classes, nightNow());
 
   const pulse = useSharedValue(0);
   const reduced = useReducedMotion();

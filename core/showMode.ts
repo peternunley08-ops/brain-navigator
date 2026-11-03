@@ -6,11 +6,11 @@ let on = false;
 
 export const isShowing = () => on;
 
-export const useShowMode = create<{ on: boolean }>(() => ({ on: false }));
+export const useShowMode = create<{ on: boolean; quietBanner: boolean }>(() => ({ on: false, quietBanner: false }));
 
-export function setShowing(v: boolean) {
+export function setShowing(v: boolean, quietBanner = false) {
   on = v;
-  useShowMode.setState({ on: v });
+  useShowMode.setState({ on: v, quietBanner: v ? quietBanner : false });
   if (!v) useTour.setState({ step: -1, dismissed: false });
 }
 

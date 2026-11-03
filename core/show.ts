@@ -63,7 +63,7 @@ function refetchOnline() {
   ]);
 }
 
-export async function startShow() {
+export async function startShow(quietBanner = false) {
   if (isShowing()) return;
   const cal = useGoogleCalendarStore.getState();
   const health = useHealthStore.getState();
@@ -92,7 +92,8 @@ export async function startShow() {
   };
 
   // The flag goes up first, so nothing below can be saved.
-  setShowing(true);
+  setShowing(true, quietBanner);
+  useEmberStore.setState({ side: 'right', y: 1, napping: false, bubbleOpen: false, toast: null });
   fillSampleDb(sampleTables());
   const settings = useLifeStore.getState().settings;
   useSchoolStore.setState({ ...sampleSchool(), loaded: true });
