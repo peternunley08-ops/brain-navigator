@@ -369,6 +369,8 @@ export function Icon({ name, size = 22, color = colors.text, strokeWidth = 1.8 }
       strokeWidth={strokeWidth}
       strokeLinecap="round"
       strokeLinejoin="round"
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
     >
       {shapes[name](color)}
     </Svg>

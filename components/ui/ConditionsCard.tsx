@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { colors, fonts, spacing } from '../../core/theme';
 import { useWeatherStore } from '../../core/weatherStore';
 import { compassLabel, weatherCodeEmoji, weatherCodeLabel } from '../../core/weatherCodes';
 import { Button } from './Button';
 import { Card } from './Card';
+import { Pressy } from './Pressy';
 
 export function ConditionsCard() {
   const isAuthorized = useWeatherStore((s) => s.isAuthorized);
@@ -45,9 +46,15 @@ export function ConditionsCard() {
     <Card style={styles.card}>
       <View style={styles.headerRow}>
         <Text style={styles.locationText}>{locationLabel ?? 'Current location'}</Text>
-        <Pressable onPress={refresh} hitSlop={8}>
+        <Pressy
+          onPress={refresh}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={isLoading ? 'Refreshing weather' : 'Refresh weather'}
+          accessibilityState={{ busy: isLoading }}
+        >
           <Text style={styles.refreshText}>{isLoading ? '···' : 'Refresh'}</Text>
-        </Pressable>
+        </Pressy>
       </View>
 
       <View style={styles.weatherRow}>

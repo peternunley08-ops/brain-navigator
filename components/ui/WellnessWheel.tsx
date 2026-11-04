@@ -55,9 +55,19 @@ export function WellnessWheel({ scores, size = 280, showLabels = true }: Wellnes
     return { points: pts };
   });
 
+  const spokenSummary =
+    known.length > 0
+      ? `Wellness wheel: ${WELLNESS_DIMENSIONS.map((d) => `${d.label} ${scores[d.key] !== null ? `${scores[d.key]}%` : 'not logged'}`).join(', ')}`
+      : 'Wellness wheel: no readings logged yet';
+
   return (
-    <View style={{ width: size, height: size }}>
-      <Svg width={size} height={size}>
+    <View
+      style={{ width: size, height: size }}
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={spokenSummary}
+    >
+      <Svg width={size} height={size} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         <Defs>
           <RadialGradient id="wheelFill" cx="50%" cy="50%" r="50%">
             <Stop offset="0" stopColor="#F5B45C" stopOpacity={0.5} />
@@ -107,7 +117,7 @@ export function WellnessWheel({ scores, size = 280, showLabels = true }: Wellnes
                     y={labelPoint.y + 4}
                     fontSize={11}
                     fontFamily={fonts.bodyMedium}
-                    fill={has ? dimensionColor[d.key] : colors.hint}
+                    fill={has ? dimensionColor[d.key] : colors.textFaint}
                     textAnchor="middle"
                   >
                     {d.label}

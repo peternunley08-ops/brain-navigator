@@ -1,7 +1,7 @@
 import * as Haptics from '../../core/haptics';
 import type { ReactNode } from 'react';
 import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring } from 'react-native-reanimated';
 import { springs } from '../../core/motion';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -28,6 +28,7 @@ export function Pressy({
   ...rest
 }: PressyProps) {
   const scale = useSharedValue(1);
+  const reduced = useReducedMotion();
   const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   return (
@@ -37,11 +38,11 @@ export function Pressy({
       disabled={disabled}
       style={[style, anim]}
       onPressIn={(e) => {
-        scale.value = withSpring(depth, springs.press);
+        if (!reduced) scale.value = withSpring(depth, springs.press);
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(1, springs.release);
+        if (!reduced) scale.value = withSpring(1, springs.release);
         onPressOut?.(e);
       }}
       onPress={(e) => {

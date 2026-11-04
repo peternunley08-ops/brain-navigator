@@ -202,7 +202,7 @@ export function useEmberRig({ glance = true, asleep = false }: { glance?: boolea
   const talk = useCallback(
     (on: boolean) => {
       cancelAnimation(mouth);
-      if (!on) {
+      if (!on || reduced) {
         mouth.value = withTiming(0, { duration: 120 });
         return;
       }
@@ -218,14 +218,15 @@ export function useEmberRig({ glance = true, asleep = false }: { glance?: boolea
         -1
       );
     },
-    [mouth]
+    [reduced, mouth]
   );
 
   const yawn = useCallback(() => {
+    if (reduced) return;
     cancelAnimation(mouth);
     mouth.value = withSequence(withTiming(1, { duration: 380 }), withTiming(1, { duration: 420 }), withTiming(0, { duration: 260 }));
     stretch.value = withSequence(withTiming(1.14, { duration: 380 }), withTiming(1.14, { duration: 420 }), withSpring(1));
-  }, [mouth, stretch]);
+  }, [reduced, mouth, stretch]);
 
   const look = useCallback(
     (x: number, y: number) => {

@@ -337,11 +337,11 @@ export function Screen({
         onLayout={onRootLayout}
         collapsable={false}
       >
-        <Animated.View style={[styles.backdrop, depth]} pointerEvents="none">
+        <Animated.View style={[styles.backdrop, depth]} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Backdrop tone={tone} glowColor={glowColor} motes={motes} weather={weather} active={front} />
         </Animated.View>
         {scroll ? (
-          <Animated.View style={[styles.pullGlow, pullGlow]} pointerEvents="none">
+          <Animated.View style={[styles.pullGlow, pullGlow]} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
             <Svg width={winW} height={320}>
               <Defs>
                 <RadialGradient id="pull" cx="50%" cy="0%" rx="70%" ry="100%">
@@ -377,7 +377,12 @@ export function Screen({
           </View>
         )}
         {scroll && (back || title || barTitle) ? (
-          <View style={[styles.bar, { height: insets.top + BAR }]} pointerEvents={barOn ? 'box-none' : 'none'}>
+          <View
+            style={[styles.bar, { height: insets.top + BAR }]}
+            pointerEvents={barOn ? 'box-none' : 'none'}
+            accessibilityElementsHidden={!barOn}
+            importantForAccessibility={barOn ? 'auto' : 'no-hide-descendants'}
+          >
             {GLASS ? (
               <GlassView
                 style={StyleSheet.absoluteFill}

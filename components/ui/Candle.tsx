@@ -221,7 +221,7 @@ function CandleBase({
   const pool = state === 'unlit' ? WAX_POOL.unlit : WAX_POOL.lit;
 
   return (
-    <View style={{ width: W, height: H }} pointerEvents="none">
+    <View style={{ width: W, height: H }} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <Svg width={W} height={H} style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id={`${gid}w`} x1="0" y1="0" x2="1" y2="0">

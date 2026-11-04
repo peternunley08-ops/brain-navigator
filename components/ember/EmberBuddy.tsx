@@ -1,7 +1,7 @@
 import * as Haptics from '../../core/haptics';
 import { usePathname } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Keyboard, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { AppState, Keyboard, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { GestureDetector, usePanGesture } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
@@ -38,6 +38,7 @@ import { EmberSprite } from './EmberSprite';
 import { Confetti, Sparks } from './Sparks';
 import { useEmberRig } from './useEmberRig';
 import { goTo } from '../Drawer';
+import { Pressy } from '../ui/Pressy';
 
 // Ember lives on top of every screen. Drag it anywhere and it swings back
 // to the nearest edge, its flame trailing behind the way a real flame does
@@ -686,12 +687,12 @@ export function EmberBuddy() {
       <Confetti run={confetti} width={W} height={H} colors={[colors.flame, colors.flameHot, '#E89AB8', colors.text]} />
       {bubbleOpen && !hidden ? (
         <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(160)} style={StyleSheet.absoluteFill}>
-          <Pressable style={styles.scrim} onPress={closeBubble} accessibilityLabel="Close Ember" />
+          <Pressy style={styles.scrim} onPress={closeBubble} depth={1} haptic="none" accessibilityRole="button" accessibilityLabel="Close Ember" />
         </Animated.View>
       ) : null}
 
       {bubbleOpen && !hidden && tip ? (
-        <View style={[styles.bubbleWrap, bubblePos]} pointerEvents="box-none">
+        <View style={[styles.bubbleWrap, bubblePos]} pointerEvents="box-none" accessibilityViewIsModal>
           <EmberBubble
             key={mode === 'about' ? 'about' : tip.id + tipIndex}
             width={bubbleW}
