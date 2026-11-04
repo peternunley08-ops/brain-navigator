@@ -1,4 +1,4 @@
-import { useAudioPlayer } from 'expo-audio';
+import { setAudioModeAsync, useAudioPlayer } from 'expo-audio';
 import { useEffect } from 'react';
 import { useAudioStore } from '../core/audioStore';
 
@@ -14,8 +14,12 @@ export function FireCrackle() {
     player.loop = true;
     player.volume = 0.35;
     try {
-      if (on) player.play();
-      else player.pause();
+      if (on) {
+        setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' }).catch(() => {});
+        player.play();
+      } else {
+        player.pause();
+      }
     } catch {
       // A player that's gone is already silent.
     }

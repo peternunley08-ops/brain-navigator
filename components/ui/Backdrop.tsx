@@ -59,11 +59,13 @@ export const Backdrop = memo(function Backdrop({
     return () => clearInterval(t);
   }, []);
   // One clock for the motes, stars and rain, on the ambient beat; paused
-  // under another page.
-  const clock = useAmbientClock(active);
+  // under another page or when nothing on this page moves with it.
+  const reduced = useReducedMotion();
   const now = minutesOf(nightNow());
   const start = nightStart(windDown, nightOwl);
   const night = isNight(now, start);
+  const hasAmbient = motes || weather === 'rain' || weather === 'snow' || night;
+  const clock = useAmbientClock(active && !reduced && hasAmbient);
   const veil = Math.min(0.18, 0.04 * hoursIntoNight(now, start));
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="none">
