@@ -31,6 +31,7 @@ import { FireCrackle } from '../components/FireCrackle';
 import { ShakeToWorry } from '../components/ShakeToWorry';
 import { UndoBar } from '../components/UndoBar';
 import { Celebration } from '../components/Celebration';
+import { dateKey } from '../core/dates';
 import { useHubStore } from '../core/hubStore';
 import { startHomeWidget } from '../core/homeWidget';
 import { useLifeStore } from '../core/lifeStore';
@@ -83,13 +84,31 @@ export default function RootLayout() {
   useEffect(() => {
     useSchoolStore.getState().load();
     useHubStore.getState().load();
-    useLifeStore.getState().load();
-    useWeatherStore.getState().load();
-    loadPhoneOnlyDb();
+    useLifeStore
+      .getState()
+      .load()
+      .then(() => {
+        if (useLifeStore.getState().settings.lastSeen === dateKey()) setEntered(true);
+      })
+      .catch(() => {});
+    const raf = requestAnimationFrame(() => {
+      useWeatherStore.getState().load();
+      loadPhoneOnlyDb();
+    });
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   // Keep the Home Screen widget on tomorrow's first class and what's due.
-  useEffect(() => startHomeWidget(), []);
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    const raf = requestAnimationFrame(() => {
+      stop = startHomeWidget();
+    });
+    return () => {
+      cancelAnimationFrame(raf);
+      stop?.();
+    };
+  }, []);
 
   if (!fontsLoaded) {
     return null;

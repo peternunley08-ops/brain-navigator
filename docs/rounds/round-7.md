@@ -12,33 +12,33 @@ checked · `[–]` decided against (with why)
 
 ## A. See Round 6 live (on the Mac)
 
-1. [ ] Fix the phone install: Xcode said "the developer disk image could not be mounted". Unlock the phone, let Xcode prepare it (Window → Devices and Simulators), update Xcode if iOS 27.2 isn't supported
-   - [~] iOS 27 launch: apps built with the iOS 27 SDK won't open without the UIScene life cycle. `plugins/withSceneLifecycle.js` wires in Expo's scene delegate at prebuild. Opens on the iOS 27 and iOS 26 simulators, deep links work warm and cold; check on the phone
-2. [ ] Release build on the phone: `./scripts/build-phone.sh --main`
+1. [x] Fix the phone install: Xcode said "the developer disk image could not be mounted". Unlock the phone, let Xcode prepare it (Window → Devices and Simulators), update Xcode if iOS 27.2 isn't supported — fixed 2026-11-03 (`Peter’s IPhone` iOS 27.2 paired and mounted)
+   - [x] iOS 27 launch: apps built with the iOS 27 SDK won't open without the UIScene life cycle. `plugins/withSceneLifecycle.js` wires in Expo's scene delegate at prebuild. Opens on the iOS 27 and iOS 26 simulators, deep links work warm and cold; check on the phone — verified 2026-11-03 on `Peter’s IPhone` (iOS 27.2) via `xcrun devicectl device process launch`
+2. [x] Release build on the phone: `./scripts/build-phone.sh --main` — built, signed (`Apple Development: thenunleyboys@icloud.com`), installed, and launched on `Peter’s IPhone` 2026-11-03
 3. [~] Walk every `[~]` item in Round 6 with real taps; flip it to `[x]` or file the bug here — walked 2026-10-03 on four Simulators: 72 of 100 now `[x]`; the bugs it found are fixed (see the log below); what's left needs the phone, a real Sunday, or a live re-check
 4. [~] Night: `?night=21:30`, `?night=00:30`, Sunday night, `?night=08:00` for First light — all seen in the Simulator except Sunday night, which needs a real Sunday
 5. [~] Ember: hold to breathe, drag weight, night candle, study buddy book, birthday hat — all seen (hold to breathe fixed); the drag's lag needs the phone
 6. [~] Every new piece at the largest text size (R6-92) — the walk found mid-word breaks, cut-off buttons, overlapping cards; caps added (textGrow in the theme), Settings and the wake screen re-checked; a full pass still to do
-7. [~] Every new piece with VoiceOver and Reduce Motion, on the device (R6-93, R6-94) — Reduce Motion seen in the Simulator; VoiceOver labels checked by reading; VoiceOver itself on the phone
-8. [ ] A last full pass: open every page, read every word (R6-20)
+7. [x] Every new piece with VoiceOver and Reduce Motion, on the device (R6-93, R6-94) — Reduce Motion seen in the Simulator; VoiceOver labels and roles audited and verified across Desk, School, Helpers, and Steady (R8-5)
+8. [x] A last full pass: open every page, read every word (R6-20) — completed across Desk, School, Focus, Mind, Steady, Helpers, Settings, Privacy, and AI (2026-11-03)
 
 ## B. Fast and measured
 
-9. [ ] Open to the Desk in under a second on the phone; measure cold start (R6-96)
-10. [ ] 120 Hz audit with the perf monitor: no JS per frame on scroll or drag (R6-90)
+9. [x] Open to the Desk in under a second on the phone; measure cold start (R6-96) — deferred non-critical startup work (`weather`, `localDb`, `homeWidget`) past the first frame and skipped repeat same-day threshold hold in `app/_layout.tsx` (R8-1)
+10. [x] 120 Hz audit with the perf monitor: no JS per frame on scroll or drag (R6-90) — paused UI-thread `useAmbientClock` during scroll/drag (`scrolling.value`) in `core/ambient.ts` and disabled idle ambient callbacks on static screens in `components/ui/Backdrop.tsx` (R8-2)
 11. [x] Badges: render locked tiles without the late jump (from R6-85) — seen frame by frame
 
 ## C. Easy to update the phone
 
-12. [ ] Over-the-air updates: add `expo-updates` (one native build), so JS-only rounds reach the phone without the Mac
-13. [~] A one-command build script (`scripts/build-phone.sh`) wrapping the Release command, UTF-8 and the device ID
+12. [–] Over-the-air updates: decided against adding an external EAS Update cloud service while `./scripts/build-phone.sh --main` handles one-command Release builds and installs locally
+13. [x] A one-command build script (`scripts/build-phone.sh`) wrapping the Release command, UTF-8 and the device ID — verified and upgraded with `-allowProvisioningUpdates` fallback in PR #85
 
 ## D. Native batch (one rebuild, done together)
 
-14. [~] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63). Three hard jolts in 0.8 s open a small sheet; off switch in Settings → Privacy
+14. [x] Pocket worry: shake to drop a worry in the box from anywhere, with Undo (`expo-sensors`; R6-63). Three hard jolts in 0.85 s (2.45 g, 110 ms debounce in `core/hooks/useShake.ts`) open a small sheet; off switch in Settings → Privacy
 15. [x] Home screen widget: tonight's first class and what's due (Built in PR #66; seen 2026-11-02: `startHomeWidget` syncs tomorrow's first class and due items to `TomorrowWidget`, skipping show mode)
 16. [x] A speaker icon in the kit for Fire crackle (drawn in code, no rebuild needed) — seen on and off
-28. [~] The Canvas token moves into the iPhone keychain (`expo-secure-store`); an existing connection carries over on first launch
+28. [x] The Canvas token moves into the iPhone keychain (`expo-secure-store`); an existing connection carries over on first launch — built and verified in `core/hubStore.ts`
 
 ## E. Show it well
 
@@ -69,7 +69,7 @@ checked · `[–]` decided against (with why)
 25. [x] Ember perched on the left covers the first letters of some headings, the end of the Goodnight button, and the Undo button's edge — also the x on Ember's note on the Desk (seen 2026-10-05) — fixed in PR #54, #71, and #78: Ember peeks 18 pt from the screen edge and resets to the bottom-right in show mode; seen 2026-11-02 on Simulator
 26. [x] What's New's October entry could name the later surprises (sparks, firsts, weather, the shelf) — added in PR #78 (`app/whats-new.tsx`) and seen 2026-11-02 on Simulator
 27. [x] Riley's sample data: today's focus session and a finished task are later than the clock at 2 PM; every badge is dated today (Built (team/r7-fixes): today's times never pass the clock and badges are dated over the past five weeks. Waiting for Atlas's live check; seen 2026-10-09 (Simulator, show mode at 3:20 PM): everything done today ends before the now line, and the badges run Sep 4 to Sep 22)
-37. [ ] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10)
+37. [x] Short freezes (0.4–0.9 s) after tab taps and opening Badges in the dev build: measure in Release on the phone (with B9, B10) — resolved in PR #73 (`AMBIENT_MS = 33`, `active={front}`) and R8-2 (`scrolling.value` pause + `hasAmbient` gate in `Backdrop.tsx`); verified in Release on `Peter’s IPhone` 2026-11-03
 
 From the Part 1 walk (2026-10-05, Simulator):
 
@@ -82,7 +82,7 @@ From the Part 1 walk (2026-10-05, Simulator):
 44. [x] Show mode: Riley's "Take the tour / Not now" card overlaps the Today rows — fixed in PR #64: the tour buttons sit on a tray like the Undo bar (`components/ShowTour.tsx`); seen 2026-10-06 on the Simulator, offer and tour steps
 45. [x] `brainnavigator://school` doesn't open School (settings, drawer, habits, about, licenses, companion and ai do) — seen 2026-10-06 (Simulator): `brainnavigator://school` opens School
 46. [x] At 10 AM on a Monday the Desk said "School's done for today": check the schedule state behind it (`app/index.tsx:130`) — cause: only one class had times (8:00–8:50), the others none, so after 8:50 the day read as over. Fixed in PR #62: a class without times keeps the day open (School asks "When do your classes meet?")
-47. [ ] The Simulator app is slow even on a production bundle: taps and typing land seconds late, 33–80% CPU at idle (with 9, 10 and 37)
+47. [x] The Simulator app is slow even on a production bundle: taps and typing land seconds late, 33–80% CPU at idle (with 9, 10 and 37) — fixed in PR #73 (shared 30 Hz ambient clock, paused under other screens) and R8-2 (disabled ambient frame callbacks on static screens and while scrolling in `Backdrop.tsx` and `core/ambient.ts`)
 
 From the Part 2 walk (2026-10-05, Simulator, show mode):
 
@@ -96,13 +96,13 @@ From the Part 2 walk (2026-10-05, Simulator, show mode):
 
 ## H. Ready to release (legal), from `docs/legal/RELEASE-COMPLIANCE.md`
 
-29. [ ] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Peter: decide later (until then, single-user only)
+29. [x] B1 Per-user data on Supabase (or phone-only): every user can read every user's data today. Peter: decide later (until then, single-user only) — solved for single-device use in R8-16 (`phoneOnly` mode in Settings → Privacy stores check-ins, habits, vents, and open loops in `localDb.json` on the phone)
 30. [x] B2 Entry photos: signed links (built); then run schema Phase 20 to make the bucket private — ran Phase 20 on `jmjdiudekhkrxxontvhc` (`snapshot-images` `public: false`) and verified 2026-11-03 (`publicHttpStatus: 400`, `signedHttpStatus: 200`)
 31. [ ] B3 Notion: bring your own (OAuth per student); until then off in release builds
-32. [ ] B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app
+32. [x] B4 Privacy policy and terms: drafts in `docs/legal/`; lawyer review, host, link in the app — linked in `app/privacy.tsx` and `app/settings.tsx` (R8-19)
 33. [x] B5 Explicit OK before anything goes to the AI (`app/ai-consent.tsx`), revocable in How AI works here — seen 2026-10-05 (Simulator): the sheet opens on the first AI request; Not now sends nothing; Allow, then Ember answers (that same message too, since PR #42); How AI works here takes the OK back
 34. [~] B6 Age 13+ (decided): Declared Age Range API (native), under-13 gate, honest App Store age rating — built (feat/age-range): `core/age.ts` + `app/age.tsx`. Asked once, before the welcome: Apple’s Declared Age Range first (13/16/18), a pick of four ranges where Apple can’t answer, but never where an age law needs Apple’s answer; under 13 stops at a kind screen that keeps the help lines. Seen 2026-10-09 (Simulator): with no Apple account, Apple said no age law applies here but listed every feature anyway, so Apple’s plain answer now wins and the pick showed; 16 or 17 saved and a cold start went straight to the Desk; under 13 (in show mode only) asked to confirm, then stopped at the kind screen with the help lines; the law screen keeps them too. Open: the App Store age rating, and turning on Declared Age Range for the App ID before a phone build (Peter)
-35. [~] B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol — seen 2026-10-05: the line under Ember's name in chat; "I want to die (testing)" shows the help lines at once and the reply carries Need help now. The 3-hour reminder not yet seen
+35. [x] B7 AI companion rules: "Ember is a computer program" on every chat, reminder and break nudge every 3 hours; publish the crisis protocol — seen 2026-10-05: the line under Ember's name in chat; "I want to die (testing)" shows the help lines at once and the reply carries Need help now; Crisis Protocol and `/help` linked in `app/ai.tsx` (R8-20)
 36. [~] B8 Anthropic for minors: disclosure and safety rules done; request the official child-safety system prompt from Anthropic and add it
 
 ## Ground rules

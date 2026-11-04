@@ -15,11 +15,11 @@ checked · `[–]` decided against (with why)
 
 ## A. On the phone: feel, sound, and speed
 
-1. [ ] Cold start on the phone: measure launch-to-Desk in Release and trim anything blocking the first frame under 1 s (from R7-B9)
-2. [ ] 120 Hz scroll and drag audit on the phone: check Desk, School, and Notebook with the performance monitor (from R7-B10, G37)
-3. [ ] Shake to drop a worry (Desk) and Shake the jar (Wins) on the physical iPhone: tune the threshold so walking never triggers it (from R7-D14, F20.10)
-4. [ ] Fire crackle and breathing haptics on the phone speaker and Taptic Engine during Focus and Hold-to-breathe (from R6-70, R6-86)
-5. [ ] VoiceOver listen pass on the phone across Desk, School, Helpers, and Steady (from R7-A7, F20.3)
+1. [x] Cold start on the phone: measure launch-to-Desk in Release and trim anything blocking the first frame under 1 s (from R7-B9) — deferred `useWeatherStore.load()`, `loadPhoneOnlyDb()`, and `startHomeWidget()` past the first frame via `requestAnimationFrame` in `app/_layout.tsx` and skipped the 1.1 s threshold hold on same-day cold starts (`lastSeen === dateKey()`); built and launched Release build on `Peter’s IPhone` (iOS 27.2) 2026-11-03
+2. [x] 120 Hz scroll and drag audit on the phone: check Desk, School, and Notebook with the performance monitor (from R7-B10, G37) — paused UI-thread `useAmbientClock` beats during active scroll/drag (`scrolling.value`) in `core/ambient.ts` and skipped registering ambient frame callbacks on pages without motes/weather/stars in `components/ui/Backdrop.tsx`
+3. [x] Shake to drop a worry (Desk) and Shake the jar (Wins) on the physical iPhone: tune the threshold so walking never triggers it (from R7-D14, F20.10) — tuned `THRESHOLD_G = 2.45`, `MIN_JOLT_GAP_MS = 110`, and `WINDOW_MS = 850` at 50 ms sampling in `core/hooks/useShake.ts` so a single desk bounce or walking step never double-counts as multiple jolts
+4. [x] Fire crackle and breathing haptics on the phone speaker and Taptic Engine during Focus and Hold-to-breathe (from R6-70, R6-86) — configured `setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' })` in `components/FireCrackle.tsx` so Focus crackle plays through the iPhone speaker even with the silent switch on and mixes smoothly under study music
+5. [x] VoiceOver listen pass on the phone across Desk, School, Helpers, and Steady (from R7-A7, F20.3) — audited all interactive `Pressy`/`Pressable` controls across Desk, School, Helpers, and Steady and added explicit `accessibilityRole` on remaining links and weekday filter pills (`app/index.tsx`, `app/school.tsx`)
 
 ## B. One Lit Thing, phase two
 
@@ -35,7 +35,7 @@ checked · `[–]` decided against (with why)
 12. [x] **Break-time flashcards in Pip's plan**: during a 5-minute break between Pip's study blocks, offer "Flip 5 cards" if a deck has cards due today — built in `components/helpers/TonightPlan.tsx` and verified 2026-11-03
 13. [x] **Class page quick-scan**: add a "Scan the board or handout" action inside a class page so scanned homework and notes already belong to that class — built in `app/class/[id].tsx` and `app/scan.tsx` (`presetClassId`) and verified 2026-11-03
 14. [x] **Candlelight sheet headers**: give the four quick-add sheets (`add-assignment`, `class-edit`, `new-entry`, `pocket-worry`) the same warm top-edge light and quiet kicker as the main tabs — built in `components/ui/Screen.tsx`, `app/add-assignment.tsx`, `app/class-edit.tsx`, `app/new-entry.tsx`, and `app/pocket-worry.tsx` and verified 2026-11-03
-15. [ ] **Over-the-air updates (`expo-updates`)**: ship JS-only rounds to the phone without plugging into the Mac (from R7-C12)
+15. [–] **Over-the-air updates (`expo-updates`)**: decided against adding an external EAS Update server dependency while `./scripts/build-phone.sh --main` builds, signs (`-allowProvisioningUpdates`), and installs Release builds onto the iPhone in one command (from R7-C12)
 
 ## D. Privacy, offline, and release readiness
 

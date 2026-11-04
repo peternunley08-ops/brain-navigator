@@ -202,6 +202,7 @@ export default function SchoolScreen() {
                 onPress={() => setDay(on ? null : d.key)}
                 depth={0.9}
                 style={[styles.weekDay, on && styles.weekDayOn]}
+                accessibilityRole="button"
                 accessibilityLabel={`${d.letter} ${d.num}, ${d.items.length} due`}
                 accessibilityState={{ selected: on }}
               >

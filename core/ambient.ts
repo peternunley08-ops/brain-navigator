@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { type SharedValue, useFrameCallback, useSharedValue } from 'react-native-reanimated';
+import { scrolling } from './chrome';
 
 // Ambient motion (Ember's sway, candle flicker, motes, stars, rain) moves
 // about 30 times a second, and every clock moves on the same frames. Any frame
@@ -27,6 +28,7 @@ export function useAmbientClock(active = true) {
   const last = useSharedValue(-1);
   const clock = useFrameCallback((frame) => {
     'worklet';
+    if (scrolling.value) return;
     if (ambientBeat(frame.timestamp, last)) time.value = frame.timestamp;
   }, false);
   useEffect(() => {

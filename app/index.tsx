@@ -399,7 +399,7 @@ show('due') ? (
             </Svg>
           </View>
           {overflow > 0 ? (
-            <Pressy onPress={() => router.push('/open-loops')} hitSlop={8} style={styles.moreLink}>
+            <Pressy onPress={() => router.push('/open-loops')} hitSlop={8} style={styles.moreLink} accessibilityRole="link">
               <Text style={styles.link} maxFontSizeMultiplier={2}>And {overflow} more — see everything that’s open</Text>
             </Pressy>
           ) : null}
