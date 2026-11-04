@@ -68,7 +68,7 @@ export const Backdrop = memo(function Backdrop({
   const clock = useAmbientClock(active && !reduced && hasAmbient);
   const veil = Math.min(0.18, 0.04 * hoursIntoNight(now, start));
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+    <View style={StyleSheet.absoluteFill} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <LinearGradient colors={gradients[tone]} style={StyleSheet.absoluteFill} />
       <Svg width={width} height={height} style={StyleSheet.absoluteFill}>
         <Defs>

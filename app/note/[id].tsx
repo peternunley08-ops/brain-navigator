@@ -305,6 +305,7 @@ export default function NoteScreen() {
         defaultValue={note.title}
         onChangeText={(t) => updateNote(note.id, { title: t })}
         placeholder="Untitled"
+        accessibilityLabel="Note title"
         placeholderTextColor={colors.hint}
         selectionColor={colors.flame}
         multiline
@@ -371,6 +372,19 @@ export default function NoteScreen() {
               // value fights fast typing (the store lags a keystroke behind).
               defaultValue={blk.text}
               onChangeText={(t) => change(i, t)}
+              accessibilityLabel={`${
+                blk.type === 'heading'
+                  ? 'Heading'
+                  : blk.type === 'todo'
+                    ? 'To-do item'
+                    : blk.type === 'bullet'
+                      ? 'Bullet point'
+                      : blk.type === 'numbered'
+                        ? `Numbered item ${numbered}`
+                        : blk.type === 'quote'
+                          ? 'Quote'
+                          : 'Paragraph'
+              } ${i + 1}`}
               placeholder={
                 blk.type === 'heading'
                   ? 'Heading'
@@ -426,6 +440,7 @@ export default function NoteScreen() {
                 depth={0.9}
                 hitSlop={8}
                 accessibilityRole="button"
+                accessibilityLabel={`${n} words limit`}
                 accessibilityState={{ selected: goal === n }}
                 style={[styles.limit, goal === n && { borderColor: note.color, backgroundColor: alpha(note.color, 0.14) }]}
               >
@@ -513,7 +528,13 @@ export default function NoteScreen() {
               <Pressy onPress={() => setCardPick(null)} style={styles.pickCancel} accessibilityRole="button">
                 <Text style={styles.pickCancelText}>Cancel</Text>
               </Pressy>
-              <Pressy onPress={makeCards} disabled={!cardPick.length} style={[styles.makeCards, styles.pickGo, !cardPick.length && styles.dim]} accessibilityRole="button">
+              <Pressy
+                onPress={makeCards}
+                disabled={!cardPick.length}
+                style={[styles.makeCards, styles.pickGo, !cardPick.length && styles.dim]}
+                accessibilityRole="button"
+                accessibilityState={{ disabled: !cardPick.length }}
+              >
                 <Icon name="cards" size={15} color={colors.flame} />
                 <Text style={styles.makeCardsText}>
                   {linked ? 'Add' : 'Make'} {plural(cardPick.length, 'card')}

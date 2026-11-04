@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { colors, fonts, spacing } from '../../core/theme';
 import { useSleepAmbientStore } from '../../core/sleepAmbientStore';
+import { plural } from '../../core/words';
 import { AmbientMicMeter } from './AmbientMicMeter';
 import { Card } from './Card';
 
@@ -40,14 +41,23 @@ export function SleepQualityCard({ qualityPct, deepMinutes, remMinutes, lightMin
       <Text style={styles.label}>Sleep stages</Text>
       <Text style={styles.score}>{qualityPct !== null ? `${qualityPct}%` : '—'}</Text>
 
-      <View style={styles.capsuleRow}>
+      <View
+        style={styles.capsuleRow}
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={
+          hasData
+            ? `Sleep stages: Deep ${plural(values.deep, 'minute')}, REM ${plural(values.rem, 'minute')}, Light ${plural(values.light, 'minute')}`
+            : 'Sleep stages: no sleep data recorded yet'
+        }
+      >
         {SEGMENTS.map((seg) => {
           const minutes = values[seg.key];
           const ratio = hasData ? minutes / total : 0;
           const filledHeight = hasData ? Math.max(6, ratio * CAPSULE_HEIGHT) : 6;
           return (
             <View key={seg.key} style={styles.capsuleColumn}>
-              <Svg width={CAPSULE_WIDTH} height={CAPSULE_HEIGHT}>
+              <Svg width={CAPSULE_WIDTH} height={CAPSULE_HEIGHT} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                 <Rect
                   x={0}
                   y={0}

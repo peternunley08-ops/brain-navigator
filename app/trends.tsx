@@ -131,8 +131,14 @@ export default function TrendsScreen() {
       {data.length > 0 ? (
         <>
           <Reveal index={1}>
-            <Card padded={false} style={styles.chartCard}>
-              <Svg width={CHART_WIDTH} height={CHART_HEIGHT}>
+            <Card
+              padded={false}
+              style={styles.chartCard}
+              accessible
+              accessibilityRole="image"
+              accessibilityLabel={`${metric.label} trend from ${formatShortDate(data[0].checkin_date)} to ${formatShortDate(data[data.length - 1].checkin_date)}${stats ? `: average ${stats.avg.toFixed(1)}${metric.unit}, latest ${stats.latest}${metric.unit}` : ''}`}
+            >
+              <Svg width={CHART_WIDTH} height={CHART_HEIGHT} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                 <Defs>
                   <LinearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
                     <Stop offset="0" stopColor={metric.color} stopOpacity={0.32} />

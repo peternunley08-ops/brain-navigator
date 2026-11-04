@@ -39,7 +39,7 @@ export function UndoBar() {
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: insets.bottom + 96 }]}>
       <Animated.View key={item.id} entering={FadeInDown.duration(220)} exiting={FadeOutDown.duration(180)} style={styles.bar}>
         <Icon name={item.icon} size={16} color={colors.textMuted} />
-        <Text style={styles.label} numberOfLines={1} maxFontSizeMultiplier={2}>
+        <Text style={styles.label} numberOfLines={2} maxFontSizeMultiplier={2}>
           {item.label}
         </Text>
         {item.also ? (

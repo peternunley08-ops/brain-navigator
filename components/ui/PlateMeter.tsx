@@ -32,10 +32,21 @@ export function PlateMeter({ openCount, cap, size = 132 }: PlateMeterProps) {
     return `M${c + r * Math.cos(a0)},${c + r * Math.sin(a0)} A${r},${r} 0 ${large} 1 ${c + r * Math.cos(a1)},${c + r * Math.sin(a1)}`;
   };
 
+  const spokenNote = over
+    ? `${openCount - cap} more than you meant to carry.`
+    : openCount === 0
+      ? 'Nothing open right now.'
+      : `Room for ${cap - openCount} more.`;
+
   return (
-    <View style={styles.row}>
+    <View
+      style={styles.row}
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={`${openCount} of ${cap} open. ${status.label}. ${spokenNote}`}
+    >
       <View style={{ width: size, height: size }}>
-        <Svg width={size} height={size}>
+        <Svg width={size} height={size} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Circle cx={c} cy={c} r={r - 10} fill={colors.surfaceSunk} stroke={colors.line} strokeWidth={1} />
           <Circle cx={c} cy={c} r={r - 22} fill="none" stroke={colors.line} strokeWidth={1} />
           {over ? <Circle cx={c} cy={c} r={r + 4} fill="none" stroke={alpha(colors.unlocked, 0.45)} strokeWidth={2} /> : null}

@@ -30,7 +30,14 @@ export function TimeField({ label, value, onChange, hours = HOURS }: TimeFieldPr
 
   return (
     <View style={styles.wrap}>
-      <Pressy onPress={() => setOpen((o) => !o)} style={[styles.field, open && styles.fieldOpen]} accessibilityRole="button" accessibilityLabel={`${label}, ${clock(value)}`}>
+      <Pressy
+        onPress={() => setOpen((o) => !o)}
+        style={[styles.field, open && styles.fieldOpen]}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${clock(value)}`}
+        accessibilityState={{ expanded: open }}
+        accessibilityHint="Opens hour and minute picker"
+      >
         <Text style={styles.label}>{label}</Text>
         <View style={styles.valueRow}>
           <Icon name="clock" size={16} color={colors.flame} strokeWidth={2} />

@@ -33,7 +33,7 @@ export const CandleGlyph = memo(function CandleGlyph({
   const id = `g${state}${Math.round(intensity * 10)}`;
 
   return (
-    <Svg width={size} height={(size * H) / W} viewBox={`0 0 ${W} ${H}`}>
+    <Svg width={size} height={(size * H) / W} viewBox={`0 0 ${W} ${H}`} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <Defs>
         <LinearGradient id={`${id}w`} x1="0" y1="0" x2="1" y2="0">
           <Stop offset="0" stopColor="#FFF4DE" />

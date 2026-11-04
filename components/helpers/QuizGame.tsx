@@ -261,7 +261,8 @@ export function QuizGame({
                 isWrong && { borderColor: colors.danger, backgroundColor: alpha(colors.danger, 0.12) },
               ]}
               accessibilityRole="button"
-              accessibilityLabel={`${LETTERS[k]}: ${o}`}
+              accessibilityState={{ disabled: chosen != null, selected: chosen === k }}
+              accessibilityLabel={`${LETTERS[k]}: ${o}${isRight ? ', correct' : isWrong ? ', incorrect' : ''}`}
             >
               <View style={[styles.letter, isRight && { backgroundColor: colors.secured }, isWrong && { backgroundColor: colors.danger }]}>
                 <Text style={[styles.letterText, (isRight || isWrong) && { color: colors.flameInk }]}>{LETTERS[k]}</Text>

@@ -42,11 +42,12 @@ export function Ring({
   }, [progress, delay, p]);
 
   const arc = useAnimatedProps(() => ({ strokeDashoffset: circ * (1 - p.value) }));
+  const spoken = `${label ? `${label}: ` : ''}${value != null ? `${value}${unit ?? ''}` : 'no reading yet'}`;
 
   return (
-    <View style={styles.wrap}>
+    <View style={styles.wrap} accessible accessibilityRole="progressbar" accessibilityLabel={spoken}>
       <View style={{ width: size, height: size }}>
-        <Svg width={size} height={size}>
+        <Svg width={size} height={size} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Circle cx={size / 2} cy={size / 2} r={r} stroke={alpha(color, 0.16)} strokeWidth={stroke} fill="none" />
           {progress != null ? (
             <AnimatedCircle

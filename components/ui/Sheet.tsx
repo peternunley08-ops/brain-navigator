@@ -64,7 +64,7 @@ export function Sheet({
         <Animated.View style={[StyleSheet.absoluteFill, dim]}>
           <Pressy style={styles.scrim} onPress={onClose} depth={1} haptic="none" accessibilityLabel="Close" />
         </Animated.View>
-        <Animated.View entering={sprung(SlideInDown)} style={styles.slot}>
+        <Animated.View entering={sprung(SlideInDown)} style={styles.slot} accessibilityViewIsModal>
           {head ? (
             <Animated.View style={sheet}>
               {lens}

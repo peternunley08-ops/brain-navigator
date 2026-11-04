@@ -34,10 +34,13 @@ export function LollipopChart({
   const step = (width - padding * 2) / Math.max(data.length - 1, 1);
   // The stems grow up one after another the first time it shows.
   const p = useDrawIn(900);
+  const summary = data
+    .map((pt) => `${pt.label}: ${pt.value !== null ? pt.value : 'no reading'}`)
+    .join(', ');
 
   return (
-    <View style={{ width, height }}>
-      <Svg width={width} height={height}>
+    <View style={{ width, height }} accessible accessibilityRole="image" accessibilityLabel={`Daily readings. ${summary}`}>
+      <Svg width={width} height={height} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
         {data.map((point, i) => {
           const x = padding + i * step;
           const ratio = point.value !== null ? Math.min(1, point.value / maxValue) : 0;

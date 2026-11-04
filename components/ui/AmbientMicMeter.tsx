@@ -6,9 +6,10 @@ import {
   useAudioRecorderState,
 } from 'expo-audio';
 import { useEffect, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { colors, fonts, spacing } from '../../core/theme';
+import { Pressy } from './Pressy';
 
 const METER_OPTIONS = { ...RecordingPresets.HIGH_QUALITY, isMeteringEnabled: true };
 
@@ -80,15 +81,26 @@ export function AmbientMicMeter({ onComplete }: AmbientMicMeterProps) {
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>
-        <Svg width={12} height={12}>
+        <Svg width={12} height={12} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
           <Circle cx={6} cy={6} r={5} fill={state.isRecording ? colors.unlocked : colors.surfaceHigh} />
         </Svg>
-        <View style={styles.levelTrack}>
+        <View
+          style={styles.levelTrack}
+          accessible
+          accessibilityRole="progressbar"
+          accessibilityLabel="Room noise level"
+          accessibilityValue={{ min: 0, max: 100, now: Math.round(level * 100) }}
+        >
           <View style={[styles.levelFill, { width: `${Math.round(level * 100)}%` }]} />
         </View>
-        <Pressable onPress={state.isRecording ? handleStop : handleStart} hitSlop={8}>
+        <Pressy
+          onPress={state.isRecording ? handleStop : handleStart}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={state.isRecording ? 'Stop listening' : 'Check the noise level'}
+        >
           <Text style={styles.actionText}>{state.isRecording ? 'Stop listening' : 'Check the noise level'}</Text>
-        </Pressable>
+        </Pressy>
       </View>
       {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>

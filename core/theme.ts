@@ -57,7 +57,7 @@ export const colors = {
   text: '#F5EBDD',
   textMuted: strong ? '#E4D9CA' : '#C3B3A0',
   textFaint: strong ? '#C9BAA8' : '#998C7D', // 5.2:1 on surface, 4.7:1 on raised cards (AA)
-  hint: strong ? '#B0A291' : '#7E7266',
+  hint: strong ? '#B0A291' : '#8E8173', // 4.55:1 on surfaceSunk (AA)
 
   // Candlelight — the one accent for actions and focus.
   flame: '#F5B45C',

@@ -21,10 +21,13 @@ export function Stepper({ value, onDecrement, onIncrement, label, minWidth = 44 
         style={styles.btn}
         accessibilityRole="button"
         accessibilityLabel={label ? `Less ${label}` : 'Less'}
+        accessibilityValue={{ text: String(value) }}
       >
         <Icon name="minus" size={16} color={colors.textMuted} strokeWidth={2.2} />
       </Pressy>
-      <Text style={[styles.value, { minWidth }]}>{value}</Text>
+      <Text style={[styles.value, { minWidth }]} accessibilityLiveRegion="polite">
+        {value}
+      </Text>
       <Pressy
         onPress={onIncrement}
         depth={0.88}
@@ -32,6 +35,7 @@ export function Stepper({ value, onDecrement, onIncrement, label, minWidth = 44 
         style={styles.btn}
         accessibilityRole="button"
         accessibilityLabel={label ? `More ${label}` : 'More'}
+        accessibilityValue={{ text: String(value) }}
       >
         <Icon name="plus" size={16} color={colors.textMuted} strokeWidth={2.2} />
       </Pressy>
