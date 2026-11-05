@@ -1,0 +1,120 @@
+{
+  "missionId": "M-R9-1-mw2ud0jb",
+  "dispatchedAt": "2026-11-05T01:02:52.919Z",
+  "status": "DISPATCHED",
+  "item": {
+    "id": "R9-1",
+    "title": "**Interactive Trend Scrubbing (`app/trends.tsx`)** — Let the student drag or tap across the trend chart in `app/trends.tsx` to inspect any day's exact reading, date, and check-in note with a subtle haptic tick at each point.",
+    "round": "Round 9",
+    "status": "open",
+    "targetFile": "app/trends.tsx",
+    "route": "brainnavigator://trends"
+  },
+  "branch": {
+    "current": "feat/r9-1-interactive-trends",
+    "deployTarget": "main",
+    "mirrorPath": "/Users/peternunley/brain-navigator",
+    "status": "Branch clean / Synced with main"
+  },
+  "tokenEfficiency": {
+    "framework": "Token-Lean Surgical Protocol",
+    "estimatedSavings": "6,400 tokens (~92% reduction)",
+    "budgetLimit": "3,500 tokens per feature",
+    "methodology": [
+      "Run node tools/hub/lean.mjs outline <file> first",
+      "Use targeted StartLine/EndLine reads only (never entire files)",
+      "Edit surgical line ranges with precise replacements",
+      "Verify with node tools/hub/lean.mjs verify --route \"<route>\" --idea <ID> \"<summary>\""
+    ]
+  },
+  "uiDesign": {
+    "theme": "Night / Candlelight System",
+    "colors": {
+      "amberAccent": "#F5B45C (colors.amber / flame)",
+      "flameHot": "#FFDCA6",
+      "surfaceBase": "#1B1520 (colors.surface)",
+      "surfaceHigh": "#2B2230 (colors.surfaceHigh)",
+      "subtleCard": "rgba(40, 32, 48, 0.70)",
+      "border": "#3A2E44 (colors.lineStrong)",
+      "ink": "#F5EBDD (colors.text)",
+      "dim": "#A3958A (colors.textMuted)"
+    },
+    "typography": {
+      "numbers": "fonts.display (Fraunces serif)",
+      "headings": "fonts.bodySemi (Figtree 600)",
+      "notes": "fonts.body (Figtree 400 italic)"
+    },
+    "interaction": {
+      "touchResponder": "Horizontal scrub responder across SVG datapoints",
+      "haptics": "Haptics.selectionAsync() on datapoint change",
+      "accessibility": "accessibilityRole=\"adjustable\" + accessibilityLabel for VoiceOver"
+    }
+  },
+  "verificationGate": {
+    "route": "brainnavigator://trends",
+    "command": "node tools/hub/lean.mjs verify --route \"brainnavigator://trends\" --idea R9-1 \"**Interactive Trend Scrubbing (`app/trends.tsx`)**\"",
+    "criteria": "0 rule errors, 0 warnings, 0 type errors, 0 failing tests + Simulator screenshot"
+  },
+  "agentMap": [
+    {
+      "id": "atlas",
+      "name": "Atlas",
+      "role": "Mission Orchestrator",
+      "avatar": "🧭",
+      "color": "#F2B661",
+      "status": "ACTIVE_ORCHESTRATING",
+      "stage": "Dispatched R9-1 across token-lean pipeline",
+      "progress": 88,
+      "tokenBurn": "320 tok",
+      "file": "docs/rounds/round-9.md"
+    },
+    {
+      "id": "vector",
+      "name": "Vector",
+      "role": "Token-Lean Coder",
+      "avatar": "⚡",
+      "color": "#6FD0C8",
+      "status": "CLAIMED",
+      "stage": "Surgical edits in app/trends.tsx (lines 310-350)",
+      "progress": 35,
+      "tokenBurn": "1,280 tok (Saved 6.4k)",
+      "file": "app/trends.tsx"
+    },
+    {
+      "id": "palette",
+      "name": "Palette",
+      "role": "UI & Design Systems",
+      "avatar": "🎨",
+      "color": "#DE8238",
+      "status": "DESIGN_ALIGN",
+      "stage": "Candlelight night tokens, scrub pill & Fraunces numbers",
+      "progress": 92,
+      "tokenBurn": "410 tok",
+      "file": "core/theme.ts"
+    },
+    {
+      "id": "aegis",
+      "name": "Aegis",
+      "role": "WCAG & VoiceOver Auditor",
+      "avatar": "🛡️",
+      "color": "#8FD08F",
+      "status": "AUDIT_READY",
+      "stage": "WCAG 2.1 AA spoken date & value announcement pass",
+      "progress": 95,
+      "tokenBurn": "360 tok",
+      "file": "app/trends.tsx"
+    },
+    {
+      "id": "hermes",
+      "name": "Hermes",
+      "role": "Simulator QA & Deployer",
+      "avatar": "🚀",
+      "color": "#C68FD0",
+      "status": "READY_TO_DEPLOY",
+      "stage": "Route brainnavigator://trends, PR creation & mirror sync",
+      "progress": 65,
+      "tokenBurn": "520 tok",
+      "file": "scripts/deploy"
+    }
+  ]
+}

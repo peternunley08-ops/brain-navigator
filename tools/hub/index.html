@@ -213,6 +213,299 @@ td code { color: var(--muted); }
 .rbtn { cursor: pointer; background: rgba(245,180,92,.11); color: var(--flameHot); border: 1px solid rgba(245,180,92,.35); border-radius: 999px; padding: 5px 11px; font: 600 12px Figtree, sans-serif; transition: background .15s, transform .1s; }
 .rbtn:hover { background: rgba(245,180,92,.22); transform: translateY(-1px); }
 .rbtn.act { background: rgba(140,192,168,.16); color: var(--ok); border-color: rgba(140,192,168,.45); }
+
+/* Mission Control & Live Agent Topology */
+.mission-sec {
+  margin-bottom: 18px;
+  background: linear-gradient(180deg, rgba(46, 36, 52, 0.95), rgba(28, 22, 32, 0.95));
+  border: 1px solid rgba(245, 180, 92, 0.35);
+  border-radius: var(--r);
+  padding: 18px 20px 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 0 35px rgba(245, 180, 92, 0.08);
+}
+.mission-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+.mission-title-col { flex: 1; min-width: 280px; }
+.mission-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--flameHot);
+  background: rgba(245, 180, 92, 0.15);
+  border: 1px solid rgba(245, 180, 92, 0.4);
+  padding: 3px 8px;
+  border-radius: 6px;
+  margin-bottom: 6px;
+}
+.mission-btn-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.btn-dispatch {
+  cursor: pointer;
+  background: linear-gradient(135deg, #FFDCA6 0%, #F5B45C 50%, #DE8238 100%);
+  color: #241405;
+  border: none;
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 18px rgba(245, 180, 92, 0.45);
+  transition: transform .15s, box-shadow .15s;
+}
+.btn-dispatch:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 26px rgba(245, 180, 92, 0.65);
+}
+.btn-dispatch:active {
+  transform: translateY(1px);
+}
+.btn-dossier {
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border: 1px solid var(--lineStrong);
+  font: 600 13px Figtree, sans-serif;
+  padding: 10px 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .15s, border-color .15s;
+}
+.btn-dossier:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--flame);
+}
+.agent-map-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.agent-map-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--muted);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.topology-connector {
+  width: 100%;
+  height: 24px;
+  overflow: visible;
+  margin: -4px 0 2px;
+}
+.topology-line {
+  stroke: rgba(245, 180, 92, 0.3);
+  stroke-width: 2;
+  stroke-dasharray: 6 6;
+  animation: beamFlow 1.8s linear infinite;
+  fill: none;
+}
+@keyframes beamFlow {
+  to { stroke-dashoffset: -24; }
+}
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+  position: relative;
+}
+.agent-card-node {
+  background: rgba(23, 18, 26, 0.7);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color .2s, transform .15s;
+}
+.agent-card-node:hover {
+  border-color: var(--flame);
+  transform: translateY(-2px);
+}
+.agent-card-node.pulse {
+  border-color: var(--c, var(--flame));
+  box-shadow: 0 0 16px -2px var(--c, var(--flame));
+}
+.anode-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.anode-id {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.anode-icon {
+  font-size: 18px;
+}
+.anode-name {
+  font-family: Fraunces, serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+}
+.anode-status {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  letter-spacing: .04em;
+  background: rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+.anode-role {
+  font-size: 11.5px;
+  color: var(--faint);
+  margin-bottom: 6px;
+}
+.anode-task {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.35;
+  margin-bottom: 8px;
+  min-height: 32px;
+}
+.anode-progress {
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.anode-progress i {
+  display: block;
+  height: 100%;
+  background: var(--c, var(--flame));
+  transition: width .4s ease;
+}
+.anode-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--faint);
+  font-family: ui-monospace, Menlo, monospace;
+}
+.toast-msg {
+  background: rgba(140, 192, 168, 0.15);
+  border: 1px solid rgba(140, 192, 168, 0.4);
+  color: var(--ok);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  animation: fadeIn .25s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* Dossier Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 6, 10, 0.85);
+  backdrop-filter: blur(8px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-box {
+  background: linear-gradient(180deg, #2b2230 0%, #1c1521 100%);
+  border: 1px solid var(--lineStrong);
+  border-radius: 20px;
+  max-width: 820px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 40px rgba(245, 180, 92, 0.15);
+  overflow: hidden;
+}
+.modal-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.modal-head h2 {
+  font-size: 20px;
+  color: var(--flameHot);
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.modal-close:hover {
+  color: var(--text);
+}
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text);
+}
+.dossier-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+@media (max-width: 640px) { .dossier-grid { grid-template-columns: 1fr; } }
+.dossier-card {
+  background: rgba(23, 18, 26, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+.dossier-card h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: var(--flame);
+  margin: 0 0 6px;
+  letter-spacing: .05em;
+}
+.modal-foot {
+  padding: 14px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: rgba(23, 18, 26, 0.4);
+}
 @media (prefers-reduced-motion: reduce) { *, *::before { animation: none !important; transition: none !important; } }
 </style>
 </head>
@@ -228,6 +521,45 @@ td code { color: var(--muted); }
   </div>
 
   <section class="kpis" id="kpis"></section>
+
+  <!-- Autonomous Progress Mission Control & Live Agent Topology -->
+  <section class="card mission-sec" id="missionSec">
+    <div class="mission-head">
+      <div class="mission-title-col">
+        <div class="mission-tag">Autonomous Multi-Agent Mission</div>
+        <h2 id="missionTitle">Round 9 Mission: Interactive Trend Scrubbing</h2>
+        <div class="sub" id="missionSub">Target: <code>app/trends.tsx</code> · Branch: <code>feat/r9-1-interactive-trends</code> · Route: <code>brainnavigator://trends</code></div>
+      </div>
+      <div class="mission-btn-row">
+        <button class="btn-dispatch" id="btnDispatch">
+          <span>⚡</span>
+          <span>Continue Autonomous Progress</span>
+        </button>
+        <button class="btn-dossier" id="btnDossier">
+          <span>📋 View Mission Dossier</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Agent Topology Map -->
+    <div class="agent-map-wrap">
+      <div class="agent-map-bar">
+        <div><span class="dot on"></span> <strong>Live Agent Topology &amp; Signal Pipeline</strong></div>
+        <div id="agentTokenMeter">⚡ Token-Lean Budget: <strong>94% Efficiency</strong> (6,400 tok saved)</div>
+      </div>
+
+      <svg class="topology-connector" viewBox="0 0 1000 24" preserveAspectRatio="none">
+        <line x1="50" y1="12" x2="950" y2="12" class="topology-line" />
+      </svg>
+      
+      <div class="agent-grid" id="agentMapGrid"></div>
+
+      <div class="toast-msg" id="dispatchToast" style="display:none">
+        <div><strong>🚀 Mission Dispatched &amp; Synchronized!</strong> All token-efficiency rules, UI design tokens, branch targets, and simulator test routes have been sent to the agent pipeline.</div>
+        <button class="modal-close" style="color:var(--ok)" id="toastClose">✕</button>
+      </div>
+    </div>
+  </section>
 
   <div class="master-grid" id="masterGrid">
     <section class="card" id="sysCard">
@@ -352,6 +684,20 @@ td code { color: var(--muted); }
 
 <aside id="drawer" aria-hidden="true"><button class="chip x" id="closeDrawer">Close</button><div id="drawerBody"></div></aside>
 <div id="lightbox"><img alt=""></div>
+
+<div class="modal-overlay" id="dossierModal" style="display:none">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>🚀 Autonomous Multi-Agent Mission Dossier</h2>
+      <button class="modal-close" id="closeDossier">✕</button>
+    </div>
+    <div class="modal-body" id="dossierBody"></div>
+    <div class="modal-foot">
+      <button class="btn-dossier" id="btnCopyPrompt">📋 Copy Prompt for Antigravity</button>
+      <button class="btn-dispatch" id="btnModalDispatch">⚡ Dispatch Now</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const $ = (s) => document.querySelector(s);
@@ -491,6 +837,7 @@ function render() {
   });
 
   renderRoundsAndLean();
+  renderMission(S.mission);
   renderFlow(ideas);
   renderAgents(now);
   renderFeed(now);
@@ -919,6 +1266,145 @@ $('#fStatus').addEventListener('change', (e) => { view.status = e.target.value; 
 $('#fOwner').addEventListener('change', (e) => { view.owner = e.target.value; renderBank([...D.ideas.values()]); });
 $('#fSize').addEventListener('change', (e) => { view.size = e.target.value; renderBank([...D.ideas.values()]); });
 $('#fSort').addEventListener('change', (e) => { view.sort = e.target.value; renderBank([...D.ideas.values()]); });
+
+// ---------- autonomous mission & live agent topology ----------
+let currentMissionPrompt = '';
+
+function renderMission(mission) {
+  if (!mission) return;
+  const item = mission.item || {};
+  const branch = mission.branch || {};
+  const efficiency = mission.tokenEfficiency || {};
+  const ui = mission.uiDesign || {};
+  const gate = mission.verificationGate || {};
+  const agents = mission.agentMap || [];
+
+  $('#missionTitle').textContent = `${item.id || 'R9-1'}: ${item.title || 'Interactive Progress'}`;
+  $('#missionSub').innerHTML = `Target: <code>${esc(item.targetFile || 'app/trends.tsx')}</code> · Branch: <code>${esc(branch.current || 'main')}</code> · Route: <code>${esc(item.route || 'brainnavigator://trends')}</code> · Status: <span style="color:var(--ok)">${esc(branch.status || 'Active')}</span>`;
+  $('#agentTokenMeter').innerHTML = `⚡ Token-Lean Budget: <strong>${esc(efficiency.estimatedSavings || '94% Efficiency')}</strong> (${esc(efficiency.budgetLimit || '< 3.5k tokens')})`;
+
+  const grid = $('#agentMapGrid');
+  grid.innerHTML = agents.map((a) => {
+    return `<div class="agent-card-node" style="--c:${a.color}">
+      <div class="anode-top">
+        <div class="anode-id">
+          <span class="anode-icon">${a.avatar || '🤖'}</span>
+          <span class="anode-name">${esc(a.name)}</span>
+        </div>
+        <span class="anode-status" style="color:${a.color};border:1px solid ${a.color}44">${esc(a.status)}</span>
+      </div>
+      <div class="anode-role">${esc(a.role)}</div>
+      <div class="anode-task">${esc(a.stage)}</div>
+      <div class="anode-progress"><i style="width:${Math.max(8, a.progress || 10)}%"></i></div>
+      <div class="anode-meta">
+        <span><code>${esc(a.file || '')}</code></span>
+        <span style="color:var(--flameHot)">${esc(a.tokenBurn || '')}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Generate complete structured prompt for Antigravity
+  currentMissionPrompt = `🚀 Continue Autonomous Progress: ${item.id || 'R9-1'} (${item.title || 'Task'})
+
+1. Target File: ${item.targetFile || 'app/trends.tsx'}
+2. Active Branch: ${branch.current || 'feat/r9-1-interactive-trends'}
+   • Deploy Target: origin/main
+   • Mirror Repo: /Users/peternunley/brain-navigator (must stay synced)
+3. Token-Lean Protocol:
+   • Outline first: node tools/hub/lean.mjs outline ${item.targetFile || 'app/trends.tsx'}
+   • Targeted line edits only (0 full-file reads)
+   • Estimated Token Savings: ${efficiency.estimatedSavings || '6,400 tokens (~92% reduction)'}
+4. UI & Design System (Candlelight):
+   • Colors: surfaceHigh (${ui.colors?.surfaceHigh || '#2B2230'}), amber accent (${ui.colors?.amberAccent || '#F5B45C'}), border (${ui.colors?.border || '#3A2E44'})
+   • Typography: Fraunces serif for numbers, Figtree for body/labels
+   • Micro-Interactions: Haptics.selectionAsync() on scrub change, WCAG 2.1 AA accessible labels
+5. Simulator Verification:
+   • Deep Link: ${item.route || 'brainnavigator://trends'}
+   • Gate Command: ${gate.command || 'node tools/hub/lean.mjs verify'}
+6. Deployment:
+   • Open and squash-merge PR via gh, then git pull origin main in /Users/peternunley/brain-navigator.`;
+
+  // Render modal body
+  $('#dossierBody').innerHTML = `
+    <div class="dossier-grid">
+      <div class="dossier-card">
+        <h4>🎯 Target Feature &amp; Route</h4>
+        <p><strong>${esc(item.id)}: ${esc(item.title)}</strong></p>
+        <p class="sub">Target File: <code>${esc(item.targetFile)}</code></p>
+        <p class="sub">Simulator Route: <code>${esc(item.route)}</code></p>
+      </div>
+      <div class="dossier-card">
+        <h4>🌿 Branch &amp; Deployment</h4>
+        <p>Active Branch: <code>${esc(branch.current)}</code></p>
+        <p class="sub">Merge Target: <code>${esc(branch.deployTarget)}</code></p>
+        <p class="sub">Mirror Sync: <code>${esc(branch.mirrorPath)}</code></p>
+      </div>
+      <div class="dossier-card">
+        <h4>💡 Token-Lean Architecture</h4>
+        <p style="color:var(--ok)"><strong>${esc(efficiency.estimatedSavings)}</strong></p>
+        <ul style="margin:4px 0 0;padding-left:16px;font-size:12px;color:var(--muted)">
+          ${(efficiency.methodology || []).map((m) => `<li>${esc(m)}</li>`).join('')}
+        </ul>
+      </div>
+      <div class="dossier-card">
+        <h4>🎨 UI Design &amp; HIG Tokens</h4>
+        <p class="sub">Theme: ${esc(ui.theme || 'Night / Candlelight')}</p>
+        <p class="sub">Typography: ${esc(ui.typography?.numbers || 'Fraunces serif')} &amp; ${esc(ui.typography?.headings || 'Figtree')}</p>
+        <p class="sub">Haptics: ${esc(ui.interaction?.haptics || 'Haptics.selectionAsync()')}</p>
+        <p class="sub">A11y: ${esc(ui.interaction?.accessibility || 'WCAG AA')}</p>
+      </div>
+    </div>
+    <div style="margin-top:14px">
+      <h4 style="font-size:12px;text-transform:uppercase;color:var(--flame);letter-spacing:.05em;margin-bottom:6px">Complete Dispatched Agent Prompt</h4>
+      <pre style="background:var(--sunk);border:1px solid var(--lineStrong);border-radius:10px;padding:12px;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:var(--flameHot);white-space:pre-wrap;max-height:220px;overflow:auto">${esc(currentMissionPrompt)}</pre>
+    </div>
+  `;
+}
+
+async function dispatchMission() {
+  const btn = $('#btnDispatch');
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span><span>Dispatching Agents…</span>';
+  try {
+    const res = await fetch('/api/action', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'dispatch_progress' }),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      $('#dispatchToast').style.display = 'flex';
+      $('#agentMapGrid').querySelectorAll('.agent-card-node').forEach((el) => {
+        el.classList.add('pulse');
+        setTimeout(() => el.classList.remove('pulse'), 2500);
+      });
+      if (data.mission) renderMission(data.mission);
+      $('#dossierModal').style.display = 'flex';
+    }
+  } catch (err) {
+    alert('Dispatch failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>⚡</span><span>Continue Autonomous Progress</span>';
+  }
+}
+
+$('#btnDispatch')?.addEventListener('click', dispatchMission);
+$('#btnModalDispatch')?.addEventListener('click', dispatchMission);
+$('#btnDossier')?.addEventListener('click', () => { $('#dossierModal').style.display = 'flex'; });
+$('#closeDossier')?.addEventListener('click', () => { $('#dossierModal').style.display = 'none'; });
+$('#toastClose')?.addEventListener('click', () => { $('#dispatchToast').style.display = 'none'; });
+$('#dossierModal')?.addEventListener('click', (e) => { if (e.target === $('#dossierModal')) $('#dossierModal').style.display = 'none'; });
+
+$('#btnCopyPrompt')?.addEventListener('click', async () => {
+  if (currentMissionPrompt) {
+    await navigator.clipboard.writeText(currentMissionPrompt).catch(() => {});
+    const b = $('#btnCopyPrompt');
+    const old = b.textContent;
+    b.textContent = '✓ Copied to Clipboard!';
+    setTimeout(() => { b.textContent = old; }, 2000);
+  }
+});
 
 async function runHubAction(payload, label) {
   const st = $('#remoteStatus');
