@@ -27,6 +27,7 @@ import { Reveal } from '../../components/ui/Reveal';
 import { Screen } from '../../components/ui/Screen';
 import { Section } from '../../components/ui/Section';
 import { Segmented } from '../../components/ui/Segmented';
+import { Sheet } from '../../components/ui/Sheet';
 import { StatTile } from '../../components/ui/StatTile';
 import { Chip, ChipRow } from '../../components/ui/Chip';
 import { goBack } from '../../core/chrome';
@@ -157,40 +158,73 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
       </Reveal>
 
       <Reveal index={2}>
-        <Section title="Add cards" action={{ label: bulkOpen ? 'One at a time' : 'Paste a list', onPress: () => setBulkOpen((v) => !v) }}>
+        <Section title="Add cards" action={{ label: 'Paste a list', onPress: () => setBulkOpen(true) }}>
           <Card>
-            {bulkOpen ? (
-              <>
-                <Field
-                  multiline
-                  value={bulk}
-                  onChangeText={setBulk}
-                  placeholder={'mitochondria :: powerhouse of the cell\nosmosis :: water moving across a membrane'}
-                  hint="One card per line. Separate the two sides with :: or a dash."
-                />
-                <Button
-                  label={parsed.length ? `Add ${plural(parsed.length, 'card')}` : 'Add cards'}
-                  icon="plus"
-                  disabled={!parsed.length}
-                  onPress={() => {
-                    addCards(deck.id, parsed);
-                    emberSay(`${plural(parsed.length, 'card')} in. Quiz yourself before you reread anything.`, 'happy');
-                    setBulk('');
-                    setBulkOpen(false);
-                  }}
-                  style={styles.gap}
-                />
-              </>
-            ) : (
-              <>
-                <Field placeholder="Front: the question or term" value={front} onChangeText={setFront} autoFocus={startAdding} />
-                <Field placeholder="Back: the answer" value={back} onChangeText={setBack} containerStyle={styles.gapSm} returnKeyType="done" onSubmitEditing={addOne} />
-                <Button label="Add card" icon="plus" variant="secondary" onPress={addOne} disabled={!front.trim() || !back.trim()} style={styles.gap} />
-              </>
-            )}
+            <Field placeholder="Front: the question or term" value={front} onChangeText={setFront} autoFocus={startAdding} />
+            <Field placeholder="Back: the answer" value={back} onChangeText={setBack} containerStyle={styles.gapSm} returnKeyType="done" onSubmitEditing={addOne} />
+            <View style={styles.addActions}>
+              <Button label="Add card" icon="plus" variant="secondary" onPress={addOne} disabled={!front.trim() || !back.trim()} style={styles.flex} />
+              <Button label="Paste a list" icon="sparkle" variant="ghost" onPress={() => setBulkOpen(true)} />
+            </View>
           </Card>
         </Section>
       </Reveal>
+
+      <Sheet open={bulkOpen} onClose={() => setBulkOpen(false)} style={styles.bulkSheet}>
+        <View style={styles.bulkSheetContent}>
+          <View style={styles.bulkSheetHeader}>
+            <View>
+              <Text style={styles.bulkSheetTitle}>Paste a list</Text>
+              <Text style={styles.bulkSheetSub}>One card per line. Formats: Term - Definition, Term: Definition, or Quizlet tabs.</Text>
+            </View>
+            <IconButton icon="close" label="Close" onPress={() => setBulkOpen(false)} />
+          </View>
+
+          <Field
+            multiline
+            numberOfLines={5}
+            value={bulk}
+            onChangeText={setBulk}
+            placeholder={'mitochondria - powerhouse of the cell\nosmosis :: water moving across a membrane\nphotosynthesis\tsunlight into sugar'}
+            hint="Separate terms and definitions with a dash, colon, ::, or tabs."
+            containerStyle={styles.gapSm}
+          />
+
+          {parsed.length > 0 ? (
+            <View style={styles.bulkPreview}>
+              <Text style={styles.bulkPreviewHeading}>Preview ({plural(parsed.length, 'card')} detected)</Text>
+              <View style={styles.bulkPreviewList}>
+                {parsed.slice(0, 4).map((c, idx) => (
+                  <View key={idx} style={styles.bulkPreviewRow}>
+                    <Text style={styles.bulkPreviewFront} numberOfLines={1}>
+                      {c.front}
+                    </Text>
+                    <Icon name="arrow" size={12} color={colors.textFaint} />
+                    <Text style={styles.bulkPreviewBack} numberOfLines={1}>
+                      {c.back}
+                    </Text>
+                  </View>
+                ))}
+                {parsed.length > 4 ? <Text style={styles.bulkPreviewMore}>+{parsed.length - 4} more cards</Text> : null}
+              </View>
+            </View>
+          ) : null}
+
+          <Button
+            label={parsed.length ? `Add ${plural(parsed.length, 'card')}` : 'Paste a list to preview'}
+            icon="plus"
+            disabled={!parsed.length}
+            onPress={() => {
+              addCards(deck.id, parsed);
+              emberSay(`${plural(parsed.length, 'card')} in. Quiz yourself before you reread anything.`, 'happy');
+              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+              setBulk('');
+              setBulkOpen(false);
+            }}
+            style={styles.gap}
+          />
+        </View>
+      </Sheet>
 
       {deck.cards.length ? (
         <Reveal index={3}>
@@ -537,5 +571,78 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     textAlign: 'center',
     maxWidth: 300,
+  },
+  addActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 10,
+  },
+  bulkSheet: {
+    maxHeight: '85%',
+  },
+  bulkSheetContent: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 20,
+  },
+  bulkSheetHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  bulkSheetTitle: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    color: colors.text,
+  },
+  bulkSheetSub: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+    maxWidth: 280,
+  },
+  bulkPreview: {
+    marginTop: 12,
+    padding: 10,
+    backgroundColor: alpha(colors.surfaceHigh, 0.6),
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.line,
+  },
+  bulkPreviewHeading: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: colors.flameHot,
+    marginBottom: 6,
+  },
+  bulkPreviewList: {
+    gap: 6,
+  },
+  bulkPreviewRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  bulkPreviewFront: {
+    flex: 1,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.text,
+  },
+  bulkPreviewBack: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+  },
+  bulkPreviewMore: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.textFaint,
+    marginTop: 2,
+    fontStyle: 'italic',
   },
 });
