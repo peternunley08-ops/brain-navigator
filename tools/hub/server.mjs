@@ -267,9 +267,9 @@ async function computeMasterHealth(rounds, gitState) {
 
 // ---------- compute autonomous mission state & agent map ----------
 function computeMissionState(rounds, gitState) {
-  const r9 = rounds.find((r) => r.num === 9) || rounds[rounds.length - 1];
-  const targetItem = (r9?.items || []).find((i) => i.status === 'open' || i.status === 'check') || (r9?.items || [])[0];
-  const currentBranch = gitState?.branch || 'feat/r9-1-interactive-trends';
+  const r9 = rounds.find((r) => r.round === 9 || r.num === 9) || rounds[rounds.length - 1];
+  const targetItem = (r9?.items || []).find((i) => (i.state === 'open' || i.state === 'check' || i.status === 'open' || i.status === 'check')) || (r9?.items || [])[0];
+  const currentBranch = gitState?.branch === 'main' ? `feat/${(targetItem?.id || 'task').toLowerCase()}` : (gitState?.branch || `feat/${(targetItem?.id || 'task').toLowerCase()}`);
   const hasChanges = (gitState?.modified?.length || 0) > 0 || (gitState?.untracked?.length || 0) > 0;
   
   const targetFile = targetItem?.codeRefs?.[0] || 'app/trends.tsx';
@@ -282,7 +282,7 @@ function computeMissionState(rounds, gitState) {
   else targetRoute = 'brainnavigator://?wake=1';
 
   return {
-    missionId: `M-${targetItem?.id || 'R9-1'}-${Date.now().toString(36)}`,
+    missionId: `M-${targetItem?.id || 'R9-2'}-${Date.now().toString(36)}`,
     dispatchedAt: new Date().toISOString(),
     status: hasChanges ? 'IN_PROGRESS' : 'DISPATCHED',
     item: {

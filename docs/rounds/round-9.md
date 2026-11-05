@@ -9,8 +9,8 @@ Status marks: `[ ]` open · `[~]` built, needs live check · `[x]` verified on s
 ## A. Interactive Insights & Study Workflows
 
 1. [x] **Interactive Trend Scrubbing (`app/trends.tsx`)** — Let the student drag or tap across the trend chart in `app/trends.tsx` to inspect any day's exact reading, date, and check-in note with a subtle haptic tick at each point.
-2. [ ] **Flashcard Paste & Bulk Import (`app/deck/[id].tsx`)** — Add a *"Paste a list"* sheet in `app/deck/[id].tsx` so a student can paste `Term - Definition` or tab-separated lines (e.g. from Quizlet or a study guide) and preview/add them in one tap.
-3. [ ] **Deck Share / Export as Text (`app/deck/[id].tsx`)** — Add a *"Share cards"* action in `app/deck/[id].tsx` using `Share.share` so a student can text or AirDrop a clean `front — back` study list to a classmate.
+2. [x] **Flashcard Paste & Bulk Import (`app/deck/[id].tsx`)** — Add a *"Paste a list"* sheet in `app/deck/[id].tsx` so a student can paste `Term - Definition` or tab-separated lines (e.g. from Quizlet or a study guide) and preview/add them in one tap.
+3. [x] **Deck Share / Export as Text (`app/deck/[id].tsx`)** — Add a *"Share cards"* action in `app/deck/[id].tsx` using `Share.share` so a student can text or AirDrop a clean `front — back` study list to a classmate.
 4. [ ] **Quick Voice Dictation Cue on New Candle (`app/new-entry.tsx`, `app/pocket-worry.tsx`)** — Add a quiet helper hint and one-tap focus into the note field for night-time voice dictation when a student is too tired to type.
 
 ---
