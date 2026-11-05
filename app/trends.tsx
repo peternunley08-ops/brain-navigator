@@ -1,6 +1,7 @@
+import * as Haptics from '../core/haptics';
 import { router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { type GestureResponderEvent, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Svg, { Circle, Defs, Line, LinearGradient, Path, Stop, Text as SvgText } from 'react-native-svg';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -9,7 +10,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { StatTile } from '../components/ui/StatTile';
-import { colors, fonts, layout } from '../core/theme';
+import { alpha, colors, fonts, layout } from '../core/theme';
 import { useWellnessStore } from '../core/wellnessStore';
 
 type MetricKey = 'mood' | 'sleep_hours' | 'sleep_quality' | 'stress_level';
@@ -66,6 +67,8 @@ export default function TrendsScreen() {
   const fetchCheckins = useWellnessStore((s) => s.fetchCheckins);
   const isLoadingCheckins = useWellnessStore((s) => s.isLoadingCheckins);
   const [metricKey, setMetricKey] = useState<MetricKey>('mood');
+  const [scrubIndex, setScrubIndex] = useState<number | null>(null);
+  const lastHapticIndex = useRef<number | null>(null);
 
   useEffect(() => {
     fetchCheckins();
@@ -109,6 +112,33 @@ export default function TrendsScreen() {
     points.length > 1 ? `${line} L${points[points.length - 1].x},${CHART_HEIGHT - PAD_Y} L${points[0].x},${CHART_HEIGHT - PAD_Y} Z` : '';
   const deltaGood = stats ? (metric.upIsGood ? stats.delta >= 0 : stats.delta <= 0) : true;
 
+  const handleTouch = (e: GestureResponderEvent) => {
+    if (points.length < 2) return;
+    const x = e.nativeEvent.locationX;
+    let closest = 0;
+    let minD = Infinity;
+    points.forEach((p, idx) => {
+      const d = Math.abs(p.x - x);
+      if (d < minD) {
+        minD = d;
+        closest = idx;
+      }
+    });
+    if (lastHapticIndex.current !== closest) {
+      lastHapticIndex.current = closest;
+      Haptics.selectionAsync().catch(() => {});
+    }
+    setScrubIndex(closest);
+  };
+
+  const handleRelease = () => {
+    setScrubIndex(null);
+    lastHapticIndex.current = null;
+  };
+
+  const activePoint = scrubIndex != null ? points[scrubIndex] : null;
+  const activeCheckin = scrubIndex != null ? data[scrubIndex] : null;
+
   return (
     <Screen
       title="Trends"
@@ -123,7 +153,17 @@ export default function TrendsScreen() {
       <Reveal index={0}>
         <ChipRow style={styles.chips}>
           {METRICS.map((m) => (
-            <Chip key={m.key} label={m.label} selected={metricKey === m.key} color={m.color} dot onPress={() => setMetricKey(m.key)} />
+            <Chip
+              key={m.key}
+              label={m.label}
+              selected={metricKey === m.key}
+              color={m.color}
+              dot
+              onPress={() => {
+                setMetricKey(m.key);
+                setScrubIndex(null);
+              }}
+            />
           ))}
         </ChipRow>
       </Reveal>
@@ -138,53 +178,95 @@ export default function TrendsScreen() {
               accessibilityRole="image"
               accessibilityLabel={`${metric.label} trend from ${formatShortDate(data[0].checkin_date)} to ${formatShortDate(data[data.length - 1].checkin_date)}${stats ? `: average ${stats.avg.toFixed(1)}${metric.unit}, latest ${stats.latest}${metric.unit}` : ''}`}
             >
-              <Svg width={CHART_WIDTH} height={CHART_HEIGHT} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-                <Defs>
-                  <LinearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor={metric.color} stopOpacity={0.32} />
-                    <Stop offset="1" stopColor={metric.color} stopOpacity={0} />
-                  </LinearGradient>
-                </Defs>
-                {[0, 0.5, 1].map((f) => (
-                  <Line
-                    key={f}
-                    x1={PAD_X}
-                    x2={CHART_WIDTH - PAD_X}
-                    y1={PAD_Y + f * (CHART_HEIGHT - PAD_Y * 2)}
-                    y2={PAD_Y + f * (CHART_HEIGHT - PAD_Y * 2)}
-                    stroke={colors.line}
-                    strokeWidth={1}
-                    strokeDasharray={f === 1 ? undefined : '3 5'}
-                  />
-                ))}
-                {area ? <Path d={area} fill="url(#trendFill)" /> : null}
-                {line ? <Path d={line} stroke={metric.color} strokeOpacity={0.35} strokeWidth={7} fill="none" strokeLinecap="round" /> : null}
-                {line ? <Path d={line} stroke={metric.color} strokeWidth={2.5} fill="none" strokeLinecap="round" /> : null}
-                {points.map((p, i) => {
-                  const last = i === points.length - 1;
-                  return (
-                    <Circle
-                      key={i}
-                      cx={p.x}
-                      cy={p.y}
-                      r={last ? 6 : 3}
-                      fill={last ? metric.color : colors.surface}
-                      stroke={last ? colors.night : metric.color}
-                      strokeWidth={last ? 3 : 1.5}
+              <View
+                onStartShouldSetResponder={() => true}
+                onMoveShouldSetResponder={() => true}
+                onResponderGrant={handleTouch}
+                onResponderMove={handleTouch}
+                onResponderRelease={handleRelease}
+                onResponderTerminate={handleRelease}
+              >
+                <Svg width={CHART_WIDTH} height={CHART_HEIGHT} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                  <Defs>
+                    <LinearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                      <Stop offset="0" stopColor={metric.color} stopOpacity={0.32} />
+                      <Stop offset="1" stopColor={metric.color} stopOpacity={0} />
+                    </LinearGradient>
+                  </Defs>
+                  {[0, 0.5, 1].map((f) => (
+                    <Line
+                      key={f}
+                      x1={PAD_X}
+                      x2={CHART_WIDTH - PAD_X}
+                      y1={PAD_Y + f * (CHART_HEIGHT - PAD_Y * 2)}
+                      y2={PAD_Y + f * (CHART_HEIGHT - PAD_Y * 2)}
+                      stroke={colors.line}
+                      strokeWidth={1}
+                      strokeDasharray={f === 1 ? undefined : '3 5'}
                     />
-                  );
-                })}
-                <SvgText x={PAD_X} y={PAD_Y - 6} fontSize={10} fontFamily={fonts.bodyMedium} fill={colors.textFaint}>
-                  {metric.max}
-                </SvgText>
-                <SvgText x={PAD_X} y={CHART_HEIGHT - 4} fontSize={10} fontFamily={fonts.bodyMedium} fill={colors.textFaint}>
-                  {metric.min}
-                </SvgText>
-              </Svg>
-              <View style={styles.dateRow}>
-                <Text style={styles.dateLabel}>{formatShortDate(data[0].checkin_date)}</Text>
-                <Text style={styles.dateLabel}>{formatShortDate(data[data.length - 1].checkin_date)}</Text>
+                  ))}
+                  {area ? <Path d={area} fill="url(#trendFill)" /> : null}
+                  {line ? <Path d={line} stroke={metric.color} strokeOpacity={0.35} strokeWidth={7} fill="none" strokeLinecap="round" /> : null}
+                  {line ? <Path d={line} stroke={metric.color} strokeWidth={2.5} fill="none" strokeLinecap="round" /> : null}
+                  {activePoint ? (
+                    <Line
+                      x1={activePoint.x}
+                      x2={activePoint.x}
+                      y1={PAD_Y}
+                      y2={CHART_HEIGHT - PAD_Y}
+                      stroke={metric.color}
+                      strokeWidth={1.5}
+                      strokeDasharray="2 3"
+                      opacity={0.8}
+                    />
+                  ) : null}
+                  {points.map((p, i) => {
+                    const isSelected = scrubIndex === i;
+                    const last = i === points.length - 1 && scrubIndex == null;
+                    const r = isSelected ? 7 : last ? 6 : 3;
+                    return (
+                      <Circle
+                        key={i}
+                        cx={p.x}
+                        cy={p.y}
+                        r={r}
+                        fill={isSelected ? metric.color : last ? metric.color : colors.surface}
+                        stroke={isSelected ? colors.text : last ? colors.night : metric.color}
+                        strokeWidth={isSelected ? 2.5 : last ? 3 : 1.5}
+                      />
+                    );
+                  })}
+                  <SvgText x={PAD_X} y={PAD_Y - 6} fontSize={10} fontFamily={fonts.bodyMedium} fill={colors.textFaint}>
+                    {metric.max}
+                  </SvgText>
+                  <SvgText x={PAD_X} y={CHART_HEIGHT - 4} fontSize={10} fontFamily={fonts.bodyMedium} fill={colors.textFaint}>
+                    {metric.min}
+                  </SvgText>
+                </Svg>
               </View>
+
+              {activeCheckin && activePoint ? (
+                <View style={styles.scrubPill}>
+                  <View style={styles.scrubHeader}>
+                    <Text style={styles.scrubDate}>{formatShortDate(activeCheckin.checkin_date)}</Text>
+                    <Text style={[styles.scrubValue, { color: metric.color }]}>
+                      {activePoint.value}
+                      {metric.unit}
+                    </Text>
+                  </View>
+                  {activeCheckin.notes ? (
+                    <Text style={styles.scrubNote} numberOfLines={2}>
+                      “{activeCheckin.notes}”
+                    </Text>
+                  ) : null}
+                </View>
+              ) : (
+                <View style={styles.dateRow}>
+                  <Text style={styles.dateLabel}>{formatShortDate(data[0].checkin_date)}</Text>
+                  <Text style={styles.dragHint}>Drag to inspect any day</Text>
+                  <Text style={styles.dateLabel}>{formatShortDate(data[data.length - 1].checkin_date)}</Text>
+                </View>
+              )}
             </Card>
           </Reveal>
 
@@ -231,6 +313,42 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 11,
     color: colors.textFaint,
+  },
+  dragHint: {
+    fontFamily: fonts.body,
+    fontSize: 10,
+    color: colors.textFaint,
+  },
+  scrubPill: {
+    marginTop: 8,
+    paddingHorizontal: PAD_X,
+    paddingVertical: 6,
+    backgroundColor: alpha(colors.surfaceHigh, 0.7),
+    borderRadius: 10,
+    marginHorizontal: PAD_X,
+    borderWidth: 1,
+    borderColor: colors.lineStrong,
+  },
+  scrubHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  scrubDate: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 12,
+    color: colors.text,
+  },
+  scrubValue: {
+    fontFamily: fonts.display,
+    fontSize: 16,
+  },
+  scrubNote: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.textMuted,
+    fontStyle: 'italic',
   },
   statsRow: {
     flexDirection: 'row',
