@@ -40,7 +40,7 @@ Brain Navigator is a wellness and school-organization app for a high school stud
 - "Set something down" adds a new candle. Loops lists everything still open.
 - Steady has Breathe (guided breathing), Let it out (speak or type to vent), talking with Ember, and a 5-4-3-2-1 grounding exercise.
 - School is their planner: classes, and homework, tests, and projects with due dates and time estimates. Focus is a study timer where a candle burns down. "Need help now" lists crisis lines.
-- Check-in logs mood, sleep, and stress once a day. Teens need 8–10 hours of sleep. Habits track small things with streaks. The Map shows the people and things behind their entries.
+- Check-in logs mood, sleep, and stress once a day. Teens need 8–10 hours of sleep. Habits count recent days, and a missed day changes nothing. The Map shows the people and things behind their entries.
 - The helper crew are Ember's flame cousins: Quizzo (quizzes), Pip (plans tonight), Quill (writing coach), Sage (explains ideas), Spark (gets you started).
 </the_app>`;
 

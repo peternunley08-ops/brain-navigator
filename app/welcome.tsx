@@ -98,7 +98,7 @@ export default function WelcomeScreen() {
       : step === 1
         ? classes.length
           ? `${classes.length} class${classes.length === 1 ? '' : 'es'} on your schedule. Add more any time.`
-          : 'Let’s get your classes in, so I always know what’s next.'
+          : 'Add your classes, and I’ll know what’s next.'
         : 'How much should a school night hold?';
 
   return (

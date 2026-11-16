@@ -136,7 +136,7 @@ export default function HabitsScreen() {
               <SkeletonCard lines={1} />
             </View>
           ) : !isLoading ? (
-            <EmptyState title="No habits yet." body="Start with something small enough to do on a bad day." />
+            <EmptyState title="The list is empty." body="Start with something small enough to do on a bad day." />
           ) : null}
         </Section>
       </Reveal>
@@ -175,7 +175,7 @@ export default function HabitsScreen() {
             <Button label="Add habit" icon="plus" loading={isSaving} onPress={handleAdd} disabled={isSaving || !name.trim()} style={styles.addButton} />
             {error ? <Text style={styles.errorText}>Couldn’t save that. Check your connection and try again.</Text> : null}
           </Card>
-          <ScienceNote fact="Habits form through a cue → routine → reward loop, not willpower. Consistency wires it in — an occasional missed day doesn't erase the loop your brain has already built, so don't let one slip talk you into quitting the streak." />
+          <ScienceNote fact="Habits form through a cue → routine → reward loop, not willpower. Consistency wires it in, and an occasional missed day doesn't erase the loop your brain has already built." />
         </Section>
       </Reveal>
     </Screen>
