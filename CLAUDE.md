@@ -28,3 +28,4 @@ For detailed session history, past roadmaps, and full changelogs, see `docs/hist
 - **Local session**: start with `docs/LOCAL-SESSION-PLAN.md`.
 - **Live checks**: on the Mac (phone or Simulator), walk `docs/LIVE-CHECKS.md` and flip statuses in `docs/rounds/*`; regenerate with `node tools/hub/live-checks.mjs`. Cloud sessions can't see the app, so they never mark `[x]`.
 - **Token Efficiency**: Inspect code using targeted line ranges or `grep`. Do not ingest `docs/history/SESSION_LOG.md` or `package-lock.json` unless specifically requested.
+- **Peter Project OS**: When Peter invokes Peter Project OS or asks to anti-slopify this project, read and follow `.claude/skills/peter-project-os/SKILL.md` before changing the work. House rules above still govern.
