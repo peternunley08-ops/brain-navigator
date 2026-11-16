@@ -12,10 +12,13 @@ import { Pressy } from '../components/ui/Pressy';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { PLUS_PER_MONTH } from '../core/aiQuota';
-import { type Helper, HELPERS } from '../core/helpers';
+import { type Helper, HELPERS, helperById } from '../core/helpers';
 import { dateKey } from '../core/dates';
 import { useLifeStore } from '../core/lifeStore';
 import { alpha, colors, fonts, textGrow } from '../core/theme';
+
+// Pip leads the study session, so the card wears Pip’s own color.
+const studyTint = helperById('pip')?.color ?? colors.textMuted;
 
 // Ember's crew. Each card holds a little living helper; tap one and it
 // bursts out to help. `about` (an assignment id) rides along so the helper
@@ -47,14 +50,14 @@ export default function HelpersScreen() {
       </View>
       <Reveal index={HELPERS.length}>
         <Card
-          tint="#7CC4F2"
+          tint={studyTint}
           onPress={() => {
             const startAt = resume != null ? (['pip', 'quizzo', 'spark'] as const)[resume] : 'pip';
             router.push({ pathname: '/helper/[id]', params: about ? { id: startAt, combo: '1', about } : { id: startAt, combo: '1' } });
           }}
           style={styles.plan}
         >
-          <Icon name="people" size={20} color="#7CC4F2" />
+          <Icon name="people" size={20} color={studyTint} />
           <View style={styles.flex}>
             <Text style={styles.planTitle} maxFontSizeMultiplier={2}>{resume != null ? `Pick up your study session: step ${resume + 1} of 3` : 'Study session'}</Text>
             <Text style={styles.planBody} maxFontSizeMultiplier={2}>Pip plans tonight, Quizzo warms you up, Spark gets you started. All free.</Text>
@@ -64,7 +67,7 @@ export default function HelpersScreen() {
       </Reveal>
       <Reveal index={HELPERS.length + 1}>
         <Card onPress={() => router.push('/plus')} style={styles.plan}>
-          <Icon name="sparkle" size={20} color={colors.flame} />
+          <Icon name="sparkle" size={20} color={colors.textMuted} />
           <View style={styles.flex}>
             <Text style={styles.planTitle} maxFontSizeMultiplier={2}>
               {st.left} of {st.limit} AI replies left {st.plus ? 'this month' : 'this week'}

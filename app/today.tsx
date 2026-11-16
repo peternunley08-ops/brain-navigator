@@ -8,6 +8,7 @@ import { scheduleOnRN } from 'react-native-worklets';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { EmptyState } from '../components/ui/EmptyState';
 import { Chip, ChipRow } from '../components/ui/Chip';
 import { Field } from '../components/ui/Field';
 import { Icon, type IconName } from '../components/ui/Icon';
@@ -214,7 +215,12 @@ export default function TodayScreen() {
             </View>
           ))}
           {isToday && items.length && nowIndex === -1 ? <NowLine mins={nowMins} /> : null}
-          {!items.length ? <Text style={styles.empty} maxFontSizeMultiplier={2}>{isToday ? 'Nothing scheduled yet today.' : 'Nothing scheduled this day.'}</Text> : null}
+          {!items.length ? (
+            <EmptyState
+              title={isToday ? 'The hour is open.' : 'This day is open.'}
+              body="Plan a block below and it shows up here."
+            />
+          ) : null}
         </Animated.View>
         </GestureDetector>
       </Reveal>
@@ -359,13 +365,6 @@ const styles = StyleSheet.create({
   timelineEmpty: {
     minHeight: 120,
     justifyContent: 'center',
-  },
-  empty: {
-    fontFamily: fonts.body,
-    fontSize: 14,
-    color: colors.textFaint,
-    textAlign: 'center',
-    paddingVertical: 20,
   },
   item: {
     flexDirection: 'row',
