@@ -102,6 +102,7 @@ export default function FocusScreen() {
   const [weekFolded, setWeekFolded] = useState(true);
   const [stray, setStray] = useState('');
   const [gotDone, setGotDone] = useState('');
+  const [leftOff, setLeftOff] = useState('');
   const [heatDay, setHeatDay] = useState<string | null>(null);
   const dailyGoal = useLifeStore((s) => s.settings.dailyFocusGoal ?? null);
   const [lastSession, setLastSession] = useState<string | null>(null);
@@ -210,6 +211,7 @@ export default function FocusScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
     sessionStart.current = new Date().toISOString();
     setRated(null);
+    setLeftOff('');
     banked.current = 0;
     startedAt.current = Date.now();
     setNow(Date.now());
@@ -594,6 +596,30 @@ export default function FocusScreen() {
               }}
             />
           </View>
+          {t && !t.done ? (
+            <View style={styles.gotRow}>
+              <Field
+                value={leftOff}
+                onChangeText={setLeftOff}
+                placeholder="Where I left off (optional)"
+                containerStyle={styles.flex}
+                accessibilityLabel="Where I left off"
+              />
+              <Button
+                label="Pin"
+                size="sm"
+                variant="secondary"
+                disabled={!leftOff.trim()}
+                onPress={() => {
+                  const text = leftOff.trim();
+                  if (!text) return;
+                  useSchoolStore.getState().updateAssignment(t.id, { leftOff: text });
+                  emberSay('Pinned. Tomorrow’s candle will pick up here.', 'happy');
+                  setLeftOff('');
+                }}
+              />
+            </View>
+          ) : null}
           <Button label={`Take a ${breakMin}-minute break`} icon="sun" onPress={takeBreak} />
           <Button label="Another round" icon="repeat" variant="secondary" onPress={start} />
           {t && !t.done ? (

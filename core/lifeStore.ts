@@ -219,6 +219,12 @@ export interface LifeSettings {
   examFocus?: boolean;
   /** True when check-ins, habits, vents, and open loops stay in a file on this phone instead of syncing online. */
   phoneOnly?: boolean;
+  /** Brand-new Desk starter card was dismissed (Pick D). */
+  starterDismissed?: boolean;
+  /** Opt-in: quiet evening banner when tonight’s load is over the homework cap (Pick E). Off by default. */
+  capNudge?: boolean;
+  /** tonightKey() when the student put the cap nudge away for that night. */
+  capNudgeDismissed?: string;
 }
 
 /**

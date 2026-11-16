@@ -176,6 +176,11 @@ function DueTonight() {
               {a.title}
             </Text>
             <Text style={styles.body} maxFontSizeMultiplier={2}>{dueLine(a.minutes, a.due, today)}</Text>
+            {a.leftOff?.trim() ? (
+              <Text style={styles.leftOff} numberOfLines={2} maxFontSizeMultiplier={2}>
+                Where you left off: {a.leftOff.trim()}
+              </Text>
+            ) : null}
             <View style={styles.actions}>
               <Button label="Light the candle" icon="candle" size="sm" onPress={() => router.push({ pathname: '/focus', params: { assignment: a.id } })} />
               <Button label="Mark done" icon="check" variant="secondary" size="sm" onPress={markDone} />
@@ -287,6 +292,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 19,
     color: colors.textMuted,
+  },
+  leftOff: {
+    marginTop: 8,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.flame,
   },
   action: {
     marginTop: 14,

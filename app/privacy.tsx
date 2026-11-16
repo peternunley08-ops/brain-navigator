@@ -1,12 +1,16 @@
-import { Linking, StyleSheet, Text } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
 import { InfoList } from '../components/InfoList';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
-import { colors, fonts } from '../core/theme';
-
+import { useHubStore } from '../core/hubStore';
+import { useLifeStore } from '../core/lifeStore';
+import { useBrainNavigatorStore } from '../core/store';
+import { alpha, colors, fonts, radii } from '../core/theme';
+import { useWellnessStore } from '../core/wellnessStore';
 const PHONE = [
   { icon: 'book' as const, title: 'School', body: 'Classes, homework, grades, focus sessions, and your sleep and homework goals.' },
   { icon: 'pen' as const, title: 'Notes and college', body: 'Your Notebook, colleges, essays, scholarships, rec letters, activities, and financial aid.' },
@@ -28,11 +32,65 @@ const SENT = [
   { icon: 'cap' as const, title: 'Canvas', body: 'Only if you add a Canvas key, to read your to-do list. The key stays in this phone’s keychain and is left out of backups.' },
 ];
 
+// When GitHub Pages publishes from /docs, docs/legal/index.html is /legal/.
+const LEGAL_PAGES = 'https://peternunley08-ops.github.io/brain-navigator/legal/';
+
+/** Quiet FNV-1a hex of a string — no new packages; good enough for a backup fingerprint. */
+function quietChecksum(text: string) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    h ^= text.charCodeAt(i);
+    h = Math.imul(h, 0x01000193);
+  }
+  return (`00000000${(h >>> 0).toString(16)}`).slice(-8);
+}
+
 // Where everything lives, said plainly, including the parts that aren't locked yet.
 export default function PrivacyScreen() {
+  const phoneOnly = !!useLifeStore((s) => s.settings.phoneOnly);
+  const checkins = useWellnessStore((s) => s.checkins);
+  const openLoops = useBrainNavigatorStore((s) => s.openLoops);
+  const notes = useHubStore((s) => s.notes);
+  const decks = useLifeStore((s) => s.decks);
+  const cards = useMemo(() => decks.reduce((n, d) => n + d.cards.length, 0), [decks]);
+
+  const checksum = useMemo(() => {
+    const payload = JSON.stringify({
+      checkins: checkins.length,
+      candles: openLoops.length,
+      notes: notes.length,
+      cards,
+      phoneOnly,
+    });
+    return quietChecksum(payload);
+  }, [checkins.length, openLoops.length, notes.length, cards, phoneOnly]);
+
   let n = 0;
   return (
     <Screen title="Where your stuff lives" subtitle="On this phone, online, or sent somewhere, and what that means.">
+      <Reveal index={n++}>
+        <Section title="Where your data lives">
+          <Card>
+            <View style={[styles.badge, { backgroundColor: alpha(phoneOnly ? colors.secured : colors.flame, 0.12) }]}>
+              <Text style={[styles.badgeText, { color: phoneOnly ? colors.secured : colors.flame }]}>
+                {phoneOnly ? 'On this phone only' : 'Cloud synced'}
+              </Text>
+            </View>
+            <Text style={styles.badgeHint}>
+              {phoneOnly
+                ? 'Check-ins, habits, vents, and open loops stay in a file on this phone. School, notes, and flashcards already live here.'
+                : 'Check-ins and Desk candles can sync to the app’s database. School, notes, and flashcards stay on this phone.'}
+            </Text>
+            <View style={styles.counts}>
+              <Count label="Check-ins" value={checkins.length} />
+              <Count label="Desk candles" value={openLoops.length} />
+              <Count label="Notes" value={notes.length} />
+              <Count label="Flashcards" value={cards} />
+            </View>
+            <Text style={styles.checksum}>Quiet fingerprint of these counts: {checksum}</Text>
+          </Card>
+        </Section>
+      </Reveal>
       <Reveal index={n++}>
         <Section title="Only on this phone">
           <Card>
@@ -64,27 +122,35 @@ export default function PrivacyScreen() {
               Brain Navigator has no ads, no tracking pixels, and never sells or shares your schoolwork, mood, sleep, or consumer health data. AI features run only after your explicit consent and can be turned off at any time in Settings.
             </Text>
             <Button
-              label="Read the Privacy Policy"
+              label="Read the legal pages"
               icon="book"
               variant="secondary"
+              size="sm"
+              onPress={() => Linking.openURL(LEGAL_PAGES).catch(() => {})}
+              style={styles.policyBtn}
+            />
+            <Button
+              label="Privacy Policy (GitHub)"
+              icon="book"
+              variant="ghost"
               size="sm"
               onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/PRIVACY-POLICY.md').catch(() => {})}
               style={styles.policyBtn}
             />
             <Button
-              label="Consumer Health Data Notice"
-              icon="heart"
-              variant="ghost"
-              size="sm"
-              onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/CONSUMER-HEALTH-DATA-POLICY.md').catch(() => {})}
-              style={styles.policyBtn}
-            />
-            <Button
-              label="Terms of Service"
+              label="Terms of Service (GitHub)"
               icon="list"
               variant="ghost"
               size="sm"
-              onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/TERMS-OF-SERVICE.md').catch(() => {})}
+              onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/TERMS.md').catch(() => {})}
+              style={styles.policyBtn}
+            />
+            <Button
+              label="Crisis protocol (GitHub)"
+              icon="heart"
+              variant="ghost"
+              size="sm"
+              onPress={() => Linking.openURL('https://github.com/peternunley08-ops/brain-navigator/blob/main/docs/legal/CRISIS-PROTOCOL.md').catch(() => {})}
               style={styles.policyBtn}
             />
           </Card>
@@ -97,7 +163,64 @@ export default function PrivacyScreen() {
   );
 }
 
+function Count({ label, value }: { label: string; value: number }) {
+  return (
+    <View style={styles.count}>
+      <Text style={styles.countValue}>{value}</Text>
+      <Text style={styles.countLabel}>{label}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
+  badge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+  },
+  badgeText: {
+    fontFamily: fonts.bodySemi,
+    fontSize: 14,
+  },
+  badgeHint: {
+    marginTop: 12,
+    fontFamily: fonts.body,
+    fontSize: 14,
+    lineHeight: 20,
+    color: colors.textMuted,
+  },
+  counts: {
+    marginTop: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  count: {
+    minWidth: '40%',
+    flexGrow: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: radii.md,
+    backgroundColor: colors.surfaceHigh,
+  },
+  countValue: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.text,
+  },
+  countLabel: {
+    marginTop: 2,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textFaint,
+  },
+  checksum: {
+    marginTop: 14,
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textFaint,
+  },
   warn: {
     marginTop: 16,
     fontFamily: fonts.body,

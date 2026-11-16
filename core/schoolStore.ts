@@ -77,6 +77,8 @@ export interface Assignment {
   turnedIn?: boolean;
   /** Swiped off the Desk's lit card until this time (ms). Due date unchanged. */
   snoozedUntil?: number;
+  /** One-line bookmark from the last Focus session: where the student left off. */
+  leftOff?: string;
 }
 
 export interface FocusSession {

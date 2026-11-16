@@ -532,6 +532,13 @@ export default function SettingsScreen() {
               </View>
               <Switch value={!settings.shakeWorryOff} onValueChange={(v) => useLifeStore.getState().setSettings({ shakeWorryOff: !v })} trackColor={{ true: colors.flame }} accessibilityLabel="Shake to drop a worry" />
             </View>
+            <View style={styles.row}>
+              <View style={styles.flex}>
+                <Text style={styles.rowLabel}>Quiet reminder when tonight is over my cap</Text>
+                <Text style={styles.hint}>In the evening only, a dismissible banner that opens Pip’s plan. Off unless you turn it on.</Text>
+              </View>
+              <Switch value={!!settings.capNudge} onValueChange={(v) => useLifeStore.getState().setSettings({ capNudge: v })} trackColor={{ true: colors.flame }} accessibilityLabel="Quiet reminder when tonight is over my cap" />
+            </View>
           </Card>
           <Button label="Privacy policy, health data, and terms" icon="book" variant="ghost" size="sm" onPress={() => router.push('/privacy')} style={styles.restoreToggle} />
         </Section>

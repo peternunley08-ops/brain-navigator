@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, FadeOut, LinearTransition, useReducedMotion } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -15,6 +15,8 @@ import { TrackSlider } from '../components/ui/TrackSlider';
 import { goBack } from '../core/chrome';
 import { useAudioStore } from '../core/audioStore';
 import { useFlameClock } from '../core/hooks/useFlameClock';
+import { useLifeStore } from '../core/lifeStore';
+import { isNight, minutesOf, nightNow, nightStart } from '../core/night';
 import { DraftCatalyst, useBrainNavigatorStore } from '../core/store';
 import { alpha, colors, fonts, radii } from '../core/theme';
 
@@ -41,6 +43,10 @@ export default function NewEntryScreen() {
 
   const time = useFlameClock();
   const reducedMotion = useReducedMotion();
+  const moodRef = useRef<TextInput>(null);
+  const windDown = useLifeStore((s) => s.settings.windDown);
+  const owl = useLifeStore((s) => s.about.picks.time === 'b');
+  const nightish = isNight(minutesOf(nightNow()), nightStart(windDown, owl));
 
   const [catalysts, setCatalysts] = useState<DraftCatalyst[]>([]);
   const [catalystDescription, setCatalystDescription] = useState('');
@@ -97,6 +103,7 @@ export default function NewEntryScreen() {
     >
       <Reveal index={0} style={styles.block}>
         <Field
+          ref={moodRef}
           big
           placeholder="What’s weighing on you?"
           value={draftMood}
@@ -105,6 +112,20 @@ export default function NewEntryScreen() {
           returnKeyType="done"
           accessibilityLabel="What’s weighing on you"
         />
+        <Pressy
+          onPress={() => moodRef.current?.focus()}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Focus the note field for voice dictation"
+          style={styles.dictateCue}
+        >
+          <Icon name="mic" size={14} color={colors.textFaint} />
+          <Text style={styles.dictateText}>
+            {nightish
+              ? 'Too tired to type? Tap here, then the mic on the keyboard.'
+              : 'Prefer to speak it? Tap here, then the mic on the keyboard.'}
+          </Text>
+        </Pressy>
       </Reveal>
 
       <Reveal index={1} style={styles.block}>
@@ -204,6 +225,20 @@ export default function NewEntryScreen() {
 const styles = StyleSheet.create({
   block: {
     marginTop: 18,
+  },
+  dictateCue: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  dictateText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.textFaint,
   },
   weightCard: {
     flexDirection: 'row',

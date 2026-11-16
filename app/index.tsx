@@ -9,8 +9,10 @@ import { CountdownChips } from '../components/desk/CountdownChips';
 import { openDrawer } from '../components/Drawer';
 import { PinnedNotes } from '../components/desk/PinnedNotes';
 import { ExamSeason } from '../components/desk/ExamSeason';
+import { CapNudge } from '../components/desk/CapNudge';
 import { FirstLight } from '../components/desk/FirstLight';
 import { NightDesk } from '../components/desk/NightDesk';
+import { StarterCard } from '../components/desk/StarterCard';
 import { SparkFlight } from '../components/ember/Sparks';
 import { weatherKind } from '../components/ui/Backdrop';
 import { useWeatherStore } from '../core/weatherStore';
@@ -542,6 +544,8 @@ show('line') ? (
         // everything else one tap away under "More on your desk".
         <>
           <FirstLight seen={firstLightSeen} onSeen={(k) => useLifeStore.getState().setSettings({ firstLightSeen: k })} />
+          <StarterCard />
+          <CapNudge />
           <Reveal index={0}>
             {windSoon && litKind !== 'windDown' ? windChip : null}
             <LitCard kind={litKind} doneToday={doneToday} />
@@ -577,6 +581,8 @@ show('line') ? (
           </View>
           <ExamSeason />
           <FirstLight seen={firstLightSeen} onSeen={(k) => useLifeStore.getState().setSettings({ firstLightSeen: k })} />
+          <StarterCard />
+          <CapNudge />
           <Reveal index={0}>
             {windSoon ? windChip : null}
             {/* Ember's note: one day card at a time, the rest a tap away. */}

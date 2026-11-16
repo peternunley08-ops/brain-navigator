@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark light" />
+<title>Brain Navigator — Privacy, terms, and crisis protocol</title>
+<style>
+:root {
+  --bg: #1a141c;
+  --bg2: #211a25;
+  --raised: #2b2230;
+  --text: #f2e6d4;
+  --muted: #b8a994;
+  --faint: #8e8173;
+  --flame: #e8a04a;
+  --flame-soft: rgba(232, 160, 74, 0.14);
+  --line: rgba(242, 230, 212, 0.1);
+  --secured: #8cc0a8;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  background:
+    radial-gradient(1200px 600px at 50% -10%, rgba(232,160,74,0.16), transparent 55%),
+    radial-gradient(800px 500px at 100% 20%, rgba(143,180,232,0.06), transparent 50%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg2) 40%, #17121a 100%);
+  color: var(--text);
+  line-height: 1.65;
+  min-height: 100vh;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding: 48px 22px 96px; }
+header.hero {
+  padding: 28px 0 36px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 36px;
+}
+.brand {
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  color: var(--flame);
+  margin: 0 0 10px;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-weight: 600;
+}
+h1 { font-size: 2.2rem; line-height: 1.2; margin: 0 0 12px; font-weight: 600; }
+.lede { color: var(--muted); margin: 0; font-size: 1.05rem; max-width: 38em; }
+nav.toc {
+  display: flex; flex-wrap: wrap; gap: 10px; margin: 22px 0 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+nav.toc a {
+  color: var(--text);
+  text-decoration: none;
+  background: var(--flame-soft);
+  border: 1px solid rgba(232,160,74,0.28);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+}
+nav.toc a:hover { border-color: var(--flame); }
+section { margin: 48px 0; padding-top: 8px; }
+h2 {
+  font-size: 1.55rem;
+  margin: 1.6em 0 0.6em;
+  padding-bottom: 0.35em;
+  border-bottom: 1px solid var(--line);
+  font-weight: 600;
+}
+h3 { font-size: 1.15rem; margin: 1.3em 0 0.45em; color: var(--flame); font-weight: 600; }
+p { margin: 0.75em 0; color: var(--text); }
+blockquote {
+  margin: 1em 0;
+  padding: 14px 16px;
+  background: var(--raised);
+  border-left: 3px solid var(--flame);
+  border-radius: 0 12px 12px 0;
+  color: var(--muted);
+}
+blockquote p { margin: 0; color: inherit; }
+ul, ol { padding-left: 1.25em; color: var(--text); }
+li { margin: 0.35em 0; }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 0.95rem;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background: var(--raised);
+  border-radius: 12px;
+  overflow: hidden;
+}
+th, td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+th { color: var(--flame); font-weight: 600; background: rgba(0,0,0,0.15); }
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.88em;
+  background: rgba(0,0,0,0.28);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  color: #f0d7b0;
+}
+a { color: var(--flame); }
+strong { color: #f7ecd9; }
+footer {
+  margin-top: 64px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  color: var(--faint);
+  font-size: 0.9rem;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f7f0e6;
+    --bg2: #efe4d4;
+    --raised: #fffaf3;
+    --text: #2a211c;
+    --muted: #5c4f44;
+    --faint: #7a6b5c;
+    --flame: #b86a1c;
+    --flame-soft: rgba(184,106,28,0.12);
+    --line: rgba(42,33,28,0.12);
+  }
+  body {
+    background:
+      radial-gradient(1000px 500px at 50% -10%, rgba(184,106,28,0.12), transparent 55%),
+      linear-gradient(180deg, var(--bg), var(--bg2));
+  }
+  code { background: rgba(42,33,28,0.06); color: #6b3a12; }
+}
+</style>
+</head>
+<body>
+<main class="wrap">
+<header class="hero">
+  <p class="brand">Brain Navigator</p>
+  <h1>Privacy, terms, and crisis help</h1>
+  <p class="lede">Draft pages for lawyer review. Not in effect until published. Calm, plain-language versions of what the app already does.</p>
+  <nav class="toc" aria-label="On this page">
+    <a href="#privacy">Privacy policy</a>
+    <a href="#terms">Terms of use</a>
+    <a href="#crisis">Crisis protocol</a>
+  </nav>
+</header>
+<section id="privacy">
+<h1>Brain Navigator privacy policy (DRAFT)</h1>
+<blockquote><p><strong>Draft for lawyer review. Not in effect.</strong> Fields in [brackets] need Peter&#x27;s answers (see <code>RELEASE-COMPLIANCE.md</code>, &quot;Decisions needed&quot;). Statements marked ⚠ describe the app *after* the release blockers B1–B3 are fixed; until then they aren&#x27;t true and this must not be published.</p></blockquote>
+<p>Effective date: [date]. Publisher: [LLC name], [city, state] (&quot;we&quot;). Contact for anything here, including deleting your data: [email].</p>
+<p>Brain Navigator is a school planner and wellness companion for high school students. It is not a medical service, not therapy, and not for emergencies. It&#x27;s for people <strong>13 and older</strong>; if you&#x27;re under 13, please don&#x27;t use it.</p>
+<h2>1. The short version</h2>
+<ul>
+<li>Most of what you put in stays <strong>on your phone</strong>.</li>
+<li>Some things are saved to <strong>our database</strong> so they&#x27;re not lost (listed below). ⚠ Only your phone can read your copy.</li>
+<li><strong>AI is optional.</strong> Nothing goes to the AI until you agree on the screen that explains it, and you can take that back any time.</li>
+<li>We <strong>don&#x27;t sell</strong> your data, don&#x27;t show ads, don&#x27;t use tracking or analytics, and never use your health information for marketing.</li>
+</ul>
+<h2>2. What we collect, where it lives, and why</h2>
+<table>
+<tr><th>What</th><th>Where it&#x27;s kept</th><th>Why</th></tr>
+<tr><td>Classes, assignments, grades, focus sessions, notes, flashcards, colleges, wins, worries, settings</td><td>On your phone only</td><td>To run the planner and tools</td></tr>
+<tr><td>Desk entries (what&#x27;s weighing on you, how heavy), check-ins (mood, stress, sleep), habits, tasks, food and plate logs, sleep-room checks, vents you choose to save, photos you attach to entries</td><td>Our database (Supabase, servers in Canada) ⚠ linked to an anonymous ID for your phone only</td><td>So they&#x27;re saved and can show trends</td></tr>
+<tr><td>Apple Health: sleep, resting heart rate and steps (read); mindful minutes (written)</td><td>Read on your phone; sleep hours can be saved with your check-in in our database</td><td>To fill in your check-in, only if you allow it in Apple Health</td></tr>
+<tr><td>Approximate location</td><td>Sent to Open-Meteo for the weather; not stored by us</td><td>Weather and sunset for the app&#x27;s sky, only if you allow it</td></tr>
+<tr><td>Microphone</td><td>Speech is turned into text on your phone; audio isn&#x27;t recorded or uploaded</td><td>Speaking instead of typing, only when you tap the mic</td></tr>
+<tr><td>Photos you pick</td><td>Read on your phone (screenshots of schedules or grades); entry photos you attach are saved as above</td><td>Reading text from screenshots; your entries</td></tr>
+<tr><td>Canvas address and access token</td><td>On your phone; the token is in the iPhone keychain</td><td>To read your Canvas to-do list directly from Canvas</td></tr>
+<tr><td>Google Calendar</td><td>Google&#x27;s sign-in keeps its tokens in the keychain; events are read on your phone</td><td>Showing your calendar, only if you connect it</td></tr>
+</table>
+<p>We don&#x27;t collect your contacts, your precise location, advertising identifiers, or any data for advertising.</p>
+<h2>3. The AI (Ember&#x27;s &quot;thinking brain&quot; and the helpers)</h2>
+<p>Ember&#x27;s replies can be written by <strong>Claude, an AI made by Anthropic</strong>. Ember is a computer program, not a person, and can&#x27;t feel emotions. The first time you ask for an AI reply, the app shows exactly what would be sent and asks for your OK. Without it, nothing is sent and Ember uses its own built-in questions.</p>
+<p>When you&#x27;ve agreed and you ask for a reply, the app sends: what you type in that chat (with phone numbers, emails and street addresses blanked out on your phone first), and a short note so the reply fits your day: your first name and grade, your classes, what&#x27;s due this week, what&#x27;s open on your Desk, today&#x27;s check-in numbers (which can include sleep from Apple Health), and, only if you turn them on, About you and things Ember remembers. &quot;Keep my Desk private&quot; leaves the Desk and check-in out. You can hold any reply to see exactly what was sent.</p>
+<p>It goes through our server to Anthropic, which writes the reply. Anthropic&#x27;s commercial terms say it doesn&#x27;t train its models on this data; it keeps it for a limited time for trust and safety [confirm current period with Anthropic&#x27;s terms]. You can turn AI off everywhere, or take back your OK, in Settings → How AI works here.</p>
+<h2>4. Safety</h2>
+<p>If something you write sounds like you might be in danger, the app shows crisis lines right away, on your phone, before and without any AI: call or text <strong>988</strong> (Suicide &amp; Crisis Lifeline) or text <strong>HOME to 741741</strong> (Crisis Text Line), and the Need help now page. Ember&#x27;s AI is instructed to respond with care, urge you to reach a real person, and never to give medical advice. In a chat, Ember reminds you that it&#x27;s a computer program at the start and at least every three hours, with a nudge to take a break. These numbers are for the US.</p>
+<h2>5. Who else sees data</h2>
+<p>Only these service providers, only to run the app, and each bound to protect it at least as well as this policy: <strong>Supabase</strong> (database), <strong>Anthropic</strong> (AI, only with your OK), <strong>Open-Meteo</strong> (weather, approximate location), <strong>Apple</strong> (Health, speech, if you use them), <strong>Google</strong> and <strong>Instructure (Canvas)</strong>, only if you connect them, and <strong>Notion</strong> only if you connect your own Notion workspace (your data goes to your workspace, not ours). We don&#x27;t sell or share personal data for advertising, and we don&#x27;t disclose health data to anyone except as listed here or as the law requires.</p>
+<h2>6. How long we keep it, and deleting it</h2>
+<p>Data on your phone stays until you delete it or the app. ⚠ Data in our database is kept while you use the app and deleted [12] months after your phone last syncs, or within [30] days of your request. Settings → Start fresh clears your phone ⚠ and our copy. To delete everything, or to ask what we hold, email [email]; we answer within [30/45] days. You can also withdraw any consent (AI, Health, location, microphone) at any time in the app or in iPhone Settings.</p>
+<h2>7. Consumer health data (Washington and similar laws)</h2>
+<p>Mood, stress, sleep, worries, vents and Health data are consumer health data. We collect them only to provide the features you use, share them only as in section 5 (the AI only with your separate OK), never sell them, and never use them for ads or geofencing. Your rights: to know, access, delete and withdraw consent, using the contact above. [Lawyer: confirm MHMDA notice requirements.]</p>
+<h2>8. Teens and children</h2>
+<p>The app is meant for students 13 and older. We don&#x27;t knowingly collect data from children under 13; if we learn we have, we delete it. Parents can contact [email]. ⚠ Where state law requires, the app reads the App Store&#x27;s age category and respects parental consent.</p>
+<h2>9. Security</h2>
+<p>Tokens are kept in the iPhone keychain; connections use HTTPS; ⚠ each phone can read only its own data. If a breach affects your data, we&#x27;ll notify you and regulators as the law requires.</p>
+<h2>10. Changes</h2>
+<p>We&#x27;ll show a notice in the app before any change that affects how your data is used, and ask again where the law requires consent.</p>
+</section>
+<section id="terms">
+<h1>Brain Navigator terms of use (DRAFT)</h1>
+<blockquote><p><strong>Draft for lawyer review. Not in effect.</strong> Fields in [brackets] need Peter&#x27;s answers.</p></blockquote>
+<p>Effective date: [date]. These terms are between you and [LLC name] (&quot;we&quot;).</p>
+<ol>
+<li><strong>Who can use it.</strong> You must be 13 or older. If you&#x27;re under 18, use it with a parent&#x27;s or guardian&#x27;s awareness, and where your state requires it, their consent through the App Store.</li>
+<li><strong>Not medical care, not an emergency service.</strong> Brain Navigator is a planner and wellness tool. It doesn&#x27;t diagnose, treat or replace a doctor, therapist or counselor. Ember is a computer program, not a person. In an emergency call 911; if you&#x27;re thinking about hurting yourself, call or text 988.</li>
+<li><strong>AI replies can be wrong.</strong> Check anything important with a teacher, parent or professional. The AI won&#x27;t write work for you to hand in; using it to cheat is against these terms and probably your school&#x27;s rules.</li>
+<li><strong>Your content is yours.</strong> You give us only the permission needed to store and process it to run the app, as described in the privacy policy.</li>
+<li><strong>Acceptable use.</strong> Don&#x27;t misuse the app or its servers, try to access other people&#x27;s data, use it to harm anyone, or add photos, recordings or text you don&#x27;t have the right to use.</li>
+<li><strong>Connections.</strong> Canvas, Google, Notion and Apple Health are other companies&#x27; services under their own terms; we&#x27;re not responsible for them.</li>
+<li><strong>Paid features.</strong> [Plus isn&#x27;t available yet. When it is: before you buy, the app shows the price, how often it renews, and how to cancel, and asks for a separate OK to the renewal. Billed by Apple; cancel any time in iPhone Settings → Subscriptions (linked from the app). A yearly reminder of the cost and how to cancel, notice before any price change, and Apple&#x27;s refund rules apply. Help and the help lines are never behind Plus.]</li>
+<li><strong>No warranty.</strong> The app is provided as is. [Lawyer: limitation of liability, indemnity, governing law ([state]), dispute resolution; note limits on enforcing these against minors.]</li>
+<li><strong>Changes and ending.</strong> We may update these terms with notice in the app. You can stop using the app and delete your data at any time (see the privacy policy).</li>
+<li><strong>Copyright complaints.</strong> If you think something stored in the app infringes your copyright, write to our designated agent: [name, address, email, as registered with the U.S. Copyright Office]. Include the work, where it is in the app, your contact details, a statement that you believe in good faith the use isn&#x27;t authorized, and a statement under penalty of perjury that your notice is accurate and that you own the copyright or may act for the owner, with your signature. We remove infringing material and stop storing content for anyone who infringes repeatedly. If something of yours was removed by mistake, send a counter-notice to the same address. [Lawyer to review.]</li>
+<li><strong>Contact.</strong> [email]</li>
+</ol>
+</section>
+<section id="crisis">
+<h1>Crisis protocol (DRAFT)</h1>
+<blockquote><p>Draft for lawyer review. California SB 243 asks operators of companion chatbots to publish how they handle suicidal ideation and self-harm; New York GBL Art. 47 asks for the same protocol. This describes what the app does today, in the code named beside each step. Publish it on the same page as the privacy policy once reviewed.</p></blockquote>
+<h2>What happens</h2>
+<ol>
+<li><strong>Detection on the phone, before any AI.</strong> Every message typed or spoken to Ember or a helper, and what&#x27;s written in Let it out, the check-in, the worry box and Put the day down, is checked on the phone against a list of phrases about suicide, self-harm, wanting to die, overdose, abuse or not being safe at home (<code>soundsLikeCrisis</code>, <code>core/emberAI.ts</code>). The list is tested against everyday school stress (&quot;this test is killing me&quot;) so it doesn&#x27;t cry wolf (<code>tests/safety.test.ts</code>).</li>
+<li><strong>Help on screen at once.</strong> A match shows the help card right away, with or without a connection, with AI on or off, and whether or not the student has any AI replies left (<code>HelpCard</code>, <code>components/ember/HelpCard.tsx</code>): call or text <strong>988</strong> (Suicide &amp; Crisis Lifeline), text <strong>HOME to 741741</strong> (Crisis Text Line), call <strong>911</strong> in an emergency, and the Need help now page (<code>app/help.tsx</code>).</li>
+<li><strong>The AI is told what to do.</strong> Ember&#x27;s instructions (<code>SAFETY</code> in <code>supabase/functions/ember/index.ts</code>) say: respond with warmth first, then clearly urge reaching a real person now (a trusted adult, 988, 741741); take it seriously every time, even as a joke; never give instructions or encouragement for self-harm, suicide, disordered eating or anything dangerous; never claim to be a therapist; never act as a romantic partner; say honestly that it&#x27;s an AI.</li>
+<li><strong>The server makes sure.</strong> If the student&#x27;s newest message matches the list, the server adds the Need help now button to the reply even if the model didn&#x27;t, and drops the suggested follow-up chips (same file, &quot;Crisis protocol&quot; comment). The phone and server lists are checked to be identical by the tests.</li>
+<li><strong>If the AI declines or fails,</strong> Ember answers with a gentle line and the help button rather than an error (<code>refusal</code> handling in the function; offline fallback in the app).</li>
+<li><strong>Reminders that it&#x27;s an AI.</strong> Ember&#x27;s chat says it&#x27;s a computer program at the start, and again with a nudge to take a break every three hours of talking (<code>core/companionRules.ts</code>).</li>
+</ol>
+<h2>What the app doesn&#x27;t do</h2>
+<ul>
+<li>It doesn&#x27;t contact anyone on the student&#x27;s behalf, alert parents, or call emergency services; it puts the numbers and people in front of the student.</li>
+<li>It doesn&#x27;t store which messages matched. [Lawyer: SB 243&#x27;s annual report from July 1, 2027 asks for the number of crisis referrals; decide whether to keep an anonymous count, with no message text, to report it.]</li>
+<li>It isn&#x27;t monitored by people in real time.</li>
+</ul>
+<h2>Limits</h2>
+<p>The phrase list can miss things said indirectly, and can&#x27;t judge tone. The help lines are US numbers. Ember is not a counselor; the app says so on the help page, in the consent sheet, in the terms, and in every AI chat.</p>
+</section>
+<footer>
+  <p>Source markdown lives in <code>docs/legal/</code> on GitHub. For the live app’s “Where your stuff lives” screen, open Settings → Privacy.</p>
+</footer>
+</main>
+</body>
+</html>

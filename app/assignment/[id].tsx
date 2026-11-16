@@ -182,6 +182,15 @@ export default function AssignmentScreen() {
         </Reveal>
       ) : null}
 
+      {a.leftOff?.trim() ? (
+        <Reveal index={1}>
+          <Card tint={colors.flame} style={styles.notes}>
+            <Text style={styles.leftOffLabel}>Where you left off</Text>
+            <Text style={styles.notesText}>{a.leftOff.trim()}</Text>
+          </Card>
+        </Reveal>
+      ) : null}
+
       {a.notes ? (
         <Reveal index={1}>
           <Card style={styles.notes}>
@@ -488,6 +497,12 @@ const styles = StyleSheet.create({
   },
   notes: {
     marginTop: 12,
+  },
+  leftOffLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.flame,
+    marginBottom: 4,
   },
   notesText: {
     fontFamily: fonts.body,
