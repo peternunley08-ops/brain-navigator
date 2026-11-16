@@ -18,6 +18,8 @@ interface CardProps extends ViewProps {
 // more light along its top, like a lid under a lamp.
 export function Card({ style, children, tint, onPress, onLongPress, padded = true, ...rest }: CardProps) {
   // A tinted card brightens under your finger, like leaning closer to the lamp.
+  // The top of that wash stays light enough that textFaint on it clears 4.5:1
+  // (flame at 0.06 is about 4.6:1; the old 0.11 stop was about 4.1:1).
   const [pressed, setPressed] = useState(false);
   const look = [
     styles.card,
@@ -28,7 +30,7 @@ export function Card({ style, children, tint, onPress, onLongPress, padded = tru
   const wash = tint ? (
     <LinearGradient
       pointerEvents="none"
-      colors={[alpha(tint, pressed ? 0.16 : 0.11), alpha(tint, pressed ? 0.05 : 0.02)]}
+      colors={[alpha(tint, pressed ? 0.06 : 0.05), alpha(tint, pressed ? 0.03 : 0.02)]}
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.wash}

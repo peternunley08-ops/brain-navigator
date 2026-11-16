@@ -39,7 +39,7 @@ export function Button({
   // trailing off.
   const wrap = useWindowDimensions().fontScale > 1.5;
   const fg =
-    v === 'primary' ? colors.flameInk : tint ?? (v === 'ghost' ? colors.flame : colors.text);
+    v === 'primary' ? colors.flameInk : (tint ?? colors.text);
 
   const content = (
     <View style={[styles.row, small && styles.rowSmall, wrap && styles.rowWrap]}>

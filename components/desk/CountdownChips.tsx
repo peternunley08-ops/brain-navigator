@@ -53,7 +53,7 @@ export function CountdownChips() {
   const college = colleges
     .filter((c) => c.deadline && daysUntil(c.deadline) >= 0 && (c.status === 'applying' || c.status === 'researching'))
     .sort((a, b) => (a.deadline ?? '').localeCompare(b.deadline ?? ''))[0];
-  if (college?.deadline) chips.push({ key: 'college', days: daysUntil(college.deadline), label: `${college.name} ${inDays(daysUntil(college.deadline))}`, icon: 'cap', color: '#8FB4E8', href: '/college' });
+  if (college?.deadline) chips.push({ key: 'college', days: daysUntil(college.deadline), label: `${college.name} ${inDays(daysUntil(college.deadline))}`, icon: 'cap', color: colors.sky, href: '/college' });
 
   const dow = new Date().getDay();
   const toSat = (6 - dow + 7) % 7;

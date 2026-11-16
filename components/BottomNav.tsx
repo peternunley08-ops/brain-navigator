@@ -142,6 +142,9 @@ export function BottomNav() {
   const nightOwl = useLifeStore((s) => s.about.picks.time === 'b');
   useSyncExternalStore(subscribeNightClock, nightClockVersion);
   const late = isNight(minutesOf(nightNow()), nightStart(windDown, nightOwl));
+  // On Steady the help card is the loud object. The + still adds, drawn quieter
+  // (a surface fill and a flame glyph) and only on this tab.
+  const quietPlus = pathname === '/steady';
 
   return (
     <Animated.View style={[styles.wrap, { paddingBottom: Math.max(16, insets.bottom - 8) }, shown]} pointerEvents="box-none">
@@ -162,7 +165,7 @@ export function BottomNav() {
 
         <View style={styles.centerSlot}>
           <Pressy
-            style={styles.centerButton}
+            style={[styles.centerButton, quietPlus && styles.centerQuiet]}
             depth={0.9}
             haptic="none"
             onPress={() => {
@@ -172,11 +175,19 @@ export function BottomNav() {
             accessibilityRole="button"
             accessibilityLabel="Add something"
           >
-            <LinearGradient colors={gradients.flame} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={styles.centerFill}>
-              <Animated.View style={plusStyle}>
-                <Icon name="plus" size={28} color={colors.flameInk} strokeWidth={2.6} />
-              </Animated.View>
-            </LinearGradient>
+            {quietPlus ? (
+              <View style={[styles.centerFill, styles.centerQuietFill]}>
+                <Animated.View style={plusStyle}>
+                  <Icon name="plus" size={28} color={colors.flame} strokeWidth={2.6} />
+                </Animated.View>
+              </View>
+            ) : (
+              <LinearGradient colors={gradients.flame} start={{ x: 0.2, y: 0 }} end={{ x: 0.8, y: 1 }} style={styles.centerFill}>
+                <Animated.View style={plusStyle}>
+                  <Icon name="plus" size={28} color={colors.flameInk} strokeWidth={2.6} />
+                </Animated.View>
+              </LinearGradient>
+            )}
           </Pressy>
         </View>
 
@@ -583,5 +594,12 @@ const styles = StyleSheet.create({
     borderRadius: 31,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  centerQuiet: {
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  centerQuietFill: {
+    backgroundColor: colors.surface,
   },
 });
