@@ -293,7 +293,7 @@ Heads read:
 - Tab polish, [PR 93](https://github.com/peternunley08-ops/brain-navigator/pull/93), `42794eeba224e88d74f90e57d04f7d74d8230ed1`
 - Reliability, [PR 96](https://github.com/peternunley08-ops/brain-navigator/pull/96), `124342e00a3c98650c919a1c2dc883619c94e44c`
 
-The parked-thought checkbox on Focus has no `accessibilityLabel` in that reliability head. A later commit may add one. This score does not wait for it.
+Commit `66a13906d8529d636de8ea3976e611129d956d52` on that PR, after the head above, sets `accessibilityLabel={d.text}` on the parked-thought checkbox in `app/focus.tsx`. That one label does not raise the accessibility score. It stays 4, because largest text and VoiceOver were still not seen or heard.
 
 | Dimension | Weight | Before | After | Δ | Check | Residual |
 | --- | ---: | --- | --- | ---: | --- | --- |
@@ -320,7 +320,7 @@ The parked-thought checkbox on Focus has no `accessibilityLabel` in that reliabi
 
 **Craft 3 → 4.** The card wash top stop is `0.05` at rest and `0.06` while pressed (`components/ui/Card.tsx`). `tests/card-wash.test.ts` asserts `textFaint` on that composite stays at or above 4.5:1 for flame, unlocked, secured, shelved, sky, and danger, and that the old `0.11` flame stop stays under 4.5. That is a node composite, not a screenshot of a tinted card. Spark’s shout and the “Hype me up” chip were not rewritten. The four branches are unmerged, so the composed screen was not built. `components/desk/EmberNote.tsx` and `components/school/EmberPick.tsx` are edited on the same Pressy line by the tab diff (parchment) and the reliability diff (a label). A merge has to keep both. `app/today.tsx` edits different lines in those two diffs (the empty state, and a label on a due pill).
 
-**Accessibility 3 → 4.** The reliability diff adds `maxFontSizeMultiplier` and shrink-or-wrap on `components/ui/Ring.tsx`, `components/ui/Segmented.tsx` (the rail stacks past font scale 1.5), `components/school/NowCard.tsx`, and the one-line titles in search, grades, notes, and classes. The Focus countdown (`app/focus.tsx`) uses `textGrow.display`, `adjustsFontSizeToFit`, and `minimumFontScale={0.6}`. The copy diff does the same kind of wrap for Settings swatches and flashcard names. New `accessibilityLabel`s land on icon Pressys, including Ember’s “N more”, the Ember-pick link, and Today’s due pills. `tests/core.test.ts` asserts `tonightWeekday` for Monday 1:00 AM (Sunday, 0) and Monday 5:00 AM (Monday, 1). The reliability note says the Ember pan was already a UI-thread worklet and the file was not changed. Not verified here: whether that worklet stays off the JS thread in a running app, whether any word still breaks at the largest text size, and VoiceOver on a phone. The parked-thought row on Focus is still unnamed at `124342e0`. Item 6, item 20.3, item 5, and item 4 stay `[~]`.
+**Accessibility 3 → 4.** The reliability diff adds `maxFontSizeMultiplier` and shrink-or-wrap on `components/ui/Ring.tsx`, `components/ui/Segmented.tsx` (the rail stacks past font scale 1.5), `components/school/NowCard.tsx`, and the one-line titles in search, grades, notes, and classes. The Focus countdown (`app/focus.tsx`) uses `textGrow.display`, `adjustsFontSizeToFit`, and `minimumFontScale={0.6}`. The copy diff does the same kind of wrap for Settings swatches and flashcard names. New `accessibilityLabel`s land on icon Pressys, including Ember’s “N more”, the Ember-pick link, and Today’s due pills. `tests/core.test.ts` asserts `tonightWeekday` for Monday 1:00 AM (Sunday, 0) and Monday 5:00 AM (Monday, 1). The reliability note says the Ember pan was already a UI-thread worklet and the file was not changed. Not verified here: whether that worklet stays off the JS thread in a running app, whether any word still breaks at the largest text size, and VoiceOver on a phone. The parked-thought checkbox is named in `66a1390` with `accessibilityLabel={d.text}`. That commit is later than the scored head, and the one label does not move accessibility off 4. Item 6, item 20.3, item 5, and item 4 stay `[~]`.
 
 ### What this rescore could not verify
 
@@ -330,7 +330,7 @@ The parked-thought checkbox on Focus has no `accessibilityLabel` in that reliabi
 - Whether `minimumFontScale={0.6}` on the Focus timer actually keeps “4:56” inside the readout.
 - Sunday night on the Desk. The new test covers the clock function only.
 - Ember’s drag on a phone.
-- A parked-thought label, if one lands on PR 96 after this note.
+- VoiceOver reading the parked-thought checkbox. `66a1390` sets `accessibilityLabel={d.text}` in `app/focus.tsx`. The label was not heard.
 
 Attention, from the diffs: ghost and section actions are parchment by default; `textFaint` on the new wash stops clears 4.5:1 in the unit test; Steady’s + is the quiet one; Desk, School, and Helpers still have a flame-filled +. Focus’s layout is unchanged apart from the timer’s text caps.
 
