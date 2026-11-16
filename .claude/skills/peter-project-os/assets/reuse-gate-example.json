@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "stage": "proposal",
+  "existing_sufficient": false,
+  "candidate": {
+    "source": "https://github.com/example-owner/example-repo",
+    "revision": "UNVERIFIED\u2014replace with inspected immutable revision",
+    "component": "illustrative-module",
+    "mode": "dev_dependency"
+  },
+  "gates": {
+    "need": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "identity": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "compatibility": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "license": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "security": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "maintenance": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "minimal_scope": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "footprint_plan": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "authorization": {
+      "status": "unknown",
+      "evidence": ""
+    },
+    "rollback": {
+      "status": "unknown",
+      "evidence": ""
+    }
+  }
+}

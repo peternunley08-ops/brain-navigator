@@ -1,0 +1,4 @@
+interface:
+  display_name: "Peter Project OS"
+  short_description: "Refine Peter's projects with lean, verified changes"
+  default_prompt: "Use $peter-project-os to refine this project, infer the brief, implement justified improvements, and validate the result."

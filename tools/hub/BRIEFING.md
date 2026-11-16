@@ -40,6 +40,9 @@ handing Peter a merge command.
 Never push, merge other branches, or touch main, the Simulator, Metro, or data
 files. Never claim anything was checked live; Atlas does that.
 
+## Peter Project OS
+When Peter invokes Peter Project OS or asks to anti-slopify this project, read and follow `.claude/skills/peter-project-os/SKILL.md` before changing the work. This briefing and the house rules still govern.
+
 ## Final report (15 lines max)
 1. Branch, commits (hash + title).
 2. Per idea: built or dropped (why); files; **How to check live**: the deep link,

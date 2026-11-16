@@ -1,0 +1,20 @@
+{
+  "name": "Example calm foundation + selective accent (illustrative, not reel-extracted)",
+  "tokens": {
+    "canvas": "#F7F9FC",
+    "surface": "#E8EEF4",
+    "text": "#172335",
+    "mutedText": "#405264",
+    "accent": "#B51F36",
+    "onAccent": "#FFFFFF",
+    "focus": "#152B68"
+  },
+  "pairs": [
+    {"foreground": "text", "background": "canvas", "use": "normal-text", "purpose": "Body on page"},
+    {"foreground": "text", "background": "surface", "use": "normal-text", "purpose": "Card heading and body"},
+    {"foreground": "mutedText", "background": "canvas", "use": "normal-text", "purpose": "Metadata"},
+    {"foreground": "onAccent", "background": "accent", "use": "normal-text", "purpose": "Primary action label"},
+    {"foreground": "accent", "background": "canvas", "use": "ui-component", "purpose": "Primary action boundary"},
+    {"foreground": "focus", "background": "canvas", "use": "ui-component", "purpose": "Focus indicator against page"}
+  ]
+}
