@@ -548,7 +548,7 @@ export default function FocusScreen() {
               <Text style={styles.rateTitle}>Thoughts you parked</Text>
               {sessionThoughts.map((d) => (
                 <View key={d.id} style={styles.thoughtRow}>
-                  <Pressy onPress={() => toggleDistraction(d.id)} style={[styles.thought, styles.flex]} accessibilityRole="checkbox" accessibilityState={{ checked: d.done }}>
+                  <Pressy onPress={() => toggleDistraction(d.id)} style={[styles.thought, styles.flex]} accessibilityRole="checkbox" accessibilityState={{ checked: d.done }} accessibilityLabel={d.text}>
                     <Icon name={d.done ? 'check' : 'pin'} size={15} color={d.done ? colors.secured : colors.textMuted} />
                     <Text style={[styles.thoughtText, d.done && styles.thoughtDone]}>{d.text}</Text>
                   </Pressy>
