@@ -71,6 +71,8 @@ export const colors = {
   unlocked: '#F0845A',
   secured: '#8CC0A8',
   shelved: '#AFA2DE',
+  // Moonlight blue for time. Night's return from skyGlow.
+  sky: '#8FB4E8',
 
   danger: '#F07060',
 } as const;
@@ -163,7 +165,7 @@ export function skyGlow(d = new Date(), sun?: { sunrise?: string; sunset?: strin
   if (h >= dawn && h < day) return '#F5A36B';
   if (h >= day && h < dusk) return '#F5C46A';
   if (h >= dusk && h < dark) return '#E8795A';
-  return '#8FB4E8';
+  return colors.sky;
 }
 
 // Hex → rgba, for glows and tints built from a token. A worklet, so

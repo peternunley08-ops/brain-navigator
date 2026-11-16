@@ -3,15 +3,16 @@ import { useEffect } from 'react';
 import Animated, { cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { springs } from '../../core/motion';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { alpha, colors, fonts, textGrow } from '../../core/theme';
+import { alpha, colors, dimensionColor, fonts, textGrow } from '../../core/theme';
 import { Pressy } from './Pressy';
 
+// Ember, tan, gold, green, sage. The in-between steps are wheel tokens that already exist.
 const MOODS = [
-  { v: 1, label: 'Rough', color: '#F0845A' },
-  { v: 2, label: 'Low', color: '#E6A15A' },
-  { v: 3, label: 'Okay', color: '#F5C35C' },
-  { v: 4, label: 'Good', color: '#B7C98A' },
-  { v: 5, label: 'Great', color: '#8CC0A8' },
+  { v: 1, label: 'Rough', color: colors.unlocked },
+  { v: 2, label: 'Low', color: dimensionColor.occupational },
+  { v: 3, label: 'Okay', color: colors.flame },
+  { v: 4, label: 'Good', color: dimensionColor.physical },
+  { v: 5, label: 'Great', color: colors.secured },
 ];
 
 interface MoodPickerProps {

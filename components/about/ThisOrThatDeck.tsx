@@ -12,8 +12,8 @@ import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 import { Pressy } from '../ui/Pressy';
 
-const A = '#8FB4E8';
-const B = '#F0A35A';
+const A = colors.sky;
+const B = colors.flame;
 
 // "This or that": swipe a card left for the left answer, right for the
 // right one, or tap either side. It tilts as you drag and flies off; the
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.lineStrong,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: colors.night,
     shadowOpacity: 0.35,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },

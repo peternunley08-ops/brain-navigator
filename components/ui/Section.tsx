@@ -10,7 +10,8 @@ interface SectionProps {
   title: string;
   /** A short muted line under the heading. */
   note?: string;
-  action?: { label: string; onPress: () => void };
+  /** Trailing action. Parchment by default; pass color for the one gold control. */
+  action?: { label: string; onPress: () => void; color?: string };
   /** A small glyph before the heading. */
   icon?: IconName;
   iconColor?: string;
@@ -59,7 +60,7 @@ export function Section({ title, note, action, icon, iconColor = colors.flame, c
         )}
         {action ? (
           <Pressy onPress={action.onPress} hitSlop={10} accessibilityRole="button">
-            <Text style={styles.action} maxFontSizeMultiplier={textGrow.control}>{action.label}</Text>
+            <Text style={[styles.action, action.color ? { color: action.color } : null]} maxFontSizeMultiplier={textGrow.control}>{action.label}</Text>
           </Pressy>
         ) : null}
       </View>
@@ -106,6 +107,6 @@ const styles = StyleSheet.create({
   action: {
     fontFamily: fonts.bodySemi,
     fontSize: 14,
-    color: colors.flame,
+    color: colors.text,
   },
 });

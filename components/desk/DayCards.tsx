@@ -16,7 +16,7 @@ import { useLifeStore, weekOf, type Person, type Worry } from '../../core/lifeSt
 import { useWellnessStore } from '../../core/wellnessStore';
 import { nightNow } from '../../core/night';
 import { clock, isoDay, nowState, useSchoolStore } from '../../core/schoolStore';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, dimensionColor, fonts } from '../../core/theme';
 import { Card } from '../ui/Card';
 import { Icon, type IconName } from '../ui/Icon';
 import { IconButton } from '../ui/IconButton';
@@ -112,7 +112,7 @@ export function DayBrief() {
     return (
       <Row
         icon="sun"
-        color="#F5A36B"
+        color={colors.flame}
         title="This morning"
         body={[
           first ? `${todays.length} class${todays.length === 1 ? '' : 'es'}, starting with ${first.name} at ${clock(first.start)}.` : 'No classes today.',
@@ -137,7 +137,7 @@ export function DayBrief() {
     return (
       <Row
         icon="moon"
-        color="#8FB4E8"
+        color={colors.sky}
         title="Tomorrow"
         body={[
           tmr[0] ? `First up: ${tmr[0].name} at ${clock(tmr[0].start)}.` : 'No classes on the schedule.',
@@ -197,15 +197,15 @@ export function HelperNudge() {
 // What today's check-in said was weighing on you, matched with the tool
 // that fits it. Hidden once dismissed for the day.
 export const TAG_TOOLS: Record<string, { title: string; body: string; icon: IconName; color: string; href: string }> = {
-  Tests: { title: 'Tests on your mind', body: 'Quizzo can turn your flashcards into a quick warm-up.', icon: 'bolt', color: '#B79AF0', href: '/helper/quizzo' },
-  Homework: { title: 'Homework piling up', body: 'Pip can fit tonight into your cap, with breaks.', icon: 'calendar', color: '#7CC4F2', href: '/helper/pip' },
-  Friends: { title: 'Friend stuff', body: 'Talking it through with Ember can untangle it a little.', icon: 'chat', color: '#F08A8A', href: '/companion' },
-  Family: { title: 'Family stuff', body: 'Put it in the worry box and give it fifteen minutes later.', icon: 'feather', color: '#AFA2DE', href: '/worry' },
-  Sports: { title: 'A lot on the field', body: 'Two minutes of slow breathing settles the body fast.', icon: 'wind', color: '#8FB4E8', href: '/breathe' },
-  Job: { title: 'Work and school at once', body: 'See the whole week, and where the light days are.', icon: 'calendar', color: '#F5B45C', href: '/week' },
-  College: { title: 'College pressure', body: 'One next step at a time. Your list is waiting.', icon: 'cap', color: '#8CC0A8', href: '/college' },
-  Sleep: { title: 'Sleep’s been rough', body: 'Tonight’s wind-down and bedtime are ready for you.', icon: 'moon', color: '#8FB4E8', href: '/sleep' },
-  Money: { title: 'Money worries', body: 'Write it down in the worry box, so it’s not all in your head.', icon: 'feather', color: '#AFA2DE', href: '/worry' },
+  Tests: { title: 'Tests on your mind', body: 'Quizzo can turn your flashcards into a quick warm-up.', icon: 'bolt', color: colors.shelved, href: '/helper/quizzo' },
+  Homework: { title: 'Homework piling up', body: 'Pip can fit tonight into your cap, with breaks.', icon: 'calendar', color: colors.sky, href: '/helper/pip' },
+  Friends: { title: 'Friend stuff', body: 'Talking it through with Ember can untangle it a little.', icon: 'chat', color: dimensionColor.social, href: '/companion' },
+  Family: { title: 'Family stuff', body: 'Put it in the worry box and give it fifteen minutes later.', icon: 'feather', color: colors.shelved, href: '/worry' },
+  Sports: { title: 'A lot on the field', body: 'Two minutes of slow breathing settles the body fast.', icon: 'wind', color: colors.sky, href: '/breathe' },
+  Job: { title: 'Work and school at once', body: 'See the whole week, and where the light days are.', icon: 'calendar', color: colors.flame, href: '/week' },
+  College: { title: 'College pressure', body: 'One next step at a time. Your list is waiting.', icon: 'cap', color: colors.secured, href: '/college' },
+  Sleep: { title: 'Sleep’s been rough', body: 'Tonight’s wind-down and bedtime are ready for you.', icon: 'moon', color: colors.sky, href: '/sleep' },
+  Money: { title: 'Money worries', body: 'Write it down in the worry box, so it’s not all in your head.', icon: 'feather', color: colors.shelved, href: '/worry' },
   'Social media': { title: 'Scrolling taking over', body: 'A focus session with the phone in another room.', icon: 'timer', color: colors.flame, href: '/focus' },
 };
 
@@ -263,7 +263,7 @@ export function WelcomeBack() {
   return (
     <Row
       icon="sun"
-      color="#F5A36B"
+      color={colors.flame}
       title={`Welcome back. It’s been ${away} days.`}
       body={[week ? `${plural(week, 'thing')} due this week.` : 'Nothing due this week.', late ? `${late} slipped past; triage helps.` : null].filter(Boolean).join(' ')}
       onPress={() => router.push(late ? '/triage' : '/school')}
@@ -284,10 +284,10 @@ export function Birthday() {
   const [hidden, setHidden] = useClosedToday('Birthday');
   const isToday = whenBirthday(birthday, today, false);
   useEffect(() => {
-    if (isToday) celebrate(`Happy birthday${name ? `, ${name}` : ''}`, 'Go easy on yourself today. The list can wait a little.', '#E89AB8', { key: `birthday-${today.slice(0, 4)}` });
+    if (isToday) celebrate(`Happy birthday${name ? `, ${name}` : ''}`, 'Go easy on yourself today. The list can wait a little.', dimensionColor.social, { key: `birthday-${today.slice(0, 4)}` });
   }, [isToday, name, today]);
   if (!isToday || hidden) return null;
-  return <Row icon="gift" color="#E89AB8" title={`Happy birthday${name ? `, ${name}` : ''}`} body="Ember says the candles today are all yours." onPress={() => router.push('/wins')} onClose={setHidden} />;
+  return <Row icon="gift" color={dimensionColor.social} title={`Happy birthday${name ? `, ${name}` : ''}`} body="Ember says the candles today are all yours." onPress={() => router.push('/wins')} onClose={setHidden} />;
 }
 
 /** A test or project one to three days out with no steps yet. */
@@ -310,7 +310,7 @@ export function PlanTest() {
   return (
     <Row
       icon="layers"
-      color="#AFA2DE"
+      color={colors.shelved}
       title={`${t.title} is ${d === 1 ? 'tomorrow' : `in ${d} days`}, no plan yet`}
       body="Spread the studying over the days you have. Tap to plan it backward."
       onPress={() => router.push(`/assignment/${t.id}`)}
@@ -429,7 +429,7 @@ export function Resurface() {
   return (
     <Row
       icon="heart"
-      color="#F08A8A"
+      color={dimensionColor.social}
       title={`On ${new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, you were grateful for`}
       body={`“${hit.item}”`}
       onPress={() => router.push('/wins')}
@@ -478,7 +478,7 @@ export function WorryTime() {
   return (
     <Row
       icon="feather"
-      color="#AFA2DE"
+      color={colors.shelved}
       title="It’s worry time"
       body={`${open} worr${open === 1 ? 'y is' : 'ies are'} waiting in the box. Give each fifteen minutes, then let the rest of the evening be yours.`}
       onPress={() => router.push({ pathname: '/worry', params: { timer: '15' } })}

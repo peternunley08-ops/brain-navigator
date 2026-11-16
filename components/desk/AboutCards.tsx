@@ -20,7 +20,6 @@ import { IconButton } from '../ui/IconButton';
 import { Pressy } from '../ui/Pressy';
 import { Ring } from '../ui/Ring';
 
-const VIOLET = '#B79AF0';
 const FIRST_FIVE = THIS_OR_THAT.slice(0, 5);
 const RECHECK_DAYS = 60;
 
@@ -78,10 +77,10 @@ function Noticed() {
   const { about, setAbout } = useLifeStore.getState();
   return (
     <Animated.View key={note.id} entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
-      <Card tint={VIOLET} style={styles.card}>
+      <Card tint={colors.shelved} style={styles.card}>
         <Header title="Something I noticed" onClose={() => setAbout({ noticedOn: today })} />
         <View style={styles.noticeRow}>
-          <Icon name={note.icon} size={18} color={VIOLET} />
+          <Icon name={note.icon} size={18} color={colors.shelved} />
           <View style={styles.flex}>
             <Text style={styles.notice} maxFontSizeMultiplier={2}>{note.text}</Text>
             <Text style={styles.basis} maxFontSizeMultiplier={2}>{note.basis}</Text>
@@ -101,9 +100,9 @@ function Header({ title, onClose }: { title: string; onClose: () => void }) {
   return (
     <View style={styles.head}>
       <Pressy onPress={() => router.push('/about')} style={styles.ring} accessibilityRole="link" accessibilityLabel="Open About you" haptic="none">
-        <Ring progress={aboutFilled(about)} size={30} stroke={3} color={VIOLET} value="" />
+        <Ring progress={aboutFilled(about)} size={30} stroke={3} color={colors.shelved} value="" />
         <View style={styles.ringIcon} pointerEvents="none">
-          <Icon name="person" size={14} color={VIOLET} />
+          <Icon name="person" size={14} color={colors.shelved} />
         </View>
       </Pressy>
       <Text style={styles.title} maxFontSizeMultiplier={2}>{title}</Text>
@@ -118,7 +117,7 @@ function GetToKnowYou() {
   };
   return (
     <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
-      <Card tint={VIOLET} style={styles.card}>
+      <Card tint={colors.shelved} style={styles.card}>
         <Header title="Five quick ones, so Ember gets you" onClose={done} />
         <ThisOrThatDeck
           cards={FIRST_FIVE}
@@ -146,7 +145,7 @@ function Question({ q }: { q: string }) {
   };
   return (
     <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
-      <Card tint={VIOLET} style={styles.card}>
+      <Card tint={colors.shelved} style={styles.card}>
         <Header title="A question for today" onClose={() => mark()} />
         <Text style={styles.q} maxFontSizeMultiplier={textGrow.heading}>{q}</Text>
         <Field
@@ -192,7 +191,7 @@ function WeekSentence() {
   };
   return (
     <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
-      <Card tint={VIOLET} style={styles.card}>
+      <Card tint={colors.shelved} style={styles.card}>
         <Header title="Your week in a sentence" onClose={() => done()} />
         <Text style={styles.q} maxFontSizeMultiplier={textGrow.heading}>If this week were one sentence, what would it be?</Text>
         <Field
@@ -238,7 +237,7 @@ function StillTrue({ id, side, label, other }: { id: string; side: string; label
   };
   return (
     <Animated.View entering={FadeInDown.duration(320)} exiting={FadeOut.duration(180)}>
-      <Card tint={VIOLET} style={styles.card}>
+      <Card tint={colors.shelved} style={styles.card}>
         <Header title="Checking in on an old answer" onClose={() => answer(true)} />
         <Text style={styles.q} maxFontSizeMultiplier={textGrow.heading}>Still a {label.toLowerCase()}?</Text>
         <View style={styles.actions}>
