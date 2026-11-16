@@ -214,6 +214,7 @@ export default function VentScreen() {
                       onPress={() => setOpenEntry(open ? null : entry.id)}
                       accessibilityRole="button"
                       accessibilityState={{ expanded: open }}
+                      accessibilityLabel={`${chat ? `${chatTitles[entryKey(entry.content)] ?? chatTitleFrom(entry.content)}. ` : ''}${new Date(entry.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}${chat ? ', with Ember' : ''}. ${entry.content}`}
                       accessibilityHint={open ? 'Shows less' : 'Shows all of it'}
                     >
                       <Card style={styles.historyCard}>
@@ -257,6 +258,7 @@ function ModeSwitch({ mode, onChange }: { mode: Mode; onChange: (m: Mode) => voi
           depth={0.97}
           accessibilityRole="tab"
           accessibilityState={{ selected: mode === m }}
+          accessibilityLabel={m === 'voice' ? 'Speak' : 'Type'}
         >
           <Icon name={m === 'voice' ? 'mic' : 'pen'} size={16} color={mode === m ? colors.flameInk : colors.textMuted} strokeWidth={2} />
           <Text style={[styles.switchText, mode === m && styles.switchTextOn]}>{m === 'voice' ? 'Speak' : 'Type'}</Text>

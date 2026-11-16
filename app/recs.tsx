@@ -101,7 +101,7 @@ export default function RecsScreen() {
                   <Button label="Draft the ask" icon="message" variant="secondary" size="sm" onPress={() => Share.share({ message: askNote(r.teacher.split('(')[0].trim()) })} style={styles.gapSm} />
                 ) : null}
                 {r.status === 'submitted' ? (
-                  <Pressy onPress={() => save({ ...r, thanked: !r.thanked })} style={styles.thanks} accessibilityRole="checkbox" accessibilityState={{ checked: r.thanked }}>
+                  <Pressy onPress={() => save({ ...r, thanked: !r.thanked })} style={styles.thanks} accessibilityRole="checkbox" accessibilityState={{ checked: r.thanked }} accessibilityLabel={r.thanked ? 'Thank-you sent' : 'Send a thank-you note'}>
                     <Icon name={r.thanked ? 'check' : 'heart'} size={16} color={r.thanked ? colors.secured : PINK} />
                     <Text style={styles.thanksText}>{r.thanked ? 'Thank-you sent' : 'Send a thank-you note'}</Text>
                   </Pressy>

@@ -52,6 +52,7 @@ export function TodayRows({
             // Over the cap, the row offers the fix: Pip's plan fits tonight inside it.
             onPress={() => router.push(over ? '/helper/pip' : load.items.length ? '/school' : '/add-assignment')}
             hint={over ? 'Pip plans tonight inside your limit' : load.items.length ? 'Opens School' : 'Adds homework'}
+            spoken={over ? `${tonightLine(load.minutes, cap, load.items.length)}. Pip can fit it in` : tonightLine(load.minutes, cap, load.items.length)}
             stack={stack}
           >
             {over ? (
@@ -65,7 +66,7 @@ export function TodayRows({
           </Row>
         ) : null}
         {show('mind') ? (
-          <Row label="On your mind" icon="candle" iconColor={colors.flame} onPress={() => router.push(open ? '/open-loops' : '/new-entry')} hint={open ? 'Opens everything on your mind' : 'Sets something down'} line={show('due')} stack={stack}>
+          <Row label="On your mind" icon="candle" iconColor={colors.flame} onPress={() => router.push(open ? '/open-loops' : '/new-entry')} hint={open ? 'Opens everything on your mind' : 'Sets something down'} spoken={open ? plural(open, 'candle') : 'Nothing open'} line={show('due')} stack={stack}>
             <View ref={candleRow} style={styles.dots}>
               {Array.from({ length: Math.min(open, DOTS) }, (_, i) => (
                 <View key={i} style={styles.dot} />
@@ -76,7 +77,7 @@ export function TodayRows({
         ) : null}
         {show('checkin') ? (
           checkin?.mood != null ? (
-            <Row label="How you’re doing" icon="heart" iconColor={colors.secured} onPress={() => router.push('/checkin')} hint="Opens today’s check-in" line={show('due') || show('mind')} stack={stack}>
+            <Row label="How you’re doing" icon="heart" iconColor={colors.secured} onPress={() => router.push('/checkin')} hint="Opens today’s check-in" spoken={[MOOD_WORDS[checkin.mood - 1], checkin.sleep_hours != null ? `${plural(checkin.sleep_hours, 'hour')} of sleep` : null].filter(Boolean).join(', ')} line={show('due') || show('mind')} stack={stack}>
               <Text style={value} maxFontSizeMultiplier={2}>
                 {[MOOD_WORDS[checkin.mood - 1], checkin.sleep_hours != null ? `${plural(checkin.sleep_hours, 'hour')} of sleep` : null].filter(Boolean).join(', ')}
               </Text>
@@ -101,9 +102,9 @@ export function TodayRows({
   );
 }
 
-function Row({ label, icon, iconColor, onPress, hint, line, stack, children }: { label: string; icon: IconName; iconColor: string; onPress: () => void; hint: string; line?: boolean; stack?: boolean; children: ReactNode }) {
+function Row({ label, icon, iconColor, onPress, hint, spoken, line, stack, children }: { label: string; icon: IconName; iconColor: string; onPress: () => void; hint: string; spoken?: string; line?: boolean; stack?: boolean; children: ReactNode }) {
   return (
-    <Pressy onPress={onPress} style={[styles.row, stack && styles.rowStack, line && styles.line]} depth={0.98} accessibilityRole="button" accessibilityHint={hint}>
+    <Pressy onPress={onPress} style={[styles.row, stack && styles.rowStack, line && styles.line]} depth={0.98} accessibilityRole="button" accessibilityLabel={spoken ? `${label}, ${spoken}` : label} accessibilityHint={hint}>
       <View style={styles.labelWrap}>
         <View style={[styles.badge, { backgroundColor: alpha(iconColor, 0.14) }]}>
           <Icon name={icon} size={15} color={iconColor} />

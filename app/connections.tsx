@@ -129,7 +129,7 @@ export default function ConnectionsScreen() {
               <Button label="Scan a screenshot" icon="image" onPress={() => router.push('/scan')} style={styles.flex} size="sm" />
               <Button label="Open Classroom" icon="arrow" variant="secondary" size="sm" onPress={() => Linking.openURL('https://classroom.google.com')} style={styles.flex} />
             </View>
-            <Pressy onPress={() => Share.share({ message: SCHOOL_REQUEST })} style={styles.ask} accessibilityRole="button">
+            <Pressy onPress={() => Share.share({ message: SCHOOL_REQUEST })} style={styles.ask} accessibilityRole="button" accessibilityLabel="Want a direct connection? Send your school’s IT a request">
               <Icon name="message" size={15} color={colors.textMuted} />
               <Text style={styles.askText}>Want a direct connection? Send your school’s IT a request</Text>
             </Pressy>

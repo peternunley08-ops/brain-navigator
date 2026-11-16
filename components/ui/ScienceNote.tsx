@@ -15,7 +15,7 @@ export function ScienceNote({ fact }: ScienceNoteProps) {
 
   return (
     <View style={styles.wrap}>
-      <Pressy onPress={() => setOpen((o) => !o)} hitSlop={8} style={styles.toggleRow} accessibilityRole="button" accessibilityState={{ expanded: open }}>
+      <Pressy onPress={() => setOpen((o) => !o)} hitSlop={8} style={styles.toggleRow} accessibilityRole="button" accessibilityState={{ expanded: open }} accessibilityLabel={open ? 'Hide the science' : 'Why this matters'}>
         <Icon name="flask" size={14} color={colors.flame} strokeWidth={2} />
         <Text style={styles.toggle}>{open ? 'Hide the science' : 'Why this matters'}</Text>
       </Pressy>

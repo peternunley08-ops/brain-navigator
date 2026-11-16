@@ -6,7 +6,7 @@ import { plural } from '../core/words';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { Button } from '../components/ui/Button';
@@ -35,7 +35,7 @@ import {
 } from '../core/schoolStore';
 import { useLifeStore } from '../core/lifeStore';
 import { offerUndo } from '../core/undoStore';
-import { alpha, colors, fonts, gaugeColor, radii } from '../core/theme';
+import { alpha, colors, fonts, gaugeColor, radii, textGrow } from '../core/theme';
 
 // B or better reads sage, C gold, below that ember.
 function gradeColor(pct: number) {
@@ -90,6 +90,8 @@ function Overview({
   onPick: (id: string) => void;
 }) {
   const grades = useSchoolStore((s) => s.grades);
+  // At the largest text sizes a one-line class name breaks mid-word beside the letter.
+  const stack = useWindowDimensions().fontScale > 1.5;
   return (
     <>
       <Reveal index={1}>
@@ -108,10 +110,10 @@ function Overview({
               const mine = grades.filter((x) => x.classId === c.id).sort((a, b) => a.date.localeCompare(b.date));
               const trend = mine.map((_, i) => classAverage(mine.slice(0, i + 1), c) ?? 0);
               return (
-                <Card key={c.id} onPress={() => onPick(c.id)} style={styles.classCard}>
+                <Card key={c.id} onPress={() => onPick(c.id)} style={[styles.classCard, stack && styles.classStack]}>
                   <View style={[styles.bar, { backgroundColor: c.color }]} />
                   <View style={styles.flex}>
-                    <Text style={styles.className} numberOfLines={1}>
+                    <Text style={styles.className} numberOfLines={stack ? 2 : 1} adjustsFontSizeToFit minimumFontScale={0.85} maxFontSizeMultiplier={textGrow.heading}>
                       {c.name}
                     </Text>
                     <Text style={styles.sub}>
@@ -120,7 +122,7 @@ function Overview({
                     </Text>
                   </View>
                   {trend.length > 1 ? <Sparkline values={trend} color={c.color} width={64} height={28} /> : null}
-                  <Text style={[styles.letterSmall, { color: avg == null ? colors.textFaint : gradeColor(avg) }]}>{avg == null ? '–' : letterFor(avg)}</Text>
+                  <Text style={[styles.letterSmall, { color: avg == null ? colors.textFaint : gradeColor(avg) }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.bar}>{avg == null ? '–' : letterFor(avg)}</Text>
                 </Card>
               );
             })}
@@ -133,6 +135,7 @@ function Overview({
 
 function ClassGrades({ cls }: { cls: SchoolClass }) {
   const grades = useSchoolStore((s) => s.grades);
+  const stack = useWindowDimensions().fontScale > 1.5;
   const addGrade = useSchoolStore((s) => s.addGrade);
   const deleteGrade = useSchoolStore((s) => s.deleteGrade);
   const saveClass = useSchoolStore((s) => s.saveClass);
@@ -220,12 +223,12 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
   return (
     <>
       <Reveal index={1}>
-        <Card tint={cls.color} style={styles.hero}>
+        <Card tint={cls.color} style={[styles.hero, stack && styles.heroStack]}>
           <View style={[styles.letterBig, { borderColor: alpha(cls.color, 0.55), backgroundColor: alpha(cls.color, 0.14) }]}>
-            <Text style={[styles.letterBigText, { color: cls.color }]}>{avg == null ? '–' : letterFor(avg)}</Text>
+            <Text style={[styles.letterBigText, { color: cls.color }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={textGrow.display}>{avg == null ? '–' : letterFor(avg)}</Text>
           </View>
           <View style={styles.flex}>
-            <Text style={styles.pct}>{avg == null ? 'No grades yet' : `${avg.toFixed(1)}%`}</Text>
+            <Text style={styles.pct} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.display}>{avg == null ? 'No grades yet' : `${avg.toFixed(1)}%`}</Text>
             <Text style={styles.sub}>
               {weightTotal ? `Weighted by category (${weightTotal}% set)` : 'Total points'}, {plural(mine.length, 'grade')}
             </Text>
@@ -260,9 +263,9 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                 <Chip key={c} label={c} selected={category === c} color={cls.color} onPress={() => setCategory(c)} />
               ))}
             </ScrollView>
-            <View style={styles.scoreRow}>
+            <View style={[styles.scoreRow, stack && styles.scoreStack]}>
               <Field placeholder="Score" value={score} onChangeText={setScore} keyboardType="decimal-pad" containerStyle={styles.flex} accessibilityLabel="Score" />
-              <Text style={styles.outOf}>out of</Text>
+              <Text style={styles.outOf} maxFontSizeMultiplier={textGrow.control}>out of</Text>
               <Field placeholder="100" value={outOf} onChangeText={setOutOf} keyboardType="decimal-pad" containerStyle={styles.flex} accessibilityLabel="Out of" />
             </View>
             {valid ? <Text style={styles.preview}>{((s / o) * 100).toFixed(1)}%, {letterFor((s / o) * 100)}</Text> : null}
@@ -287,12 +290,13 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                     <Pressy
                       key={g.key}
                       onPress={() => setScanPicked(on ? scanPicked.filter((k) => k !== g.key) : [...scanPicked, g.key])}
-                      style={styles.scanRow}
+                      style={[styles.scanRow, stack && styles.scanStack]}
                       accessibilityRole="checkbox"
                       accessibilityState={{ checked: on }}
+                      accessibilityLabel={`${g.title}, ${g.score} of ${g.outOf}, ${g.category}`}
                     >
                       <Icon name={on ? 'check' : 'plus'} size={16} color={on ? colors.secured : colors.textFaint} />
-                      <Text style={styles.scanTitle} numberOfLines={1}>
+                      <Text style={styles.scanTitle} numberOfLines={stack ? 2 : 1} adjustsFontSizeToFit minimumFontScale={0.85} maxFontSizeMultiplier={textGrow.control}>
                         {g.title}
                       </Text>
                       <Text style={styles.scanMeta}>
@@ -317,8 +321,8 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
           {editWeights ? (
             <Card>
               {GRADE_CATEGORIES.map((c) => (
-                <View key={c} style={styles.weightRow}>
-                  <Text style={styles.weightLabel}>{c}</Text>
+                <View key={c} style={[styles.weightRow, stack && styles.weightStack]}>
+                  <Text style={styles.weightLabel} maxFontSizeMultiplier={textGrow.control}>{c}</Text>
                   <Stepper value={`${weights[c] ?? 0}%`} onDecrement={() => setWeight(c, -5)} onIncrement={() => setWeight(c, 5)} label={`${c} weight`} minWidth={50} />
                 </View>
               ))}
@@ -344,8 +348,8 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                   <Chip key={t} label={`${t}% (${letterFor(t)})`} selected={target === t} onPress={() => setTarget(t)} />
                 ))}
               </ChipRow>
-              <View style={styles.weightRow}>
-                <Text style={styles.weightLabel}>The final is worth</Text>
+              <View style={[styles.weightRow, stack && styles.weightStack]}>
+                <Text style={styles.weightLabel} maxFontSizeMultiplier={textGrow.control}>The final is worth</Text>
                 <Stepper value={`${finalWeight}%`} onDecrement={() => setFinalWeight(Math.max(5, finalWeight - 5))} onIncrement={() => setFinalWeight(Math.min(60, finalWeight + 5))} label="final weight" minWidth={50} />
               </View>
               {needed != null ? (
@@ -389,9 +393,9 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
         <Reveal index={4}>
           <Section title="What if…" note="Try a score without saving it.">
             <Card>
-              <View style={styles.scoreRow}>
+              <View style={[styles.scoreRow, stack && styles.scoreStack]}>
                 <Field placeholder="Score" value={wiScore} onChangeText={setWiScore} keyboardType="decimal-pad" containerStyle={styles.flex} accessibilityLabel="What-if score" />
-                <Text style={styles.outOf}>out of</Text>
+                <Text style={styles.outOf} maxFontSizeMultiplier={textGrow.control}>out of</Text>
                 <Field placeholder="100" value={wiOutOf} onChangeText={setWiOutOf} keyboardType="decimal-pad" containerStyle={styles.flex} accessibilityLabel="What-if out of" />
               </View>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow} style={styles.catScroll}>
@@ -417,16 +421,16 @@ function ClassGrades({ cls }: { cls: SchoolClass }) {
                 const pct = (g.score / g.outOf) * 100;
                 return (
                   <Animated.View key={g.id} entering={FadeInDown.duration(220)} exiting={FadeOut.duration(150)} layout={LinearTransition}>
-                    <Card style={styles.gradeRow}>
+                    <Card style={[styles.gradeRow, stack && styles.gradeStack]}>
                       <View style={styles.flex}>
-                        <Text style={styles.gradeTitle} numberOfLines={1}>
+                        <Text style={styles.gradeTitle} numberOfLines={stack ? 2 : 1} adjustsFontSizeToFit minimumFontScale={0.85} maxFontSizeMultiplier={textGrow.heading}>
                           {g.title}
                         </Text>
                         <Text style={styles.sub}>
                           {g.category}, {g.score}/{g.outOf}
                         </Text>
                       </View>
-                      <Text style={[styles.gradePct, { color: gradeColor(pct) }]}>{pct.toFixed(0)}%</Text>
+                      <Text style={[styles.gradePct, { color: gradeColor(pct) }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.bar}>{pct.toFixed(0)}%</Text>
                       <Pressy
                         onPress={() => {
                           const before = useSchoolStore.getState().grades;
@@ -485,6 +489,10 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 8,
   },
+  scanStack: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
   scanTitle: {
     flex: 1,
     fontFamily: fonts.bodyMedium,
@@ -529,6 +537,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  classStack: {
+    alignItems: 'flex-start',
+  },
   bar: {
     width: 5,
     alignSelf: 'stretch',
@@ -557,6 +568,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
+  },
+  heroStack: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
   },
   letterBig: {
     width: 72,
@@ -592,6 +607,10 @@ const styles = StyleSheet.create({
     gap: 10,
     marginTop: 12,
   },
+  scoreStack: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
+  },
   outOf: {
     fontFamily: fonts.body,
     fontSize: 14,
@@ -609,6 +628,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 8,
+  },
+  weightStack: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: 6,
   },
   weightLabel: {
     fontFamily: fonts.bodyMedium,
@@ -653,6 +677,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     paddingVertical: 14,
+  },
+  gradeStack: {
+    alignItems: 'flex-start',
   },
   gradeTitle: {
     fontFamily: fonts.bodySemi,

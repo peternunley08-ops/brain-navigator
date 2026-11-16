@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedProps, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import Svg, { Circle } from 'react-native-svg';
 import { useCountUp } from '../../core/hooks/useCountUp';
-import { alpha, colors, fonts } from '../../core/theme';
+import { alpha, colors, fonts, textGrow } from '../../core/theme';
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
@@ -65,13 +65,17 @@ export function Ring({
           ) : null}
         </Svg>
         <View style={styles.center}>
-          <Text style={[styles.value, { fontSize: size * 0.27 }]} numberOfLines={1}>
+          <Text style={[styles.value, { fontSize: size * 0.27, width: size - stroke * 2 }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.55} maxFontSizeMultiplier={textGrow.bar}>
             {shownValue ?? '–'}
-            {unit ? <Text style={[styles.unit, { fontSize: size * 0.15 }]}>{unit}</Text> : null}
+            {unit ? <Text style={[styles.unit, { fontSize: size * 0.15 }]} maxFontSizeMultiplier={textGrow.bar}>{unit}</Text> : null}
           </Text>
         </View>
       </View>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+      {label ? (
+        <Text style={[styles.label, { maxWidth: Math.max(size + 28, 96) }]} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.control}>
+          {label}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -93,6 +97,7 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemi,
     color: colors.text,
     fontVariant: ['tabular-nums'],
+    textAlign: 'center',
   },
   unit: {
     fontFamily: fonts.bodyMedium,
@@ -103,5 +108,6 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 13,
     color: colors.textMuted,
+    textAlign: 'center',
   },
 });

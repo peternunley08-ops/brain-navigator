@@ -74,6 +74,12 @@ describe('night clock', () => {
     assert.equal(morningKey(at(2026, 10, 6, 1)), '2026-10-06');
   });
 
+  it('tonightWeekday keeps Monday at 1 AM as Sunday and Monday at 5 AM as Monday', () => {
+    // 2026-10-05 is a Monday. tonightWeekday rolls with tonightKey at 5 AM (0 = Sunday).
+    assert.equal(tonightWeekday(at(2026, 10, 5, 1)), 0);
+    assert.equal(tonightWeekday(at(2026, 10, 5, 5)), 1);
+  });
+
   it('lights out is wake minus sleep goal minus time to fall asleep', () => {
     assert.equal(lightsOutMinutes(hm(7), 8), hm(22, 45));
     assert.equal(lightsOutMinutes(hm(6, 30), 9), hm(21, 15));

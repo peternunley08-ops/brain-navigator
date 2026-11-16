@@ -99,7 +99,7 @@ export function EmberBubble({ line, title, actions, footer, onAction, placement,
       {actions && actions.length > 0 ? (
         <Animated.View style={[styles.actions, { opacity: done ? 1 : 0.35 }]}>
           {actions.map((a) => (
-            <Pressy key={a.href + a.label} style={styles.action} depth={0.93} onPress={() => onAction?.(a)}>
+            <Pressy key={a.href + a.label} style={styles.action} depth={0.93} onPress={() => onAction?.(a)} accessibilityLabel={a.label}>
               {a.icon ? <Icon name={a.icon} size={16} color={colors.flameInk} strokeWidth={2.1} /> : null}
               <Text style={styles.actionText}>{a.label}</Text>
             </Pressy>
@@ -110,7 +110,7 @@ export function EmberBubble({ line, title, actions, footer, onAction, placement,
       {footer && footer.length > 0 ? (
         <View style={styles.footer}>
           {footer.map((f) => (
-            <Pressy key={f.label} onPress={f.onPress} style={styles.footBtn} depth={0.92} hitSlop={6}>
+            <Pressy key={f.label} onPress={f.onPress} style={styles.footBtn} depth={0.92} hitSlop={6} accessibilityLabel={f.label}>
               <Icon name={f.icon} size={15} color={colors.textMuted} strokeWidth={2} />
               <Text style={styles.footText}>{f.label}</Text>
             </Pressy>

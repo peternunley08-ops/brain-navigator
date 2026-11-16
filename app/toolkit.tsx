@@ -56,7 +56,7 @@ export default function ToolkitScreen() {
           <Reveal index={i}>
             <Animated.View layout={sprung(LinearTransition)}>
               <Card tint={isOpen ? t.color : undefined} style={styles.card}>
-                <Pressy onPress={() => setOpen(isOpen ? null : t.key)} style={styles.head} accessibilityRole="button" accessibilityState={{ expanded: isOpen }}>
+                <Pressy onPress={() => setOpen(isOpen ? null : t.key)} style={styles.head} accessibilityRole="button" accessibilityState={{ expanded: isOpen }} accessibilityLabel={t.title}>
                   <View style={[styles.icon, { backgroundColor: alpha(t.color, 0.15) }]}>
                     <Icon name={t.icon} size={20} color={t.color} />
                   </View>
@@ -110,7 +110,7 @@ function TestNerves({ color }: { color: string }) {
       {PREP.map((p, i) => {
         const on = done.includes(i);
         return (
-          <Pressy key={p} onPress={() => setDone((d) => (on ? d.filter((x) => x !== i) : [...d, i]))} style={styles.check} accessibilityRole="checkbox" accessibilityState={{ checked: on }}>
+          <Pressy key={p} onPress={() => setDone((d) => (on ? d.filter((x) => x !== i) : [...d, i]))} style={styles.check} accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={p}>
             <Icon name={on ? 'check' : 'plus'} size={15} color={on ? colors.secured : colors.textFaint} />
             <Text style={[styles.checkText, on && styles.checkDone]}>{p}</Text>
           </Pressy>

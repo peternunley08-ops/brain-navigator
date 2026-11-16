@@ -128,6 +128,7 @@ export function TonightPlan({ rig }: { rig: EmberRig }) {
                 depth={0.98}
                 style={styles.step}
                 accessibilityRole={s.kind === 'work' || canFlip ? 'button' : undefined}
+                accessibilityLabel={`${clock(s.start)}, ${s.title}, ${s.end - s.start} min${canFlip ? ', flip 5 cards' : ''}`}
                 accessibilityHint={s.kind === 'work' ? 'Tap to do this one first' : canFlip ? 'Flip 5 flashcards during your break' : undefined}
               >
                 <Text style={styles.time}>{clock(s.start)}</Text>

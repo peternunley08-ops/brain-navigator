@@ -144,6 +144,7 @@ export function ReplyExtras({ reply, color = colors.flame, onRemember }: { reply
               depth={0.94}
               onPress={() => router.push(EMBER_ACTIONS[a].href as never)}
               accessibilityRole="button"
+              accessibilityLabel={EMBER_ACTIONS[a].label}
             >
               <Icon name={EMBER_ACTIONS[a].icon} size={15} color={i === 0 ? colors.flameInk : color} strokeWidth={2.1} />
               <Text style={[styles.actionText, { color: i === 0 ? colors.flameInk : color }]}>{EMBER_ACTIONS[a].label}</Text>

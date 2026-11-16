@@ -181,7 +181,7 @@ export default function TodayScreen() {
         <Reveal index={0}>
           <View style={styles.dueRow}>
             {dueToday.map((a) => (
-              <Pressy key={a.id} onPress={() => router.push(`/assignment/${a.id}`)} style={styles.duePill}>
+              <Pressy key={a.id} onPress={() => router.push(`/assignment/${a.id}`)} style={styles.duePill} accessibilityLabel={withKind(a.title, KIND_LABEL[a.kind])}>
                 <Icon name="flag" size={13} color={colors.flame} />
                 <Text style={styles.dueText} numberOfLines={1} maxFontSizeMultiplier={textGrow.control}>
                   {withKind(a.title, KIND_LABEL[a.kind])}

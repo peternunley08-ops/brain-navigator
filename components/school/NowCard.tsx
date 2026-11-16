@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState, useSyncExternalStore } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { nightClockVersion, nightNow, subscribeNightClock } from '../../core/night';
 import { clock, nowState, useSchoolStore } from '../../core/schoolStore';
@@ -33,10 +33,13 @@ export function NowCard() {
     pulse.value = reduced ? 1 : withRepeat(withTiming(1, { duration: 1400 }), -1, true);
   }, [pulse, reduced]);
   const live = useAnimatedStyle(() => ({ opacity: 0.4 + 0.6 * pulse.value, transform: [{ scale: 0.8 + 0.3 * pulse.value }] }));
+  // At the largest text sizes the class name is one line beside the icon and breaks mid-word.
+  const stack = useWindowDimensions().fontScale > 1.5;
+  const card = [styles.card, stack && styles.cardStack];
 
   if (now.kind === 'none' || now.kind === 'unscheduled') {
     return (
-      <Card onPress={() => router.push('/classes')} style={styles.card}>
+      <Card onPress={() => router.push('/classes')} style={card}>
         <View style={[styles.icon, { backgroundColor: alpha(colors.flame, 0.14) }]}>
           <Icon name="book" size={22} color={colors.flame} />
         </View>
@@ -53,7 +56,7 @@ export function NowCard() {
 
   if (now.kind === 'free' || now.kind === 'done') {
     return (
-      <Card style={styles.card} onPress={() => router.push('/today')}>
+      <Card style={card} onPress={() => router.push('/today')}>
         <View style={[styles.icon, { backgroundColor: alpha(colors.secured, 0.14) }]}>
           <Icon name={now.kind === 'free' ? 'sun' : 'moon'} size={22} color={colors.secured} />
         </View>
@@ -68,14 +71,14 @@ export function NowCard() {
   const c = now.cls;
   const inClass = now.kind === 'in';
   return (
-    <Card tint={c.color} onPress={() => router.push('/today')} style={styles.card} accessibilityHint="Opens your day">
+    <Card tint={c.color} onPress={() => router.push('/today')} style={card} accessibilityHint="Opens your day">
       <View style={[styles.bar, { backgroundColor: c.color }]} />
       <View style={styles.body}>
         <View style={styles.labelRow}>
           {inClass ? <Animated.View style={[styles.liveDot, { backgroundColor: c.color }, live]} /> : null}
           <Text style={[styles.label, { color: c.color }]} maxFontSizeMultiplier={2}>{inClass ? 'Now' : `Next, in ${mins(now.minsUntil)}`}</Text>
         </View>
-        <Text style={styles.title} maxFontSizeMultiplier={textGrow.heading} numberOfLines={1}>
+        <Text style={styles.title} maxFontSizeMultiplier={textGrow.heading} numberOfLines={stack ? 2 : 1} adjustsFontSizeToFit minimumFontScale={0.85}>
           {c.name}
         </Text>
         <Text style={styles.sub} maxFontSizeMultiplier={2}>
@@ -94,6 +97,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 14,
+  },
+  cardStack: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
   },
   icon: {
     width: 46,
@@ -121,6 +128,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   label: {
+    flexShrink: 1,
     fontFamily: fonts.bodySemi,
     fontSize: 13,
   },

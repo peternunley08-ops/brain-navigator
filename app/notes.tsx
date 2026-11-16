@@ -2,7 +2,7 @@ import { Link, useLocalSearchParams } from 'expo-router';
 import { router } from 'expo-router';
 import { plural } from '../core/words';
 import { useEffect, useState } from 'react';
-import { InteractionManager, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { InteractionManager, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { Chip } from '../components/ui/Chip';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { Field } from '../components/ui/Field';
@@ -16,7 +16,7 @@ import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { NOTE_TEMPLATES, type Note, useHubStore } from '../core/hubStore';
 import { useSchoolStore } from '../core/schoolStore';
-import { alpha, colors, fonts, radii } from '../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../core/theme';
 import { essayWords, wordGoalFor } from '../core/words';
 
 function ago(iso: string) {
@@ -30,6 +30,8 @@ function ago(iso: string) {
 }
 
 export default function NotesScreen() {
+  // At the largest text sizes a template title in a narrow card breaks mid-word.
+  const stack = useWindowDimensions().fontScale > 1.5;
   const notes = useHubStore((s) => s.notes);
   const createNote = useHubStore((s) => s.createNote);
   const classes = useSchoolStore((s) => s.classes);
@@ -69,11 +71,11 @@ export default function NotesScreen() {
         <Section title="New page">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.templates}>
             {NOTE_TEMPLATES.map((t) => (
-              <Pressy key={t.key} onPress={() => start(t.key)} style={[styles.template, { borderColor: alpha(t.color, 0.35) }]} accessibilityRole="button" accessibilityLabel={`New ${t.title}`}>
+              <Pressy key={t.key} onPress={() => start(t.key)} style={[styles.template, stack && styles.templateWide, { borderColor: alpha(t.color, 0.35) }]} accessibilityRole="button" accessibilityLabel={`New ${t.title}`}>
                 <View style={[styles.tIcon, { backgroundColor: alpha(t.color, 0.16) }]}>
                   <Icon name={t.icon as IconName} size={20} color={t.color} />
                 </View>
-                <Text style={styles.tTitle}>{t.title}</Text>
+                <Text style={styles.tTitle} numberOfLines={3} adjustsFontSizeToFit minimumFontScale={0.75} maxFontSizeMultiplier={textGrow.control}>{t.title}</Text>
               </Pressy>
             ))}
           </ScrollView>
@@ -124,6 +126,7 @@ export default function NotesScreen() {
 }
 
 function NoteCard({ n, i, className }: { n: Note; i: number; className?: string }) {
+  const stack = useWindowDimensions().fontScale > 1.5;
   const preview = n.blocks.find((b) => b.type !== 'heading' && b.text.trim())?.text ?? n.blocks.find((b) => b.text.trim())?.text ?? '';
   const todos = n.blocks.filter((b) => b.type === 'todo' && b.text.trim());
   const done = todos.filter((b) => b.checked).length;
@@ -133,19 +136,19 @@ function NoteCard({ n, i, className }: { n: Note; i: number; className?: string 
     <Animated.View entering={FadeInDown.delay(Math.min(i, 8) * 40).duration(320)}>
       <Link href={`/note/${n.id}`} asChild>
         <Link.AppleZoom>
-          <Card style={styles.card}>
+          <Card style={[styles.card, stack && styles.cardStack]}>
         <View style={[styles.icon, { backgroundColor: alpha(n.color, 0.16), borderColor: alpha(n.color, 0.3) }]}>
           <Icon name={n.icon as IconName} size={20} color={n.color} />
         </View>
         <View style={styles.body}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title} numberOfLines={1}>
+          <View style={[styles.titleRow, stack && styles.titleStack]}>
+            <Text style={styles.title} numberOfLines={stack ? 3 : 1} adjustsFontSizeToFit minimumFontScale={0.85} maxFontSizeMultiplier={textGrow.heading}>
               {n.title || 'Untitled'}
             </Text>
             {n.pinned ? <Icon name="pin" size={13} color={colors.flame} /> : null}
           </View>
           {preview ? (
-            <Text style={styles.preview} numberOfLines={1}>
+            <Text style={styles.preview} numberOfLines={stack ? 3 : 1} adjustsFontSizeToFit={!stack} minimumFontScale={0.85} maxFontSizeMultiplier={2}>
               {preview}
             </Text>
           ) : null}
@@ -191,6 +194,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 12,
   },
+  templateWide: {
+    width: 220,
+  },
   tIcon: {
     width: 38,
     height: 38,
@@ -211,6 +217,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
   },
+  cardStack: {
+    alignItems: 'flex-start',
+  },
   icon: {
     width: 44,
     height: 44,
@@ -226,6 +235,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+  },
+  titleStack: {
+    flexWrap: 'wrap',
   },
   title: {
     flexShrink: 1,

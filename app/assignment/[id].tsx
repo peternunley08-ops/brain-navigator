@@ -297,7 +297,7 @@ export default function AssignmentScreen() {
                 onPress={() => update(a.id, { repeat: a.repeat === 'weekly' ? null : 'weekly' })}
               />
             </ChipRow>
-            <Pressy onPress={() => Share.share({ message: extensionNote(a.title, cls?.teacher ?? '', dueLabel(a.due)) })} style={styles.ask} accessibilityRole="button">
+            <Pressy onPress={() => Share.share({ message: extensionNote(a.title, cls?.teacher ?? '', dueLabel(a.due)) })} style={styles.ask} accessibilityRole="button" accessibilityLabel={`Ask for more time. Drafts a polite note to ${cls?.teacher || 'your teacher'}. You read it and send it.`}>
               <Icon name="message" size={18} color={colors.flame} />
               <View style={styles.flex}>
                 <Text style={styles.askTitle}>Ask for more time</Text>

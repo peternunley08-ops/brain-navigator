@@ -139,7 +139,7 @@ export function EmberNote({ deskHidden }: { deskHidden: string[] }) {
     <View>
       <Note key={shown} />
       {rest.length ? (
-        <Pressy onPress={() => setOpen(true)} hitSlop={8} style={styles.more} accessibilityRole="button" accessibilityHint="Opens Ember’s other notes for today">
+        <Pressy onPress={() => setOpen(true)} hitSlop={8} style={styles.more} accessibilityRole="button" accessibilityLabel={moreLine(rest.length)} accessibilityHint="Opens Ember’s other notes for today">
           <Icon name="sparkle" size={13} color={colors.textMuted} />
           <Text style={styles.link} maxFontSizeMultiplier={2}>{moreLine(rest.length)}</Text>
           <Icon name="chevron" size={13} color={colors.textMuted} />
