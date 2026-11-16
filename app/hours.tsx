@@ -182,7 +182,7 @@ export default function HoursScreen() {
             </ChipRow>
             {kind === 'driving' ? (
               <>
-                <Pressy onPress={() => setNight((v) => !v)} style={styles.night} accessibilityRole="checkbox" accessibilityState={{ checked: night }}>
+                <Pressy onPress={() => setNight((v) => !v)} style={styles.night} accessibilityRole="checkbox" accessibilityState={{ checked: night }} accessibilityLabel="After dark">
                   <Icon name={night ? 'check' : 'moon'} size={17} color={night ? colors.secured : colors.textMuted} />
                   <Text style={styles.nightText}>After dark</Text>
                 </Pressy>

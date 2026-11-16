@@ -67,7 +67,7 @@ export function ExplainBack({ rig, topic: initial, onAskAI }: { rig: EmberRig; t
             {EXPLAIN_CHECKS.map((c, i) => {
               const on = checked.includes(i);
               return (
-                <Pressy key={c} onPress={() => setChecked(on ? checked.filter((x) => x !== i) : [...checked, i])} style={styles.check} accessibilityRole="checkbox" accessibilityState={{ checked: on }}>
+                <Pressy key={c} onPress={() => setChecked(on ? checked.filter((x) => x !== i) : [...checked, i])} style={styles.check} accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={c}>
                   <Icon name={on ? 'check' : 'plus'} size={16} color={on ? colors.secured : colors.textFaint} />
                   <Text style={[styles.checkText, on && styles.checkDone]}>{c}</Text>
                 </Pressy>

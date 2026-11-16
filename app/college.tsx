@@ -395,7 +395,7 @@ function CollegeCard({ c, i, open, onToggle }: { c: College; i: number; open: bo
           <Animated.View entering={FadeInDown.duration(220)}>
             <View style={styles.steps}>
               {COLLEGE_STEPS.map((s) => (
-                <Pressy key={s} onPress={() => toggleStep(c.id, s)} style={styles.step} accessibilityRole="checkbox" accessibilityState={{ checked: !!c.steps[s] }}>
+                <Pressy key={s} onPress={() => toggleStep(c.id, s)} style={styles.step} accessibilityRole="checkbox" accessibilityState={{ checked: !!c.steps[s] }} accessibilityLabel={s}>
                   <View style={[styles.box, c.steps[s] && styles.boxOn]}>
                     {c.steps[s] ? <Icon name="check" size={12} color={colors.flameInk} strokeWidth={3} /> : null}
                   </View>

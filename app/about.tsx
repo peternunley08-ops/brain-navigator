@@ -154,6 +154,7 @@ export default function AboutScreen() {
                   }}
                   style={styles.pick}
                   accessibilityRole="button"
+                  accessibilityLabel={pickLabel(c, about.picks[c.id]) ?? 'This or that'}
                   accessibilityHint="Tap to switch sides, hold to forget"
                 >
                   <Icon name={about.picks[c.id] === 'a' ? c.a.icon : c.b.icon} size={14} color={colors.flame} />
@@ -318,7 +319,7 @@ export default function AboutScreen() {
           <Section title="From around the app" note="Already yours, gathered here">
             <Card>
               {around.map((r, i) => (
-                <Pressy key={r.title} disabled={!r.path} onPress={() => router.push(r.path as never)} style={[styles.answer, i > 0 && styles.divider]} accessibilityRole={r.path ? 'link' : 'text'}>
+                <Pressy key={r.title} disabled={!r.path} onPress={() => router.push(r.path as never)} style={[styles.answer, i > 0 && styles.divider]} accessibilityRole={r.path ? 'link' : 'text'} accessibilityLabel={`${r.title}. ${r.body}`}>
                   <Icon name={r.icon} size={16} color={colors.flame} />
                   <View style={styles.flex}>
                     <Text style={styles.answerQ}>{r.title}</Text>

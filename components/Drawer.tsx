@@ -175,7 +175,7 @@ export function DrawerSheet() {
         />
         {term ? (
           <ScrollView style={styles.flex} contentContainerStyle={styles.list} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-            <Pressy onPress={() => go(`/search?q=${encodeURIComponent(q.trim())}`)} style={styles.searchAll} accessibilityRole="button">
+            <Pressy onPress={() => go(`/search?q=${encodeURIComponent(q.trim())}`)} style={styles.searchAll} accessibilityRole="button" accessibilityLabel={`Search your homework, notes and cards for “${q.trim()}”`}>
               <Icon name="search" size={16} color={colors.flame} />
               <Text style={styles.searchAllText}>Search your homework, notes and cards for “{q.trim()}”</Text>
             </Pressy>

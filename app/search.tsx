@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, LinearTransition } from 'react-native-reanimated';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -15,7 +15,7 @@ import { useHubStore } from '../core/hubStore';
 import { useLifeStore, isSealed } from '../core/lifeStore';
 import { dueLabel, dueWords, KIND_LABEL, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
-import { colors, fonts } from '../core/theme';
+import { colors, fonts, textGrow } from '../core/theme';
 
 const NONE: string[] = [];
 
@@ -33,6 +33,8 @@ interface Hit {
 export default function SearchScreen() {
   // The Drawer's "Find anything" can open this with what was typed.
   const { q: initial } = useLocalSearchParams<{ q?: string }>();
+  // At the largest text sizes a one-line result breaks mid-word; stack the row and let it wrap.
+  const stack = useWindowDimensions().fontScale > 1.5;
   const [q, setQ] = useState(typeof initial === 'string' ? initial : '');
   const [open, setOpen] = useState<string[]>([]);
   // Select the stored array itself; a fallback inside the selector would be a new array every render.
@@ -139,18 +141,18 @@ export default function SearchScreen() {
                       remember();
                       router.push(h.href as never);
                     }}
-                    style={styles.row}
+                    style={[styles.row, stack && styles.rowStack]}
                   >
                     <Icon name={h.icon} size={18} color={h.color} />
                     <View style={styles.flex}>
-                      <Text style={styles.title} numberOfLines={1}>
+                      <Text style={styles.title} numberOfLines={stack ? 3 : 1} adjustsFontSizeToFit={!stack} minimumFontScale={0.85} maxFontSizeMultiplier={textGrow.heading}>
                         {h.title}
                       </Text>
-                      <Text style={styles.sub} numberOfLines={1}>
+                      <Text style={styles.sub} numberOfLines={stack ? 2 : 1} adjustsFontSizeToFit={!stack} minimumFontScale={0.85} maxFontSizeMultiplier={2}>
                         {h.sub}
                       </Text>
                     </View>
-                    <Icon name="chevron" size={16} color={colors.textFaint} />
+                    {stack ? null : <Icon name="chevron" size={16} color={colors.textFaint} />}
                   </Card>
                 </Animated.View>
               ))}
@@ -177,6 +179,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
     paddingVertical: 13,
+  },
+  rowStack: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
   },
   flex: {
     flex: 1,

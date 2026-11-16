@@ -1,5 +1,5 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
-import { alpha, colors, fonts, radii } from '../../core/theme';
+import { StyleSheet, Text, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
+import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { Pressy } from './Pressy';
 
 interface SegmentedProps<T extends string> {
@@ -11,8 +11,10 @@ interface SegmentedProps<T extends string> {
 
 // Two to four choices in one sunk rail; the chosen one lifts out in gold.
 export function Segmented<T extends string>({ options, value, onChange, style }: SegmentedProps<T>) {
+  // At the largest text sizes a one-line choice breaks mid-word; stack the rail and let it wrap.
+  const stack = useWindowDimensions().fontScale > 1.5;
   return (
-    <View style={[styles.rail, style]} accessibilityRole="tablist">
+    <View style={[styles.rail, stack && styles.railStack, style]} accessibilityRole="tablist">
       {options.map((o) => {
         const on = o.key === value;
         return (
@@ -22,10 +24,17 @@ export function Segmented<T extends string>({ options, value, onChange, style }:
             depth={0.95}
             hitSlop={6}
             accessibilityRole="tab"
+            accessibilityLabel={o.label}
             accessibilityState={{ selected: on }}
-            style={[styles.seg, on && styles.segOn]}
+            style={[styles.seg, stack && styles.segStack, on && styles.segOn]}
           >
-            <Text style={[styles.text, on && styles.textOn]} numberOfLines={1}>
+            <Text
+              style={[styles.text, on && styles.textOn]}
+              numberOfLines={stack ? 2 : 1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
+              maxFontSizeMultiplier={textGrow.control}
+            >
               {o.label}
             </Text>
           </Pressy>
@@ -45,6 +54,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.line,
   },
+  railStack: {
+    flexDirection: 'column',
+  },
   seg: {
     flex: 1,
     minHeight: 36,
@@ -52,6 +64,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: radii.pill,
     paddingHorizontal: 8,
+  },
+  segStack: {
+    flex: 0,
+    alignSelf: 'stretch',
+    paddingVertical: 6,
   },
   segOn: {
     backgroundColor: alpha(colors.flame, 0.16),
@@ -62,6 +79,8 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 14,
     color: colors.textMuted,
+    alignSelf: 'stretch',
+    textAlign: 'center',
   },
   textOn: {
     fontFamily: fonts.bodySemi,

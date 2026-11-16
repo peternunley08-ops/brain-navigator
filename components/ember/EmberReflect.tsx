@@ -41,7 +41,7 @@ export function EmberReflect({ input, label = 'Hear from Ember', sends, color = 
         </Animated.View>
       ) : (
         <>
-          <Pressy onPress={ask} disabled={state.kind === 'loading'} depth={0.97} style={styles.link} accessibilityRole="button">
+          <Pressy onPress={ask} disabled={state.kind === 'loading'} depth={0.97} style={styles.link} accessibilityRole="button" accessibilityLabel={state.kind === 'loading' ? 'Ember is reading it…' : label}>
             <Icon name="sparkle" size={13} color={color} />
             <Text style={[styles.linkText, { color }]}>{state.kind === 'loading' ? 'Ember is reading it…' : label}</Text>
           </Pressy>

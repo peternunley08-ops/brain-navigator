@@ -178,6 +178,7 @@ export default function WorryScreen() {
                       offerUndo('Removed a worry', () => useLifeStore.getState().putBack({ worries: before }), 'trash');
                     }}
                     style={styles.oldRow}
+                    accessibilityLabel={w.text}
                     accessibilityHint="Hold to remove"
                   >
                     <Icon name="check" size={14} color={colors.secured} />

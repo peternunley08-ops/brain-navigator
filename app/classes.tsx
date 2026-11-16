@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -9,11 +9,13 @@ import { Reveal } from '../components/ui/Reveal';
 import { Screen } from '../components/ui/Screen';
 import { Section } from '../components/ui/Section';
 import { clock, isoDay, nowState, type SchoolClass, useSchoolStore } from '../core/schoolStore';
-import { alpha, colors, fonts } from '../core/theme';
+import { alpha, colors, fonts, textGrow } from '../core/theme';
 
 const DAY_LETTERS = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
 
 export default function ClassesScreen() {
+  // At the largest text sizes the class name is one line beside Now and breaks mid-word.
+  const stack = useWindowDimensions().fontScale > 1.5;
   const classes = useSchoolStore((s) => s.classes);
   const assignments = useSchoolStore((s) => s.assignments);
   const now = nowState(classes);
@@ -33,18 +35,18 @@ export default function ClassesScreen() {
           // No times yet: the card says "tap to add days and times", so go to the editor.
           onPress={() => (c.days.length ? router.push(`/class/${c.id}`) : router.push({ pathname: '/class-edit', params: { id: c.id } }))}
           onLongPress={() => router.push({ pathname: '/class-edit', params: { id: c.id } })}
-          style={styles.card}
+          style={[styles.card, stack && styles.cardStack]}
           tint={c.id === currentId ? c.color : undefined}
         >
           <View style={[styles.bar, { backgroundColor: c.color }]} />
           <View style={styles.body}>
-            <View style={styles.titleRow}>
-              <Text style={styles.name} numberOfLines={1}>
+            <View style={[styles.titleRow, stack && styles.titleStack]}>
+              <Text style={styles.name} numberOfLines={stack ? 2 : 1} adjustsFontSizeToFit minimumFontScale={0.85} maxFontSizeMultiplier={textGrow.heading}>
                 {c.name}
               </Text>
               {c.id === currentId ? (
                 <View style={[styles.nowPill, { backgroundColor: alpha(c.color, 0.2) }]}>
-                  <Text style={[styles.nowText, { color: c.color }]}>{now.kind === 'in' ? 'Now' : 'Next'}</Text>
+                  <Text style={[styles.nowText, { color: c.color }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} maxFontSizeMultiplier={textGrow.bar}>{now.kind === 'in' ? 'Now' : 'Next'}</Text>
                 </View>
               ) : null}
             </View>
@@ -58,11 +60,11 @@ export default function ClassesScreen() {
                 const on = c.days.includes(d + 1);
                 return (
                   <View key={d} style={[styles.day, on && { backgroundColor: alpha(c.color, today && d + 1 === isoDay() ? 0.5 : 0.2) }]}>
-                    <Text style={[styles.dayText, on && { color: colors.text }]}>{l}</Text>
+                    <Text style={[styles.dayText, on && { color: colors.text }]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.7} maxFontSizeMultiplier={textGrow.bar}>{l}</Text>
                   </View>
                 );
               })}
-              {open > 0 ? <Text style={styles.open}>{open} due</Text> : null}
+              {open > 0 ? <Text style={styles.open} maxFontSizeMultiplier={textGrow.control}>{open} due</Text> : null}
             </View>
           </View>
           <Icon name="chevron" size={18} color={colors.textFaint} />
@@ -112,6 +114,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
   },
+  cardStack: {
+    alignItems: 'flex-start',
+  },
   bar: {
     width: 5,
     alignSelf: 'stretch',
@@ -125,6 +130,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
+  titleStack: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
   name: {
     flexShrink: 1,
     fontFamily: fonts.bodySemi,
@@ -133,7 +142,7 @@ const styles = StyleSheet.create({
   },
   nowPill: {
     paddingHorizontal: 8,
-    height: 20,
+    minHeight: 20,
     borderRadius: 10,
     justifyContent: 'center',
   },

@@ -46,6 +46,7 @@ export default function AidScreen() {
                 style={[styles.row, i === AID_STEPS.length - 1 && styles.last]}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: on }}
+                accessibilityLabel={s}
               >
                 <View style={[styles.box, on && { backgroundColor: GREEN, borderColor: GREEN }]}>{on ? <Icon name="check" size={13} color={colors.flameInk} strokeWidth={3} /> : null}</View>
                 <Text style={[styles.text, on && styles.done]}>{s}</Text>

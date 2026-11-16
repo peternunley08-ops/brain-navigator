@@ -462,6 +462,7 @@ export default function NoteScreen() {
             }
             style={styles.makeCards}
             accessibilityRole="button"
+            accessibilityLabel="Ask Quill about the structure"
             accessibilityHint="Opens Quill with this page ready to send. Nothing goes until you send it."
           >
             <Icon name="feather" size={15} color={colors.flame} />
@@ -473,6 +474,7 @@ export default function NoteScreen() {
             onPress={() => (fresh.length ? setCardPick(fresh.map((p) => p.front)) : linked && router.push(`/deck/${linked.id}`))}
             style={styles.makeCards}
             accessibilityRole="button"
+            accessibilityLabel={!linked ? `Make ${fresh.length} flashcards from this page` : fresh.length ? `Add ${plural(fresh.length, 'new card')} to “${linked.name}”` : `Cards are up to date. Open “${linked.name}”`}
           >
             <Icon name="cards" size={15} color={colors.flame} />
             <Text style={styles.makeCardsText}>
@@ -534,6 +536,7 @@ export default function NoteScreen() {
                 style={[styles.makeCards, styles.pickGo, !cardPick.length && styles.dim]}
                 accessibilityRole="button"
                 accessibilityState={{ disabled: !cardPick.length }}
+                accessibilityLabel={`${linked ? 'Add' : 'Make'} ${plural(cardPick.length, 'card')}`}
               >
                 <Icon name="cards" size={15} color={colors.flame} />
                 <Text style={styles.makeCardsText}>

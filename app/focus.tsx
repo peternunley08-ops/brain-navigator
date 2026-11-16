@@ -29,7 +29,7 @@ import { useLifeStore, weekOf } from '../core/lifeStore';
 import { quickParse } from '../core/quickParse';
 import { addDays, clock, dateKey, daysUntil, focusMinutesOn, minutesOn, useSchoolStore } from '../core/schoolStore';
 import { plural } from '../core/words';
-import { alpha, colors, fonts, layout, radii } from '../core/theme';
+import { alpha, colors, fonts, layout, radii, textGrow } from '../core/theme';
 import { useSkyGlow } from '../core/hooks/useSkyGlow';
 
 type Phase = 'setup' | 'running' | 'paused' | 'done' | 'break';
@@ -355,7 +355,7 @@ export default function FocusScreen() {
       <View style={styles.readout}>
         {phase === 'running' || phase === 'paused' ? (
           <Animated.View entering={FadeIn.duration(300)} style={styles.center}>
-            <Text style={styles.timer}>{mmss(total - elapsed)}</Text>
+            <Text style={styles.timer} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={textGrow.display}>{mmss(total - elapsed)}</Text>
             <Text style={styles.label}>{phase === 'paused' ? 'Paused' : t ? `Working on ${t.title}` : topic ? `Studying ${topic}` : 'Just focusing'}</Text>
             {autoCycle ? (
               <View style={styles.rounds} accessible accessibilityLabel={`Round ${(round % 4) + 1} of 4`}>
@@ -374,7 +374,7 @@ export default function FocusScreen() {
           </Animated.View>
         ) : phase === 'break' ? (
           <Animated.View entering={FadeIn.duration(300)} style={styles.center}>
-            <Text style={styles.timer}>{mmss(breakEnds - now)}</Text>
+            <Text style={styles.timer} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={textGrow.display}>{mmss(breakEnds - now)}</Text>
             <Text style={styles.label}>Break. Stand up, drink water, look at something far away.</Text>
           </Animated.View>
         ) : null}
@@ -936,11 +936,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timer: {
+    alignSelf: 'stretch',
     fontFamily: fonts.display,
     fontSize: 54,
     letterSpacing: -1.1,
     color: colors.text,
     fontVariant: ['tabular-nums'],
+    textAlign: 'center',
   },
   label: {
     marginTop: 2,

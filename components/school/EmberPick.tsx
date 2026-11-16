@@ -44,7 +44,7 @@ export function EmberPick() {
 
   return (
     <View style={styles.wrap}>
-      <Pressy onPress={ask} disabled={state.kind === 'loading'} depth={0.97} style={styles.link} accessibilityRole="button" accessibilityHint="Sends what’s due this week to Claude to pick one">
+      <Pressy onPress={ask} disabled={state.kind === 'loading'} depth={0.97} style={styles.link} accessibilityRole="button" accessibilityLabel={state.kind === 'loading' ? 'Ember is weighing it up…' : 'Not sure? Let Ember pick what’s first'} accessibilityHint="Sends what’s due this week to Claude to pick one">
         <Icon name="sparkle" size={13} color={colors.text} />
         <Text style={styles.linkText} maxFontSizeMultiplier={textGrow.control}>{state.kind === 'loading' ? 'Ember is weighing it up…' : 'Not sure? Let Ember pick what’s first'}</Text>
       </Pressy>
