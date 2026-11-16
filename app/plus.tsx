@@ -44,7 +44,7 @@ export default function PlusScreen() {
       setSettings({ plus: true, plusPlan: plan });
       rig.setMood('cheer');
       rig.hopUp(20);
-      emberSay('Welcome to Plus. Thank you — really.', 'cheer');
+      emberSay('Plus is on. More replies, whenever you want them.', 'cheer');
       return;
     }
     setMessage(

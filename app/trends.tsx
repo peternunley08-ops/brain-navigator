@@ -146,7 +146,7 @@ export default function TrendsScreen() {
         checkins.length === 0
           ? isLoadingCheckins
             ? 'Loading…'
-            : 'No check-ins yet.'
+            : 'The chart is blank.'
           : `Your last ${data.length} of ${checkins.length} check-ins.`
       }
     >
@@ -284,7 +284,7 @@ export default function TrendsScreen() {
         </>
       ) : (
         <EmptyState
-          title={checkins.length === 0 ? 'No lines to draw yet.' : 'Nothing logged for this one yet.'}
+          title={checkins.length === 0 ? 'Nothing to draw.' : 'Nothing logged for this one yet.'}
           body={checkins.length === 0 ? 'Check in a few days in a row and your trends appear here.' : undefined}
         >
           {checkins.length === 0 ? <Button label="Check in now" icon="sun" onPress={() => router.push('/checkin')} /> : null}

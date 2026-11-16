@@ -5,10 +5,9 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, FadeInDown, FadeInRight, ZoomIn } from 'react-native-reanimated';
 import { sprung, springs } from '../../core/motion';
 import { buildQuiz, type QuizQuestion } from '../../core/helperOffline';
-import { celebrate } from '../../core/celebrateStore';
+import { quizRoundPoints } from '../../core/helpers';
 import { useLifeStore } from '../../core/lifeStore';
 import { alpha, colors, fonts, radii } from '../../core/theme';
-import { emberSay } from '../ember/EmberBuddy';
 import { Sparks } from '../ember/Sparks';
 import type { EmberRig } from '../ember/useEmberRig';
 import { Button } from '../ui/Button';
@@ -19,14 +18,13 @@ import { Icon } from '../ui/Icon';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Pressy } from '../ui/Pressy';
 
-const VIOLET = '#B79AF0';
 const LETTERS = ['A', 'B', 'C', 'D'];
 /** Seconds per question in a lightning round. */
 const LIGHTNING = 10;
 
-// Quizzo's game show: multiple choice built from your own flashcards.
-// Right answers score more on a streak, and every answer counts as a
-// flashcard review (so the spacing stays honest).
+// Quizzo's round: multiple choice built from your own flashcards.
+// Every answer counts as a flashcard review, so the spacing stays honest.
+// The round shows how far you are. It does not keep a score.
 export function QuizGame({
   rig,
   deckId,
@@ -44,17 +42,13 @@ export function QuizGame({
   const decks = useLifeStore((s) => s.decks);
   const gradeCard = useLifeStore((s) => s.gradeCard);
   const recordQuiz = useLifeStore((s) => s.recordQuiz);
-  const best = useLifeStore((s) => s.quiz.best);
-  const lightningBest = useLifeStore((s) => s.quiz.lightningBest ?? 0);
   const usable = decks.filter((d) => d.cards.length > 0);
 
   const [picked, setPicked] = useState<string>(deckId && usable.some((d) => d.id === deckId) ? deckId : 'all');
   const [qs, setQs] = useState<QuizQuestion[] | null>(null);
   const [i, setI] = useState(0);
   const [chosen, setChosen] = useState<number | null>(null);
-  const [score, setScore] = useState(0);
   const [right, setRight] = useState(0);
-  const [streak, setStreak] = useState(0);
   const [burst, setBurst] = useState(0);
   const [over, setOver] = useState(false);
   const [lightning, setLightning] = useState(false);
@@ -103,9 +97,7 @@ export function QuizGame({
     setMissed([]);
     setI(0);
     setChosen(null);
-    setScore(0);
     setRight(0);
-    setStreak(0);
     setOver(false);
     onPlaying?.(true);
     rig.setMood('cheer');
@@ -126,7 +118,7 @@ export function QuizGame({
       <Animated.View entering={FadeInDown.duration(300)}>
         <Text style={styles.label}>Which deck?</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
-          <Chip label="Everything" selected={picked === 'all'} color={VIOLET} onPress={() => setPicked('all')} />
+          <Chip label="Everything" selected={picked === 'all'} color={colors.shelved} onPress={() => setPicked('all')} />
           {usable.map((d) => (
             <Chip key={d.id} label={d.name} dot color={d.color} selected={picked === d.id} onPress={() => setPicked(d.id)} />
           ))}
@@ -134,16 +126,12 @@ export function QuizGame({
         <Card style={styles.rules}>
           <Rule
             icon="bolt"
-            text={`Up to 10 ${smallDeck ? 'true or false questions' : 'questions, four choices each'}.${lightning ? ` ${LIGHTNING} seconds each; faster answers score more.` : ''}`}
+            text={`Up to 10 ${smallDeck ? 'true or false questions' : 'questions, four choices each'}.${lightning ? ` ${LIGHTNING} seconds each.` : ''}`}
           />
-          <Rule icon="flame" text="Streaks score extra. Wrong answers come back tomorrow." />
-          <Rule
-            icon="trophy"
-            text={lightning ? (lightningBest ? `Your lightning best: ${lightningBest} points.` : 'Set your first lightning score.') : best ? `Your best: ${best} points.` : 'Set your first high score.'}
-          />
+          <Rule icon="cards" text="Wrong answers come back tomorrow." />
         </Card>
         <View style={styles.modeRow}>
-          <Chip label={`Lightning round: ${LIGHTNING} seconds each`} icon="bolt" color={VIOLET} selected={lightning} onPress={() => setLightning((v) => !v)} />
+          <Chip label={`Lightning round: ${LIGHTNING} seconds each`} icon="bolt" color={colors.shelved} selected={lightning} onPress={() => setLightning((v) => !v)} />
         </View>
         {cardCount < 2 ? <Text style={styles.warn}>Add at least two cards to play.</Text> : null}
         <Button label="Start the game" icon="play" onPress={() => start()} disabled={cardCount < 2} style={styles.go} />
@@ -156,10 +144,9 @@ export function QuizGame({
     return (
       <Animated.View entering={sprung(ZoomIn, springs.pop)} style={styles.end}>
         <Sparks burst={burst} reach={90} />
-        <Icon name="trophy" size={46} color={VIOLET} />
-        <Text style={styles.endScore}>{score}</Text>
+        <Icon name="trophy" size={46} color={colors.shelved} />
         <Text style={styles.endLine}>
-          {right} of {qs.length} right{score >= best && score > 0 ? '. A new best.' : ''}
+          {right} of {qs.length} right
         </Text>
         <Text style={styles.endQuip}>
           {pct === 1 ? 'Flawless. Quizzo is speechless. (Quizzo is never speechless.)' : pct >= 0.7 ? 'Big brain energy. The misses come back tomorrow.' : 'Every miss is a card you’ll know next time. That’s the whole trick.'}
@@ -188,15 +175,12 @@ export function QuizGame({
     const ok = k === q.answer;
     gradeCard(q.deckId, q.card.id, ok);
     if (ok) {
-      setScore((s) => s + 10 + streak * 2 + (lightning ? Math.ceil(left) : 0));
       setRight((r) => r + 1);
-      setStreak((s) => s + 1);
       setBurst((b) => b + 1);
       rig.setMood('cheer');
       rig.hopUp(16);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
     } else {
-      setStreak(0);
       setMissed((m) => [...m, q]);
       rig.setMood('concerned');
       rig.wiggle();
@@ -206,14 +190,10 @@ export function QuizGame({
   const next = () => {
     rig.setMood('idle');
     if (i + 1 >= qs.length) {
-      const final = score;
-      recordQuiz(final, right, lightning);
-      useLifeStore.getState().noteHelperLast('quizzo', `you scored ${final}, ${right} of ${qs.length} right${lightning ? ' in a lightning round' : ''}`);
+      recordQuiz(quizRoundPoints(right), right, lightning);
+      useLifeStore.getState().noteHelperLast('quizzo', `you got ${right} of ${qs.length} right${lightning ? ' in a lightning round' : ''}`);
       setOver(true);
       setBurst((b) => b + 1);
-      if (final >= 100 && final > best) celebrate(`${final} points`, 'A new Quizzo high score. That deck is yours now.', VIOLET, { win: `Scored ${final} in Quizzo` });
-      else if (final > best) emberSay(`New Quizzo high score: ${final}!`, 'cheer');
-      else if (final >= 100) emberSay(`${final} points. Triple digits again.`, 'cheer');
       return;
     }
     setI(i + 1);
@@ -228,21 +208,16 @@ export function QuizGame({
         <Text style={styles.hudText}>
           {i + 1} / {qs.length}
         </Text>
-        <ProgressBar value={(i + (chosen != null ? 1 : 0)) / qs.length} color={VIOLET} height={6} style={styles.flex} />
-        <View style={styles.streak}>
-          <Icon name="flame" size={14} color={streak >= 2 ? colors.flame : colors.textFaint} />
-          <Text style={[styles.hudText, streak >= 2 && { color: colors.flame }]}>{streak}</Text>
-        </View>
-        <Text style={styles.score}>{score}</Text>
+        <ProgressBar value={(i + (chosen != null ? 1 : 0)) / qs.length} color={colors.shelved} height={6} style={styles.flex} />
       </View>
       <Animated.View key={q.card.id + i} entering={FadeInRight.duration(260)}>
-        <Card tint={VIOLET} style={styles.question}>
+        <Card tint={colors.shelved} style={styles.question}>
           <Sparks burst={burst} reach={60} />
           {q.trueFalse ? <Text style={styles.tf}>True or false?</Text> : null}
           <Text style={styles.qText}>{q.prompt}</Text>
           {lightning ? (
             <View style={styles.clockRow}>
-              <ProgressBar value={chosen != null ? 0 : left / LIGHTNING} color={left <= 3 ? colors.danger : VIOLET} height={5} style={styles.flex} />
+              <ProgressBar value={chosen != null ? 0 : left / LIGHTNING} color={left <= 3 ? colors.danger : colors.shelved} height={5} style={styles.flex} />
               <Text style={[styles.clock, left <= 3 && { color: colors.danger }]}>{chosen != null ? '' : Math.ceil(left)}</Text>
             </View>
           ) : null}
@@ -277,26 +252,24 @@ export function QuizGame({
         <Animated.View entering={FadeIn.duration(200)}>
           <Text style={styles.feedback}>
             {chosen === q.answer
-              ? streak >= 3
-                ? `${streak} in a row`
-                : 'Nailed it.'
+              ? 'Nailed it.'
               : q.trueFalse
                 ? `${chosen === -1 ? 'Time! ' : ''}${q.answer === 0 ? 'That one was true.' : `False: it’s “${q.card.back}”.`} It’ll come back tomorrow.`
                 : chosen === -1
                   ? `Time! It’s “${q.options[q.answer]}”. It’ll come back tomorrow.`
                   : `It’s “${q.options[q.answer]}”. It’ll come back tomorrow.`}
           </Text>
-          <Button label={i + 1 >= qs.length ? 'See my score' : 'Next question'} icon="arrow" onPress={next} style={styles.go} />
+          <Button label={i + 1 >= qs.length ? 'See how it went' : 'Next question'} icon="arrow" onPress={next} style={styles.go} />
         </Animated.View>
       ) : null}
     </View>
   );
 }
 
-function Rule({ icon, text }: { icon: 'bolt' | 'flame' | 'trophy'; text: string }) {
+function Rule({ icon, text }: { icon: 'bolt' | 'cards'; text: string }) {
   return (
     <View style={styles.rule}>
-      <Icon name={icon} size={16} color={VIOLET} />
+      <Icon name={icon} size={16} color={colors.shelved} />
       <Text style={styles.ruleText}>{text}</Text>
     </View>
   );
@@ -350,7 +323,7 @@ const styles = StyleSheet.create({
     width: 22,
     fontFamily: fonts.bodySemi,
     fontSize: 14,
-    color: VIOLET,
+    color: colors.shelved,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
   },
@@ -376,19 +349,6 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontVariant: ['tabular-nums'],
   },
-  streak: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-  },
-  score: {
-    minWidth: 40,
-    textAlign: 'right',
-    fontFamily: fonts.display,
-    fontSize: 20,
-    color: VIOLET,
-    fontVariant: ['tabular-nums'],
-  },
   question: {
     marginTop: 14,
     minHeight: 130,
@@ -398,7 +358,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontFamily: fonts.bodySemi,
     fontSize: 12,
-    color: VIOLET,
+    color: colors.shelved,
   },
   qText: {
     fontFamily: fonts.display,
@@ -426,12 +386,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: alpha(VIOLET, 0.16),
+    backgroundColor: alpha(colors.shelved, 0.16),
   },
   letterText: {
     fontFamily: fonts.bodyBold,
     fontSize: 13,
-    color: VIOLET,
+    color: colors.shelved,
   },
   optionText: {
     flex: 1,
@@ -451,15 +411,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 24,
   },
-  endScore: {
-    marginTop: 10,
-    fontFamily: fonts.display,
-    fontSize: 56,
-    letterSpacing: -1.1,
-    color: colors.text,
-    fontVariant: ['tabular-nums'],
-  },
   endLine: {
+    marginTop: 10,
     fontFamily: fonts.bodySemi,
     fontSize: 15,
     color: colors.textMuted,

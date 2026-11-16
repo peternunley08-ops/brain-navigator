@@ -1,6 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
@@ -17,7 +17,7 @@ import { Section } from '../components/ui/Section';
 import { deckStats, dueCards, parseCards, useLifeStore } from '../core/lifeStore';
 import { plural } from '../core/words';
 import { CLASS_COLORS, useSchoolStore } from '../core/schoolStore';
-import { colors, fonts, radii } from '../core/theme';
+import { colors, fonts, radii, textGrow } from '../core/theme';
 
 // Flashcard decks — the most reliable way to study there is. Cards you
 // know come back less often; cards you miss come back tomorrow.
@@ -27,6 +27,8 @@ export default function FlashcardsScreen() {
   const saveDeck = useLifeStore((s) => s.saveDeck);
   const classes = useSchoolStore((s) => s.classes);
   const real = classes.filter((c) => c.kind === 'class');
+  // A long deck name beside the count clips mid-word at the largest text size. Stack the row so the name can wrap.
+  const stack = useWindowDimensions().fontScale > 1.5;
 
   const [making, setMaking] = useState(create === '1' || decks.length === 0);
   const [name, setName] = useState('');
@@ -106,7 +108,7 @@ export default function FlashcardsScreen() {
         </Animated.View>
       ) : null}
 
-      {decks.length === 0 && !making ? <EmptyState gear="glasses" title="No decks yet." body="Make one for whatever’s on the next test." /> : null}
+      {decks.length === 0 && !making ? <EmptyState gear="glasses" title="A blank deck." body="Make one for whatever’s on the next test." /> : null}
 
       {decks.length ? (
         <Section title="Your decks">
@@ -118,12 +120,18 @@ export default function FlashcardsScreen() {
               return (
                 <Reveal key={d.id} index={i}>
                   <Card onPress={() => router.push(`/deck/${d.id}`)} tint={due ? d.color : undefined}>
-                    <View style={styles.row}>
+                    <View style={[styles.row, stack && styles.rowStack]}>
                       <View style={[styles.icon, { backgroundColor: `${d.color}26` }]}>
                         <Icon name="cards" size={20} color={d.color} />
                       </View>
-                      <View style={styles.flex}>
-                        <Text style={styles.name} numberOfLines={1}>
+                      <View style={[styles.flex, stack && styles.flexStack]}>
+                        <Text
+                          style={styles.name}
+                          numberOfLines={stack ? 3 : 1}
+                          adjustsFontSizeToFit={!stack}
+                          minimumFontScale={0.8}
+                          maxFontSizeMultiplier={stack ? textGrow.heading : textGrow.control}
+                        >
                           {d.name}
                         </Text>
                         <Text style={styles.sub}>
@@ -142,7 +150,7 @@ export default function FlashcardsScreen() {
                     {st.total ? <ProgressBar value={st.mastered / st.total} color={colors.secured} height={5} style={styles.bar} /> : null}
                     {st.total ? (
                       <Text style={styles.stats}>
-                        {st.mastered} mastered, {st.learning} learning, {st.fresh} new
+                        {st.mastered} known, {st.learning} learning, {st.fresh} new
                       </Text>
                     ) : null}
                   </Card>
@@ -179,6 +187,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+  },
+  rowStack: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+  },
+  flexStack: {
+    flex: 0,
+    alignSelf: 'stretch',
   },
   icon: {
     width: 42,

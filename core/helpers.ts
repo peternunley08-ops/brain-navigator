@@ -1,6 +1,7 @@
 import type { IconName } from '../components/ui/Icon';
 import type { Worn } from './emberLook';
 import type { EmberTheme } from './lifeStore';
+import { colors, dimensionColor } from './theme';
 
 // The helper crew: Ember's little flame cousins, each good at one thing.
 // A student "spawns" one from the Helpers screen (or from an assignment),
@@ -41,11 +42,11 @@ export const HELPERS: Helper[] = [
   {
     id: 'quizzo',
     name: 'Quizzo',
-    role: 'Quiz master',
+    role: 'Practice quiz',
     tagline: 'Turns anything into a quick game.',
     theme: 'violet',
     accessory: 'headphones',
-    color: '#B79AF0',
+    color: colors.shelved,
     icon: 'bolt',
     hello: 'Quizzo here! Name a topic or a test and I’ll fire questions at you, one at a time. Ready?',
     chips: ['Quiz me on my next test', 'Make it harder', 'Give me a hint', 'How am I doing?'],
@@ -59,7 +60,7 @@ export const HELPERS: Helper[] = [
     tagline: 'Makes tonight fit.',
     theme: 'ocean',
     accessory: 'cap',
-    color: '#7CC4F2',
+    color: dimensionColor.intellectual,
     icon: 'calendar',
     hello: 'Hi, I’m Pip. Tell me what’s on tonight — practice, dinner, a shift — and I’ll help it all fit.',
     chips: ['Plan my night', 'I only have an hour', 'What should I start with?', 'Spread out my test prep'],
@@ -73,7 +74,7 @@ export const HELPERS: Helper[] = [
     tagline: 'Helps you find what to say. You write it.',
     theme: 'rose',
     accessory: 'glasses',
-    color: '#F58FA8',
+    color: dimensionColor.social,
     icon: 'feather',
     hello: 'Quill here. I won’t write it for you — but I’m great at questions that get the good stuff out of your head. What are you writing?',
     chips: ['Help me brainstorm', 'Is my thesis clear?', 'I’m stuck on the intro', 'Check my outline'],
@@ -87,7 +88,7 @@ export const HELPERS: Helper[] = [
     tagline: 'Makes hard ideas simple.',
     theme: 'forest',
     accessory: 'scarf',
-    color: '#93D37A',
+    color: colors.secured,
     icon: 'flask',
     hello: 'I’m Sage. Tell me the idea that isn’t clicking, and I’ll explain it simply — then you explain it back to me.',
     chips: ['Explain it simpler', 'Give me an example', 'Let me explain it back', 'Why does this matter?'],
@@ -97,11 +98,11 @@ export const HELPERS: Helper[] = [
   {
     id: 'spark',
     name: 'Spark',
-    role: 'Hype',
+    role: 'First step',
     tagline: 'Gets you started when you can’t.',
     theme: 'gold',
     accessory: 'none',
-    color: '#F9AE4E',
+    color: colors.flame,
     icon: 'sparkle',
     hello: 'SPARK HERE! Stuck? Tired? Doomscrolling? Same energy, different direction — what’s the one thing we’re starting?',
     chips: ['I can’t start', 'Hype me up', 'Make it smaller', 'I did it!'],
@@ -112,4 +113,11 @@ export const HELPERS: Helper[] = [
 
 export function helperById(id: string | undefined): Helper | undefined {
   return HELPERS.find((h) => h.id === id);
+}
+
+// What a finished Quizzo round may remember: ten per right answer, so a full
+// round can still reach an existing badge. No streak bonus, and the screen
+// shows how many were right, not this number.
+export function quizRoundPoints(correct: number): number {
+  return Math.max(0, correct) * 10;
 }

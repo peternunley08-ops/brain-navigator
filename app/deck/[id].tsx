@@ -65,7 +65,7 @@ export default function DeckScreen() {
     <Screen
       glowColor={deck.color}
       title={deck.name}
-      subtitle={`${plural(st.total, 'card')}, ${st.mastered} mastered${due ? `, ${due} to study` : ''}`}
+      subtitle={`${plural(st.total, 'card')}, ${plural(st.mastered, 'known')}${due ? `, ${due} to study` : ''}`}
       nav={mode !== 'study'}
       right={
         <View style={styles.headerBtns}>
@@ -152,7 +152,7 @@ function CardsView({ deckId, startAdding, onStudy }: { deckId: string; startAddi
         <View style={styles.stats}>
           <StatTile label="New" value={String(st.fresh)} />
           <StatTile label="Learning" value={String(st.learning)} color={colors.flame} />
-          <StatTile label="Mastered" value={String(st.mastered)} color={colors.secured} />
+          <StatTile label="Known" value={String(st.mastered)} color={colors.secured} />
         </View>
         {st.total ? <Button label={due ? `Study ${plural(due, 'card')}` : 'Study anyway'} icon="play" onPress={onStudy} style={styles.gap} /> : null}
       </Reveal>

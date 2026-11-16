@@ -186,7 +186,7 @@ const ABOUT: Record<string, { title: string; line: string; actions?: EmberAction
   },
   '/habits': {
     title: 'Habits',
-    line: 'Small things you want to keep doing. Tap a habit’s circle when you’ve done it today; the streak counts itself.',
+    line: 'Small things you want to keep doing. Tap a habit’s circle when you’ve done it today. It counts recent days, and a missed day changes nothing.',
   },
   '/nutrition': {
     title: 'Food',
@@ -601,7 +601,7 @@ export function adviseFor(pathname: string, now = nightNow()): EmberAdvice {
         priority: 1,
       });
     } else if (habits.length > 0) {
-      tips.push({ id: 'habits-done', line: 'Every daily habit is logged. That’s a streak kept.', priority: 0, mood: 'happy' });
+      tips.push({ id: 'habits-done', line: 'Every daily habit is logged. A missed day changes nothing.', priority: 0, mood: 'happy' });
     }
   }
 

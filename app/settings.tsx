@@ -1,7 +1,7 @@
 import { File, Paths } from 'expo-file-system';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Alert, Share, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Share, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
 import { emberSay } from '../components/ember/EmberBuddy';
 import { EmberGlyph } from '../components/ember/EmberSprite';
 import { Button } from '../components/ui/Button';
@@ -31,7 +31,7 @@ import { useHubStore } from '../core/hubStore';
 import { DESK_ORDER, type EmberTheme, hoursTotal, useLifeStore } from '../core/lifeStore';
 import { classAverage, dueLabel, letterFor, useSchoolStore } from '../core/schoolStore';
 import { supabase, wipePhoneOnlyDb } from '../core/supabase';
-import { alpha, colors, fonts, radii } from '../core/theme';
+import { alpha, colors, fonts, radii, textGrow } from '../core/theme';
 
 const GRADES = [9, 10, 11, 12];
 
@@ -102,11 +102,13 @@ export default function SettingsScreen() {
   const achievements = useLifeStore((s) => s.achievements);
   const assignments = useSchoolStore((s) => s.assignments);
   const w = useMemo(() => warmth(), [achievements, assignments]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Swatch names are one word in a narrow cell. Past the largest text sizes, give each one a wider cell so the word can sit whole.
+  const wideText = useWindowDimensions().fontScale > 1.5;
 
   const ai = useAIStatus();
   const [birthday, setBirthday] = useState(settings.birthday ? settings.birthday.replace('-', '/') : '');
 
-  const nextUnlock = [...Object.values(EMBER_THEMES).map((t) => t.warmth), ...ACCESSORIES.map((a) => a.warmth)]
+  const nextOpen = [...Object.values(EMBER_THEMES).map((t) => t.warmth), ...ACCESSORIES.map((a) => a.warmth)]
     .filter((x) => x > w)
     .sort((a, b) => a - b)[0];
 
@@ -393,7 +395,7 @@ export default function SettingsScreen() {
 
       <View onLayout={jumps.mark('ember')} />
       <Reveal index={n++}>
-        <Section title="Ember" icon="flame" note={`Warmth ${w}${nextUnlock ? `, next unlock at ${nextUnlock}` : ', everything unlocked'}`}>
+        <Section title="Ember" icon="flame" note={nextOpen ? `Warmth ${w}. Opens at ${nextOpen} warmth.` : `Warmth ${w}.`}>
           <Card>
             <View style={styles.emberHead}>
               <EmberGlyph size={48} />
@@ -402,9 +404,9 @@ export default function SettingsScreen() {
                 <Text style={styles.hint}>Finishing work, focus sessions, wins, gratitude, and badges all add to it.</Text>
               </View>
             </View>
-            {nextUnlock ? <ProgressBar value={w / nextUnlock} style={styles.gap} /> : null}
+            {nextOpen ? <ProgressBar value={w / nextOpen} style={styles.gap} /> : null}
             <Text style={styles.label}>Color</Text>
-            <View style={styles.swatches}>
+            <View style={[styles.swatches, wideText && styles.swatchesWide]}>
               {(Object.keys(EMBER_THEMES) as EmberTheme[]).map((key) => {
                 const t = EMBER_THEMES[key];
                 const locked = w < t.warmth;
@@ -414,21 +416,27 @@ export default function SettingsScreen() {
                     key={key}
                     onPress={() => {
                       if (locked) {
-                        emberSay(`${t.label} unlocks at ${t.warmth} warmth. You’re at ${w}.`, 'curious');
+                        emberSay(`${t.label} opens at ${t.warmth} warmth. You’re at ${w}.`, 'curious');
                         return;
                       }
                       setSettings({ emberTheme: key });
                       emberSay(`${t.label}. How do I look?`, 'cheer');
                     }}
                     accessibilityRole="button"
-                    accessibilityLabel={`${t.label}${locked ? `, locked until ${t.warmth} warmth` : ''}`}
+                    accessibilityLabel={`${t.label}${locked ? `, opens at ${t.warmth} warmth` : ''}`}
                     accessibilityState={{ selected: on, disabled: locked }}
-                    style={[styles.swatch, on && { borderColor: t.body[1] }]}
+                    style={[styles.swatch, wideText && styles.swatchWide, on && { borderColor: t.body[1] }]}
                   >
                     <View style={[styles.swatchDot, { backgroundColor: t.body[1], opacity: locked ? 0.35 : 1 }]}>
                       {locked ? <Icon name="close" size={12} color={colors.night} strokeWidth={2.4} /> : null}
                     </View>
-                    <Text style={[styles.swatchLabel, on && { color: colors.text }]} numberOfLines={1}>
+                    <Text
+                      style={[styles.swatchLabel, on && { color: colors.text }]}
+                      numberOfLines={wideText ? 2 : 1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.8}
+                      maxFontSizeMultiplier={wideText ? textGrow.control : textGrow.bar}
+                    >
                       {locked ? `${t.warmth}` : t.label}
                     </Text>
                   </Pressy>
@@ -446,7 +454,7 @@ export default function SettingsScreen() {
                     selected={settings.emberAccessory === a.key}
                     onPress={() => {
                       if (locked) {
-                        emberSay(`That unlocks at ${a.warmth} warmth.`, 'curious');
+                        emberSay(`That opens at ${a.warmth} warmth. You’re at ${w}.`, 'curious');
                         return;
                       }
                       setSettings({ emberAccessory: a.key });
@@ -722,6 +730,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
+  swatchesWide: {
+    flexWrap: 'wrap',
+  },
   swatch: {
     flex: 1,
     alignItems: 'center',
@@ -732,6 +743,10 @@ const styles = StyleSheet.create({
     borderColor: colors.line,
     backgroundColor: colors.surfaceSunk,
   },
+  swatchWide: {
+    flexGrow: 1,
+    flexBasis: '30%',
+  },
   swatchDot: {
     width: 26,
     height: 26,
@@ -740,6 +755,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   swatchLabel: {
+    alignSelf: 'stretch',
+    textAlign: 'center',
     fontFamily: fonts.bodyMedium,
     fontSize: 11,
     color: colors.textFaint,
