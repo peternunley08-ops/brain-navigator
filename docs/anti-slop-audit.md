@@ -284,20 +284,55 @@ Tests to add in this PR, and only these:
 
 ## After scores
 
-**Not yet measured.** Fill this table after the four PRs have landed and, for anything visual, after a Mac has seen the screen. Use the same weights. Do not copy the before ratings forward. An unmeasured row stays unknown.
+Filled 2026-11-16 from the open diffs only. The four branches were not merged, and this session did not run the iOS app, so nothing below was seen on a screen and no round-7 box was marked `[x]`. Same weights as the before table. A rating is a reading of those diffs, not a device pass.
 
-| Dimension | Weight | Before | After | Check | Residual |
-| --- | ---: | --- | --- | --- | --- |
-| Purpose and task fit | 20 | 4 (16) | — | not run | — |
-| Function and correctness | 20 | 3 (12) | — | not run | Live app was not run in the before pass either |
-| Hierarchy and organization | 15 | 3 (9) | — | not run | — |
-| Specificity and distinctiveness | 15 | 4 (12) | — | not run | — |
-| Ease and interaction | 10 | 4 (8) | — | not run | — |
-| Craft and consistency | 10 | 3 (6) | — | not run | — |
-| Accessibility and resilience | 10 | 3 (6) | — | not run | Largest text and VoiceOver still need the phone |
-| **Total** | **100** | **69** | **—** | **not run** | Re-run the flat palette pairs and the card-wash composite |
+Heads read:
 
-Attention checks to repeat: one flame-filled control on Desk, School, Helpers, and Steady; Focus unchanged; `textFaint` on the tinted-card top stop; ghost and section actions no longer flame by default.
+- Visual system, [PR 94](https://github.com/peternunley08-ops/brain-navigator/pull/94), `12e2d6371aeb5adbf52b81fb3c01b6b6e0e24de8`
+- Copy and voice, [PR 95](https://github.com/peternunley08-ops/brain-navigator/pull/95), `167467ce252dfe8bf7d0d676468061cd9cfb8fd0` (includes the follow-up that sets QuizGame’s color to `colors.shelved`)
+- Tab polish, [PR 93](https://github.com/peternunley08-ops/brain-navigator/pull/93), `42794eeba224e88d74f90e57d04f7d74d8230ed1`
+- Reliability, [PR 96](https://github.com/peternunley08-ops/brain-navigator/pull/96), `124342e00a3c98650c919a1c2dc883619c94e44c`
+
+The parked-thought checkbox on Focus has no `accessibilityLabel` in that reliability head. A later commit may add one. This score does not wait for it.
+
+| Dimension | Weight | Before | After | Δ | Check | Residual |
+| --- | ---: | --- | --- | ---: | --- | --- |
+| Purpose and task fit | 20 | 4 (16) | 4 (16) | 0 | not run | The five rooms are unchanged. The Drawer is still 45 tools. |
+| Function and correctness | 20 | 3 (12) | 4 (16) | +4 | not run | Named contract lines are fixed in the diffs. The phone was not run. Quizzo still stores ten points per right answer for a badge. |
+| Hierarchy and organization | 15 | 3 (9) | 4 (12) | +3 | not run | Page-level extra gold is quieted. The flame + remains the loudest fill on Desk, School, and Helpers. |
+| Specificity and distinctiveness | 15 | 4 (12) | 4 (12) | 0 | not run | Stock sentences and candy hexes moved. Line icons, Liquid Glass, and the catalog shape did not. |
+| Ease and interaction | 10 | 4 (8) | 4 (8) | 0 | not run | Today’s empty hour uses `EmptyState`. The extra doors are still there. |
+| Craft and consistency | 10 | 3 (6) | 4 (8) | +2 | not run | Ghost, section actions, the card wash, and the streak lines are fixed in code. Spark’s hello and “Hype me up” chip are still the old voice. |
+| Accessibility and resilience | 10 | 3 (6) | 4 (8) | +2 | not run | Text caps, most new labels, the Sunday-night unit test, and the wash test are in the diffs. Largest text and VoiceOver were not heard or seen. |
+| **Total** | **100** | **69** | **80** | **+11** | **not run** | **70–84: targeted refinement.** Device still required before anyone calls it checked. |
+
+### What the diffs actually change
+
+**Purpose stays 4.** No route was removed or added. `core/tools.ts` still lists the same 45 tools. Recoloring them does not change the job of the app.
+
+**Function 3 → 4.** In the copy diff, Ember’s habits line and the “habits-done” tip no longer say streak (`core/ember.ts`). The science note in `app/habits.tsx` keeps the cue → routine → reward sentence and drops the lecture. `APP_GUIDE` in `supabase/functions/ember/index.ts` says a missed day changes nothing. Settings says “Opens at N warmth” instead of “unlock”. QuizGame removes the flame counter, the on-screen score, the streak bonus, “See my score”, and the high-score lines, and `tests/copy.test.ts` locks those absences. It still calls `recordQuiz(quizRoundPoints(right), …)`, ten points per right answer, so a badge can still be reached. The screen shows “N of N right”. That is a quieter contract, and it is still a hidden score. Round-7 live boxes are untouched. Ember’s year line still says “Counts, not streaks.” Spark’s hello is still “SPARK HERE!” and a chip is still “Hype me up” (`core/helpers.ts`).
+
+**Hierarchy 3 → 4.** Ghost labels use `colors.text` unless a screen passes `tint` (`components/ui/Button.tsx`). Section actions use `colors.text` unless they pass `color` (`components/ui/Section.tsx`). School drops `tint={colors.flame}` on Add (`app/school.tsx`). The idle Ember-pick link is parchment (`components/school/EmberPick.tsx`). The “Ember has N more” pill is parchment (`components/desk/EmberNote.tsx`). The two-week line no longer pulses (`components/desk/StreakOfLight.tsx`). The Helpers quota sparkle is `colors.textMuted` (`app/helpers.tsx`). The center + is a surface fill with a flame glyph only when `pathname === '/steady'` (`components/BottomNav.tsx`). Desk, School, and Helpers keep `gradients.flame` on that button, so the loudest filled control on those three tabs is still the +. Kickers stay gold. Section icons still default to `colors.flame`. Chips still default to flame. Focus’s candle scene is not restyled.
+
+**Specificity stays 4.** Drawer and day-card hexes move onto `colors.flame`, `unlocked`, `secured`, `shelved`, `sky`, `danger`, and `dimensionColor` (visual diff). Helper role colors move onto `colors.shelved`, `dimensionColor.intellectual`, `dimensionColor.social`, `colors.secured`, and `colors.flame` (copy diff). QuizGame’s local violet hex is gone; chips, card, timer, and trophy use `colors.shelved`. Empty titles become “The list is empty.”, “The chart is blank.”, “Nothing to draw.”, and flashcards “A blank deck.” Deck copy says “known” instead of “mastered.” `components/ui/Icon.tsx` and `components/ui/Glass.tsx` are not in any of the four diffs. The school-and-study group in `core/tools.ts` is mostly `colors.flame`, so that group is one meaning and still a gold cluster.
+
+**Ease stays 4.** `app/today.tsx` on the tab branch replaces the plain empty line with `EmptyState` (“The hour is open.” / “This day is open.”) and one next step. Add, sort, Ember pick, hold-to-add, and the + sheet are all still present.
+
+**Craft 3 → 4.** The card wash top stop is `0.05` at rest and `0.06` while pressed (`components/ui/Card.tsx`). `tests/card-wash.test.ts` asserts `textFaint` on that composite stays at or above 4.5:1 for flame, unlocked, secured, shelved, sky, and danger, and that the old `0.11` flame stop stays under 4.5. That is a node composite, not a screenshot of a tinted card. Spark’s shout and the “Hype me up” chip were not rewritten. The four branches are unmerged, so the composed screen was not built. `components/desk/EmberNote.tsx` and `components/school/EmberPick.tsx` are edited on the same Pressy line by the tab diff (parchment) and the reliability diff (a label). A merge has to keep both. `app/today.tsx` edits different lines in those two diffs (the empty state, and a label on a due pill).
+
+**Accessibility 3 → 4.** The reliability diff adds `maxFontSizeMultiplier` and shrink-or-wrap on `components/ui/Ring.tsx`, `components/ui/Segmented.tsx` (the rail stacks past font scale 1.5), `components/school/NowCard.tsx`, and the one-line titles in search, grades, notes, and classes. The Focus countdown (`app/focus.tsx`) uses `textGrow.display`, `adjustsFontSizeToFit`, and `minimumFontScale={0.6}`. The copy diff does the same kind of wrap for Settings swatches and flashcard names. New `accessibilityLabel`s land on icon Pressys, including Ember’s “N more”, the Ember-pick link, and Today’s due pills. `tests/core.test.ts` asserts `tonightWeekday` for Monday 1:00 AM (Sunday, 0) and Monday 5:00 AM (Monday, 1). The reliability note says the Ember pan was already a UI-thread worklet and the file was not changed. Not verified here: whether that worklet stays off the JS thread in a running app, whether any word still breaks at the largest text size, and VoiceOver on a phone. The parked-thought row on Focus is still unnamed at `124342e0`. Item 6, item 20.3, item 5, and item 4 stay `[~]`.
+
+### What this rescore could not verify
+
+- Any pixel, animation, or VoiceOver pass. No new screenshot.
+- The four branches applied together. They fork from the same `main` (`d0b2bb2`) and were not combined.
+- Glass, candle artwork, and the room gradient as painted. The wash test is sRGB math on flat composites.
+- Whether `minimumFontScale={0.6}` on the Focus timer actually keeps “4:56” inside the readout.
+- Sunday night on the Desk. The new test covers the clock function only.
+- Ember’s drag on a phone.
+- A parked-thought label, if one lands on PR 96 after this note.
+
+Attention, from the diffs: ghost and section actions are parchment by default; `textFaint` on the new wash stops clears 4.5:1 in the unit test; Steady’s + is the quiet one; Desk, School, and Helpers still have a flame-filled +. Focus’s layout is unchanged apart from the timer’s text caps.
 
 ## Gates for this document
 
@@ -311,4 +346,4 @@ Attention checks to repeat: one flame-filled control on Desk, School, Helpers, a
 | No new dependency (`reuse_gate.py`: NO_ADDITION) | Pass |
 | Live iOS behavior | Not run |
 | New screenshots | Not run, on purpose |
-| After scores | Not run |
+| After scores | Filled from the four open diffs. Live check not run. Total 80, up 11 from 69. |
