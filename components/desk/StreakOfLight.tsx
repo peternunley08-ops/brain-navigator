@@ -1,6 +1,5 @@
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, { cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { addDays, dateKey } from '../../core/dates';
 import { useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
@@ -12,6 +11,7 @@ const DAYS = 14;
 
 // A thin line of the last two weeks. A day glows gold if you showed up:
 // a check-in, a focus session, a finished assignment, or a win. No numbers.
+// The line stays still.
 export function StreakOfLight() {
   const checkins = useWellnessStore((s) => s.checkins);
   const focus = useSchoolStore((s) => s.focus);
@@ -32,35 +32,12 @@ export function StreakOfLight() {
   }, [checkins, focus, assignments, wins]);
 
   const count = days.filter((d) => d.on).length;
-  const todayLit = days[DAYS - 1].on;
-  const reduce = useReducedMotion();
-  const pulse = useSharedValue(0);
-
-  useEffect(() => {
-    if (reduce || todayLit) {
-      cancelAnimation(pulse);
-      pulse.value = 0;
-      return;
-    }
-    pulse.value = withRepeat(withSequence(withTiming(1, { duration: 1600 }), withTiming(0, { duration: 1600 })), -1);
-    return () => cancelAnimation(pulse);
-  }, [reduce, todayLit, pulse]);
-
-  const todayStyle = useAnimatedStyle(() => {
-    'worklet';
-    return { opacity: 0.35 + 0.65 * pulse.value };
-  });
 
   return (
     <View style={styles.row} accessible accessibilityLabel={`You showed up on ${count} of the last ${plural(DAYS, 'day')}`}>
-      {days.map((d, i) => {
-        const isToday = i === DAYS - 1;
-        return isToday && !d.on ? (
-          <Animated.View key={d.key} style={[styles.seg, { backgroundColor: alpha(colors.flame, 0.6) }, todayStyle]} />
-        ) : (
-          <View key={d.key} style={[styles.seg, { backgroundColor: d.on ? alpha(colors.flame, 0.75) : colors.line }, d.on && styles.glow]} />
-        );
-      })}
+      {days.map((d) => (
+        <View key={d.key} style={[styles.seg, { backgroundColor: d.on ? alpha(colors.flame, 0.75) : colors.line }, d.on && styles.glow]} />
+      ))}
     </View>
   );
 }
