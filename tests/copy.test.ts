@@ -69,6 +69,7 @@ describe('Quizzo', () => {
     assert.match(quiz, /\{i \+ 1\} \/ \{qs\.length\}/);
     assert.match(quiz, /quizRoundPoints\(right\)/);
     assert.doesNotMatch(quiz, /streak\s*\*\s*2/);
+    assert.doesNotMatch(quiz, /#[0-9a-fA-F]{6}/);
     assert.doesNotMatch(quiz, /See my score/);
     assert.doesNotMatch(quiz, /name="flame"/);
     assert.doesNotMatch(quiz, /high score/i);

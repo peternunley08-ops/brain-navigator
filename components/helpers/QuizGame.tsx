@@ -18,7 +18,6 @@ import { Icon } from '../ui/Icon';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Pressy } from '../ui/Pressy';
 
-const VIOLET = '#B79AF0';
 const LETTERS = ['A', 'B', 'C', 'D'];
 /** Seconds per question in a lightning round. */
 const LIGHTNING = 10;
@@ -119,7 +118,7 @@ export function QuizGame({
       <Animated.View entering={FadeInDown.duration(300)}>
         <Text style={styles.label}>Which deck?</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips} style={styles.chipScroll}>
-          <Chip label="Everything" selected={picked === 'all'} color={VIOLET} onPress={() => setPicked('all')} />
+          <Chip label="Everything" selected={picked === 'all'} color={colors.shelved} onPress={() => setPicked('all')} />
           {usable.map((d) => (
             <Chip key={d.id} label={d.name} dot color={d.color} selected={picked === d.id} onPress={() => setPicked(d.id)} />
           ))}
@@ -132,7 +131,7 @@ export function QuizGame({
           <Rule icon="cards" text="Wrong answers come back tomorrow." />
         </Card>
         <View style={styles.modeRow}>
-          <Chip label={`Lightning round: ${LIGHTNING} seconds each`} icon="bolt" color={VIOLET} selected={lightning} onPress={() => setLightning((v) => !v)} />
+          <Chip label={`Lightning round: ${LIGHTNING} seconds each`} icon="bolt" color={colors.shelved} selected={lightning} onPress={() => setLightning((v) => !v)} />
         </View>
         {cardCount < 2 ? <Text style={styles.warn}>Add at least two cards to play.</Text> : null}
         <Button label="Start the game" icon="play" onPress={() => start()} disabled={cardCount < 2} style={styles.go} />
@@ -145,7 +144,7 @@ export function QuizGame({
     return (
       <Animated.View entering={sprung(ZoomIn, springs.pop)} style={styles.end}>
         <Sparks burst={burst} reach={90} />
-        <Icon name="trophy" size={46} color={VIOLET} />
+        <Icon name="trophy" size={46} color={colors.shelved} />
         <Text style={styles.endLine}>
           {right} of {qs.length} right
         </Text>
@@ -209,16 +208,16 @@ export function QuizGame({
         <Text style={styles.hudText}>
           {i + 1} / {qs.length}
         </Text>
-        <ProgressBar value={(i + (chosen != null ? 1 : 0)) / qs.length} color={VIOLET} height={6} style={styles.flex} />
+        <ProgressBar value={(i + (chosen != null ? 1 : 0)) / qs.length} color={colors.shelved} height={6} style={styles.flex} />
       </View>
       <Animated.View key={q.card.id + i} entering={FadeInRight.duration(260)}>
-        <Card tint={VIOLET} style={styles.question}>
+        <Card tint={colors.shelved} style={styles.question}>
           <Sparks burst={burst} reach={60} />
           {q.trueFalse ? <Text style={styles.tf}>True or false?</Text> : null}
           <Text style={styles.qText}>{q.prompt}</Text>
           {lightning ? (
             <View style={styles.clockRow}>
-              <ProgressBar value={chosen != null ? 0 : left / LIGHTNING} color={left <= 3 ? colors.danger : VIOLET} height={5} style={styles.flex} />
+              <ProgressBar value={chosen != null ? 0 : left / LIGHTNING} color={left <= 3 ? colors.danger : colors.shelved} height={5} style={styles.flex} />
               <Text style={[styles.clock, left <= 3 && { color: colors.danger }]}>{chosen != null ? '' : Math.ceil(left)}</Text>
             </View>
           ) : null}
@@ -270,7 +269,7 @@ export function QuizGame({
 function Rule({ icon, text }: { icon: 'bolt' | 'cards'; text: string }) {
   return (
     <View style={styles.rule}>
-      <Icon name={icon} size={16} color={VIOLET} />
+      <Icon name={icon} size={16} color={colors.shelved} />
       <Text style={styles.ruleText}>{text}</Text>
     </View>
   );
@@ -324,7 +323,7 @@ const styles = StyleSheet.create({
     width: 22,
     fontFamily: fonts.bodySemi,
     fontSize: 14,
-    color: VIOLET,
+    color: colors.shelved,
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
   },
@@ -359,7 +358,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     fontFamily: fonts.bodySemi,
     fontSize: 12,
-    color: VIOLET,
+    color: colors.shelved,
   },
   qText: {
     fontFamily: fonts.display,
@@ -387,12 +386,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: alpha(VIOLET, 0.16),
+    backgroundColor: alpha(colors.shelved, 0.16),
   },
   letterText: {
     fontFamily: fonts.bodyBold,
     fontSize: 13,
-    color: VIOLET,
+    color: colors.shelved,
   },
   optionText: {
     flex: 1,
