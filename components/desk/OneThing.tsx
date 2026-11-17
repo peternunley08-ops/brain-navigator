@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 import Animated, { FadeIn, useAnimatedStyle, withSequence, withSpring, withTiming, useSharedValue } from 'react-native-reanimated';
+import { curve } from '../../core/craft';
 import { springs } from '../../core/motion';
 import { cheerLine } from '../../core/about';
 import { dateKey } from '../../core/dates';
@@ -135,7 +136,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: radii.lg,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: alpha(colors.flame, 0.32),
     borderTopColor: alpha(colors.flame, 0.52),
     backgroundColor: colors.surface,

@@ -274,9 +274,10 @@ const styles = StyleSheet.create({
   },
   picked: {
     transform: [{ scale: 1.12 }],
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.28,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
   },
   dayNum: {
     fontFamily: fonts.bodySemi,

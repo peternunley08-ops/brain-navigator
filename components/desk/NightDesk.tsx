@@ -5,6 +5,7 @@ import { clock } from '../../core/dates';
 import { useLifeStore, weekOf } from '../../core/lifeStore';
 import { dueOn, firstClassOn, lightsOutMinutes, minutesOf, morningKey, nightNow, pastLightsOut, tonightKey, tonightWeekday } from '../../core/night';
 import { useSchoolStore } from '../../core/schoolStore';
+import { curve } from '../../core/craft';
 import { alpha, colors, dimensionColor, fonts, radii, textGrow } from '../../core/theme';
 import { plural } from '../../core/words';
 import { emberSay } from '../ember/EmberBuddy';
@@ -330,6 +331,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 24,
     borderRadius: radii.lg,
+    ...curve,
     backgroundColor: alpha(MOON, 0.05),
   },
   centered: {
