@@ -82,3 +82,29 @@ export const counts = { first: 650, change: 420 } as const;
  * Motion, so the row is simply in its new place.
  */
 export const glide = LinearTransition.springify().damping(springs.gentle.damping).stiffness(springs.gentle.stiffness);
+
+/**
+ * Morph: the next view starts as the card you tapped and grows into its place.
+ * Spring the scales to 1 and the shift to 0 on springs.gentle.
+ */
+export function originScale(
+  from: { x: number; y: number; width: number; height: number },
+  to: { width: number; height: number },
+  toOrigin: { x: number; y: number },
+) {
+  'worklet';
+  return {
+    scaleX: to.width === 0 ? 1 : from.width / to.width,
+    scaleY: to.height === 0 ? 1 : from.height / to.height,
+    translateX: from.x - toOrigin.x,
+    translateY: from.y - toOrigin.y,
+  };
+}
+
+/** A sheet or drawer follows your finger, then leans back once you pass the edge. */
+export function gestureResponse(translation: number, limit: number) {
+  'worklet';
+  if (Math.abs(translation) <= limit) return translation;
+  const signed = translation < 0 ? -limit : limit;
+  return signed + rubberband(translation - signed, limit);
+}

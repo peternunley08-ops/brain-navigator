@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { useAnimatedStyle, useReducedMotion, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 import type { EmberAction } from '../../core/ember';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts } from '../../core/theme';
 import { Icon, type IconName } from '../ui/Icon';
 import { Pressy } from '../ui/Pressy';
@@ -127,20 +128,21 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 14,
     borderRadius: 24,
-    backgroundColor: '#2A2130',
-    borderWidth: 1,
-    borderColor: alpha('#F5B45C', 0.28),
-    shadowColor: '#000',
-    shadowOpacity: 0.5,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
+    ...curve,
+    backgroundColor: colors.surfaceHigh,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: alpha(colors.flame, 0.28),
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.38,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 10 },
   },
   tail: {
     position: 'absolute',
     width: 16,
     height: 16,
-    backgroundColor: '#2A2130',
-    borderColor: alpha('#F5B45C', 0.28),
+    backgroundColor: colors.surfaceHigh,
+    borderColor: alpha(colors.flame, 0.28),
     transform: [{ rotate: '45deg' }],
   },
   tailBelow: {

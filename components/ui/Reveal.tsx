@@ -1,13 +1,13 @@
 import { createContext, type ReactNode, useContext } from 'react';
 import type { StyleProp, ViewStyle } from 'react-native';
-import Animated, { Easing, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
+import { sprung } from '../../core/motion';
 
 /** False when the page has been opened before this session: it's simply there. */
 export const RevealContext = createContext(true);
 
-// Content arrives in order, a beat apart, rising a few points as it fades
-// in — the screen settles rather than snapping on. Only the first time a
-// page opens in a session, and quickly, so pages never feel slow to use.
+// Content arrives in order, a beat apart, rising a few points as it settles
+// on the gentle spring. Only the first time a page opens in a session.
 // Reanimated drops the movement on its own under Reduce Motion.
 export function Reveal({
   index = 0,
@@ -24,10 +24,12 @@ export function Reveal({
       style={style}
       entering={
         animate
-          ? FadeInDown.duration(400)
-              .delay(40 + Math.min(index, 6) * 45)
-              .easing(Easing.out(Easing.cubic))
-              .withInitialValues({ opacity: 0, transform: [{ translateY: 12 }] })
+          ? sprung(
+              FadeInDown.delay(40 + Math.min(index, 6) * 45).withInitialValues({
+                opacity: 0,
+                transform: [{ translateY: 8 }],
+              }),
+            )
           : undefined
       }
     >

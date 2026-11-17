@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { type LayoutChangeEvent, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut, useAnimatedStyle, useReducedMotion, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { curve } from '../core/craft';
 import { navTucked, navWanted, scrollFocusedToTop } from '../core/chrome';
 import { useLifeStore } from '../core/lifeStore';
 import { springs, timings } from '../core/motion';
@@ -410,10 +411,11 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   hint: {
-    shadowColor: '#000',
-    shadowOpacity: 0.45,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
+    ...curve,
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 999,
@@ -443,7 +445,8 @@ const styles = StyleSheet.create({
     width: 46,
     height: 46,
     borderRadius: 15,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -469,14 +472,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
     backgroundColor: 'rgba(30, 24, 34, 0.97)',
     borderRadius: 34,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     borderTopColor: colors.lineStrong,
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowOpacity: 0.38,
+    shadowRadius: 28,
+    elevation: 8,
   },
   barLate: {
     opacity: 0.75,
@@ -546,9 +550,9 @@ const styles = StyleSheet.create({
     borderWidth: 5,
     borderColor: colors.night,
     shadowColor: colors.flame,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.45,
-    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.32,
+    shadowRadius: 18,
     elevation: 8,
   },
   // Hugs its content and only scrolls once the sheet hits its height limit.
@@ -571,7 +575,8 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 16,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
   },

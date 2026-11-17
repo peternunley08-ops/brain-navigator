@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { curve, layers } from '../core/craft';
 import { alpha, colors, fonts, radii, textGrow } from '../core/theme';
 import { useUndoStore } from '../core/undoStore';
 import { Icon } from './ui/Icon';
@@ -82,6 +83,7 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     alignItems: 'center',
+    zIndex: layers.toast,
   },
   bar: {
     flexDirection: 'row',
@@ -93,13 +95,14 @@ const styles = StyleSheet.create({
     paddingRight: 6,
     paddingVertical: 6,
     borderRadius: radii.pill,
+    ...curve,
     backgroundColor: colors.surfaceHigh,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.lineStrong,
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.38,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 10 },
   },
   label: {
     flex: 1,

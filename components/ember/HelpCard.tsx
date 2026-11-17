@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { Icon, type IconName } from '../ui/Icon';
 import { Pressy } from '../ui/Pressy';
@@ -38,6 +39,7 @@ const styles = StyleSheet.create({
   card: {
     padding: 16,
     borderRadius: radii.lg,
+    ...curve,
     backgroundColor: alpha(colors.danger, 0.1),
     borderWidth: 1,
     borderColor: alpha(colors.danger, 0.35),

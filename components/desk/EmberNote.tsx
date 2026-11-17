@@ -12,6 +12,7 @@ import { useHubStore } from '../../core/hubStore';
 import { learnedNotes } from '../../core/learned';
 import { useLifeStore } from '../../core/lifeStore';
 import { useSchoolStore } from '../../core/schoolStore';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { useWellnessStore } from '../../core/wellnessStore';
 import { Icon } from '../ui/Icon';
@@ -192,8 +193,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: radii.pill,
+    ...curve,
     backgroundColor: alpha(colors.text, 0.06),
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: alpha(colors.text, 0.22),
   },
   link: {

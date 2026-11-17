@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, type PressableProps, type StyleProp, StyleSheet, Text, useWindowDimensions, View, type ViewStyle } from 'react-native';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, gradients, radii, textGrow } from '../../core/theme';
 import { Icon, type IconName } from './Icon';
 import { Pressy } from './Pressy';
@@ -97,6 +98,7 @@ export function Button({
 const styles = StyleSheet.create({
   base: {
     borderRadius: radii.pill,
+    ...curve,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -131,7 +133,7 @@ const styles = StyleSheet.create({
   },
   secondary: {
     backgroundColor: colors.surfaceHigh,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.lineStrong,
   },
   ghost: {

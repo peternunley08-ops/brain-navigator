@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useCountUp } from '../../core/hooks/useCountUp';
+import { curve } from '../../core/craft';
 import { colors, fonts, radii, textGrow } from '../../core/theme';
 
 interface StatTileProps {
@@ -32,8 +33,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 12,
     borderRadius: radii.md,
+    ...curve,
     backgroundColor: colors.surfaceSunk,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     alignItems: 'center',
   },

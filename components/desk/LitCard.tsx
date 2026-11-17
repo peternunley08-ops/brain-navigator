@@ -12,6 +12,7 @@ import { useLifeStore } from '../../core/lifeStore';
 import { minutesOf, minutesToNight, nightNow, nightStart } from '../../core/night';
 import { nowState, useSchoolStore } from '../../core/schoolStore';
 import { offerUndo } from '../../core/undoStore';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, textGrow } from '../../core/theme';
 import { plural } from '../../core/words';
 import { Sparks } from '../ember/Sparks';
@@ -240,6 +241,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     borderRadius: 22,
+    ...curve,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'flex-end',

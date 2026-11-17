@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { goHome } from '../core/chrome';
 import { endShow } from '../core/show';
 import { useShowMode } from '../core/showMode';
+import { curve } from '../core/craft';
 import { colors, fonts } from '../core/theme';
 import { emberSay } from './ember/EmberBuddy';
 import { Icon } from './ui/Icon';
@@ -56,11 +57,12 @@ const styles = StyleSheet.create({
     height: 22,
     paddingHorizontal: 10,
     borderRadius: 999,
+    ...curve,
     backgroundColor: colors.flame,
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.28,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
   },
   text: {
     fontFamily: fonts.bodySemi,

@@ -14,8 +14,9 @@ interface PressyProps extends Omit<PressableProps, 'style' | 'children'> {
   haptic?: 'light' | 'selection' | 'none';
 }
 
-// Every tappable surface in the app sinks a little under your finger and
-// springs back — the press is felt before anything else happens.
+// Every tappable surface sinks a pixel under your finger and springs back.
+// The sink is one pixel, so it does not take the finger's speed. A fast
+// flick would throw the control off the page.
 export function Pressy({
   style,
   children,
@@ -28,8 +29,11 @@ export function Pressy({
   ...rest
 }: PressyProps) {
   const scale = useSharedValue(1);
+  const sink = useSharedValue(0);
   const reduced = useReducedMotion();
-  const anim = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
+  const anim = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { translateY: sink.value }],
+  }));
 
   return (
     <AnimatedPressable
@@ -38,11 +42,20 @@ export function Pressy({
       disabled={disabled}
       style={[style, anim]}
       onPressIn={(e) => {
-        if (!reduced) scale.value = withSpring(depth, springs.press);
+        if (!disabled && !reduced) {
+          scale.value = withSpring(depth, springs.press);
+          sink.value = withSpring(1, springs.press);
+        }
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        if (!reduced) scale.value = withSpring(1, springs.release);
+        if (reduced || disabled) {
+          scale.value = 1;
+          sink.value = 0;
+        } else {
+          scale.value = withSpring(1, springs.release);
+          sink.value = withSpring(0, springs.release);
+        }
         onPressOut?.(e);
       }}
       onPress={(e) => {

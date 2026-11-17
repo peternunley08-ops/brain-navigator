@@ -1,4 +1,5 @@
 import { StyleSheet, Text, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii, textGrow } from '../../core/theme';
 import { Pressy } from './Pressy';
 
@@ -50,8 +51,9 @@ const styles = StyleSheet.create({
     padding: 4,
     gap: 4,
     borderRadius: radii.pill,
+    ...curve,
     backgroundColor: colors.surfaceSunk,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
   },
   railStack: {
@@ -63,6 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.pill,
+    ...curve,
     paddingHorizontal: 8,
   },
   segStack: {

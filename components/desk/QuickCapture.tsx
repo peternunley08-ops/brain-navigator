@@ -5,6 +5,7 @@ import Animated, { FadeIn } from 'react-native-reanimated';
 import { quickParse } from '../../core/quickParse';
 import { useLifeStore } from '../../core/lifeStore';
 import { dueLabel, KIND_LABEL, useSchoolStore } from '../../core/schoolStore';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { offerUndo } from '../../core/undoStore';
 import { emberSay } from '../ember/EmberBuddy';
@@ -106,7 +107,8 @@ const styles = StyleSheet.create({
     paddingRight: 6,
     minHeight: 50,
     borderRadius: radii.lg,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     backgroundColor: colors.surfaceSunk,
   },

@@ -4,7 +4,8 @@ import Animated, { SlideInDown, useAnimatedStyle, useSharedValue, withSpring, wi
 import { GestureDetector, GestureHandlerRootView, usePanGesture } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
-import { project, rubberband, springs, sprung, timings } from '../../core/motion';
+import { curve, layers } from '../../core/craft';
+import { gestureResponse, project, springs, sprung, timings } from '../../core/motion';
 import { alpha, colors } from '../../core/theme';
 import { GLASS, GlassFill } from './Glass';
 import { Pressy } from './Pressy';
@@ -40,7 +41,8 @@ export function Sheet({
     onUpdate: (e) => {
       'worklet';
       const y = e.translationY;
-      drag.value = y >= 0 ? y : -rubberband(-y, 400);
+      // Down follows the finger. Up follows for a moment, then resists.
+      drag.value = y >= 0 ? y : gestureResponse(y, 12);
       speed.value = e.velocityY;
     },
     onFinalize: () => {
@@ -108,15 +110,22 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
+    zIndex: layers.sheet,
   },
   sheet: {
     paddingHorizontal: 20,
     paddingTop: 10,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    ...curve,
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.lineStrong,
+    shadowColor: colors.shadowDeep,
+    shadowOpacity: 0.48,
+    shadowRadius: 36,
+    shadowOffset: { width: 0, height: -8 },
+    elevation: 12,
   },
   glass: {
     backgroundColor: 'transparent',
