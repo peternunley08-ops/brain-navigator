@@ -46,6 +46,9 @@ AccessibilityInfo.addEventListener('darkerSystemColorsChanged', noteContrast);
 export const colors = {
   // The room.
   night: '#120F14',
+  // Darker than the room, so a floating shadow reads as shade and not a black slab.
+  shadow: '#0A070C',
+  shadowDeep: '#050308',
   nightHigh: '#1B1520',
   surface: '#211A25',
   surfaceHigh: '#2B2230',

@@ -7,6 +7,7 @@ import { THIS_OR_THAT, type ThisOrThat } from '../../core/about';
 import * as Haptics from '../../core/haptics';
 import { useLifeStore } from '../../core/lifeStore';
 import { project, springs, timings } from '../../core/motion';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
@@ -198,14 +199,15 @@ const styles = StyleSheet.create({
     height: 236,
     padding: 18,
     borderRadius: radii.lg,
+    ...curve,
     backgroundColor: colors.surfaceHigh,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.lineStrong,
     overflow: 'hidden',
-    shadowColor: colors.night,
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 6 },
   },
   under: {
     top: 10,

@@ -1,5 +1,6 @@
 import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from 'expo-glass-effect';
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { curve } from '../../core/craft';
 import { alpha, colors } from '../../core/theme';
 
 /** True where iOS draws Liquid Glass (iOS 26 and up). Elsewhere callers keep their solid fill. */
@@ -16,7 +17,7 @@ export function GlassFill({ radius = 0, tint = GLASS_TINT, style }: { radius?: n
   return (
     <GlassView
       pointerEvents="none"
-      style={[StyleSheet.absoluteFill, { borderRadius: radius }, style]}
+      style={[StyleSheet.absoluteFill, { borderRadius: radius }, curve, style]}
       glassEffectStyle="regular"
       colorScheme="dark"
       tintColor={tint}

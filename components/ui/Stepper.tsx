@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { curve } from '../../core/craft';
 import { colors, fonts } from '../../core/theme';
 import { Icon } from './Icon';
 import { Pressy } from './Pressy';
@@ -53,10 +54,11 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
+    ...curve,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surfaceHigh,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
   },
   value: {

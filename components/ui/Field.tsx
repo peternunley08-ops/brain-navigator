@@ -1,5 +1,6 @@
 import { forwardRef, useId, useState } from 'react';
 import { InputAccessoryView, Keyboard, Platform, StyleSheet, Text, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
+import { curve } from '../../core/craft';
 import { colors, fonts, layout, radii } from '../../core/theme';
 import { Pressy } from './Pressy';
 
@@ -93,7 +94,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 13,
     borderRadius: radii.md,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     backgroundColor: colors.surfaceSunk,
     fontFamily: fonts.body,

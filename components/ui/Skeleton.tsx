@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, type DimensionValue, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { curve } from '../../core/craft';
 import { colors, radii } from '../../core/theme';
 
 // A soft, breathing placeholder while something loads from the network —
@@ -12,7 +13,7 @@ export function Skeleton({ height = 16, width = '100%', radius = radii.sm, style
     if (!reduced) p.value = withRepeat(withTiming(1, { duration: 900, easing: Easing.inOut(Easing.quad) }), -1, true);
   }, [p, reduced]);
   const pulse = useAnimatedStyle(() => ({ opacity: 0.45 + 0.35 * p.value }));
-  return <Animated.View style={[styles.block, { height, width, borderRadius: radius }, pulse, style]} />;
+  return <Animated.View style={[styles.block, { height, width, borderRadius: radius }, curve, pulse, style]} />;
 }
 
 /** A card-shaped stack of skeleton lines. */
@@ -44,7 +45,8 @@ const styles = StyleSheet.create({
   card: {
     padding: 18,
     borderRadius: radii.lg,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     backgroundColor: colors.surface,
   },

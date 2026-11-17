@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
 import { clock } from '../../core/schoolStore';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { Chip } from './Chip';
 import { Icon } from './Icon';
@@ -70,7 +71,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: radii.md,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     backgroundColor: colors.surfaceSunk,
   },

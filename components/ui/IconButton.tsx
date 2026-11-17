@@ -1,4 +1,5 @@
 import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import { curve } from '../../core/craft';
 import { alpha, colors } from '../../core/theme';
 import { GLASS, GlassFill } from './Glass';
 import { Icon, type IconName } from './Icon';
@@ -61,7 +62,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colors.surface,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     borderTopColor: colors.lineStrong,
   },

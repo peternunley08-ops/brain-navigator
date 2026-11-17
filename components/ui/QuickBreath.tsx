@@ -2,6 +2,7 @@ import * as Haptics from '../../core/haptics';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, useAnimatedStyle, useReducedMotion, useSharedValue, withTiming } from 'react-native-reanimated';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { noteBreathDay } from '../../core/lifeStore';
 import { emberSay } from '../ember/EmberBuddy';
@@ -114,7 +115,8 @@ const styles = StyleSheet.create({
     minWidth: 40,
     height: 30,
     borderRadius: radii.pill,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     alignItems: 'center',
     justifyContent: 'center',
@@ -133,7 +135,8 @@ const styles = StyleSheet.create({
     gap: 14,
     padding: 14,
     borderRadius: radii.lg,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
   },
   orbWrap: {
     width: 52,

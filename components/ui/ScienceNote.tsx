@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInDown, FadeOut } from 'react-native-reanimated';
+import { curve } from '../../core/craft';
 import { alpha, colors, fonts, radii } from '../../core/theme';
 import { Icon } from './Icon';
 import { Pressy } from './Pressy';
@@ -48,8 +49,9 @@ const styles = StyleSheet.create({
     marginTop: 8,
     padding: 12,
     borderRadius: radii.md,
+    ...curve,
     backgroundColor: alpha(colors.flame, 0.08),
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: alpha(colors.flame, 0.18),
     fontFamily: fonts.displaySoft,
     fontSize: 14,

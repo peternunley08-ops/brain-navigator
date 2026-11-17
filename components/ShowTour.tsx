@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEmberStore } from '../core/emberStore';
 import * as Haptics from '../core/haptics';
 import { dismissTour, setTourStep, TOUR_PATHS, useShowMode, useTour } from '../core/showMode';
+import { curve } from '../core/craft';
 import { colors, fonts, layout, radii } from '../core/theme';
 import { emberStepsAside } from './ember/EmberBuddy';
 import { Pressy } from './ui/Pressy';
@@ -93,13 +94,14 @@ const styles = StyleSheet.create({
     gap: 8,
     padding: 6,
     borderRadius: 999,
+    ...curve,
     backgroundColor: colors.surfaceHigh,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.lineStrong,
-    shadowColor: '#000',
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: colors.shadow,
+    shadowOpacity: 0.38,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 10 },
   },
   line: {
     maxWidth: 320,
@@ -108,7 +110,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: radii.md,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.lineStrong,
     backgroundColor: colors.surfaceHigh,
     fontFamily: fonts.body,
@@ -120,13 +123,14 @@ const styles = StyleSheet.create({
     height: 40,
     paddingHorizontal: 20,
     borderRadius: 999,
+    ...curve,
     backgroundColor: colors.flame,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
+    shadowColor: colors.flame,
+    shadowOpacity: 0.32,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
   },
   goldText: { fontFamily: fonts.bodyBold, fontSize: 14, color: colors.flameInk },
   quiet: {

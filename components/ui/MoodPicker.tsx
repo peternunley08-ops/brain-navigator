@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from 'react-native';
 import { useEffect } from 'react';
 import Animated, { cancelAnimation, useAnimatedStyle, useReducedMotion, useSharedValue, withRepeat, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { curve as corner } from '../../core/craft';
 import { springs } from '../../core/motion';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { alpha, colors, dimensionColor, fonts, textGrow } from '../../core/theme';
@@ -139,6 +140,7 @@ const styles = StyleSheet.create({
     width: 54,
     height: 54,
     borderRadius: 27,
+    ...corner,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',

@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { type ReactNode, useState } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
+import { curve } from '../../core/craft';
 import { alpha, colors, radii } from '../../core/theme';
 import { Pressy } from './Pressy';
 
@@ -66,7 +67,8 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: colors.surface,
     borderRadius: radii.lg,
-    borderWidth: 1,
+    ...curve,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.line,
     borderTopColor: colors.lineStrong,
     overflow: 'hidden',
